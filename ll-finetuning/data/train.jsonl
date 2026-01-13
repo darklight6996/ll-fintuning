@@ -1,0 +1,3 @@
+{"text": "Q: What is SQL injection?\nA: SQL injection is a vulnerability where untrusted input is concatenated into SQL queries, allowing attackers to manipulate database queries."}
+{"text": "Q: What is XSS?\nA: Cross-site scripting is a vulnerability that allows attackers to inject malicious JavaScript into web pages viewed by other users."}
+{"text": "Q: What does Nmap do?\nA: Nmap is a network scanning tool used to discover hosts, services, and open ports on a network."}
