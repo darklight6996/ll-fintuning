@@ -1,3 +1,52 @@
-{"text": "Q: What is SQL injection?\nA: SQL injection is a vulnerability where untrusted input is concatenated into SQL queries, allowing attackers to manipulate database queries."}
-{"text": "Q: What is XSS?\nA: Cross-site scripting is a vulnerability that allows attackers to inject malicious JavaScript into web pages viewed by other users."}
-{"text": "Q: What does Nmap do?\nA: Nmap is a network scanning tool used to discover hosts, services, and open ports on a network."}
+[
+  {
+    "instruction": "How do you perform an initial reconnaissance scan to identify open ports and common services on a target host?",
+    "input": "You have permission to test a lab machine at IP 10.10.10.10 and want a quick but informative scan.",
+    "output": "Command: `nmap -sC -sV 10.10.10.10`\nExplanation: Runs default scripts and service/version detection to quickly identify exposed services during initial recon."
+  },
+  {
+    "instruction": "How can you discover all TCP ports that might be open during early penetration testing?",
+    "input": "The target host is 10.10.10.10 and you want to scan the full port range efficiently.",
+    "output": "Command: `nmap -p- -T4 --min-rate 1000 10.10.10.10`\nExplanation: Scans all 65535 TCP ports with faster timing to ensure no open ports are missed."
+  },
+  {
+    "instruction": "How do you enumerate hidden web directories on a target website using Gobuster?",
+    "input": "The web application is hosted at http://10.10.10.10 and may have hidden admin paths.",
+    "output": "Command: `gobuster dir -u http://10.10.10.10 -w /usr/share/wordlists/dirb/common.txt`\nExplanation: Uses a common wordlist to brute-force discover accessible directories and files."
+  },
+  {
+    "instruction": "How can you extend Gobuster scans to look for common web file extensions?",
+    "input": "The target site http://10.10.10.10 might use PHP or HTML files.",
+    "output": "Command: `gobuster dir -u http://10.10.10.10 -w /usr/share/wordlists/dirb/common.txt -x php,html,txt`\nExplanation: Adds file extensions to the scan to find hidden files as well as directories."
+  },
+  {
+    "instruction": "How do you perform a CIS-style security baseline audit on an Ubuntu system?",
+    "input": "You have shell access to an Ubuntu 22.04 server and want to check system hardening.",
+    "output": "Command: `lynis audit system`\nExplanation: Lynis performs an automated security audit aligned with CIS and other best-practice benchmarks."
+  },
+  {
+    "instruction": "How can you quickly review hardening suggestions related to CIS controls on Ubuntu?",
+    "input": "You already ran a system audit and want focused recommendations.",
+    "output": "Command: `lynis show suggestions`\nExplanation: Displays actionable hardening recommendations based on the audit results."
+  },
+  {
+    "instruction": "How do you recover deleted files from a disk image during a basic forensic investigation?",
+    "input": "You have a forensic image named disk.img that may contain deleted files.",
+    "output": "Command: `foremost -i disk.img -o recovered_files`\nExplanation: Foremost carves and recovers files from a disk image based on file headers."
+  },
+  {
+    "instruction": "How can you perform file carving while preserving evidence integrity?",
+    "input": "You are working on a read-only mounted forensic image disk.img.",
+    "output": "Command: `foremost -i disk.img -o output -v`\nExplanation: Runs verbose file carving on the image without modifying the original evidence."
+  },
+  {
+    "instruction": "How do you verify which users currently have access to a Linux system for SOC2 access control review?",
+    "input": "You need to list all local user accounts on a production Linux server.",
+    "output": "Command: `getent passwd`\nExplanation: Lists all user accounts, supporting access reviews required by SOC2."
+  },
+  {
+    "instruction": "How can you validate that sudo access is properly configured during a SOC2 audit?",
+    "input": "You are reviewing privileged access controls on a Linux server.",
+    "output": "Command: `sudo visudo -c`\nExplanation: Checks the sudoers configuration for syntax errors and helps ensure controlled privileged access."
+  }
+]

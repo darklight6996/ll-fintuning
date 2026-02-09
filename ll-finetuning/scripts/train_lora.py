@@ -1,6 +1,7 @@
 from datasets import load_dataset
 from transformers import ( AutoTokenizer, AutoModelForCausalLM, TrainingArguments, Trainer, DataCollatorForLanguageModeling)
 from peft import LoraConfig, get_peft_model
+import torch
 
 MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 
@@ -8,13 +9,32 @@ MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 
 dataset = load_dataset(
     "json", 
-    data_files="../data/train.jsonl"
+    data_files="D:/AI Dev/ll-fintuning/ll-finetuning/data/data.jsonl"
     )
 
 #Load tokenizer and model
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
+tokenizer.pad_token = tokenizer.eos_token
+# model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME,
+    torch_dtype=torch.float16,
+    device_map="auto"
+)
+
+def merge_fields(example):
+    text = f"""### Instruction:
+{example['instruction']}
+
+### Input:
+{example.get('input', '')}
+
+### Response:
+{example['output']}"""
+    return {"text": text}
+
+dataset = dataset.map(merge_fields)
 
 #tokenization
 
@@ -22,7 +42,7 @@ def tokenize(example):
     return tokenizer(
         example["text"],
         truncation=True,
-        padding="max_length",
+       # padding="max_length",
         max_length=256
     )
 
@@ -50,8 +70,11 @@ model.print_trainable_parameters()
 training_args = TrainingArguments(
     output_dir="lora-output",
     per_device_train_batch_size=1,
-    num_train_epochs=3,
+    num_train_epochs=2,
     logging_steps=1,
+    gradient_accumulation_steps=8,
+    learning_rate=2e-4,
+    fp16=True,
     save_strategy="epoch",
     report_to="none",
     dataloader_pin_memory=False
