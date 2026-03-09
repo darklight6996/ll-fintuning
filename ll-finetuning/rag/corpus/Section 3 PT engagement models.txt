@@ -1,0 +1,12 @@
+================================================================================
+SECTION 3: PENETRATION TESTING ENGAGEMENT MODELS
+================================================================================
+
+Internal penetration tests are conducted from within the corporate network, simulating an insider threat or the scenario where an attacker has already breached the perimeter. The tester typically starts with a laptop connected to the internal network or a VPN account. Internal tests are focused on lateral movement, privilege escalation within Active Directory, access to sensitive internal systems, and the damage a malicious employee or compromised workstation could cause.
+
+External penetration tests are conducted entirely from the internet, targeting public-facing assets including web applications, APIs, VPN gateways, mail servers, and exposed management interfaces. The goal is to determine what an unauthenticated external attacker can achieve without any internal access. External tests typically begin with reconnaissance against the organization's public IP ranges and domain names.
+
+Physical penetration tests assess the effectiveness of physical security controls such as access badge systems, locked server rooms, tailgating vulnerabilities, and on-site security personnel. Physical testers may attempt to gain unauthorized entry to facilities, access unattended workstations, or plant rogue network devices. Physical and logical testing are often combined to simulate a realistic insider threat scenario.
+
+Social engineering assessments target the human element of security by simulating phishing emails, vishing phone calls, and pretexting campaigns. These engagements measure how likely employees are to click malicious links, provide credentials over the phone, or grant access to unauthorized individuals. Social engineering results are typically measured as click rates, credential submission rates, and report rates, and findings feed directly into security awareness training programs.
+

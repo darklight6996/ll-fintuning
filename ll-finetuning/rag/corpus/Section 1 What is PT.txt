@@ -1,0 +1,10 @@
+================================================================================
+SECTION 1: WHAT IS PENETRATION TESTING
+================================================================================
+
+Penetration testing, commonly called pentesting, is a simulated cyberattack conducted by authorized security professionals against a target system, network, or application. The goal is to identify and exploit vulnerabilities in a controlled manner before real attackers can discover and abuse them. Unlike automated vulnerability scanning, penetration testing involves manual reasoning, chained attack paths, and contextual judgment about what a realistic adversary could accomplish.
+
+The core objectives of a penetration test are to identify exploitable vulnerabilities within the defined scope, validate the effectiveness of existing security controls, assess the potential business impact of a successful breach, and provide prioritized remediation guidance. Pentests are also conducted to satisfy regulatory, contractual, or insurance requirements that mandate periodic third-party security validation.
+
+A penetration test is not the same as a vulnerability assessment. A vulnerability assessment discovers and categorizes weaknesses but stops short of exploitation. A penetration test goes further by attempting to actively exploit those weaknesses, chain vulnerabilities together to escalate privileges, and demonstrate the real-world impact of a successful attack. The distinction matters when scoping engagements and setting client expectations.
+

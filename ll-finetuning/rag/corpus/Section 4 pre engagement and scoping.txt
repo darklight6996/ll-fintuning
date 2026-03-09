@@ -1,0 +1,12 @@
+================================================================================
+SECTION 4: PRE-ENGAGEMENT AND SCOPING
+================================================================================
+
+The pre-engagement phase is the legal and operational foundation of every penetration test. Nothing in the engagement proceeds until a signed statement of work or rules of engagement document is in place. This document defines the exact scope of the test, including target IP ranges, CIDR blocks, domain names, application URLs, and any explicitly excluded systems. Any asset not listed in the scope document is out of bounds regardless of how accessible it appears during testing.
+
+When reviewing scope documentation, several fields must be confirmed before any active testing begins. These include the list of in-scope and out-of-scope assets, the authorized testing windows indicating whether testing can occur around the clock or only during maintenance windows, emergency contact information and escalation procedures, and data handling requirements governing how screenshots, captured credentials, and other evidence must be stored and transmitted. Missing or ambiguous scope is a blocker that must be resolved before proceeding.
+
+Rules of engagement define the specific constraints and protocols for the engagement. Standard clauses include prohibitions on denial-of-service attacks unless explicitly authorized, restrictions on exfiltrating real personally identifiable information or financial data beyond a proof-of-concept indicator, requirements to avoid leaving persistent backdoors or implants in the environment after the engagement, and mandatory stop-and-notify procedures if the tester discovers evidence of an active threat actor, ransomware, or critical national infrastructure within the scope.
+
+CVSS scoring and severity thresholds should be agreed upon before testing begins. Some clients require that any critical severity finding be reported immediately via phone rather than held for the final report. Others want a complete list only at engagement close. These notification preferences must be documented in the rules of engagement so the tester knows how to handle findings in real time.
+

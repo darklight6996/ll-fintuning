@@ -1,0 +1,23 @@
+================================================================================
+SECTION 18: KEY PENETRATION TESTING TOOLS REFERENCE
+================================================================================
+
+Amass is an open source network mapping and attack surface discovery tool developed by OWASP. It performs extensive subdomain enumeration using passive data sources including certificate transparency logs, DNS brute forcing, web scraping, and API integrations with services like Shodan and VirusTotal. It is the standard tool for comprehensive subdomain discovery during the reconnaissance phase.
+
+Nmap is the standard port scanner used in network penetration testing. Its service version detection capability fingerprints the exact software and version running on each open port. The scripting engine allows execution of specialized scripts for vulnerability detection, credential brute forcing, and protocol enumeration. The standard comprehensive scan using -sV -sC -O -p- provides service versions, default script output, OS detection, and a full port scan.
+
+Burp Suite Professional is the primary tool for web application penetration testing. Its intercepting proxy captures and modifies all web traffic between the browser and application. The scanner automates discovery of common vulnerabilities. The Intruder module enables brute force attacks, payload fuzzing, and automated parameter manipulation. The Repeater allows manual request crafting and response analysis. The Collaborator provides out-of-band interaction detection for vulnerabilities like blind SSRF and blind SQL injection.
+
+SQLMap is an automated SQL injection detection and exploitation tool. It tests injection points in URLs, form parameters, cookies, and HTTP headers and can automatically exploit confirmed injections to enumerate databases, extract table contents, and in some configurations execute operating system commands. It supports a wide range of database management systems including MySQL, PostgreSQL, Oracle, Microsoft SQL Server, and SQLite.
+
+Impacket is a Python library providing implementations of network protocols used in Windows environments. The secretsdump module extracts password hashes from remote systems using various techniques. GetUserSPNs and GetNPUsers enable Kerberoasting and AS-REP Roasting. Wmiexec, smbexec, and psexec provide remote code execution over Windows protocols. Impacket is the foundational toolkit for Active Directory penetration testing.
+
+Mimikatz is a post-exploitation tool for Windows credential extraction. Its sekurlsa module dumps plaintext passwords and NTLM hashes from LSASS process memory. The lsadump module performs DCSync attacks and extracts credentials from the SAM database. The kerberos module enables Pass-the-Ticket attacks and Golden Ticket creation. Mimikatz requires SYSTEM or local administrator privileges and is the primary tool for credential harvesting in Windows environments.
+
+BloodHound uses graph theory to analyze Active Directory relationships and identify attack paths to privilege. SharpHound collects domain data by querying LDAP and SMB and outputs JSON files that BloodHound ingests. The built-in queries automatically identify the shortest path to Domain Admin, accounts with high-value targets reachable through delegation chains, and users with dangerous permissions like DCSync rights. It is essential for understanding the full attack surface of an Active Directory environment.
+
+Nuclei is a template-based vulnerability scanner that tests for specific vulnerabilities using community-contributed YAML templates covering CVEs, misconfigurations, exposed panels, and default credentials. Unlike broad scanners, Nuclei tests for specific known issues and produces low false-positive results. The template library is constantly updated as new CVEs are disclosed.
+
+CrackMapExec is a post-exploitation tool for Active Directory environments that automates attacks across large networks. It can test credentials against SMB, WMI, LDAP, MSSQL, SSH, and other protocols across entire subnets simultaneously. It automates Pass-the-Hash attacks, executes commands on multiple targets, enumerates shares, users, and policies, and dumps SAM databases. It is the primary tool for establishing the blast radius of a credential compromise.
+
+Pacu is an AWS exploitation framework that automates enumeration and privilege escalation in Amazon Web Services environments. It enumerates IAM permissions, identifies privilege escalation paths, tests for vulnerable Lambda functions and EC2 instances, and assists with exploitation of misconfigured cloud services. It is the cloud equivalent of Metasploit for AWS-specific attack scenarios.

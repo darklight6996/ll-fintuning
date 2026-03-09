@@ -1,0 +1,11 @@
+Directory Enumeration Tools and Wordlists
+
+Directory enumeration relies on targeted tools and structured wordlists to uncover hidden paths within web applications. Wordlists should consist of common directory and file names to maximize the chances of successful discoveries.
+
+Popular tools include FFUF, Gobuster, and Feroxbuster. Each tool automates the process of sending requests to the server, appending entries from the wordlist to test for valid paths. For instance, with the base URL http://example.com, these tools might check paths like /admin and /dashboard.
+
+When configuring these tools, it is crucial to manage request rates effectively. Overwhelming a server with rapid requests can lead to rate limiting or temporary IP bans. Implement delays or increase the number of simultaneous requests cautiously to ensure continued access.
+
+Understanding how requests are formed is also key. The tools send HTTP GET requests for each path attempted, analyzing the responses. Status codes like 200 (OK) indicate valid paths, while 403 (Forbidden) can suggest that the directory exists but is protected from public access.
+
+By combining structured wordlists with automated tools, penetration testers can systematically uncover hidden directories and enhance their overall assessment of the security posture of web applications.
