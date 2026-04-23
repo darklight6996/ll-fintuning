@@ -1,0 +1,77 @@
+**Definition**
+
+T1036 Masquerading is a defense evasion technique where an adversary manipulates the name, location, or appearance of a malicious file, process, or system artifact to make it appear legitimate. The goal is to bypass security controls that rely on static indicators such as file names, paths, or digital signatures. Masquerading does not alter the underlying malicious code; it only changes how that code is presented to the operating system, users, and security tools. This technique is cataloged under MITRE ATT&CK ID T1036 and includes multiple sub-techniques such as Rename System Utilities (T1036.003), Masquerade Task or Service (T1036.004), and Match Legitimate Name or Location (T1036.005).
+
+**Key Components**
+
+Masquerading relies on several core methods to achieve its objective:
+
+- **File Name and Path Manipulation**  
+  Attackers rename executables to match common system files (e.g., `svchost.exe`, `explorer.exe`, `rundll32.exe`). They may also place malicious binaries in legitimate directories such as `C:\Windows\System32\` or `C:\Program Files\`. This exploits the tendency of users and some automated tools to trust files based on their location.
+
+- **Extension Spoofing**  
+  Using right-to-left override (RTLO) characters or double extensions (e.g., `invoice.pdf.exe`) to trick users into believing a file is a different type. On Windows, the default setting hides known file extensions, making this more effective.
+
+- **Digital Signature Forgery or Theft**  
+  Adversaries may steal code-signing certificates from legitimate software vendors or use self-signed certificates with misleading subject names. Some malware families have used stolen certificates from companies like NVIDIA or Adobe to sign their binaries.
+
+- **Process Hollowing and Herpaderping**  
+  While technically separate techniques, they are often combined with masquerading. Process hollowing replaces the memory of a legitimate process (e.g., `notepad.exe`) with malicious code, while the process name remains legitimate. Herpaderping modifies the file content after the image has been mapped but before security scanners can inspect it.
+
+- **Service and Task Name Mimicry**  
+  Malicious services or scheduled tasks are named to resemble legitimate Windows services (e.g., `WindowsUpdate`, `MicrosoftSecurityCenter`). This helps evade administrators who review service lists and can bypass tools that only flag unknown service names.
+
+- **Icon and Metadata Spoofing**  
+  Embedding legitimate icons (e.g., PDF, Word, or folder icons) into executables. This is primarily a user-facing deception but can also fool some file classification engines that rely on icon metadata.
+
+**Real-World Application**
+
+Masquerading is a staple in both commodity malware and advanced persistent threat (APT) operations. Several documented campaigns illustrate its use:
+
+- **Emotet and TrickBot**  
+  These banking trojans frequently drop executables named `svchost.exe` or `lsass.exe` into user-writable directories like `%AppData%`. They also use double extensions such as `document.pdf.exe` to trick users into launching the payload.
+
+- **APT29 (Cozy Bear)**  
+  In the 2020 SolarWinds compromise, the SUNBURST backdoor was signed with a legitimate certificate from SolarWinds. The binary was named `SolarWinds.Orion.Core.BusinessLayer.dll` and placed in the expected directory, making it appear as a normal component of the Orion platform.
+
+- **Ransomware Deployments**  
+  Ransomware groups like REvil and Conti have used masquerading to evade initial detection. They rename their encryptors to `mspaint.exe` or `taskmgr.exe` and place them in `C:\Windows\Temp\`. This delays detection by EDR tools that monitor for unknown executables in sensitive directories.
+
+- **Living Off the Land Binaries (LOLBins)**  
+  Adversaries rename legitimate Microsoft-signed binaries (e.g., `rundll32.exe` to `update.dll`) to execute malicious code. This is a form of masquerading that also leverages trusted publishers to bypass application whitelisting.
+
+**Security Relevance**
+
+For security engineers, masquerading undermines several common detection strategies:
+
+- **Static File Name Blocking**  
+  Blocking `svchost.exe` from running in user directories is effective, but attackers will simply rename the binary to something else, such as `chrome.exe` or `java.exe`. Detection must move beyond static names to behavioral baselines.
+
+- **Path-Based Trust**  
+  Simply trusting files in `C:\Windows\System32\` is insufficient. Attackers can place their payloads there if they have write access, or they can use symbolic links to redirect legitimate paths to malicious files.
+
+- **Signature Verification**  
+  Stolen or forged certificates can bypass signature checks. Engineers must verify that the certificate chain is valid, the timestamp is within the certificate’s validity period, and the signing entity is expected for that file.
+
+- **User Awareness Training**  
+  While user education helps against double-extension tricks, it is ineffective against process hollowing or service name mimicry. Technical controls are required.
+
+Mitigation strategies include:
+
+- **Application Control**  
+  Use tools like Windows Defender Application Control (WDAC) or AppLocker to enforce allowlists based on publisher, hash, or file path. This blocks execution of any binary not explicitly approved, regardless of its name.
+
+- **Behavioral Detection**  
+  Deploy EDR solutions that monitor for anomalous process behavior, such as `svchost.exe` making outbound network connections or writing to `%AppData%`. Baseline normal behavior for each host.
+
+- **Certificate Validation**  
+  Implement certificate pinning and revocation checking. Log and alert on any signed binary that does not match its expected publisher or that uses a recently revoked certificate.
+
+- **File Integrity Monitoring**  
+  Monitor for new files in sensitive directories (e.g., `System32`, `Program Files`) that are not part of a known software installation. Alert on any executable that appears in these directories outside of a change window.
+
+**Key Takeaways**
+
+- Masquerading exploits trust in file names, paths, and signatures without modifying malicious code; detection must rely on behavioral baselines and execution context, not static indicators.
+- Real-world campaigns from Emotet to APT29 demonstrate that masquerading is a persistent and effective evasion method, requiring layered defenses like application control and behavioral monitoring.
+- Certificate validation alone is insufficient; engineers must verify the entire trust chain and combine signature checks with file integrity monitoring and anomaly detection.

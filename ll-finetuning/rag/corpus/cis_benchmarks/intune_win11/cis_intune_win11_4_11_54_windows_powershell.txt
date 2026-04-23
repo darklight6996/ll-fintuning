@@ -1,0 +1,33 @@
+4.11.54: Windows PowerShell
+
+Overview
+This policy setting enables logging of all PowerShell script input to the Applications 
+and Services Logs\Microsoft\Windows\PowerShell\Operational Event Log 
+channel. 
+The recommended state for this setting is: Enabled. 
+Note: If logging of Script Block Invocation Start/Stop Events is enabled (option box 
+checked), PowerShell will log additional events when invocation of a command, script 
+block, function, or script starts or stops. Enabling this option generates a high volume of 
+event logs. CIS has intentionally chosen not to make a recommendation for this option, 
+since it generates a large volume of events. If an organization chooses to enable the 
+optional setting (checked), this also conforms to the benchmark.
+
+Why This Matters
+Logs of PowerShell script input can be very valuable when performing forensic 
+investigations of PowerShell attack incidents to determine what occurred.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging:Enable
+ScriptBlockLogging
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Windows PowerShell\Turn on 
+PowerShell Script Block Logging
+
+Key Takeaways
+- Logs of PowerShell script input can be very valuable when performing forensic  investigations of PowerShell attack incidents to determine what occurred.

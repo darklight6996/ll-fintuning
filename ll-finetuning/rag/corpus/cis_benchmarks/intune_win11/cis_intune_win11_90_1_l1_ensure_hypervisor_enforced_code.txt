@@ -1,0 +1,34 @@
+90.1: (L1) Ensure 'Hypervisor Enforced Code Integrity' is set to
+
+Overview
+This setting enables virtualization based protection of Kernel Mode Code Integrity. 
+When this is enabled, kernel mode memory protections are enforced and the Code 
+Integrity validation path is protected by the Virtualization Based Security feature. 
+The recommended state for this setting is: Enabled with UEFI lock. 
+Note: Virtualization Based Security requires a 64-bit version of Windows with Secure 
+Boot enabled, which in turn requires that Windows was installed with a UEFI BIOS 
+configuration, not a Legacy BIOS configuration. In addition, if running Windows on a 
+virtual machine, the hardware-assisted CPU virtualization feature (Intel VT-x or AMD-V) 
+must be exposed by the host to the guest VM. 
+More information on system requirements for this feature can be found at Windows 
+Defender Credential Guard Requirements (Windows 10) | Microsoft Docs 
+Note #2: Credential Guard and Device Guard are not currently supported when using 
+Azure IaaS VMs.
+
+Why This Matters
+The Enabled with UEFI lock option ensures that Virtualization Based Protection of 
+Code Integrity cannot be disabled remotely.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This group policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard:HypervisorEnforcedCodeIn tegrity
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled with UEFI lock. 
+Virtualization Based Technology\Hypervisor Enforced Code Integrity
+
+Key Takeaways
+- The Enabled with UEFI lock option ensures that Virtualization Based Protection of  Code Integrity cannot be disabled remotely.

@@ -1,0 +1,143 @@
+3.1: Run Automated Vulnerability Scanning Tools (and related controls)
+
+Overview
+Microsoft Defender for Resource Manager scans incoming administrative requests to 
+change your infrastructure from both CLI and the Azure portal.
+
+Ensure that the latest OS patches for all virtual machines are applied.
+
+[NOTE: As of August 1, 2023 customers with an existing subscription to Defender for 
+DNS can continue to use the service, but new subscribers will receive alerts about 
+suspicious DNS activity as part of Defender for Servers P2.] 
+Microsoft Defender for DNS scans all network traffic exiting from within a subscription.
+
+Why This Matters
+Scanning resource requests lets you be alerted every time there is suspicious activity in 
+order to prevent a security threat from being introduced.
+
+Windows and Linux virtual machines should be kept updated to: 
+• 
+Address a specific bug or flaw 
+• 
+Improve an OS or application’s general stability 
+• 
+Fix a security vulnerability 
+Microsoft Defender for Cloud retrieves a list of available security and critical updates 
+from Windows Update or Windows Server Update Services (WSUS), depending on 
+which service is configured on a Windows VM. The security center also checks for the 
+latest updates in Linux systems. If a VM is missing a system update, the security center 
+will recommend system updates be applied.
+
+DNS lookups within a subscription are scanned and compared to a dynamic list of 
+websites that might be potential security threats. These threats could be a result of a 
+security breach within your services, thus scanning for them could prevent a potential 
+security threat from being introduced.
+
+Audit Steps
+For Run Automated Vulnerability Scanning Tools:
+Audit from Azure Portal 
+1. Go to Microsoft Defender for Cloud. 
+2. Under Management, select Environment Settings. 
+3. Click on the subscription name. 
+4. Select the Defender plans blade. 
+5. Ensure Status is set to On for Resource Manager. 
+Audit from Azure CLI 
+Ensure the output of the below command is Standard 
+az security pricing show -n 'Arm' --query 'pricingTier' 
+Audit from PowerShell 
+Get-AzSecurityPricing -Name 'Arm' | Select-Object Name,PricingTier 
+Ensure the output of PricingTier is Standard 
+Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: c3d20c29-b36d-48fe-808b-99a87530ad99 - Name: 'Azure Defender 
+for Resource Manager should be enabled'
+
+For Run Automated Vulnerability Scanning Tools:
+Audit from Azure Portal 
+1. From Azure Home select the Portal Menu 
+2. Select Microsoft Defender for Cloud 
+3. Then the Recommendations blade 
+4. Ensure that there are no recommendations for System updates should be 
+installed on your machines (powered by Update Center) 
+Alternatively, you can employ your own patch assessment and management tool to 
+periodically assess, report and install the required security patches for your OS. 
+
+Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: f85bf3e0-d513-442e-89c3-1784ad63382b - Name: 'System updates 
+should be installed on your machines (powered by Update Center)' 
+• 
+Policy ID: bd876905-5b84-4f73-ab2d-2e7a7c4568d9 - Name: 'Machines should 
+be configured to periodically check for missing system updates'
+
+For Run Automated Vulnerability Scanning Tools:
+Audit from Azure Portal 
+1. Go to Microsoft Defender for Cloud 
+2. Under Management, select Environment Settings 
+3. Click on the subscription name 
+4. Select the Defender plans blade 
+5. Ensure Status is set to On for DNS. 
+Audit from Azure CLI 
+Ensure the output of the below command is Standard 
+az security pricing show -n 'DNS' --query 'PricingTier' 
+Audit from PowerShell 
+Get-AzSecurityPricing --Name 'DNS' | Select-Object Name,PricingTier 
+Ensure output of PricingTier is Standard Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: bdc59948-5574-49b3-bb91-76b7c986428d - Name: 'Azure Defender 
+for DNS should be enabled'
+
+Remediation
+For Run Automated Vulnerability Scanning Tools:
+Remediate from Azure Portal 
+1. Go to Microsoft Defender for Cloud. 
+2. Under Management, select Environment Settings. 
+3. Click on the subscription name. 
+4. Select the Defender plans blade. 
+5. Select On under Status for Resource Manager. 
+6. Select `Save. 
+Remediate from Azure CLI 
+Use the below command to enable Standard pricing tier for Defender for Resource 
+Manager 
+az security pricing create -n 'Arm' --tier 'Standard' 
+Remediate from PowerShell 
+Use the below command to enable Standard pricing tier for Defender for Resource 
+Manager 
+Set-AzSecurityPricing -Name 'Arm' -PricingTier 'Standard'
+
+For Run Automated Vulnerability Scanning Tools:
+Follow Microsoft Azure documentation to apply security patches from the security 
+center. Alternatively, you can employ your own patch assessment and management tool 
+to periodically assess, report, and install the required security patches for your OS.
+
+For Run Automated Vulnerability Scanning Tools:
+Remediate from Azure Portal 
+1. Go to Microsoft Defender for Cloud. 
+2. Under Management, select Environment Settings. 
+3. Click on the subscription name. 
+4. Select the Defender plans blade. 
+5. Select On under Status for DNS. 
+6. Select Save. 
+Remediate from Azure CLI 
+Enable Standard pricing tier for DNS: 
+az security pricing create -n 'DNS' --tier 'Standard' 
+Remediate from PowerShell 
+Enable Standard pricing tier for DNS: 
+Set-AzSecurityPricing -Name 'DNS' -PricingTier 'Standard'
+
+Key Takeaways
+- Scanning resource requests lets you be alerted every time there is suspicious activity in  order to prevent a security threat from being introduced.
+- Windows and Linux virtual machines should be kept updated to:  •  Address a specific bug or flaw  •  Improve an OS or application’s general stability  •  Fix a security vulnerability  Microsoft Defender for Cloud retrieves a list of available security and critical updates  from Windows Update or Windows Server Update Services (WSUS), depending on  which service is configured on a Windows VM.
+- The security center also checks for the  latest updates in Linux systems.

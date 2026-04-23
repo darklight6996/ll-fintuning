@@ -1,0 +1,80 @@
+8.1: Utilize Centrally Managed Anti-malware Software (and related controls)
+
+Overview
+This policy setting manages whether or not Microsoft Defender Antivirus scans 
+excluded files and directories when running a Quick Scan. 
+The recommended state for this setting is: If you set this setting to 1, all 
+files and directories that are excluded from real-time protection 
+using contextual exclusions are scanned during a quick scan. 
+Note: As of the publication of this Benchmark, the setting configuration state in Intune is 
+the sentence above after The recommended state for this setting is: and not 1 as the 
+title states. This was done to keep title length to a minimum.
+
+This policy setting configures how aggressively Remote Encryption Prevention 
+Protection blocks malicious IP addresses. 
+The recommended state for this setting is: Medium: Use cloud aggregation and 
+block when confidence level is above 99% or higher. Configuring this setting to 
+High: Use cloud intel and context, and block when confidence level is 
+above 90% also conforms to the benchmark. 
+Note: As of the publication of this Benchmark, the setting configuration state in Intune is 
+the sentence above after The recommended state for this setting is: and not Medium or 
+higher as the title states. This was done to keep title length to a minimum.
+
+This policy setting configures the Brute-Force Protection feature in Microsoft Defender 
+Antivirus. Brute-Force Protection can detect and block attempts to forcibly initiate signins and sessions. 
+The recommended state for this setting is:
+
+Why This Matters
+The Real-time Protection feature excludes some files and directories for contextual 
+reasons. This setting ensures that these are scanned during a Quick Scan.
+
+This feature can help reduce the likelihood of users visiting malicious websites.
+
+This feature assists with mitigating brute force attempts by detecting and blocking 
+unauthorized sign-ins and sessions.
+
+Audit Steps
+For Utilize Centrally Managed Anti-malware Software:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:QuickScanIncludeExclusions
+
+For Utilize Centrally Managed Anti-malware Software:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1 or 2. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:RemoteEncryptionProtectionAggressiveness
+
+For Utilize Centrally Managed Anti-malware Software:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 2 or 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:RemoteEncryptionProtectionConfiguredState
+
+Remediation
+For Utilize Centrally Managed Anti-malware Software:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to If you set this setting to 1, all files and 
+directories that are excluded from real-time protection using 
+contextual exclusions are scanned during a quick scan. 
+Defender\Quick Scan Include Exclusions
+
+For Utilize Centrally Managed Anti-malware Software:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Medium: Use cloud aggregation and block when 
+confidence level is above 99% or High: Use cloud intel and context, and 
+block when confidence level is above 90%. 
+Defender\Remote Encryption Protection Aggressiveness
+
+For Utilize Centrally Managed Anti-malware Software:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to
+
+Key Takeaways
+- The Real-time Protection feature excludes some files and directories for contextual  reasons.
+- This setting ensures that these are scanned during a Quick Scan.
+- This feature can help reduce the likelihood of users visiting malicious websites.

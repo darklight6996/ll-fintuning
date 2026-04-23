@@ -1,0 +1,152 @@
+9.2: Ensure Only Approved Ports, Protocols and (and related controls)
+
+Overview
+Network security groups should be periodically evaluated for port misconfigurations. 
+Where certain ports and protocols may be exposed to the Internet, they should be 
+evaluated for necessity and restricted wherever they are not explicitly required.
+
+Network security groups should be periodically evaluated for port misconfigurations. 
+Where certain ports and protocols may be exposed to the Internet, they should be 
+evaluated for necessity and restricted wherever they are not explicitly required.
+
+Network security groups should be periodically evaluated for port misconfigurations. 
+Where certain ports and protocols may be exposed to the Internet, they should be 
+evaluated for necessity and restricted wherever they are not explicitly required and 
+narrowly configured.
+
+Why This Matters
+The potential security problem with using SSH over the Internet is that attackers can 
+use various brute force techniques to gain access to Azure Virtual Machines. Once the 
+attackers gain access, they can use a virtual machine as a launch point for 
+compromising other machines on the Azure Virtual Network or even attack networked 
+devices outside of Azure.
+
+The potential security problem with broadly exposing UDP services over the Internet is 
+that attackers can use DDoS amplification techniques to reflect spoofed UDP traffic 
+from Azure Virtual Machines. The most common types of these attacks use exposed 
+DNS, NTP, SSDP, SNMP, CLDAP and other UDP-based services as amplification 
+sources for disrupting services of other machines on the Azure Virtual Network or even 
+attack networked devices outside of Azure.
+
+The potential security problem with using HTTP(S) over the Internet is that attackers 
+can use various brute force techniques to gain access to Azure resources. Once the 
+attackers gain access, they can use the resource as a launch point for compromising 
+other resources within the Azure tenant.
+
+Audit Steps
+For Ensure Only Approved Ports, Protocols and:
+Audit from Azure Portal 
+1. Open the Networking blade for the specific Virtual machine in Azure portal 
+2. Verify that the INBOUND PORT RULES does not have a rule for SSH such as 
+o port = 22, 
+o protocol = TCP OR ANY, 
+o Source = Any OR Internet 
+Audit from Azure CLI 
+List Network security groups with corresponding non-default Security rules: 
+az network nsg list --query [*].[name,securityRules] 
+Ensure that none of the NSGs have security rule as below 
+"access" : "Allow" 
+"destinationPortRange" : "22" or "*" or "[port range containing 22]" 
+"direction" : "Inbound" 
+"protocol" : "TCP" or "*" 
+"sourceAddressPrefix" : "*" or "0.0.0.0" or "<nw>/0" or "/0" or "internet" or 
+"any" 
+
+ Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: 22730e10-96f6-4aac-ad84-9383d35b5917 - Name: 'Management 
+ports should be closed on your virtual machines'
+
+For Ensure Only Approved Ports, Protocols and Services:
+Audit from Azure Portal 
+1. Open the Networking blade for the specific Virtual machine in Azure portal 
+2. Verify that the INBOUND PORT RULES does not have a rule for UDP such as 
+• 
+protocol = UDP, 
+• 
+Source = Any OR Internet 
+Audit from Azure CLI 
+List Network security groups with corresponding non-default Security rules: 
+az network nsg list --query [*].[name,securityRules] 
+Ensure that none of the NSGs have security rule as below 
+"access" : "Allow" 
+"destinationPortRange" : "*" or "[port range containing 53, 123, 161, 389, 
+1900, or other vulnerable UDP-based services]" 
+"direction" : "Inbound" 
+"protocol" : "UDP" 
+"sourceAddressPrefix" : "*" or "0.0.0.0" or "<nw>/0" or "/0" or "internet" or 
+"any"
+
+For Ensure Only Approved Ports, Protocols and Services:
+Audit from Azure Portal 
+1. For each VM, open the Networking blade 
+2. Verify that the INBOUND PORT RULES does not have a rule for HTTP(S) such 
+as 
+o port = 80/ 443, 
+o protocol = TCP, 
+o Source = Any OR Internet 
+Audit from Azure CLI 
+List Network security groups with corresponding non-default Security rules: 
+az network nsg list --query [*].[name,securityRules] 
+Ensure that none of the NSGs have security rule as below 
+"access" : "Allow" 
+"destinationPortRange" : "80/443" or "*" or "[port range containing 80/443]" 
+"direction" : "Inbound" 
+"protocol" : "TCP" 
+"sourceAddressPrefix" : "*" or "0.0.0.0" or "<nw>/0" or "/0" or "internet" or 
+"any"
+
+Remediation
+For Ensure Only Approved Ports, Protocols and:
+Where SSH is not explicitly required and narrowly configured for resources attached to 
+the Network Security Group, Internet-level access to your Azure resources should be 
+restricted or eliminated. 
+For internal access to relevant resources, configure an encrypted network tunnel such 
+as: 
+ExpressRoute 
+Site-to-site VPN 
+Point-to-site VPN
+
+For Ensure Only Approved Ports, Protocols and Services:
+Where UDP is not explicitly required and narrowly configured for resources attached to 
+the Network Security Group, Internet-level access to your Azure resources should be 
+restricted or eliminated. 
+For internal access to relevant resources, configure an encrypted network tunnel such 
+as: 
+ExpressRoute 
+Site-to-site VPN 
+Point-to-site VPN
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediate from Azure Portal 
+1. Go to Virtual machines. 
+2. For each VM, open the Networking blade. 
+3. Click on Inbound port rules. 
+4. Delete the rule with: 
+o Port = 80/443 OR [port range containing 80/443] 
+o Protocol = TCP OR Any 
+o Source = Any (*) OR IP Addresses(0.0.0.0/0) OR Service Tag(Internet) 
+o Action = Allow 
+Remediate from Azure CLI 
+1. Run below command to list network security groups: 
+az network nsg list --subscription <subscription-id> --output table 
+2. For each network security group, run below command to list the rules associated 
+with the specified port: 
+az network nsg rule list --resource-group <resource-group> --nsg-name 
+<nsg-name> --query "[?destinationPortRange=='80 or 443']" 
+3. Run the below command to delete the rule with: 
+o Port = 80/443 OR [port range containing 80/443] 
+o Protocol = TCP OR "*" 
+o Source = Any (*) OR IP Addresses(0.0.0.0/0) OR Service Tag(Internet) 
+o Action = Allow 
+az network nsg rule delete --resource-group <resource-group> --nsg-name 
+<nsg-name> --name <rule-name>
+
+Key Takeaways
+- The potential security problem with using SSH over the Internet is that attackers can  use various brute force techniques to gain access to Azure Virtual Machines.
+- Once the  attackers gain access, they can use a virtual machine as a launch point for  compromising other machines on the Azure Virtual Network or even attack networked  devices outside of Azure.
+- The potential security problem with broadly exposing UDP services over the Internet is  that attackers can use DDoS amplification techniques to reflect spoofed UDP traffic  from Azure Virtual Machines.

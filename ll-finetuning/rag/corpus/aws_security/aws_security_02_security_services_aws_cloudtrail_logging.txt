@@ -1,0 +1,50 @@
+AWS CloudTrail is a governance, compliance, operational auditing, and risk auditing service that logs every API action performed on an AWS account. It records who made the request, the source IP address, the time of the request, the request parameters, and the response elements returned by the service. CloudTrail is the primary source of truth for all control plane activity and, when configured correctly, data plane activity for select services. It is not optional for any production environment; it is a foundational requirement for security monitoring, incident response, and compliance frameworks such as SOC 2, PCI DSS, and FedRAMP.
+
+**Key Components**
+
+- **Trail**: A configuration that delivers log files to an Amazon S3 bucket. You can create a trail that applies to a single region or all regions. A single-region trail logs events only in that region; a multi-region trail logs events from every region into one S3 bucket. For security teams, always use a multi-region trail to ensure global visibility.
+
+- **Management Events**: These are operations performed on AWS resources (e.g., creating an EC2 instance, modifying an S3 bucket policy, assuming an IAM role). By default, CloudTrail logs management events. You can choose to log read-only, write-only, or all management events. Write events are critical for detecting unauthorized changes.
+
+- **Data Events**: These are operations performed on or within a resource (e.g., GetObject on an S3 bucket, Invoke on a Lambda function). Data events are not logged by default due to high volume. You must explicitly enable them. For security-sensitive services like S3 and Lambda, enable data event logging for all buckets and functions in the account.
+
+- **Insights Events**: CloudTrail Insights continuously analyzes management events to detect unusual activity patterns, such as a spike in IAM role creation or a sudden increase in failed API calls. When an anomaly is detected, it logs an Insights event. This is useful for identifying potential compromise or misconfiguration before a full incident occurs.
+
+- **CloudTrail Lake**: A managed data lake for querying and analyzing CloudTrail logs. It allows you to run SQL-based queries on your logs without exporting them to another service. Use CloudTrail Lake for ad-hoc investigations and compliance reporting when you need fast, structured access to historical event data.
+
+- **Log File Integrity Validation**: A feature that uses SHA-256 hashing and digital signatures to verify that log files have not been tampered with after delivery to S3. Enable this for any trail used in compliance or forensic investigations. The digest files are stored in a separate S3 bucket and can be validated using the AWS CLI.
+
+- **S3 Bucket Policies and Encryption**: The destination S3 bucket must have a bucket policy that restricts access to only authorized principals. Enable S3 server-side encryption (SSE-S3 or SSE-KMS) for the bucket. For maximum security, use SSE-KMS with a customer managed key and apply a key policy that prevents CloudTrail from logging if the key is disabled.
+
+**Real-World Application**
+
+Consider a scenario where a security engineer needs to investigate a suspected privilege escalation. An IAM user "jdoe" is reported to have created an administrative role without authorization.
+
+1. **Identify the event**: Query CloudTrail Lake for `CreateRole` events where `userIdentity.arn` contains "jdoe". The query returns the exact timestamp, source IP, user agent, and the role name created.
+
+2. **Correlate with other events**: Search for `AttachRolePolicy` events immediately following the `CreateRole` event. This shows which policies were attached to the rogue role. If the policy is `AdministratorAccess`, the escalation is confirmed.
+
+3. **Determine scope**: Use CloudTrail to find all `AssumeRole` calls made using the new role. This reveals which resources were accessed and by whom.
+
+4. **Validate integrity**: Run the AWS CLI command `aws cloudtrail validate-logs` against the trail’s S3 bucket to confirm no log files were modified or deleted during the investigation period.
+
+5. **Automate detection**: Set up a CloudWatch Events rule that triggers on `CreateRole` and `AttachRolePolicy` events. The rule sends a notification to an SNS topic, which pages the security team. This reduces mean time to detection from hours to seconds.
+
+In a production environment, you would also enable CloudTrail Insights to detect the anomalous pattern of a user creating multiple roles in a short time window, which could indicate automated abuse.
+
+**Security Relevance**
+
+CloudTrail is the foundation of the AWS shared responsibility model for logging. Without it, you have no record of who did what, when, or from where. This makes incident response, forensic analysis, and compliance auditing impossible.
+
+- **Threat Detection**: CloudTrail logs feed into Amazon GuardDuty, AWS Security Hub, and third-party SIEMs. GuardDuty uses CloudTrail management events to detect suspicious API activity, such as a user disabling CloudTrail or modifying VPC flow logs. If CloudTrail is not enabled, these detections are blind.
+
+- **Compliance**: Frameworks like PCI DSS Requirement 10 require detailed audit trails for all access to cardholder data. CloudTrail provides the necessary logging for control plane access to systems that store, process, or transmit cardholder data. You must ensure trails are immutable and logs are retained for at least one year.
+
+- **Incident Response**: During an active breach, the first step is to freeze the environment and analyze CloudTrail logs to understand the attacker’s actions. If CloudTrail is not logging data events, you may miss evidence of data exfiltration from S3. If log file integrity validation is not enabled, the logs themselves could be inadmissible in court.
+
+- **Operational Security**: CloudTrail logs can detect misconfigurations, such as an S3 bucket policy that grants public write access. By monitoring `PutBucketPolicy` events, you can alert on any policy change that introduces a wildcard principal.
+
+**Key Takeaways**
+- Enable a multi-region trail with management events (write-only) and data events for critical services like S3 and Lambda; this provides complete visibility into all API activity.
+- Enable log file integrity validation and encrypt the destination S3 bucket with SSE-KMS using a customer managed key to ensure log immutability and confidentiality.
+- Integrate CloudTrail logs with CloudWatch Events and a SIEM for real-time alerting on high-risk API calls, and use CloudTrail Insights to detect anomalous patterns automatically.

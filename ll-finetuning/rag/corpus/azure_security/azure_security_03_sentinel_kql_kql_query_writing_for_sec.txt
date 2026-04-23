@@ -1,0 +1,101 @@
+The SecurityEvent table in Microsoft Sentinel is the primary data source for Windows security logs ingested from on-premises and Azure-hosted Windows machines via the Log Analytics Agent (MMA) or Azure Monitor Agent (AMA). It contains raw event data from the Windows Security log, including account logons, process creation, object access, and privilege use. Understanding how to query this table efficiently is critical for threat detection, incident investigation, and compliance auditing.
+
+**Key Components of the SecurityEvent Table**
+
+The SecurityEvent table is structured with a fixed schema that includes both standard Log Analytics columns and Windows-specific event fields. The most important columns for security queries are:
+
+- **EventID**: Numeric identifier for the Windows security event type (e.g., 4624 for successful logon, 4688 for process creation).
+- **EventSourceName**: Typically "Microsoft-Windows-Security-Auditing" for security events.
+- **Computer**: The hostname of the machine where the event was generated.
+- **Account**: The user account associated with the event (format: DOMAIN\Username).
+- **AccountType**: Indicates if the account is "User", "Machine", or "Service".
+- **Activity**: A human-readable description of the event (e.g., "An account was successfully logged on").
+- **ProcessName**: Full path to the executable for process creation events.
+- **ParentProcessName**: Full path to the parent process for process creation events.
+- **IpAddress**: Source IP address for network logons (EventID 4624, 4625).
+- **LogonType**: Numeric code indicating logon method (2=Interactive, 3=Network, 4=Batch, 5=Service, 7=Unlock, 8=NetworkCleartext, 9=NewCredentials, 10=RemoteInteractive, 11=CachedInteractive).
+- **TargetUserName**: The account being logged onto (for logon events).
+- **SubjectUserName**: The account performing the action (for most events).
+- **ObjectName**: The file, registry key, or other object being accessed (for audit object access events).
+- **TimeGenerated**: Timestamp of when the event was generated.
+
+**Real-World Application: Writing Effective Queries**
+
+The following query patterns address common security scenarios. Each example is optimized for performance by filtering on indexed columns (TimeGenerated, EventID) before expanding into string fields.
+
+**1. Detecting Brute-Force Attacks (Failed Logons)**
+
+```
+SecurityEvent
+| where TimeGenerated > ago(1h)
+| where EventID == 4625
+| where LogonType in (3, 10)  // Network or RemoteInteractive
+| summarize FailedAttempts = count() by TargetUserName, IpAddress, Computer
+| where FailedAttempts > 10
+| project TargetUserName, IpAddress, Computer, FailedAttempts
+```
+
+This query identifies accounts targeted by more than 10 failed network logon attempts within the last hour. The LogonType filter excludes irrelevant interactive lockout scenarios.
+
+**2. Tracking Privilege Escalation via Token Manipulation**
+
+```
+SecurityEvent
+| where TimeGenerated > ago(24h)
+| where EventID == 4672  // Special privileges assigned to new logon
+| where AccountType == "User"
+| where Account != "SYSTEM"
+| join kind=inner (
+    SecurityEvent
+    | where TimeGenerated > ago(24h)
+    | where EventID == 4624
+    | where LogonType == 2  // Interactive logon
+    | project LogonId = TargetLogonId, Computer, Account
+) on $left.SubjectLogonId == $right.LogonId
+| project TimeGenerated, Computer, Account, PrivilegeList
+```
+
+This query correlates privilege assignment events (4672) with interactive logons (4624) to identify non-SYSTEM accounts receiving elevated privileges, a common technique in lateral movement and privilege escalation.
+
+**3. Detecting Suspicious Process Creation (Lateral Movement)**
+
+```
+SecurityEvent
+| where TimeGenerated > ago(4h)
+| where EventID == 4688
+| where ProcessName has_any ("powershell.exe", "cmd.exe", "wmic.exe", "psexec.exe")
+| where ParentProcessName !has "C:\\Windows\\System32\\"
+| project TimeGenerated, Computer, Account = SubjectUserName, ProcessName, ParentProcessName, CommandLine
+```
+
+This query flags execution of common lateral movement tools from non-standard parent directories. The CommandLine field (available when command line auditing is enabled) provides critical context for triage.
+
+**4. Auditing Service Account Usage**
+
+```
+SecurityEvent
+| where TimeGenerated > ago(7d)
+| where EventID == 4624
+| where AccountType == "Service"
+| summarize LogonCount = count() by Account, Computer, LogonType
+| where LogonCount > 100
+| order by LogonCount desc
+```
+
+This query identifies service accounts with high logon volumes, which may indicate credential abuse or misconfigured scheduled tasks.
+
+**Security Relevance and Operational Considerations**
+
+The SecurityEvent table is the backbone of Windows security monitoring in Sentinel. Its value depends on correct configuration of Windows Advanced Audit Policy and the Log Analytics agent. Key security implications:
+
+- **Coverage Gaps**: If Windows audit policy does not enable specific subcategories (e.g., "Audit Process Creation" for EventID 4688), the corresponding events will not appear in SecurityEvent. Always verify audit policy matches detection requirements.
+- **Volume Management**: SecurityEvent can generate high data volumes, especially on domain controllers. Use EventID filtering as the first clause in every query to reduce scan scope. Avoid using `*` in string comparisons; use `has` or `has_any` for substring matching instead of `contains`.
+- **Time Range Precision**: Always specify `TimeGenerated > ago(N)` to limit the query to relevant data. For historical investigations, use `between (datetime(...) .. datetime(...))`.
+- **Join Performance**: When joining SecurityEvent with itself, ensure both sides filter on TimeGenerated and EventID before the join. Use `kind=inner` unless left/outer semantics are required.
+- **Schema Changes**: The SecurityEvent schema is stable, but new fields (e.g., CommandLine) may require enabling additional Windows audit policies. Document which fields are available in your environment.
+
+**Key Takeaways**
+
+1. Always filter on EventID and TimeGenerated first in any SecurityEvent query to minimize data scan costs and improve query performance.
+2. Correlate multiple EventIDs (e.g., 4624 with 4672, or 4688 with 4624) to build high-fidelity detection logic that reduces false positives from single-event alerts.
+3. Validate that your Windows audit policy enables the specific event subcategories required by your detection queries; missing events in SecurityEvent are often due to disabled audit settings, not query errors.

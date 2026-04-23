@@ -1,0 +1,50 @@
+23.1: (L1) Ensure 'DO Download Mode' is NOT set to 'HTTP
+
+Overview
+This policy setting specifies the download method that Delivery Optimization can use in 
+downloads of Windows Updates, Apps and App updates. The following methods are 
+supported: 
+• 
+0 = HTTP only, no peering. 
+• 
+1 = HTTP blended with peering behind the same NAT. 
+• 
+2 = HTTP blended with peering across a private group. Peering occurs on 
+devices in the same Active Directory Site (if exist) or the same domain by default. 
+When this option is selected, peering will cross NATs. To create a custom group 
+use Group ID in combination with Mode 2. 
+• 
+3 = HTTP blended with Internet Peering. 
+• 
+99 = Simple download mode with no peering. Delivery Optimization downloads 
+using HTTP only and does not attempt to contact the Delivery Optimization cloud 
+services. 
+• 
+100 = Bypass mode. Do not use Delivery Optimization and use BITS instead. 
+The recommended state for this setting is any value EXCEPT: Enabled: Internet 
+(3). 
+Note: The default on all SKUs other than Enterprise, Enterprise LTSB or Education is 
+Enabled: Internet (3), so on other SKUs, be sure to set this to a different value.
+
+Why This Matters
+Due to privacy concerns and security risks, updates should only be downloaded directly 
+from Microsoft, or from a trusted machine on the internal network that received its 
+updates from a trusted source and approved by the network administrator.
+
+Audit Steps
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\DeliveryOptimization:DOD
+ownloadMode_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to anything 
+other than 3. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Deliver yOptimization:DODownloadMode
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to any value other than HTTP blended with Internet 
+Peering: 
+Delivery Optimization\DO Download Mode
+
+Key Takeaways
+- Due to privacy concerns and security risks, updates should only be downloaded directly  from Microsoft, or from a trusted machine on the internal network that received its  updates from a trusted source and approved by the network administrator.

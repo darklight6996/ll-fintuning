@@ -1,0 +1,38 @@
+A Network Security Group (NSG) is a stateful, stateless-capable, or fully stateful packet filtering firewall that controls inbound and outbound traffic to Azure virtual network resources. NSGs operate at Layer 3 (network) and Layer 4 (transport) of the OSI model, filtering traffic based on 5-tuple rules: source IP, source port, destination IP, destination port, and protocol. They are applied either to a subnet or to a specific virtual network interface card (vNIC). An NSG applied to a subnet affects all resources within that subnet; an NSG applied to a vNIC affects only that single resource. When both are applied, the vNIC-level rule is evaluated after the subnet-level rule, and the most restrictive rule applies.
+
+**Key Components**
+
+- **Rules**: Each NSG contains a set of inbound and outbound security rules. Every rule has a priority (100-4096), name, source/destination address prefixes (IP, CIDR, service tag, or application security group), port range, protocol (TCP, UDP, or Any), and action (Allow or Deny). Lower priority numbers are evaluated first. Once a rule matches, no further rules are evaluated.
+- **Default Rules**: Every NSG includes default inbound and outbound rules that cannot be removed but can be overridden by higher-priority custom rules. Default inbound rules deny all inbound traffic from the internet, allow inbound traffic from the same virtual network, and allow Azure Load Balancer health probes. Default outbound rules allow all outbound traffic to the internet and the virtual network.
+- **Service Tags**: A service tag represents a group of IP address prefixes from a given Azure service (e.g., `AzureCloud`, `Storage.WestUS`, `Sql`). Using service tags simplifies rule creation and maintenance because Microsoft manages the IP ranges. For example, an outbound rule to `Storage.WestUS` allows traffic to Azure Storage endpoints in West US without needing to track specific IPs.
+- **Application Security Groups (ASGs)**: ASGs allow you to group virtual machines logically (e.g., "WebServers", "DatabaseServers") and reference those groups in NSG rules. This decouples security policy from IP addresses and subnet topology. A rule can specify an ASG as the source or destination, and traffic is evaluated based on which VMs belong to that ASG.
+- **Flow Logs**: NSG flow logs capture information about IP traffic flowing through an NSG. Logs include source/destination IP, port, protocol, and whether traffic was allowed or denied. Flow logs are essential for traffic analysis, threat detection, and compliance auditing. They are stored in an Azure Storage account and can be ingested into Log Analytics or third-party SIEMs.
+
+**Real-World Application**
+
+Consider a three-tier web application: front-end web servers, application servers, and a database. The web servers are in subnet A, application servers in subnet B, and database servers in subnet C.
+
+1. **Subnet-level NSG for subnet A**: Inbound rule: Allow TCP 443 from `Internet` (using service tag `Internet`). Outbound rule: Allow TCP 8080 to subnet B (or to an ASG named `AppServers`). Deny all other outbound traffic.
+2. **Subnet-level NSG for subnet B**: Inbound rule: Allow TCP 8080 from subnet A (or ASG `WebServers`). Outbound rule: Allow TCP 1433 to subnet C (or ASG `DatabaseServers`). Deny all other inbound traffic.
+3. **Subnet-level NSG for subnet C**: Inbound rule: Allow TCP 1433 from subnet B (or ASG `AppServers`). Deny all other inbound traffic. Outbound rule: Deny all outbound traffic to the internet (default outbound allow is overridden by a higher-priority deny rule).
+
+This configuration ensures that only the web tier is exposed to the internet, the application tier only accepts traffic from the web tier, and the database tier only accepts traffic from the application tier. No direct internet access is allowed for the database or application servers.
+
+For a scenario requiring fine-grained control, apply a vNIC-level NSG to a specific VM that needs additional restrictions. For example, a jump box VM might have a vNIC-level NSG that only allows inbound RDP (TCP 3389) from a specific management IP range, even if the subnet NSG allows broader RDP access.
+
+**Security Relevance**
+
+NSGs are a fundamental component of the defense-in-depth strategy for Azure workloads. Their primary security functions are:
+
+- **Network Segmentation**: By applying different NSGs to different subnets or VMs, you enforce least-privilege network access. This limits lateral movement if an attacker compromises a resource.
+- **Exposure Reduction**: Default rules block inbound internet traffic. Custom rules explicitly allow only necessary ports and protocols, reducing the attack surface.
+- **Traffic Filtering**: NSGs can block known malicious IPs or ranges by creating deny rules with higher priority than allow rules. However, NSGs are not a substitute for a web application firewall (WAF) or next-generation firewall (NGFW) because they do not inspect packet payloads.
+- **Compliance and Auditing**: NSG flow logs provide a record of all traffic flows. This data is critical for demonstrating compliance with standards like PCI DSS, HIPAA, or SOC 2, which require network access controls and monitoring.
+- **Integration with Azure Security Center**: NSG flow logs can be analyzed by Azure Security Center and Azure Sentinel to detect anomalous traffic patterns, such as data exfiltration or brute-force attacks.
+
+A common misconfiguration is creating overly permissive rules, such as allowing `0.0.0.0/0` for a management port like RDP or SSH. This exposes the resource to the entire internet. Always restrict source IP ranges to the smallest necessary set. Another pitfall is forgetting that NSGs are stateful for TCP and UDP: if you allow outbound traffic, the return traffic is automatically allowed. However, this statefulness does not apply to stateless protocols like ICMP; you must create explicit rules for ICMP if needed.
+
+**Key Takeaways**
+- NSGs provide stateful Layer 3/4 filtering at the subnet or vNIC level; always apply the most restrictive rule and use the smallest possible IP ranges or service tags.
+- Use Application Security Groups to decouple security rules from IP addresses and simplify management across dynamic workloads.
+- Enable NSG flow logs for all production NSGs to enable traffic analysis, threat detection, and compliance auditing.

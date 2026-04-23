@@ -1,0 +1,65 @@
+Application control is a core endpoint hardening strategy that restricts which executables, scripts, installers, and drivers can run on a Windows system. Two primary Microsoft technologies provide this capability: AppLocker and Windows Defender Application Control (WDAC). While both aim to block unauthorized code, they differ fundamentally in architecture, enforcement model, and use case.
+
+**Definition**
+
+AppLocker is a legacy application control feature introduced in Windows 7 and Windows Server 2008 R2. It operates as a Group Policy-based mechanism that defines allow or deny rules for files based on attributes such as publisher, path, file hash, or product name. AppLocker runs in user mode and is managed through the Local Security Policy or Group Policy Management Console.
+
+Windows Defender Application Control (WDAC) is a newer, more robust application control solution introduced in Windows 10 version 1709 and Windows Server 2019. WDAC is a kernel-mode policy that enforces code integrity at boot time and runtime. It uses a hardware-backed trust model, often leveraging virtualization-based security (VBS) to protect the policy itself from tampering. WDAC policies are binary-encoded XML files that are signed or measured to ensure integrity.
+
+**Key Components**
+
+**AppLocker Components**
+- **Rule Collections**: AppLocker organizes rules into five collections: Executable Rules, Windows Installer Rules, Script Rules, Packaged App Rules, and DLL Rules. Each collection can have its own set of allow/deny conditions.
+- **Rule Conditions**: Conditions are based on publisher (digital signature), path (folder or file location), file hash (SHA256), or product name. Publisher rules are the most secure and manageable.
+- **Enforcement Modes**: AppLocker supports three modes: Not Configured, Enforce rules, and Audit only. Audit mode logs events without blocking, useful for testing.
+- **Event Logging**: AppLocker writes events to the AppLocker operational log under Applications and Services Logs/Microsoft/Windows/AppLocker.
+
+**WDAC Components**
+- **Policy XML**: A WDAC policy is an XML file containing rules, file path rules, and signer rules. It is compiled into a binary `.p7b` file and deployed via Group Policy, MDM, or script.
+- **Policy Levels**: WDAC supports multiple policy levels: Windows (default), Signed (requires signed policies), and Audit (logs without blocking). Multiple policies can be active simultaneously.
+- **Trusted Signers and Publishers**: WDAC uses certificate-based trust. You can allow all files signed by a specific certificate authority, a specific publisher, or individual files.
+- **Managed Installer**: A key WDAC feature that allows files installed by a trusted installer (e.g., Configuration Manager, Intune) to be automatically trusted.
+- **Intelligent Security Graph (ISG)**: WDAC can integrate with Microsoft’s reputation service to allow known-good files based on prevalence and trust.
+- **Kernel-Mode Enforcement**: WDAC enforces code integrity at the kernel level, blocking unsigned or untrusted drivers and kernel-mode code.
+
+**Real-World Application**
+
+**When to Use AppLocker**
+AppLocker is suitable for environments with legacy systems (Windows 7/8.1), limited administrative overhead, or where WDAC’s complexity is not justified. Common use cases include:
+- Locking down standard user workstations in a small-to-medium business.
+- Enforcing a simple allowlist for line-of-business applications in a controlled domain.
+- Auditing application usage before moving to a stricter policy.
+
+**When to Use WDAC**
+WDAC is the recommended solution for modern Windows 10/11 and Windows Server 2022+ environments, especially in high-security or compliance-driven organizations. Real-world applications include:
+- **Government and Defense**: Enforcing a zero-trust application policy where only signed, approved binaries run.
+- **Financial Services**: Meeting PCI DSS or SOX requirements for change control and unauthorized software prevention.
+- **Healthcare**: Protecting medical devices and workstations from ransomware by blocking untrusted executables.
+- **Enterprise Endpoints**: Using managed installer and ISG to allow software deployed via SCCM or Intune while blocking all other code.
+
+**Deployment Strategy**
+A phased approach is critical for WDAC due to its strict enforcement. The typical workflow is:
+1. **Audit Mode**: Deploy the policy in audit mode and review event logs (Event ID 3076 for WDAC) to identify blocked applications.
+2. **Policy Refinement**: Add signer or file path rules for legitimate applications that were blocked. Use the `New-CIPolicyRule` PowerShell cmdlet to generate rules from audit logs.
+3. **Enforcement**: Once the audit log shows no unexpected blocks, switch to enforce mode. For high-security environments, enable signed policies to prevent tampering.
+4. **Ongoing Maintenance**: Update policies as new applications are introduced. Use WDAC’s base and supplemental policy model to add rules without redeploying the entire policy.
+
+**Security Relevance**
+
+**AppLocker Security Limitations**
+- **User-Mode Bypass**: Because AppLocker runs in user mode, a process running as administrator can disable or bypass AppLocker rules. It does not protect against kernel-mode drivers.
+- **No Boot-Time Protection**: AppLocker does not enforce policies during boot, allowing malicious drivers to load before the policy is active.
+- **Limited Tamper Resistance**: A user with local admin rights can stop the AppLocker service or modify policy files.
+- **No Support for Modern Threats**: AppLocker cannot block signed but malicious binaries (e.g., LOLBins) unless explicitly denied.
+
+**WDAC Security Advantages**
+- **Kernel-Mode Enforcement**: WDAC blocks unsigned drivers and kernel-mode code, preventing rootkits and bootkits.
+- **Tamper-Proof Policies**: When combined with VBS, WDAC policies are protected from modification even by administrators. Signed policies require a valid certificate to change.
+- **Hardware-Backed Trust**: WDAC leverages Secure Boot and UEFI to ensure the policy is loaded before the operating system.
+- **Comprehensive Coverage**: WDAC covers all executable code, including scripts, PowerShell, MSI files, and DLLs. It also integrates with Windows Defender SmartScreen and Microsoft Defender for Endpoint.
+- **Compliance Alignment**: WDAC directly supports NIST 800-53, CIS Benchmarks, and DISA STIG requirements for application whitelisting and code integrity.
+
+**Key Takeaways**
+1. AppLocker is a legacy, user-mode application control tool suitable for simple environments but lacks kernel-level enforcement and tamper resistance, making it insufficient for high-security or compliance-driven deployments.
+2. WDAC is the modern, kernel-mode application control solution that provides hardware-backed policy protection, supports managed installers and reputation-based trust, and is required for compliance with frameworks like NIST 800-53 and CIS.
+3. Always deploy WDAC in audit mode first, analyze event logs to build a complete allowlist, and use signed policies with VBS to prevent administrative bypass.

@@ -1,0 +1,36 @@
+Internal audit procedures within ISO 27001 are the systematic, documented, and objective processes used to verify that an organization’s Information Security Management System (ISMS) conforms to the standard’s requirements, is effectively implemented, and is maintained. Unlike external certification audits, internal audits are a management responsibility, designed to provide independent assurance before a certification body assesses the ISMS. They are not optional; Clause 9.2 of ISO 27001 mandates that an organization must conduct internal audits at planned intervals.
+
+**Key Components**
+
+An effective internal audit procedure is built on several mandatory and best-practice components. These ensure consistency, objectivity, and actionable results.
+
+- **Audit Program Management:** This is the overarching plan. It defines the frequency, scope, and methods for all audits over a defined period (typically one year). The program must be risk-based, prioritizing high-risk processes (e.g., access control, incident management) over low-risk ones. It also allocates resources, including auditors and time.
+- **Audit Criteria and Scope:** Each individual audit must have a clearly defined scope (which departments, processes, or locations) and criteria (the specific ISO 27001 clauses, controls from Annex A, or internal policies being audited). For example, an audit might scope the "Data Center Operations" department against controls A.11 (Physical and environmental security) and A.12 (Operations security).
+- **Auditor Competence and Independence:** Auditors must be competent in ISO 27001, audit techniques, and the technical domain under review. Crucially, they must be independent of the activity being audited. A network engineer cannot audit the network team. This is often solved by using auditors from a different department or a dedicated internal audit function.
+- **Audit Execution:** This follows a standard cycle: opening meeting, evidence gathering (interviews, document review, observation), and closing meeting. Evidence is collected against the criteria. Nonconformities are identified when evidence shows a failure to meet a requirement. Observations are raised for potential risks that do not yet constitute a nonconformity.
+- **Reporting and Follow-up:** The audit report must clearly state findings, including nonconformities (major or minor) and observations. It must assign responsibility for corrective actions and set deadlines. The procedure must include a process for verifying that corrective actions have been implemented and are effective. This is often called "closure" or "verification of effectiveness."
+
+**Real-World Application**
+
+The theoretical components translate into a concrete, repeatable workflow. Consider a mid-sized SaaS company implementing its first internal audit cycle.
+
+1.  **Planning Phase (Month 1):** The CISO, acting as audit program manager, creates a 12-month audit schedule. High-risk areas (e.g., change management, vulnerability management) are audited quarterly. Lower-risk areas (e.g., supplier agreements) are audited annually. The schedule is approved by top management.
+2.  **Pre-Audit Preparation (Month 2):** For the first audit (scope: Access Control), the lead auditor (from the finance department, trained in ISO 27001) reviews the company’s Access Control Policy, the user provisioning procedure, and the last quarter’s access review logs. They prepare an audit checklist based on Annex A.9.
+3.  **On-site Audit (Month 2, Week 3):** The auditor conducts interviews with the IT operations manager and two system administrators. They request evidence of the last three terminated employee access removals. The administrator provides tickets showing removal within 24 hours, but the auditor finds one ticket where the removal took 72 hours. This is a minor nonconformity against the policy’s 24-hour SLA.
+4.  **Reporting (Month 2, Week 4):** The audit report documents the minor nonconformity: "Access removal for terminated user ID #4523 exceeded the defined 24-hour SLA by 48 hours." The root cause is identified as a manual process gap. The report assigns a corrective action to the IT manager with a 30-day deadline.
+5.  **Corrective Action and Verification (Month 3):** The IT manager implements an automated script that triggers a ticket for access removal upon HR termination notification. After 30 days, the auditor re-tests the process by simulating a termination. The automated ticket is created and the access is removed within 2 hours. The auditor closes the nonconformity.
+
+**Security Relevance**
+
+Internal audit procedures are not a bureaucratic checkbox. They are a primary security control for detecting drift and ensuring the ISMS remains effective against evolving threats.
+
+- **Detecting Control Failures:** An audit might reveal that quarterly access reviews are being signed off without actually checking user entitlements. This is a control failure that could allow privilege creep and lateral movement by an attacker. Without the audit, this failure might go unnoticed until a breach occurs.
+- **Validating Assumptions:** Security teams often assume controls are working. An internal audit provides objective evidence. For example, the team might believe all endpoints have EDR installed, but an audit of the asset management process could reveal a gap in the onboarding procedure for contractor laptops.
+- **Preventing Certification Failure:** External certification audits are expensive and disruptive. A robust internal audit program identifies and fixes nonconformities before the external auditor arrives. This directly protects the certification status, which is often a contractual requirement for clients.
+- **Driving Continuous Improvement:** The audit process generates data on recurring issues. If every audit finds nonconformities in the same process (e.g., patch management), this signals a systemic weakness that requires a process redesign, not just a one-time fix. This aligns with the "Plan-Do-Check-Act" cycle at the heart of ISO 27001.
+
+**Key Takeaways**
+
+1.  Internal audits are a mandatory ISO 27001 requirement (Clause 9.2) that provide objective evidence of ISMS conformance and effectiveness, not a discretionary activity.
+2.  The procedure must enforce auditor independence and a risk-based schedule to ensure high-value controls are scrutinized more frequently than low-risk areas.
+3.  The primary security value of an internal audit is detecting control drift and systemic weaknesses before they lead to a security incident or a failed external certification audit.

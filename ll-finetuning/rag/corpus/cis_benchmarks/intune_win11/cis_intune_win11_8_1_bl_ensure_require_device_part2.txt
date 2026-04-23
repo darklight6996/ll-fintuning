@@ -1,0 +1,149 @@
+8.1: Utilize Centrally Managed Anti-malware Software (and related controls)
+
+Overview
+This rule prevents an application from writing a vulnerable signed driver to disk. 
+The recommended state for this setting is: Block. 
+Note: The Block abuse of exploited vulnerable signed drivers rule does not block a 
+driver that already exists on the system from being loaded.
+
+This policy setting controls whether Microsoft Defender Antivirus network protection will 
+display a warning, or block network traffic. 
+The recommended state for this setting is: Warn verdicts are converted to block.
+
+This setting determines whether hash values are computed for files scanned by 
+Microsoft Defender. 
+The recommended state for this setting is: Enable.
+
+This policy setting controls Microsoft Defender Exploit Guard network protection. 
+The recommended state for this setting is: Enabled (block mode).
+
+This policy setting configures whether Real-time Protection and Security Intelligence 
+Updates are enabled during the Out of Box experience (OOBE). 
+The recommended state for this setting is: If you enable this setting, realtime protection and Security Intelligence Updates are enabled during 
+OOBE.. 
+Note: As of the publication of this Benchmark, the setting configuration state in Intune is 
+the sentence above after The recommended state for this setting is: and not Enabled as 
+the title states. This was done to keep title length to a minimum.
+
+This policy setting controls detection and action for Potentially Unwanted Applications 
+(PUA), which are sneaky unwanted application bundlers or their bundled applications, 
+that can deliver adware or malware. 
+The recommended state for this setting is: PUA Protection on. 
+For more information, see this link: Block potentially unwanted applications with 
+Microsoft Defender Antivirus | Microsoft Docs
+
+Why This Matters
+Attack surface reduction helps prevent actions and apps that are typically used by 
+exploit-seeking malware to infect systems. 
+Vulnerable signed drivers can be exploited by local applications that have sufficient 
+privileges to gain access to the kernel. This enables attackers to disable or circumvent 
+security solutions, eventually leading to system compromise.
+
+Potentially suspicious network traffic should be blocked until it has been reviewed, and 
+an exception has been granted.
+
+When running an antivirus solution such as Microsoft Defender Antivirus, it is important 
+to ensure that it is configured to monitor for suspicious and known malicious activity. 
+File hashes are a reliable way of detecting changes to files, and can speed up the scan 
+process by skipping files that have not changed since they were last scanned and 
+determined to be safe. A changed file hash can also be cause for additional scrutiny.
+
+This setting can help prevent employees from using any application to access 
+dangerous domains that may host phishing scams, exploit-hosting sites, and other 
+malicious content on the Internet.
+
+Critical Windows zero-day patch updates should be applied during OOBE to help 
+mitigate against malicious attacks.
+
+Potentially unwanted applications can increase the risk of your network being infected 
+with malware, cause malware infections to be harder to identify, and can waste IT 
+resources in cleaning up the applications. They should be blocked from installation.
+
+Audit Steps
+For Utilize Centrally Managed Anti-malware Software:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Defender:AttackSurfaceRe ductionRules_WinningProvider 
+2. Navigate to the following registry location and confirm the value contains 
+56a863a9-875e-4185-98a7-b882c64b5ce5=1 (Block). 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\default\Device\Defende r:AttackSurfaceReductionRules 
+Note: The following key can also be queried for the requisite value, however if Tamper 
+Protection is enabled it will only be readable by SYSTEM 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:ASRRules 
+Note #2: The contents of ASRRules is a single large string containing the GUID of each 
+ASR rule separated with a pipe delimiter. Below is an example of what the Registry 
+would display if all recommendations that allow Audit or Block are set to Block. 
+56a863a9-875e-4185-98a7-b882c64b5ce5=1|7674ba52-37eb-4a4f-a9a1f0f9a1619a2c=1|D4F940AB-401B-4EFC-AADC-AD5F3C50688A=1|9e6c4e1f-7d60-472fba1a-a39ef669e4b2=1|BE9BA2D9-53EA-4CDC-84E5-9B1EEEE46550=1|5BEB7EFE-FD9A4556-801D-275E5FFC04CC=1|D3E037E1-3EB8-44C8-A917-57927947596D=1|3B576869A4EC-4529-8536-B80A7769E899=1|75668C1F-73B5-4CF0-BB933ECF5CB7CC84=1|26190899-1602-49e8-8b27-eb1d0a1ce869=1|e6db77e5-3df2-4cf1b95a-636979351e5b=1|b2b3f03d-6a65-4f7b-a9c7-1c7ef74a9ba4=1|92E97FA1-2EDF4476-BDD6-9DD0B4DDDC7B=1
+
+For Utilize Centrally Managed Anti-malware Software:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:EnableConvertWarnToBlock
+
+For Utilize Centrally Managed Anti-malware Software:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:EnableFileHashComputation
+
+For Utilize Centrally Managed Anti-malware Software:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:EnableNetworkProtection
+
+For Utilize Centrally Managed Anti-malware Software:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:OobeEnableRtpAndSigUpdate
+
+For Utilize Centrally Managed Anti-malware Software:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:PUAProtection
+
+Remediation
+For Utilize Centrally Managed Anti-malware Software:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block. 
+Defender\Block abuse of exploited vulnerable signed drivers (Device)
+
+For Utilize Centrally Managed Anti-malware Software:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Warn verdicts are converted to block. 
+Defender\Enable Convert Warn To Block
+
+For Utilize Centrally Managed Anti-malware Software:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enable. 
+Defender\Enable File Hash Computation
+
+For Utilize Centrally Managed Anti-malware Software:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled (block mode): 
+Defender\Enable Network Protection
+
+For Utilize Centrally Managed Anti-malware Software:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to If you enable this setting, real-time protection 
+and Security Intelligence Updates are enabled during OOBE.. 
+Defender\Oobe Enable Rtp And Sig Update
+
+For Utilize Centrally Managed Anti-malware Software:
+To establish the recommended configuration via GP, set the following UI path to PUA 
+Protection on: 
+Defender\PUA Protection
+
+Key Takeaways
+- Attack surface reduction helps prevent actions and apps that are typically used by  exploit-seeking malware to infect systems.
+- Vulnerable signed drivers can be exploited by local applications that have sufficient  privileges to gain access to the kernel.
+- This enables attackers to disable or circumvent  security solutions, eventually leading to system compromise.

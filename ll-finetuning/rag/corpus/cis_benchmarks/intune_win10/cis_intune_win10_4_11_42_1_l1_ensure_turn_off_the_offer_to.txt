@@ -1,0 +1,25 @@
+4.11.42.1: (L1) Ensure 'Turn off the offer to update to the latest
+
+Overview
+Enables or disables the Microsoft Store offer to update to the latest version of Windows. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+Unplanned OS upgrades can lead to more preventable support calls. The IT department 
+should be managing and approving all upgrades and updates.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\WindowsStore:DisableOSUpgrade
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Store\Turn off the offer to 
+update to the latest version of Windows
+
+Key Takeaways
+- Unplanned OS upgrades can lead to more preventable support calls.
+- The IT department  should be managing and approving all upgrades and updates.

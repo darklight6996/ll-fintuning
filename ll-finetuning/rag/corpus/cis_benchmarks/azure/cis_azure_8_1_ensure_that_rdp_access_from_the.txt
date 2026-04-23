@@ -1,0 +1,117 @@
+8.1: Ensure that RDP access from the Internet is evaluated and (and related controls)
+
+Overview
+Network security groups should be periodically evaluated for port misconfigurations. 
+Where RDP is not explicitly required and narrowly configured for resources attached to 
+a network security group, Internet-level access to Azure resources should be restricted 
+or eliminated.
+
+Enable vulnerability assessment for machines on both Azure and hybrid (Arc enabled) 
+machines.
+
+Why This Matters
+The potential security problem with using RDP over the Internet is that attackers can 
+use various brute force techniques to gain access to Azure Virtual Machines. Once the 
+attackers gain access, they can use a virtual machine as a launch point for 
+compromising other machines on an Azure Virtual Network or even attack networked 
+devices outside of Azure.
+
+Vulnerability assessment for machines scans for various security-related configurations 
+and events such as system updates, OS vulnerabilities, and endpoint protection, then 
+produces alerts on threat and vulnerability findings.
+
+Audit Steps
+For Ensure that RDP access from the Internet is evaluated and:
+Audit from Azure Portal 
+1. Go to Network security groups. 
+2. Under Settings, click Inbound security rules. 
+3. Ensure that no inbound security rule exists that matches the following: 
+o Port: 3389 or range including 3389 
+o Protocol: TCP or Any 
+o Source: 0.0.0.0/0, Internet, or Any 
+o Action: Allow 
+4. Repeat steps 1-3 for each network security group. 
+To audit from Azure Resource Graph: 
+1. Go to Resource Graph Explorer. 
+2. Click New query. 
+3. Paste the following into the query window: [next page] resources | where type =~ "microsoft.network/networksecuritygroups" | 
+project id, name, securityRule = properties.securityRules | mv-expand 
+securityRule | extend access = securityRule.properties.access, 
+direction = securityRule.properties.direction, protocol = 
+securityRule.properties.protocol, destinationPort = 
+case(isempty(securityRule.properties.destinationPortRange), 
+securityRule.properties.destinationPortRanges, 
+securityRule.properties.destinationPortRange), sourceAddress = 
+case(isempty(securityRule.properties.sourceAddressPrefix), 
+securityRule.properties.sourceAddressPrefixes, 
+securityRule.properties.sourceAddressPrefix) | where access =~ "Allow" 
+and direction =~ "Inbound" and protocol in~ ("tcp", "") | mv-expand 
+destinationPort | mv-expand sourceAddress | extend destinationPortMin = 
+toint(split(destinationPort, "-")[0]), destinationPortMax = 
+toint(split(destinationPort, "-")[-1]) | where (destinationPortMin <= 
+3389 and destinationPortMax >= 3389) or destinationPort == "" | where 
+sourceAddress in~ ("*", "0.0.0.0", "internet", "any") or sourceAddress 
+endswith "/0" 
+4. Click Run query. 
+5. Ensure that no results are returned. 
+Audit from Azure CLI 
+List network security groups with non-default security rules: 
+az network nsg list --query [*].[name,securityRules] 
+Ensure that no network security group has an inbound security rule that matches the 
+following: 
+"access" : "Allow" 
+"destinationPortRange" : "3389", "*", or "<range-including-3389>" 
+"direction" : "Inbound" 
+"protocol" : "TCP" or "*" 
+"sourceAddressPrefix" : "0.0.0.0/0", "Internet", or "*" 
+Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: 22730e10-96f6-4aac-ad84-9383d35b5917 - Name: 'Management 
+ports should be closed on your virtual machines'
+
+For Utilize Centrally Managed Anti-malware Software:
+Audit from Azure Portal 
+1. From Azure Home select the Portal Menu 
+2. Select Microsoft Defender for Cloud 
+3. Under Management, select Environment Settings 
+4. Select a subscription 
+5. Click on Settings & monitoring 
+6. Ensure that Vulnerability assessment for machines is set to On 
+Repeat the above for any additional subscriptions.
+
+Remediation
+For Ensure that RDP access from the Internet is evaluated and:
+Remediate from Azure Portal 
+1. Go to Network security groups. 
+2. Under Settings, click Inbound security rules. 
+3. Check the box next to any inbound security rule matching: 
+o Port: 3389 or range including 3389 o Protocol: TCP or Any 
+o Source: 0.0.0.0/0, Internet, or Any 
+o Action: Allow 
+4. Click Delete. 
+5. Click Yes. 
+Remediate from Azure CLI 
+For each network security group rule requiring remediation, run the following command 
+to delete a rule: 
+az network nsg rule delete --resource-group <resource-group> --nsg-name 
+<network-security-group> --name <rule>
+
+For Utilize Centrally Managed Anti-malware Software:
+Remediate from Azure Portal 
+1. From Azure Home select the Portal Menu 
+2. Select Microsoft Defender for Cloud 
+3. Under Management, select Environment Settings 
+4. Select a subscription 
+5. Click on Settings & Monitoring 
+6. Set the Status of Vulnerability assessment for machines to On 
+7. Click Continue 
+Repeat the above for any additional subscriptions.
+
+Key Takeaways
+- The potential security problem with using RDP over the Internet is that attackers can  use various brute force techniques to gain access to Azure Virtual Machines.
+- Once the  attackers gain access, they can use a virtual machine as a launch point for  compromising other machines on an Azure Virtual Network or even attack networked  devices outside of Azure.
+- Vulnerability assessment for machines scans for various security-related configurations  and events such as system updates, OS vulnerabilities, and endpoint protection, then  produces alerts on threat and vulnerability findings.

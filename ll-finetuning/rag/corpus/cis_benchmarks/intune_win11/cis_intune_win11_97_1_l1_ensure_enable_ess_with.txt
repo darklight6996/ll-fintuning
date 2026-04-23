@@ -1,0 +1,30 @@
+97.1: (L1) Ensure 'Enable ESS with Supported Peripherals' is set
+
+Overview
+Enhanced Sign-in Security isolates Windows Hello biometric (face and fingerprint) 
+template data and matching operations to trusted hardware or specified memory 
+regions. 
+The recommended state for this setting is: ESS will be enabled on systems with 
+capable software and hardware, following the existing default behavior 
+in Windows. Authentication operations of any peripheral biometric 
+device will be blocked and not available for Windows Hello. (default 
+and recommended for highest security)..
+
+Why This Matters
+Because the channel of communication between the sensors and the algorithm is 
+secured, it is impossible for malware to inject or replay data in order to simulate a user 
+signing in or to lock a user out of their machine.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Microsoft\Policies\PassportForWork\Biometrics:EnableESSwithSupp ortedPeripherals
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enhanced sign-in security will be enabled…: 
+Windows Hello For Business\Enable ESS with Supported Peripherals
+
+Key Takeaways
+- Because the channel of communication between the sensors and the algorithm is  secured, it is impossible for malware to inject or replay data in order to simulate a user  signing in or to lock a user out of their machine.

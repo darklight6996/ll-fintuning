@@ -1,0 +1,21 @@
+2.2.1: Virtual Networks (VNets) 2.2.1.1 Ensure public network access is Disabled
+
+Overview
+Disable public network access to prevent exposure to the internet and reduce the risk of 
+unauthorized access. Use private endpoints to securely manage access within trusted 
+networks.
+
+Why This Matters
+Disabling public network access improves security by ensuring that a service is not 
+exposed on the public internet.
+
+Remediation
+Additional Information: 
+This Common Reference Recommendation is referenced in the following Service 
+Recommendations: 
+• 
+Storage Services > Storage Accounts > Networking > "Ensure that 'Public 
+Network Access' is 'Disabled' for storage accounts"
+
+Key Takeaways
+- Disabling public network access improves security by ensuring that a service is not  exposed on the public internet.

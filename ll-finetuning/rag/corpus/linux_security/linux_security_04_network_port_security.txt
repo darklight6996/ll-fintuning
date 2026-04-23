@@ -1,0 +1,52 @@
+**Definition**
+
+Port security is a network access control feature implemented at the switch port level to restrict which devices can connect to a network. It operates by associating a limited set of MAC addresses with a specific switch port and taking predefined actions when an unauthorized device attempts to communicate. Port security is a Layer 2 security mechanism, meaning it functions within the data link layer and does not rely on higher-layer authentication protocols. It is commonly deployed on access layer switches to prevent rogue devices from gaining network entry, mitigate MAC flooding attacks, and enforce endpoint compliance policies.
+
+**Key Components**
+
+Port security relies on three core elements: MAC address learning, violation modes, and aging mechanisms.
+
+- **MAC Address Learning Modes**
+  - *Static MAC addresses*: Manually configured MAC-to-port mappings. These are stored in the running configuration and survive reboots if saved. Used for fixed devices like servers or printers.
+  - *Dynamic MAC addresses*: Automatically learned from traffic on the port. These are stored in the MAC address table and are removed when the port goes down or after an aging timeout.
+  - *Sticky MAC addresses*: A hybrid approach where dynamically learned MAC addresses are converted to static entries in the running configuration. This allows automatic learning while persisting across reboots if the configuration is saved.
+
+- **Violation Modes**
+  - *Protect*: Drops packets from unknown MAC addresses but does not generate alerts or disable the port. The switch silently discards traffic from unauthorized devices.
+  - *Restrict*: Drops packets from unknown MAC addresses and increments a violation counter. Optionally sends an SNMP trap or syslog message. The port remains operational.
+  - *Shutdown*: Immediately disables the port (error-disabled state) upon detecting an unauthorized MAC address. Requires manual or automated recovery (e.g., errdisable recovery via `errdisable recovery cause psecure-violation`). This is the most secure but most disruptive mode.
+
+- **Aging and Security**
+  - *Aging time*: Configurable timeout (default 0 = never age) for dynamic MAC entries. Reduces table size and forces re-authentication of devices.
+  - *Aging type*: Absolute (removes entry after timeout regardless of activity) or inactivity (removes entry only if no traffic is seen during the timeout).
+  - *Maximum MAC addresses*: Defines the upper limit of allowed MAC addresses per port. Common values are 1 (single device) to 10 (hub or VoIP phone with PC). Setting this too high defeats the purpose of port security.
+
+**Real-World Application**
+
+Port security is deployed in environments where physical access to network jacks is uncontrolled or where endpoint compliance must be enforced at the edge.
+
+- **Enterprise Access Switches**: In open office layouts, conference rooms, or lobbies, port security with a maximum of 1 MAC address and shutdown violation mode prevents unauthorized devices from plugging into live ports. For example, a visitor connecting a laptop to an unused wall jack will cause the port to error-disable, alerting the network team via syslog.
+
+- **VoIP and IP Phone Deployments**: A common configuration allows 2 MAC addresses per port—one for the phone and one for a downstream PC. Sticky MAC learning is used so that the switch remembers the phone and PC MACs after initial connection. This prevents a user from swapping the PC for an unauthorized device without triggering a violation.
+
+- **Data Center Server Access**: Static MAC addresses are configured for critical servers to ensure only the intended NICs can communicate. Any attempt to connect a different server or a rogue device to that port results in immediate shutdown. This is often combined with 802.1X for multi-factor authentication.
+
+- **Guest or BYOD Networks**: Port security with restrict mode and SNMP traps provides visibility into unauthorized connection attempts without disrupting legitimate guest traffic. The violation counter helps identify ports under attack or misconfiguration.
+
+**Security Relevance**
+
+Port security addresses several attack vectors and compliance requirements.
+
+- **MAC Flooding Mitigation**: By limiting the number of MAC addresses per port, port security prevents an attacker from flooding the switch’s MAC table with fake source MAC addresses. Without this limit, an attacker could force the switch into fail-open mode (hub mode) and capture traffic destined for other hosts.
+
+- **Rogue Device Prevention**: Unauthorized devices such as rogue access points, Raspberry Pi implants, or personal laptops cannot connect to a secured port without triggering a violation. This enforces the principle of least privilege at the physical layer.
+
+- **Compliance Frameworks**: Standards such as PCI DSS (Requirement 1.3.4), NIST SP 800-53 (AC-17, SC-7), and CIS Controls (Control 12) mandate network access control at the port level. Port security provides a low-cost, low-complexity method to satisfy these requirements without deploying full NAC solutions.
+
+- **Limitations and Complementary Controls**: Port security alone is insufficient against MAC spoofing (an attacker can clone an authorized MAC address). It also does not authenticate users—only devices. For stronger security, combine port security with 802.1X (port-based authentication), DHCP snooping, and dynamic ARP inspection. Additionally, port security does not prevent attacks from authorized devices that are compromised; it only controls which MAC addresses are allowed.
+
+**Key Takeaways**
+
+- Port security restricts switch port access by MAC address, using static, dynamic, or sticky learning, and enforces violations via protect, restrict, or shutdown modes.
+- Real-world deployments include enterprise access ports, VoIP configurations, and data center server connections, with maximum MAC limits and aging policies tailored to the environment.
+- Port security mitigates MAC flooding and rogue device attacks but must be paired with 802.1X and other Layer 2 security features to defend against MAC spoofing and user-level threats.

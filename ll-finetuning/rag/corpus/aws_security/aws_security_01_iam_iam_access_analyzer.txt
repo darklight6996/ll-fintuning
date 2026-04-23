@@ -1,0 +1,37 @@
+AWS IAM Access Analyzer is a security feature that identifies resources shared with external principals, enabling engineers to detect unintended access to AWS resources. It operates by analyzing resource-based policies (e.g., S3 bucket policies, KMS key policies, IAM role trust policies) and generating findings when a policy grants access to a principal outside of your AWS account or AWS organization. Access Analyzer does not evaluate identity-based policies attached to IAM users, groups, or roles; it focuses solely on resource-based policies that explicitly grant access to external entities.
+
+**Key Components**
+
+- **Analyzer**: The core entity that defines the scope of analysis. You create an analyzer for an AWS account or an entire AWS organization. Each analyzer continuously evaluates resource-based policies within its designated zone of trust (the account or organization). Findings are generated for any policy that allows access to a principal outside this zone.
+
+- **Findings**: When Access Analyzer detects a policy that grants access to an external principal, it creates a finding. Each finding includes the resource ARN, the external principal (e.g., an AWS account ID, an IAM user ARN, or a service principal), the specific action allowed, and the condition under which access is granted. Findings are categorized by severity (e.g., MEDIUM, HIGH) based on the sensitivity of the resource and the scope of access.
+
+- **Archive Rules**: You can define archive rules to automatically suppress findings that are expected or approved. For example, if you have a cross-account S3 bucket that is intentionally shared with a partner account, you can create an archive rule that matches that specific external account and resource. Archived findings are not deleted but are moved to an archived state and excluded from active alerts.
+
+- **Policy Validation**: Access Analyzer also includes a policy validation feature that checks IAM policies against AWS best practices and security guidelines. It provides actionable recommendations for policy improvements, such as removing wildcard actions, restricting resource ARNs, and using conditions. This is separate from the external access analysis but complements it by helping engineers write more secure policies.
+
+- **Custom Policy Checks**: For advanced use cases, Access Analyzer supports custom policy checks using the AWS IAM Access Analyzer API. You can programmatically validate policies against custom rules, such as ensuring that no policy allows "s3:PutObject" to a specific bucket without encryption conditions. This is useful for integrating policy validation into CI/CD pipelines.
+
+**Real-World Application**
+
+A common use case is auditing S3 bucket policies for unintended public access. Consider a scenario where a developer attaches a bucket policy that accidentally includes "Principal": "*" with "Effect": "Allow" on "s3:GetObject". Access Analyzer immediately generates a finding showing that any AWS principal (including anonymous users) can read objects. The security engineer receives this finding, reviews the policy, and either revokes the access or adds a condition requiring a specific source IP or VPC endpoint.
+
+Another application is monitoring cross-account IAM role trust policies. If an IAM role in Account A has a trust policy that allows "sts:AssumeRole" from Account B, Access Analyzer generates a finding. This is critical for detecting when a role is inadvertently shared with an external account that should not have access. Engineers can then verify whether the trust relationship is intentional and, if not, remove the external principal.
+
+Access Analyzer also integrates with AWS Organizations. When you create an analyzer for the entire organization, it monitors all accounts within the organization and generates findings for any resource shared with principals outside the organization. This is particularly useful for large enterprises that need centralized visibility into cross-account access across multiple business units.
+
+**Security Relevance**
+
+From a security engineering perspective, Access Analyzer addresses the principle of least privilege by surfacing overly permissive resource-based policies. It reduces the attack surface by identifying resources that are accessible to external entities, which could be exploited if the external account is compromised. It also helps meet compliance requirements such as PCI DSS, SOC 2, and HIPAA, which mandate controls over data sharing and access boundaries.
+
+Access Analyzer is not a real-time prevention tool; it is a detection and auditing tool. It does not block access or modify policies automatically. Instead, it provides continuous monitoring and alerts, enabling engineers to respond to misconfigurations promptly. Findings are generated within minutes of a policy change, but there is no guarantee of immediate detection for all resource types. Currently, Access Analyzer supports over 20 resource types, including S3 buckets, IAM roles, KMS keys, Lambda functions, SQS queues, SNS topics, and Secrets Manager secrets.
+
+One limitation is that Access Analyzer does not evaluate policies that use conditions with external principals that are not explicitly listed. For example, if a policy allows access to any AWS account but includes a condition that restricts access to a specific IP range, Access Analyzer still generates a finding because the principal is external. Engineers must manually verify whether the condition sufficiently mitigates the risk.
+
+Another consideration is cost. Access Analyzer is free for the first 100,000 findings per month per account, after which there is a per-finding charge. For organizations with many resources, costs can accumulate, so it is advisable to use archive rules aggressively to suppress expected findings.
+
+**Key Takeaways**
+
+- IAM Access Analyzer continuously monitors resource-based policies for external access, generating findings that help engineers detect and remediate unintended sharing of AWS resources.
+- Use archive rules to suppress expected findings and integrate custom policy checks into CI/CD pipelines for proactive policy validation.
+- Access Analyzer is a detection tool, not a prevention tool; it supports compliance auditing but requires manual review and remediation of findings.

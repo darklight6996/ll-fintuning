@@ -1,0 +1,55 @@
+AWS Config compliance rules are automated evaluations that assess whether your AWS resource configurations align with desired policies. They function as the enforcement and auditing layer within AWS Config, continuously monitoring resource state changes and comparing them against defined rule logic. Each rule is associated with an AWS Lambda function that evaluates resource configurations and returns a compliance state: COMPLIANT, NON_COMPLIANT, or NOT_APPLICABLE.
+
+**Key Components**
+
+- **Rule Types**: AWS Config supports managed rules (pre-built by AWS) and custom rules (user-defined Lambda functions). Managed rules cover common compliance frameworks like CIS AWS Foundations, PCI DSS, and NIST 800-53. Custom rules allow evaluation of organization-specific policies, such as requiring specific tags or encryption settings.
+
+- **Trigger Types**: Rules evaluate resources based on two trigger mechanisms. Configuration changes trigger evaluation when a resource is created, updated, or deleted. Periodic triggers run evaluations at a defined frequency (e.g., every 6 hours) regardless of resource changes, useful for detecting drift in external dependencies like IAM policies.
+
+- **Evaluation Scope**: Rules can target all resources of a specific type (e.g., all S3 buckets) or use resource identifiers to limit scope. Scope can also include resource tags, allowing you to apply rules only to production resources.
+
+- **Remediation Actions**: AWS Config can automatically remediate non-compliant resources using AWS Systems Manager Automation documents. For example, a rule requiring S3 bucket encryption can trigger an automation that enables default encryption on non-compliant buckets.
+
+- **Aggregation and Multi-Account Management**: Rules can be aggregated across accounts and regions using AWS Config Aggregators. This enables centralized compliance monitoring for organizations with hundreds of accounts.
+
+**Real-World Application**
+
+Consider a financial services organization that must comply with PCI DSS requirement 3.4, which mandates rendering stored cardholder data unreadable. They implement a custom AWS Config rule that evaluates all RDS instances and DynamoDB tables for encryption at rest. The rule triggers on configuration changes and runs periodically every 24 hours.
+
+When a developer creates an unencrypted RDS instance, the rule evaluates the resource within minutes and marks it NON_COMPLIANT. The compliance dashboard in AWS Config shows the violation, and an SNS notification alerts the security team. If the organization has configured automatic remediation, the rule triggers an SSM Automation document that enables RDS encryption (if the instance supports it) or terminates the instance if encryption cannot be applied retroactively.
+
+Another common use case is enforcing tagging standards. A managed rule like "required-tags" can check that all EC2 instances have "Environment" and "CostCenter" tags. Non-compliant instances are flagged, and the security team can run a custom Lambda function that automatically applies default tags based on the instance's launch time or VPC.
+
+**Security Relevance**
+
+AWS Config compliance rules directly address several security concerns:
+
+- **Configuration Drift Detection**: Rules continuously monitor for unauthorized changes. If an attacker modifies a security group to allow inbound SSH from 0.0.0.0/0, a rule evaluating security group ingress rules will immediately flag the change as NON_COMPLIANT.
+
+- **Least Privilege Enforcement**: Custom rules can evaluate IAM policies for overly permissive actions. For example, a rule can check that no IAM role has "iam:PassRole" on all resources, a common privilege escalation vector.
+
+- **Encryption and Data Protection**: Managed rules like "s3-bucket-server-side-encryption-enabled" and "ebs-encrypted-by-default" ensure data at rest is encrypted. Rules can also verify that CloudTrail trails are encrypted with KMS and that S3 buckets block public access.
+
+- **Network Security**: Rules can validate that VPC flow logs are enabled, that security groups do not allow unrestricted inbound access on sensitive ports (22, 3389, 443), and that subnets are not publicly routable.
+
+- **Compliance Framework Mapping**: AWS Config integrates with AWS Audit Manager to map rule evaluations to specific control requirements in frameworks like SOC 2, HIPAA, and GDPR. This reduces manual evidence collection and provides automated compliance reports.
+
+- **Incident Response Integration**: Non-compliant findings can trigger automated incident response workflows. For example, a rule detecting an unencrypted S3 bucket can invoke a Lambda function that applies a bucket policy denying all write access until the issue is resolved.
+
+**Operational Considerations**
+
+When implementing AWS Config compliance rules, consider the following:
+
+- **Rule Evaluation Costs**: Each rule evaluation incurs a cost based on the number of configuration items evaluated. For high-volume resources like EC2 instances or S3 buckets, use periodic triggers sparingly to control costs.
+
+- **Rule Complexity**: Custom rules should be idempotent and handle edge cases like missing resources or API throttling. The Lambda function must return a valid evaluation result within 60 seconds (configurable up to 5 minutes).
+
+- **Remediation Safety**: Automatic remediation can cause service disruptions. Always test remediation actions in a non-production environment first. Use approval workflows for critical resources.
+
+- **Multi-Region Consistency**: Rules are region-specific. To enforce global policies, deploy rules across all regions using AWS CloudFormation StackSets or Terraform.
+
+**Key Takeaways**
+
+1. AWS Config compliance rules provide continuous, automated evaluation of resource configurations against security policies, enabling real-time detection of configuration drift and unauthorized changes.
+2. Custom rules give security engineers the flexibility to enforce organization-specific policies beyond managed rules, such as custom encryption requirements or IAM policy constraints.
+3. Integrate rules with automatic remediation and incident response workflows to reduce mean time to remediation (MTTR) for compliance violations, but always validate remediation actions to avoid unintended service disruptions.

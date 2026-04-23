@@ -1,0 +1,74 @@
+**Definition**
+
+T1078 Valid Accounts refers to the adversary technique of obtaining and abusing legitimate credentials to authenticate to systems, applications, or network services. This technique is categorized under Initial Access in the MITRE ATT&CK framework because valid credentials allow an attacker to bypass perimeter defenses and gain an initial foothold without exploiting software vulnerabilities. The abuse can involve user accounts, service accounts, domain administrator accounts, or even application-specific credentials such as API tokens and SSH keys. The core distinction from other initial access methods is that the adversary is not breaking in—they are logging in as an authorized user.
+
+**Key Components**
+
+To understand and defend against T1078, security engineers must analyze three critical components: credential acquisition, authentication vector, and privilege scope.
+
+- **Credential Acquisition Methods**
+  - **Phishing and Social Engineering:** Attackers harvest credentials via spear-phishing emails, fake login portals, or vishing calls.
+  - **Password Spraying and Brute Force:** Low-and-slow attempts against common passwords across many accounts to avoid lockout thresholds.
+  - **Credential Dumping:** Extracting hashes or plaintext passwords from memory (e.g., LSASS), registry, or configuration files after initial compromise.
+  - **Third-Party Breaches:** Using credential pairs leaked from other services (password reuse).
+  - **Insider Threats:** Employees or contractors intentionally providing credentials.
+  - **Default or Weak Credentials:** Exploiting unchanged default passwords on network devices, IoT, or legacy systems.
+
+- **Authentication Vectors**
+  - **Remote Access Services:** RDP, SSH, VPN, and VDI portals.
+  - **Web Applications:** Admin panels, cloud consoles (AWS, Azure, GCP), and SaaS platforms.
+  - **Network Protocols:** SMB, WinRM, LDAP, and SQL authentication.
+  - **API and Service Accounts:** OAuth tokens, service principal secrets, and application keys.
+  - **On-Premises to Cloud Federation:** Using on-prem AD credentials to authenticate to cloud services via federation (e.g., ADFS, Azure AD Connect).
+
+- **Privilege Scope and Lateral Movement**
+  - **Local vs. Domain Accounts:** Local accounts limit access to a single host; domain accounts enable network-wide movement.
+  - **Privileged Accounts:** Domain admins, enterprise admins, or cloud role administrators provide broad control.
+  - **Service Accounts:** Often over-privileged and rarely monitored, making them ideal for persistence.
+  - **Token Manipulation:** After authentication, attackers may steal or impersonate tokens (e.g., Kerberos tickets) to extend access without re-authentication.
+
+**Real-World Application**
+
+T1078 is not a theoretical technique—it is consistently among the top initial access vectors in major breaches. Understanding real-world scenarios helps engineers prioritize defenses.
+
+- **Case 1: SolarWinds (2020)**
+  Attackers compromised a service account used for software builds. They used valid credentials to authenticate to the Orion platform’s update mechanism, bypassing code signing and integrity checks. The account had legitimate access to the build pipeline, so no alerts triggered. This demonstrates how service accounts with excessive privileges can be abused for supply chain compromise.
+
+- **Case 2: Colonial Pipeline (2021)**
+  The ransomware group gained initial access via a legacy VPN account that did not require multi-factor authentication (MFA). The account was for a former employee and had not been disabled. This highlights the risk of stale accounts and the absence of MFA on remote access vectors.
+
+- **Case 3: Cloud Environment Abuse (Ongoing)**
+  In many cloud breaches, attackers obtain IAM user credentials via leaked keys in public GitHub repositories. They then use the AWS CLI or Azure CLI to authenticate directly to the cloud API, enumerating resources and escalating privileges. Because the authentication uses valid keys, cloud trail logs show legitimate API calls, making detection difficult without behavioral baselines.
+
+- **Detection Challenges**
+  - **Log Volume:** Authentication logs are high-volume and often noisy, making it hard to distinguish malicious from benign.
+  - **Credential Theft vs. Abuse:** The initial theft may not be logged; only the subsequent authentication is visible.
+  - **Legitimate Behavior:** An attacker using a valid account may perform actions indistinguishable from the real user (e.g., normal business hours, typical resource access).
+
+**Security Relevance**
+
+For security engineers, T1078 represents a fundamental shift in defensive strategy. You cannot rely solely on perimeter controls when attackers have the keys.
+
+- **Defensive Priorities**
+  - **Credential Hygiene:** Enforce strong password policies, disable stale accounts, and implement passwordless authentication where possible.
+  - **Multi-Factor Authentication (MFA):** Mandate MFA for all remote access, privileged accounts, and cloud consoles. This is the single most effective control against credential abuse.
+  - **Privileged Access Management (PAM):** Implement just-in-time (JIT) access, tiered administration, and session recording for privileged accounts.
+  - **Behavioral Analytics:** Deploy UEBA (User and Entity Behavior Analytics) to detect anomalous authentication patterns, such as impossible travel, unusual login times, or access to resources outside the user’s baseline.
+  - **Credential Monitoring:** Monitor for credential dumping tools (e.g., Mimikatz), unusual LSASS access, and failed login attempts that precede successful logins.
+  - **Cloud-Specific Controls:** Use IAM roles instead of long-lived keys, enforce key rotation, and scan repositories for leaked credentials.
+
+- **Detection Engineering**
+  - **Log Sources:** Aggregate authentication logs from Windows Event ID 4624 (logon), 4648 (explicit credentials), cloud trail, VPN logs, and application logs.
+  - **Indicators of Abuse:**
+    - Logins from unusual geographic locations or IP addresses.
+    - Multiple failed logins followed by a single success (password spray pattern).
+    - Use of service accounts during non-business hours.
+    - Authentication to multiple systems in rapid succession (lateral movement).
+    - Account usage after the user has been terminated or on leave.
+  - **Correlation:** Cross-reference authentication events with asset inventory, user role changes, and threat intelligence feeds.
+
+**Key Takeaways**
+
+- Valid accounts are the most reliable initial access vector for adversaries because they bypass technical controls and blend into normal traffic; prioritize MFA and credential hygiene over perimeter defenses.
+- Service accounts and stale credentials are high-risk targets that require dedicated monitoring, least-privilege configuration, and periodic review.
+- Detection of T1078 depends on behavioral baselines and correlation of authentication logs across on-premises and cloud environments, not just on signature-based alerts.

@@ -1,0 +1,61 @@
+**Definition**
+
+T1070 Indicator Removal is a defense evasion technique defined in the MITRE ATT&CK framework. It refers to the deliberate actions taken by an adversary to delete, modify, or obscure artifacts generated during an intrusion. These artifacts include log entries, file timestamps, registry keys, prefetch files, and other forensic evidence that would otherwise reveal the attacker’s tools, commands, or lateral movement. The primary goal is to prolong undetected access by hindering incident response and forensic analysis.
+
+**Key Components**
+
+Indicator removal can be broken down into several sub-techniques, each targeting a specific type of forensic artifact.
+
+- **Clear Windows Event Logs:** Attackers often use built-in utilities like `wevtutil` or PowerShell cmdlets (`Clear-EventLog`) to delete entire event logs (e.g., Security, System, Application). This removes evidence of logon events, service installations, and process creation. A common command is `wevtutil cl Security`.
+
+- **Timestomp (T1070.006):** This involves modifying file timestamps (creation, modification, access) to match legitimate system files. Tools like `timestomp` (part of Sysinternals) or native PowerShell (`Set-ItemProperty -Path file -Name LastWriteTime -Value date`) are used. The goal is to make malicious executables appear as old, trusted files.
+
+- **Clear Command History:** Attackers delete or overwrite command history files to hide executed commands. On Linux, this includes clearing `.bash_history` or `~/.zsh_history`. On Windows, it involves deleting PowerShell console history (`(Get-PSReadlineOption).HistorySavePath`) or using `doskey /listsize=0`.
+
+- **Delete Prefetch Files:** Windows Prefetch files (`.pf` in `C:\Windows\Prefetch`) track application launches. Deleting these files removes evidence of tool execution. Attackers may use `del C:\Windows\Prefetch\* /s /q`.
+
+- **Remove Web Browser Artifacts:** Attackers may clear browser cache, cookies, and download history to hide command-and-control (C2) traffic or downloaded payloads. This is often done via browser settings or by deleting specific files (e.g., `%USERPROFILE%\AppData\Local\Google\Chrome\User Data\Default\Cache`).
+
+- **Delete or Modify Registry Keys:** Attackers remove registry keys that indicate persistence or tool installation. For example, deleting `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run` entries. They may also modify keys to disable logging (e.g., disabling PowerShell script block logging).
+
+- **Wipe System Logs on Linux:** Commands like `journalctl --vacuum-size=1` or `rm -rf /var/log/*` are used to clear syslog, auth.log, and other system logs.
+
+**Real-World Application**
+
+Understanding how adversaries apply T1070 in practice is critical for detection engineering.
+
+- **Post-Exploitation Cleanup:** After deploying a backdoor or exfiltrating data, an attacker will often run a cleanup script. For example, a PowerShell one-liner that clears all Windows Event Logs and deletes the script itself: `wevtutil cl Security & wevtutil cl System & wevtutil cl Application & Remove-Item $MyInvocation.MyCommand.Path`. This removes both the logs and the script’s own execution evidence.
+
+- **Living off the Land (LotL):** Sophisticated attackers avoid dropping custom tools. Instead, they use native OS commands to remove indicators. For instance, using `wmic` to delete a service and then clearing the System log to hide the service deletion event. This makes detection harder because the commands themselves are not inherently malicious.
+
+- **Timestomping to Blend In:** An attacker drops a malicious DLL into `C:\Windows\System32` and uses `Set-ItemProperty` to set its creation time to match a legitimate system file like `kernel32.dll`. A forensic analyst looking for recently created files would miss it.
+
+- **Targeted Log Deletion:** Instead of clearing entire logs, attackers delete specific event IDs. For example, they might delete Event ID 4624 (successful logon) from the Security log to hide their authentication events. This is more subtle than clearing the entire log and can be done with PowerShell: `Get-WinEvent -LogName Security | Where-Object { $_.Id -ne 4624 } | Export-Csv -Path temp.csv`.
+
+- **Bypassing Audit Policies:** Attackers may disable audit policies before executing malicious actions. On Windows, they can use `auditpol /set /subcategory:"Process Creation" /success:disable /failure:disable` to stop process creation logging, then re-enable it after the action. This leaves no log of the disabling event if they also clear the Security log.
+
+**Security Relevance**
+
+For security engineers, T1070 is a high-priority detection target because it directly indicates an adversary is actively covering their tracks.
+
+- **Detection Challenges:** Traditional signature-based detection fails because the commands used (e.g., `wevtutil`, `Set-ItemProperty`) are legitimate administrative tools. Detection must rely on behavioral analytics and correlation.
+
+- **Critical Detection Signals:**
+    - **Rapid log clearing:** Multiple `wevtutil cl` commands in a short time window from a non-administrative account.
+    - **Bulk file deletion in Prefetch or Cache folders:** A script deleting all `.pf` files or browser cache.
+    - **Timestamp anomalies:** Files with creation times identical to system files but located in user-writable directories.
+    - **Audit policy changes:** `auditpol` commands executed outside of planned maintenance windows.
+    - **PowerShell history deletion:** Deletion of the `ConsoleHost_history.txt` file.
+
+- **Mitigation Strategies:**
+    - **Centralized logging:** Forward all critical logs to a SIEM with write-once, read-many storage (e.g., AWS S3 with Object Lock). This prevents an attacker from deleting logs from the source.
+    - **Enable advanced auditing:** Configure Windows Advanced Audit Policy to log process creation with command-line arguments (Event 4688) and PowerShell script block logging (Event 4104). These logs are harder to clear because they are often sent to a central collector in real-time.
+    - **Use Sysmon:** Sysmon logs file creation, network connections, and process creation with high granularity. Its logs are separate from Windows Event Logs and can be configured to be immutable.
+    - **Endpoint Detection and Response (EDR):** Deploy EDR agents that monitor for indicator removal behaviors, such as bulk log deletion or timestomping, and generate alerts even if the logs are cleared locally.
+    - **Honeytokens:** Place fake sensitive files or registry keys that trigger alerts when accessed or deleted. This can catch an attacker during the indicator removal phase.
+
+**Key Takeaways**
+
+1.  T1070 Indicator Removal is not a single action but a collection of sub-techniques targeting logs, timestamps, and file artifacts; detection requires monitoring for the use of native administrative tools in anomalous patterns.
+2.  The most effective defense is centralized, immutable logging that sends events to a SIEM in real-time, preventing adversaries from destroying evidence even if they clear local logs.
+3.  Behavioral detection rules (e.g., rapid log clearing, bulk file deletion, timestamp manipulation) are more reliable than signature-based detection for identifying indicator removal activity.

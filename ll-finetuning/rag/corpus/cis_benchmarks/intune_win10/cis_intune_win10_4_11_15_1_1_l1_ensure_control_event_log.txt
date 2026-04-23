@@ -1,0 +1,28 @@
+4.11.15.1: .1 (L1) Ensure 'Control Event Log behavior when the log
+
+Overview
+This policy setting controls Event Log behavior when the log file reaches its maximum 
+size. 
+The recommended state for this setting is: Disabled. 
+Note: Old events may or may not be retained according to the Backup log automatically 
+when full policy setting.
+
+Why This Matters
+If new events are not recorded it may be difficult or impossible to determine the root 
+cause of system problems or the unauthorized activities of malicious users.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a REG_SZ 
+value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\EventLog\Application:Retention
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Windows Components\Event Log 
+Service\Application\Control Event Log behavior when the log file reaches its 
+maximum size
+
+Key Takeaways
+- If new events are not recorded it may be difficult or impossible to determine the root  cause of system problems or the unauthorized activities of malicious users.

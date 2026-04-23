@@ -1,0 +1,65 @@
+Splunk dashboards and reports transform raw machine data into actionable security intelligence. A dashboard is a collection of visual panels that provide real-time or historical views of security data, while a report is a saved search result that can be scheduled, alerted upon, or exported. For a security engineer, these tools are not optional; they are the primary interface for monitoring, investigating, and communicating security posture.
+
+**Definition**
+
+A Splunk dashboard is an HTML or XML-based view that displays one or more panels. Each panel contains a visualization—such as a table, chart, single value, or map—driven by a search query. Dashboards can be interactive, allowing drill-downs and time range adjustments. A report is essentially a saved search with a defined output format. Reports can be generated on demand or on a schedule, and they serve as the data source for dashboard panels, alerts, and PDF exports. The distinction is functional: dashboards are for live monitoring and exploration; reports are for periodic summaries, compliance evidence, and historical analysis.
+
+**Key Components**
+
+- **Search Processing Language (SPL) Queries**: The foundation of every panel and report. Queries must be optimized for performance. Use `stats`, `timechart`, `top`, and `rare` commands to aggregate data. Avoid `search *` and wildcards at the start of queries. For security use cases, always include index, sourcetype, and time range constraints.
+- **Time Range Picker**: Critical for incident response. Dashboards should include a global time picker to allow rapid shifting from real-time to historical views. Use relative time ranges (e.g., last 24 hours, last 7 days) for flexibility.
+- **Visualizations**: Choose based on data type and intent.
+    - *Single Value*: For counts of critical events (e.g., failed logins, blocked IPs).
+    - *Time Series Chart*: For trends over time (e.g., authentication attempts per hour).
+    - *Table*: For detailed event lists (e.g., top 10 source IPs by threat count).
+    - *Pie/Bar Chart*: For categorical breakdowns (e.g., alert severity distribution).
+    - *Map*: For geolocation of attack sources.
+- **Drill-Down Actions**: Enable deeper investigation from a dashboard panel. A click on a chart element can open a new search, a detailed dashboard, or an external tool like a SIEM case management system. This reduces mean time to investigate.
+- **Input Controls**: Dropdowns, radio buttons, and text inputs that allow users to filter data without editing the underlying SPL. Common inputs include host, user, source IP, and threat category.
+- **Scheduling and Alerts**: Reports can be scheduled to run every hour, day, or week. Results can trigger alerts via email, webhook, or script. For compliance, schedule reports that capture evidence of access reviews, failed login summaries, and configuration changes.
+- **Permissions and Sharing**: Dashboards and reports must be scoped to roles. Use Splunk’s knowledge object permissions to restrict sensitive dashboards (e.g., “CISO Summary”) to specific roles. Share reports as PDFs or CSV exports for auditors.
+
+**Real-World Application**
+
+Consider a security operations center (SOC) monitoring for brute-force attacks. A security engineer would build a dashboard with the following panels:
+
+- **Single Value**: Count of distinct source IPs with >10 failed authentication attempts in the last hour.
+- **Time Series Chart**: Failed authentication attempts per minute, colored by source country.
+- **Table**: Top 20 source IPs, with columns for total attempts, success count, and geolocation.
+- **Input Controls**: Dropdown for target host, text input for username.
+
+The underlying SPL for the table panel might be:
+```
+index=windows sourcetype=WinEventLog:4625
+| stats count as FailedAttempts by src_ip, Account_Name
+| where FailedAttempts > 10
+| lookup geoip src_ip OUTPUT city, country
+| sort - FailedAttempts
+| table src_ip, Account_Name, FailedAttempts, city, country
+```
+
+For compliance reporting, a weekly report on privileged account usage would be scheduled. The report query:
+```
+index=linux sourcetype=secure "sudo" OR "su"
+| stats count by user, host, command
+| sort - count
+```
+This report is emailed to the compliance team every Monday at 0800. The PDF output serves as evidence for access control audits.
+
+During an incident, the SOC lead uses the dashboard’s time picker to zoom into the exact window of the attack. Drill-down on a suspicious IP opens a new search for all events from that IP across all data sources. This workflow cuts investigation time from minutes to seconds.
+
+**Security Relevance**
+
+Dashboards and reports are directly tied to security operations and compliance.
+
+- **Threat Detection**: Real-time dashboards surface anomalies immediately. A spike in firewall denies or a sudden increase in DNS queries to a known bad domain triggers visual flags. Without dashboards, these signals are buried in logs.
+- **Incident Response**: During an active breach, a dedicated incident response dashboard provides a single pane of glass for affected hosts, user accounts, and indicators of compromise. Drill-downs enable rapid pivoting.
+- **Compliance and Auditing**: Reports are the primary mechanism for demonstrating control effectiveness. PCI DSS, HIPAA, and SOX require evidence of log monitoring, access reviews, and change management. Scheduled reports with retention policies satisfy these requirements.
+- **Performance and Cost Control**: Poorly designed dashboards can overload search heads and indexers. Use summary indexing for high-volume data. Set time range limits. Avoid real-time searches on dashboards that are not actively monitored. This prevents resource exhaustion and ensures the platform remains responsive during incidents.
+- **Access Control**: Dashboards containing sensitive data (e.g., all user logins, database queries) must be restricted. Use role-based access. Never embed credentials or API keys in dashboard XML. Audit dashboard usage via Splunk’s internal logs.
+
+**Key Takeaways**
+
+1.  Build dashboards for real-time monitoring with drill-downs and input controls to accelerate incident investigation, and schedule reports for compliance evidence and periodic review.
+2.  Optimize every SPL query with indexed fields, time constraints, and aggregation commands to prevent performance degradation across the Splunk environment.
+3.  Enforce strict permissions on dashboards and reports based on role, and never expose raw sensitive data in visualizations or exported report files.

@@ -1,0 +1,43 @@
+Federation and Single Sign-On (SSO) are distinct but interdependent concepts within Identity and Access Management (IAM). Federation is the trust relationship established between separate identity domains, enabling the exchange of identity attributes and authentication assertions. SSO is the user experience outcome where a single authentication event grants access to multiple applications or services, often across these federated domains. Federation provides the protocol-level plumbing; SSO is the user-facing result.
+
+**Definition**
+
+Federation decouples authentication from authorization across organizational boundaries. It relies on a trust model where an Identity Provider (IdP) authenticates a user and issues a token or assertion. A Service Provider (SP) consumes that token to grant access without re-authenticating the user. The core principle is that the SP does not need to store or manage user credentials. SSO, in this context, is the mechanism that allows a user to authenticate once with the IdP and then access multiple SPs without additional logins. Federation enables cross-domain SSO; SSO can also exist within a single domain (e.g., using Kerberos or a corporate Active Directory forest), but federation is required when the IdP and SP belong to different security realms.
+
+**Key Components**
+
+The following components are essential for implementing federation and SSO in a production environment:
+
+- **Identity Provider (IdP):** The authoritative source for user authentication and attribute release. The IdP validates credentials (password, MFA, certificate) and generates a signed assertion. Examples: Azure AD, Okta, Keycloak, PingFederate.
+- **Service Provider (SP):** The application or resource that relies on the IdP for authentication. The SP trusts the IdP’s assertions and uses them to establish a local session. The SP must validate the assertion’s signature, issuer, and audience.
+- **Assertion/Token:** A cryptographically signed data structure containing claims about the user (e.g., user ID, email, roles, authentication timestamp). Common formats: SAML 2.0 assertions, OpenID Connect ID tokens, OAuth 2.0 access tokens (when used for authentication).
+- **Trust Relationship:** Established through metadata exchange. The IdP and SP share public keys, endpoints (SSO URL, logout URL), and entity identifiers. This is typically done via XML metadata files (SAML) or well-known configuration endpoints (OIDC).
+- **Session Management:** The IdP maintains a session cookie after initial authentication. The SP creates its own local session after consuming the assertion. Session lifetimes, idle timeouts, and logout propagation (Single Logout) must be configured and synchronized.
+- **Protocol Endpoints:** Specific URLs for initiating SSO (e.g., IdP-initiated vs. SP-initiated), receiving assertions (Assertion Consumer Service), and handling logout requests.
+
+**Real-World Application**
+
+Federation and SSO are deployed in three common patterns:
+
+1.  **Enterprise-to-Cloud (IdP in corporate network, SP in SaaS):** An organization uses its internal Active Directory Federation Services (ADFS) or Okta tenant as the IdP. Employees access Salesforce, Office 365, or Slack. The SaaS application (SP) redirects unauthenticated users to the corporate IdP. After authentication, the IdP posts a SAML assertion back to the SP. The user never enters credentials into the SaaS application. Security benefit: credential exposure is minimized; the SP never sees the password.
+
+2.  **B2B Federation (Partner IdP to your SP):** A company provides a partner portal. The partner runs its own IdP (e.g., Azure AD). When a partner employee accesses the portal, the portal redirects to the partner’s IdP. The partner authenticates their user and sends a SAML assertion containing a unique identifier and role attributes. The portal authorizes access based on those attributes. Security benefit: the company does not manage partner user accounts or passwords; account lifecycle is delegated to the partner.
+
+3.  **Cross-Cloud Federation (IdP in one cloud, SP in another):** A multi-cloud architecture where an application running in AWS uses an IdP hosted in GCP (e.g., using OIDC). The AWS application trusts tokens issued by the GCP IdP. This avoids duplicating user directories across clouds. Security benefit: centralized identity governance and consistent MFA policies.
+
+**Security Relevance**
+
+Federation and SSO introduce specific security considerations that must be addressed:
+
+- **Assertion Injection:** An attacker who intercepts a valid assertion can replay it to impersonate a user. Mitigations: use short assertion lifetimes (e.g., 5 minutes), bind assertions to the intended SP via the AudienceRestriction (SAML) or `aud` claim (OIDC), and require TLS for all assertion transport.
+- **IdP Compromise:** If the IdP is compromised, all federated SPs are at risk. Mitigations: implement strong MFA at the IdP, monitor IdP logs for anomalous authentication patterns, and use hardware security modules (HSMs) for signing keys.
+- **SP Trust Validation:** An SP that fails to validate the assertion signature, issuer, or audience will accept forged tokens. Mitigations: enforce strict certificate validation, use a whitelist of trusted IdP entity IDs, and never accept unsigned assertions.
+- **Session Hijacking:** After SSO, the SP creates a local session. If that session cookie is stolen, the attacker gains access without needing to re-authenticate. Mitigations: use HttpOnly, Secure, and SameSite cookies; implement short session timeouts; and require re-authentication for sensitive actions.
+- **Single Logout (SLO) Failures:** If SLO is not implemented or fails, terminating the IdP session may leave SP sessions active. Mitigations: test SLO flows thoroughly, use front-channel logout (HTTP redirects) for better reliability, and implement session timeout synchronization.
+- **Attribute Over-Release:** IdPs may release more attributes than necessary (e.g., full home address when only email is needed). Mitigations: apply the principle of least privilege to attribute release policies; use attribute filtering at the IdP.
+
+**Key Takeaways**
+
+- Federation establishes a trust relationship between separate identity domains using protocols like SAML 2.0 or OpenID Connect, enabling cross-domain SSO without sharing credentials.
+- The primary security risks are assertion injection, IdP compromise, and improper SP validation; each must be mitigated with cryptographic controls, short token lifetimes, and strict trust configuration.
+- Real-world deployments require careful session management, attribute release policies, and thorough testing of Single Logout to prevent residual access after session termination.

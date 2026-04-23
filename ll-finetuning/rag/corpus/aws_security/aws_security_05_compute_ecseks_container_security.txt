@@ -1,0 +1,53 @@
+Container security for Amazon ECS and Amazon EKS requires a defense-in-depth approach that addresses the unique attack surfaces of containerized workloads. Unlike traditional virtual machines, containers share the host OS kernel, which introduces specific vulnerabilities related to privilege escalation, namespace isolation, and image integrity.
+
+**Definition**
+
+Container security for ECS and EKS encompasses the policies, tools, and practices used to protect containerized applications running on AWS. It covers the entire lifecycle: build, deploy, and runtime. The primary goal is to prevent unauthorized access, data exfiltration, and lateral movement within the cluster, while ensuring compliance with frameworks like SOC 2, PCI DSS, and HIPAA.
+
+**Key Components**
+
+**1. Image Security**
+- **Scanning**: Use Amazon ECR image scanning (basic or enhanced with Inspector) to detect known vulnerabilities (CVEs) in base images and application dependencies. Scan at push time and on a recurring schedule.
+- **Minimal Base Images**: Use distroless or Alpine-based images to reduce attack surface. Avoid including package managers, shells, or compilers in production images.
+- **Immutable Tags**: Enforce immutable image tags in ECR to prevent tag mutation attacks. Use digest-based references in deployment manifests.
+- **Signing**: Implement container image signing with AWS Signer or third-party tools (e.g., Cosign) to verify image provenance before deployment.
+
+**2. Cluster Configuration**
+- **IAM Roles for Service Accounts (IRSA)**: In EKS, assign fine-grained IAM roles to pods via IRSA. This replaces static credentials and limits the blast radius of a compromised pod.
+- **Task IAM Roles**: For ECS, use task-level IAM roles. Each task gets a unique role with least-privilege permissions. Never use the EC2 instance profile for container access.
+- **Network Policies**: In EKS, enforce Kubernetes Network Policies to restrict east-west traffic between pods. For ECS, use security groups at the task or service level. Default deny all ingress/egress, then allow only required flows.
+- **Secrets Management**: Store sensitive data (API keys, database passwords) in AWS Secrets Manager or Parameter Store. Inject secrets at runtime via ECS task definitions or EKS Secrets Store CSI Driver. Never bake secrets into images.
+
+**3. Runtime Security**
+- **Host Hardening**: Use EKS-optimized AMIs or Bottlerocket OS, which are minimal and hardened by default. Disable SSH access to worker nodes. Use AWS Systems Manager Session Manager for operational access.
+- **Container Runtime Policies**: For ECS, use the `linuxParameters` in the task definition to drop kernel capabilities (e.g., `NET_RAW`, `SYS_ADMIN`). Set `readonlyRootFilesystem` to true. For EKS, use Pod Security Standards (baseline or restricted) or OPA/Gatekeeper to enforce policies like disallowing privileged containers and hostPath volumes.
+- **Anomaly Detection**: Deploy Amazon GuardDuty with EKS Runtime Monitoring or a third-party agent (e.g., Falco, Sysdig) to detect suspicious syscalls, reverse shells, or crypto miners at runtime.
+- **Logging and Auditing**: Enable AWS CloudTrail for control plane events. For EKS, enable audit logs for the Kubernetes API server. Stream container logs to CloudWatch Logs or a SIEM. Monitor for `exec` into running containers and unusual network connections.
+
+**4. Network Security**
+- **VPC Isolation**: Run ECS and EKS clusters in private subnets. Use VPC endpoints for ECR, S3, and other AWS services to avoid traffic traversing the internet.
+- **Service Mesh**: Consider AWS App Mesh or Istio for mTLS between services, fine-grained traffic policies, and observability. This adds a layer of encryption and authentication at the application layer.
+- **Ingress Control**: Use AWS Load Balancer Controller for EKS or ALB/NLB for ECS. Restrict inbound traffic to specific CIDRs or use AWS WAF for web application layer filtering.
+
+**Real-World Application**
+
+Consider a financial services company migrating a payment processing application from EC2 to EKS. The security team must ensure PCI DSS compliance.
+
+- **Build Phase**: The CI/CD pipeline uses ECR with enhanced scanning. Any image with a critical CVE is blocked from deployment. Images are signed with AWS Signer, and the admission controller verifies the signature before scheduling pods.
+- **Deploy Phase**: The cluster uses IRSA. The payment service pod gets an IAM role that only allows `sqs:SendMessage` to a specific queue and `dynamodb:PutItem` to a specific table. Network Policies deny all ingress except from the frontend service on port 8443.
+- **Runtime Phase**: GuardDuty is enabled for EKS Runtime Monitoring. A Falco rule detects a pod attempting to mount the host filesystem. The security team receives an alert and terminates the pod. Audit logs are shipped to a SIEM for forensic analysis.
+- **Compliance**: The security team uses AWS Config rules to enforce that all EKS clusters have control plane logging enabled and that ECS tasks have `readonlyRootFilesystem` set to true. Non-compliant resources are automatically remediated via AWS Systems Manager Automation.
+
+**Security Relevance**
+
+Container security is critical because misconfigurations in ECS/EKS are a leading cause of data breaches. Common attack vectors include:
+
+- **Privilege Escalation**: A container running as root with `CAP_SYS_ADMIN` can escape to the host. Enforcing restricted Pod Security Standards prevents this.
+- **Credential Theft**: If a pod has an overly permissive IAM role, an attacker who compromises the pod can access other AWS services. IRSA and task IAM roles limit this.
+- **Lateral Movement**: Without network policies, an attacker can pivot from a compromised web pod to a database pod. Default deny network policies block this.
+- **Supply Chain Attacks**: Using unverified base images can introduce malware. Image scanning and signing mitigate this risk.
+
+**Key Takeaways**
+1. Enforce least privilege at every layer: IAM roles for pods/tasks, network policies, and container runtime capabilities.
+2. Implement image scanning and signing in your CI/CD pipeline to prevent vulnerable or untrusted images from reaching production.
+3. Enable runtime monitoring (GuardDuty, Falco) and audit logging to detect and respond to active threats within the cluster.

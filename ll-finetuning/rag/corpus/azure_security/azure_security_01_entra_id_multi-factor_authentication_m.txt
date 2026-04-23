@@ -1,0 +1,37 @@
+Multi-Factor Authentication (MFA) is a security mechanism that requires a user to present two or more distinct verification factors from independent categories before gaining access to a resource. In the context of Microsoft Entra ID (formerly Azure Active Directory), MFA is a core identity protection control that mitigates the risk of credential theft, password spraying, and replay attacks. It operates on the principle that an attacker who compromises a single factor (e.g., a password) cannot authenticate without the additional factor(s).
+
+**Key Components**
+
+Entra ID MFA relies on three primary factor categories: something you know (password), something you have (a trusted device or token), and something you are (biometric data). The implementation within Entra ID is built around the following components:
+
+- **Authentication Methods**: These are the specific technologies a user can register and use. Supported methods include the Microsoft Authenticator app (push notification or OTP), FIDO2 security keys, certificate-based authentication (CBA), temporary access pass (TAP), hardware OATH tokens, software OATH tokens, and SMS/voice call (deprecated for new tenants as of 2024). Each method has a different security profile; FIDO2 and certificate-based methods are phishing-resistant, while SMS is vulnerable to SIM-swapping and interception.
+- **Conditional Access Policies**: This is the primary enforcement engine for MFA in Entra ID. Rather than applying MFA globally to all users, Conditional Access allows granular, risk-based enforcement. A policy evaluates signals such as user/group membership, location (IP range or country), device state (compliant or hybrid-joined), application sensitivity, and real-time sign-in risk (low, medium, high). The policy then grants access only if MFA is completed, or blocks access entirely.
+- **Authentication Strengths**: This feature allows you to require a specific level of authentication assurance. For example, you can create a policy that mandates "Phishing-resistant MFA" (FIDO2 or certificate) for privileged role administrators, while allowing "Passwordless MFA" (Authenticator app) for standard users. This maps to the NIST AAL (Authenticator Assurance Level) framework.
+- **User Registration and Management**: Users must register their authentication methods before MFA can be enforced. Entra ID provides a combined registration experience (SSPR + MFA) and an admin-managed registration policy. Administrators can also pre-register methods (e.g., push a FIDO2 key to a user) or require re-registration after a security incident.
+- **Reporting and Monitoring**: The Entra ID sign-in logs show whether MFA was required and completed. The "Authentication Methods Activity" report tracks registration status per user. Azure Monitor and Microsoft Sentinel can ingest these logs for anomaly detection and compliance auditing.
+
+**Real-World Application**
+
+A typical deployment follows a phased, risk-based approach. Consider a mid-sized enterprise with 5,000 users, including 50 privileged role administrators (Global Admin, Exchange Admin, etc.) and 4,950 standard users.
+
+1. **Phase 1 – Pilot**: Create a Conditional Access policy targeting a test group of 20 users. Require MFA for all cloud apps. Use the "Require authentication strength" control set to "Multi-factor authentication" (default). Monitor sign-in logs for failures and user friction. Adjust the policy to exclude break-glass accounts (emergency admin accounts with long, complex passwords and no MFA requirement, stored in a secure vault).
+
+2. **Phase 2 – Privileged Users**: Create a separate Conditional Access policy for the 50 privileged role administrators. Require "Phishing-resistant MFA" (FIDO2 or certificate). Enforce this for all cloud apps, including the Azure portal and Entra ID admin center. Additionally, enable "Sign-in risk" as a condition: if risk is medium or high, block access. This prevents a compromised admin session from being used even with MFA.
+
+3. **Phase 3 – All Users**: Create a baseline Conditional Access policy for all users. Require MFA for all cloud apps, but exclude specific trusted locations (e.g., corporate office IP ranges) to reduce friction for on-premises users. For remote access, require MFA unconditionally. Use the "Require device to be marked as compliant" control alongside MFA for high-value apps like HR systems or financial applications.
+
+4. **Phase 4 – Continuous Tuning**: Monitor the "Users at risk" report in Entra ID Identity Protection. If a user is flagged as high risk, automatically require MFA re-authentication via a Conditional Access policy with "Sign-in risk" condition. For users who cannot register (e.g., shared kiosk devices), use Temporary Access Pass (TAP) for time-limited MFA.
+
+**Security Relevance**
+
+MFA is the single most effective control against automated credential attacks. According to Microsoft's own data, MFA blocks over 99.9% of account compromise attacks. However, not all MFA is equal. The security relevance depends on the method and enforcement context:
+
+- **Phishing resistance**: SMS and voice-based MFA are susceptible to real-time phishing (e.g., adversary-in-the-middle attacks using evilginx). FIDO2 and certificate-based authentication are cryptographically bound to the origin (the specific website or app), making them immune to phishing. For privileged roles, phishing-resistant MFA is mandatory.
+- **Session hijacking**: MFA protects the initial authentication, but if an attacker steals a session token (e.g., via a compromised device or token replay), they can bypass MFA. This is why Conditional Access policies should also enforce session controls like "Sign-in frequency" (e.g., re-authenticate every 1 hour for sensitive apps) and "Persistent browser session" (never persist).
+- **Denial of service**: Overly aggressive MFA enforcement can lock out users if their authentication method fails (e.g., lost phone). Always configure a fallback method (e.g., TAP or a hardware token) and maintain break-glass accounts.
+- **Compliance**: Regulations like PCI DSS, HIPAA, and FedRAMP require MFA for administrative access and remote network access. Entra ID MFA, when properly configured with Conditional Access and authentication strengths, satisfies these requirements. Audit logs must be retained and monitored for failed MFA attempts, which indicate reconnaissance or brute-force activity.
+
+**Key Takeaways**
+- Enforce MFA via Conditional Access policies, not per-user settings, to enable granular, risk-based controls and avoid blanket friction.
+- Require phishing-resistant MFA (FIDO2 or certificate) for all privileged role administrators to defeat real-time credential theft.
+- Continuously monitor sign-in logs and Identity Protection risk signals to dynamically adjust MFA requirements and detect compromised sessions.

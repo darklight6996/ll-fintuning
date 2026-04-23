@@ -1,0 +1,78 @@
+REST APIs are the dominant architectural style for web services, operating over HTTP and using standard methods (GET, POST, PUT, DELETE, PATCH) to manipulate resources represented in JSON or XML. Security for REST APIs is distinct from traditional web application security because APIs are consumed by automated clients, not browsers, and lack built-in session management. The stateless nature of REST means every request must contain all necessary authentication and authorization information, making token management, input validation, and rate limiting critical.
+
+**Key Components of REST API Security**
+
+**Authentication and Authorization**
+- Use token-based authentication (OAuth 2.0, JWT) rather than session cookies. JWTs should be signed with RS256 or ES256, not the symmetric HS256, to allow independent verification by resource servers.
+- Implement OAuth 2.0 scopes to limit token permissions. A token for read-only access should not allow write operations.
+- Never embed credentials in URLs or query parameters. Use the Authorization header with Bearer tokens.
+- For machine-to-machine communication, use client credentials grant flow with mutual TLS (mTLS) for additional assurance.
+
+**Transport Security**
+- Enforce TLS 1.2 or 1.3 for all API endpoints. Disable TLS 1.0 and 1.1.
+- Use HSTS headers to prevent downgrade attacks.
+- Validate certificate chains on both client and server sides in mTLS setups.
+
+**Input Validation and Output Encoding**
+- Validate all input against a strict allowlist of expected values. Reject unexpected data types, lengths, and patterns.
+- Use parameterized queries for database interactions to prevent SQL injection.
+- Encode output to prevent injection attacks in responses, especially when APIs return user-supplied data that may be rendered in web contexts.
+- Validate Content-Type headers and reject requests with mismatched types (e.g., application/json body with text/plain header).
+
+**Rate Limiting and Throttling**
+- Implement per-client rate limits based on API keys or tokens to prevent abuse and brute-force attacks.
+- Use token bucket or sliding window algorithms. Return 429 Too Many Requests with a Retry-After header.
+- Apply different limits for authenticated vs. unauthenticated endpoints.
+
+**Logging and Monitoring**
+- Log all authentication failures, authorization denials, and input validation rejections.
+- Include request IDs, timestamps, client IPs, and endpoint paths in logs. Never log tokens, passwords, or sensitive payloads.
+- Set up alerts for anomalous patterns: repeated 401s, sudden traffic spikes, or requests to deprecated endpoints.
+
+**Real-World Application: Securing a Payment Processing API**
+
+Consider a REST API that processes credit card transactions for an e-commerce platform. The API exposes endpoints for creating charges, retrieving transaction history, and refunding payments.
+
+**Authentication Implementation**
+- Clients authenticate using OAuth 2.0 with the client credentials grant. Each merchant gets a client_id and client_secret.
+- The token endpoint returns a JWT signed with RS256, containing claims for merchant_id, allowed scopes (e.g., charges:write, charges:read), and an expiration time of 15 minutes.
+- The resource server validates the JWT signature against a public key fetched from a well-known JWKS endpoint. It checks expiration, issuer, and audience claims.
+
+**Authorization Enforcement**
+- The POST /charges endpoint requires the charges:write scope. The GET /charges/{id} endpoint requires charges:read.
+- The API checks that the merchant_id in the token matches the merchant_id associated with the charge resource. A merchant cannot view or refund another merchant's transactions.
+- Idempotency keys are required for POST /charges to prevent duplicate charges from network retries. The API stores the key and returns the cached response for duplicate requests.
+
+**Input Validation**
+- The charge amount must be a positive integer in cents. The API rejects negative values, zero, or non-integer inputs.
+- Currency codes must match a predefined list (USD, EUR, GBP). The API returns 400 with a descriptive error for invalid codes.
+- Card numbers are validated using the Luhn algorithm before being sent to the payment processor. The API never stores full card numbers.
+
+**Rate Limiting**
+- Each merchant is limited to 100 charge requests per minute. The API tracks this using a sliding window stored in Redis.
+- If the limit is exceeded, the API returns 429 with a Retry-After header indicating 60 seconds. The response body includes a standard error object with code "rate_limit_exceeded".
+
+**Security Relevance**
+
+REST API security directly impacts organizational risk posture in several ways:
+
+**Data Breach Prevention**
+- Proper authentication and authorization prevent unauthorized access to sensitive data. In the payment API example, a compromised merchant token cannot access other merchants' transactions.
+- Input validation blocks injection attacks that could exfiltrate database contents or execute arbitrary commands.
+
+**Compliance Requirements**
+- PCI DSS requires strong authentication for access to cardholder data environments. Token-based authentication with short expiration times meets this requirement.
+- GDPR and CCPA require access controls on personal data. API scopes and resource-level authorization enable granular access management.
+
+**Availability and Abuse Prevention**
+- Rate limiting prevents denial-of-service attacks and brute-force credential stuffing. Without it, a single compromised API key could exhaust backend resources.
+- Idempotency keys prevent financial losses from duplicate transactions, which also protects against replay attacks.
+
+**Supply Chain Security**
+- Many organizations expose REST APIs to third-party partners and vendors. Weak API security can become an entry point for attackers to pivot into internal systems.
+- mTLS and strict scope enforcement limit the blast radius of a compromised third-party integration.
+
+**Key Takeaways**
+- Implement token-based authentication with OAuth 2.0 and signed JWTs, enforce resource-level authorization, and never trust client-supplied data without strict validation.
+- Apply rate limiting, idempotency keys, and comprehensive logging to prevent abuse and enable incident response.
+- Align API security controls with compliance frameworks (PCI DSS, GDPR) to meet regulatory requirements and reduce breach risk.

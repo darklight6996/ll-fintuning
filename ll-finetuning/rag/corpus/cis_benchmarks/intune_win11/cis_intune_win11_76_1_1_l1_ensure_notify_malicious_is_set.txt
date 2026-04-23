@@ -1,0 +1,31 @@
+76.1.1: (L1) Ensure 'Notify Malicious' is set to 'Enabled'
+
+Overview
+This policy setting determines whether Enhanced Phishing Protection in Microsoft 
+Defender SmartScreen warns users if they type their work or school password into one 
+of the following malicious scenarios: into a reported phishing site, into a Microsoft login 
+URL with an invalid certificate, or into an application connecting to either a reported 
+phishing site or a Microsoft login URL with an invalid certificate. 
+The recommended state for this setting is: Enabled. 
+Note: This setting only applies to Microsoft Accounts (computer or browser login) while 
+using Microsoft Windows 11 and not on-prem domain-joined accounts.
+
+Why This Matters
+Users will receive a pop-up notification if they try to access a website that is being 
+blocked by Windows Defender SmartScreen. This assists users in making informed 
+decisions about why the website is being blocked and whether to continue to it.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WTDS\Components:NotifyMalicious
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+Smart Screen\Enhanced Phishing Protection\Notify Malicious
+
+Key Takeaways
+- Users will receive a pop-up notification if they try to access a website that is being  blocked by Windows Defender SmartScreen.
+- This assists users in making informed  decisions about why the website is being blocked and whether to continue to it.

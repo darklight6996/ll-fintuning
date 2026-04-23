@@ -1,0 +1,58 @@
+**Definition**
+
+BigQuery security refers to the set of controls, configurations, and best practices that protect data stored and processed in Google BigQuery, Google Cloud’s serverless data warehouse. For a security engineer, BigQuery security encompasses identity and access management (IAM), network isolation, data encryption, audit logging, and data classification mechanisms. Because BigQuery operates on a shared responsibility model, the customer is responsible for configuring access policies, managing encryption keys, and monitoring usage, while Google manages the underlying infrastructure security.
+
+**Key Components**
+
+**1. Identity and Access Management (IAM)**
+- BigQuery uses IAM roles at the project, dataset, and table/view level. Predefined roles include `bigquery.dataViewer`, `bigquery.dataEditor`, and `bigquery.dataOwner`.
+- Fine-grained access can be granted using IAM conditions (e.g., restricting access based on time, IP address, or resource tags).
+- Authorized views allow sharing of query results without granting direct table access. The view’s SQL logic is executed with the view owner’s permissions, not the caller’s.
+- Row-level security is implemented via row-level access policies (RLS) on tables. These policies filter rows based on user attributes or group membership.
+
+**2. Network Security**
+- Private Google Access enables BigQuery to be accessed from on-premises or other cloud environments without traversing the public internet.
+- VPC Service Controls create a security perimeter around BigQuery resources, preventing data exfiltration to unauthorized networks.
+- Cloud VPN or Dedicated Interconnect can be used for encrypted connectivity.
+- BigQuery supports customer-managed encryption keys (CMEK) for data at rest, and Cloud External Key Manager (Cloud EKM) for keys stored outside Google Cloud.
+
+**3. Data Encryption**
+- Data at rest is encrypted by default using Google-managed keys. For additional control, CMEK can be applied at the dataset level.
+- Data in transit is encrypted using TLS 1.2 or higher.
+- BigQuery supports column-level encryption using Cloud Key Management Service (Cloud KMS) or client-side encryption libraries. This is critical for protecting sensitive fields like PII or financial data.
+
+**4. Audit Logging and Monitoring**
+- Cloud Audit Logs capture admin activity, data access, and system events. Data access logs are disabled by default and must be explicitly enabled.
+- Logs can be exported to Cloud Logging, BigQuery itself, or a SIEM for analysis.
+- BigQuery provides INFORMATION_SCHEMA views (e.g., `INFORMATION_SCHEMA.JOBS_BY_USER`) for query-level monitoring.
+- VPC Flow Logs and firewall rules can be used to monitor network traffic to BigQuery.
+
+**5. Data Classification and Protection**
+- BigQuery integrates with Data Loss Prevention (DLP) API for automated inspection, classification, and redaction of sensitive data.
+- Policy tags can be applied to columns to enforce access controls based on data sensitivity (e.g., `HIGH`, `MEDIUM`, `LOW`).
+- Dynamic data masking can be configured to obfuscate sensitive columns at query time based on user roles.
+
+**Real-World Application**
+
+Consider a financial services company that stores customer transaction data in BigQuery. The security team must ensure that only authorized analysts can view non-sensitive aggregate data, while compliance officers can access full records for audits.
+
+- **IAM Configuration:** The team creates custom roles with IAM conditions. Analysts are granted `bigquery.dataViewer` on the dataset but with a condition that restricts access to rows where `region = 'US'`. Compliance officers receive `bigquery.dataViewer` on the same dataset without row restrictions.
+- **Network Isolation:** The company uses VPC Service Controls to create a perimeter that includes the BigQuery API. All queries must originate from a trusted VPC network or via Private Google Access. This prevents data exfiltration to external IPs.
+- **Encryption:** The company enables CMEK on the dataset. The key is stored in Cloud KMS and rotated every 90 days. For highly sensitive columns (e.g., `ssn`, `account_number`), the team implements client-side encryption using a Cloud KMS key that is not accessible to BigQuery directly.
+- **Audit Logging:** Data access logs are enabled and exported to a separate BigQuery dataset in a different project. A scheduled query runs daily to detect anomalous access patterns, such as a user querying the `ssn` column outside of business hours.
+- **Data Classification:** The DLP API scans the dataset weekly and applies policy tags. Columns tagged as `HIGH_SENSITIVITY` are masked for all users except those in the `data_governance_admin` group.
+
+**Security Relevance**
+
+BigQuery security is critical because the platform often stores the organization’s most valuable and sensitive data. Misconfigurations in IAM or network controls can lead to data breaches, compliance violations (e.g., GDPR, PCI DSS, HIPAA), and financial penalties.
+
+- **Least Privilege:** Overly permissive IAM roles (e.g., granting `bigquery.dataEditor` to all users) are a common vulnerability. Security engineers must enforce least privilege by using IAM conditions and authorized views.
+- **Data Exfiltration:** Without VPC Service Controls, an attacker with valid credentials could export data to an external bucket or IP. This is a primary attack vector for insider threats.
+- **Encryption Gaps:** Relying solely on Google-managed keys may not meet compliance requirements for key control. CMEK or client-side encryption is necessary for regulated industries.
+- **Audit Blind Spots:** Disabling data access logs leaves the organization unable to detect unauthorized queries. Security engineers must ensure logs are enabled and monitored.
+- **Row-Level Security:** Without RLS, all users with table access see all rows. This is a common gap in multi-tenant environments.
+
+**Key Takeaways**
+- Implement IAM conditions and authorized views to enforce least privilege at the dataset and row level, not just at the project level.
+- Use VPC Service Controls and Private Google Access to prevent data exfiltration and enforce network boundaries.
+- Enable data access audit logs and integrate with a SIEM or automated monitoring system to detect anomalous query patterns.

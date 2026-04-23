@@ -1,0 +1,38 @@
+Identity Protection risk policies are conditional access rules within Microsoft Entra ID that automate responses to detected user and sign-in risks. These policies are distinct from standard conditional access policies because they evaluate risk levels computed by the Identity Protection service rather than static attributes like location or device state. The primary purpose is to block or require remediation actions—such as multi-factor authentication (MFA) or password reset—when a user or sign-in is assessed as compromised.
+
+**Key Components**
+
+A risk policy consists of three core elements: the risk type, the risk level threshold, and the action.
+
+- **Risk Types**: Identity Protection categorizes risk into two main types. *User risk* reflects the likelihood that a user’s identity has been compromised, based on signals like leaked credentials or anomalous activity over time. *Sign-in risk* is the probability that a specific authentication attempt is unauthorized, derived from real-time signals such as impossible travel, anonymous IP addresses, or unfamiliar sign-in properties.
+
+- **Risk Levels**: Each risk type is assigned a level: low, medium, high, or no risk. Policies are configured to trigger when the detected risk meets or exceeds a chosen threshold. For example, a policy set to “medium and above” will activate for both medium and high risk events. Microsoft recommends starting with high thresholds to reduce false positives, then gradually lowering as telemetry matures.
+
+- **Actions**: The policy defines the automated response. Common actions include blocking access, requiring MFA, requiring a secure password change, or requiring reauthentication. User risk policies typically enforce password reset or MFA, while sign-in risk policies often block or require MFA. The action must align with the risk type—blocking a sign-in is appropriate for high sign-in risk, but a user risk policy should focus on remediation to prevent future compromise.
+
+- **Exclusions**: Policies can exclude specific users or roles, such as emergency break-glass accounts or service principals that cannot perform interactive authentication. Exclusions are critical to avoid locking out administrators during an incident.
+
+- **Policy State**: Policies can be set to “Off,” “On,” or “Report-only.” Report-only mode logs what the policy would have done without enforcing it, enabling validation before full deployment.
+
+**Real-World Application**
+
+Consider a mid-sized enterprise with 5,000 users using Microsoft Entra ID for SaaS applications. The security team deploys two risk policies:
+
+1. **Sign-in risk policy**: Set to medium and above, with action “Require MFA.” When a user attempts to log in from a new IP address in a different country within minutes of a previous login from their home office, Identity Protection flags the sign-in as medium risk. The policy triggers an MFA challenge. If the user passes MFA, the sign-in proceeds; if they fail, access is blocked. This stops credential-stuffing attacks and token replay without requiring permanent MFA for all users.
+
+2. **User risk policy**: Set to high, with action “Require password change.” When leaked credentials for a user appear on the dark web, Identity Protection elevates their user risk to high. On their next sign-in, the policy forces a secure password reset before granting access. This remediates the compromised account without manual intervention from the help desk.
+
+In practice, these policies reduce the attack surface. For example, during a phishing campaign that harvests credentials, the sign-in risk policy detects anomalous sign-in patterns (e.g., from a known malicious IP) and blocks the attempt. Meanwhile, the user risk policy catches accounts whose credentials were already stolen and forces a reset, preventing lateral movement.
+
+**Security Relevance**
+
+Risk policies are a critical layer in a defense-in-depth strategy. They address scenarios that static conditional access rules cannot handle. For instance, a user with a valid password and MFA token can still be compromised if their session token is stolen. Sign-in risk policies detect the anomalous use of that token (e.g., from an unexpected location) and block it. Similarly, user risk policies catch accounts with leaked credentials before an attacker can use them.
+
+From a compliance perspective, risk policies help meet requirements for continuous authentication and adaptive access, as mandated by frameworks like NIST SP 800-63 or PCI DSS. They provide an auditable trail of automated responses to risk events, which is essential for incident response and forensic analysis.
+
+However, risk policies are not a silver bullet. They depend on the quality of signals ingested by Identity Protection. Organizations must ensure that audit logs, sign-in logs, and directory data are properly configured and sent to Entra ID. Additionally, false positives can occur—for example, a user traveling legitimately may trigger impossible travel detection. Using report-only mode and tuning thresholds over several weeks is necessary to minimize disruption.
+
+**Key Takeaways**
+- Identity Protection risk policies automate responses to user and sign-in risk, using thresholds (low, medium, high) to trigger actions like MFA, block, or password reset.
+- Deploy sign-in risk policies to stop real-time attacks (e.g., token replay) and user risk policies to remediate compromised accounts (e.g., leaked credentials).
+- Always start with report-only mode, exclude break-glass accounts, and tune thresholds based on your environment’s telemetry before enabling enforcement.

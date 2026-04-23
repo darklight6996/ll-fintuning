@@ -1,0 +1,81 @@
+Ariel Query Language (AQL) is the native query language for IBM QRadar SIEM. It is used to search, filter, aggregate, and correlate event and flow data stored in the QRadar data store. Unlike SQL, AQL is optimized for time-series data and the specific data structures used by QRadar (events, flows, and custom properties). AQL queries are executed against the Ariel database, which is the high-performance, columnar data store underlying QRadar.
+
+**Key Components of an AQL Query**
+
+An AQL query consists of several distinct clauses, each serving a specific purpose. Understanding these components is essential for building efficient and accurate queries.
+
+- **SELECT Clause:** Defines the columns to return. This can include standard fields (e.g., `sourceIP`, `destinationPort`, `categoryName`), calculated fields (e.g., `COUNT(*)`, `SUM(bytes)`), and custom properties (e.g., `SELECT customProperty['malware_hash']`). Using `SELECT *` is inefficient and should be avoided in production queries.
+
+- **FROM Clause:** Specifies the data source. The two primary sources are `events` and `flows`. You can also query specific log source types using the `logSourceTypeId` filter within the WHERE clause, but the FROM clause always references the base table.
+
+- **WHERE Clause:** Filters the data before aggregation. This is the most critical clause for performance. Always include a time range filter (e.g., `last 24 hours` or `startTime >= 1700000000`). Additional filters can include IP addresses, port numbers, event names, or custom properties. Use `IN` operators for lists and `ILIKE` for case-insensitive pattern matching.
+
+- **GROUP BY Clause:** Groups rows that have the same values in specified columns. This is required when using aggregate functions like `COUNT`, `SUM`, `AVG`, or `MAX`. For example, `GROUP BY sourceIP` will return one row per unique source IP.
+
+- **HAVING Clause:** Filters groups after aggregation. This is used to apply conditions on aggregate values, such as `HAVING COUNT(*) > 100`. It is functionally similar to WHERE but operates on grouped data.
+
+- **ORDER BY Clause:** Sorts the result set. Use `ASC` or `DESC` for ascending or descending order. Sorting on large result sets can be resource-intensive.
+
+- **LIMIT Clause:** Restricts the number of rows returned. Always use a LIMIT clause in ad-hoc queries to prevent overwhelming the console or the database.
+
+- **Time Range:** AQL requires a time range. You can specify it in the WHERE clause using `last X minutes/hours/days` or by using epoch timestamps with `startTime` and `endTime`.
+
+**Real-World Application: Threat Hunting and Incident Response**
+
+AQL is the primary tool for deep-dive analysis in QRadar. Below are concrete examples of how a security engineer would use AQL in daily operations.
+
+**Example 1: Detecting Lateral Movement via RDP**
+```sql
+SELECT sourceIP, destinationIP, COUNT(*) as connection_count
+FROM flows
+WHERE destinationPort = 3389
+  AND sourceIP NOT IN ('10.0.0.0/8', '192.168.0.0/16')
+  AND last 1 hour
+GROUP BY sourceIP, destinationIP
+HAVING COUNT(*) > 10
+ORDER BY connection_count DESC
+LIMIT 20
+```
+This query identifies external IPs initiating multiple RDP connections to internal hosts, a common lateral movement indicator.
+
+**Example 2: Identifying Brute Force Attacks on SSH**
+```sql
+SELECT sourceIP, destinationIP, COUNT(*) as attempts
+FROM events
+WHERE eventName ILIKE '%ssh%failed%'
+  AND last 30 minutes
+GROUP BY sourceIP, destinationIP
+HAVING COUNT(*) > 5
+ORDER BY attempts DESC
+```
+This query surfaces source IPs with more than five failed SSH login attempts in the last 30 minutes.
+
+**Example 3: Correlating Custom Properties for Malware Detection**
+```sql
+SELECT sourceIP, customProperty['process_name'], COUNT(*) as hits
+FROM events
+WHERE customProperty['malware_hash'] IS NOT NULL
+  AND last 24 hours
+GROUP BY sourceIP, customProperty['process_name']
+HAVING COUNT(*) > 1
+```
+This query finds hosts where a specific malware hash was detected more than once, indicating a persistent infection.
+
+**Security Relevance: Why AQL Matters for Compliance and Forensics**
+
+AQL is not just a search tool; it is a compliance and forensic necessity.
+
+- **Audit and Compliance:** Regulations like PCI DSS, HIPAA, and SOX require detailed logging and the ability to retrieve specific historical data. AQL allows you to query months of archived data to prove that a specific event did or did not occur. For example, a PCI DSS requirement to monitor all access to cardholder data can be validated with an AQL query that filters on specific log sources and event names.
+
+- **Incident Response Speed:** During an active incident, time is critical. AQL enables you to pivot from a single indicator (e.g., a suspicious IP) to a full timeline of activity across all log sources in seconds. You can correlate authentication logs, network flows, and endpoint events in a single query, reducing mean time to respond (MTTR).
+
+- **Custom Rule Tuning:** QRadar rules often generate false positives. AQL allows you to test rule logic against historical data before deploying changes. You can run the exact same logic as a rule to see how many events it would have triggered, then adjust thresholds or filters accordingly.
+
+- **Data Integrity Verification:** AQL can be used to verify that data is being ingested correctly. For example, a query comparing event counts per log source over time can reveal ingestion gaps or log source failures that would otherwise go unnoticed.
+
+- **Performance Considerations:** Inefficient AQL queries can degrade QRadar performance. Always filter on indexed fields (e.g., `sourceIP`, `destinationPort`, `category`) when possible. Avoid `LIKE` with leading wildcards (e.g., `'%value'`) as they force full table scans. Use the `EXPLAIN` command to analyze query execution plans and identify bottlenecks.
+
+**Key Takeaways**
+- AQL is a time-series query language optimized for QRadar's Ariel database; always include a time range filter and use indexed fields for performance.
+- Use AQL for threat hunting, incident response, and compliance validation by combining filters, aggregates, and custom properties in a single query.
+- Inefficient AQL queries (e.g., `SELECT *`, leading wildcards, missing LIMIT) degrade SIEM performance; always test queries with EXPLAIN and limit result sets.

@@ -1,0 +1,27 @@
+4.6.18.1: (L1) Ensure 'Minimize the number of simultaneous
+
+Overview
+This policy setting prevents computers from establishing multiple simultaneous 
+connections to either the Internet or to a Windows domain. 
+The recommended state for this setting is: Enabled: 3 = Prevent Wi-Fi when on 
+Ethernet.
+
+Why This Matters
+Preventing bridged network connections can help prevent a user unknowingly allowing 
+traffic to route between internal and external networks, which risks exposure to sensitive 
+internal data.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 3. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WcmSvc\GroupPolicy:fMinimizeConnecti ons
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 3 = Prevent Wi-Fi when on Ethernet. 
+Administrative Templates\Network\Windows Connection Manager\Minimize the 
+number of simultaneous connections to the Internet or a Windows Domain
+
+Key Takeaways
+- Preventing bridged network connections can help prevent a user unknowingly allowing  traffic to route between internal and external networks, which risks exposure to sensitive  internal data.

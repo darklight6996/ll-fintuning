@@ -1,0 +1,36 @@
+T1547, “Boot or Logon Autostart Execution,” is a MITRE ATT&CK technique that describes the adversary’s use of mechanisms that automatically execute code when a system is booted or a user logs on. This technique is a primary method for establishing persistence, ensuring that malicious code remains active across reboots and session changes. It is categorized under both the Execution and Persistence tactics, as it enables code to run at a specific system event and maintain long-term access.
+
+**Key Components**
+
+The technique encompasses a wide range of specific sub-techniques, each targeting a different autostart mechanism. The most common and relevant components include:
+
+- **Registry Run Keys / Startup Folder**: The most traditional method. Adversaries add entries to `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run` or `HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Run`. They may also place shortcuts in the user’s `Startup` folder (`%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup`). These execute with the user’s privileges.
+- **Service Auto-Start**: Malicious services configured with `SERVICE_AUTO_START` will launch at boot time, often with SYSTEM privileges. Adversaries may create new services or modify existing ones to point to malicious binaries.
+- **Scheduled Tasks**: Using `schtasks.exe` or the Task Scheduler API, adversaries create tasks triggered by system boot (`At system startup`) or user logon (`At logon`). These tasks can run with elevated privileges and are difficult to detect without log analysis.
+- **Bootkit / Bootloader Modification**: This is a more advanced sub-technique where the boot process itself is altered. Examples include modifying the Master Boot Record (MBR), Volume Boot Record (VBR), or using a malicious bootloader (e.g., via UEFI). This code executes before the operating system loads, making it extremely stealthy.
+- **Login Items (macOS)**: On macOS, adversaries can add applications to user login items via `~/Library/Preferences/com.apple.loginitems.plist` or system-wide launch daemons in `/Library/LaunchDaemons/`. These execute at user logon.
+- **Kernel Extensions and Drivers**: On both Windows and macOS, loading a malicious kernel extension or driver at boot allows code to run with the highest possible privileges, often before security software initializes.
+
+**Real-World Application**
+
+Adversaries select specific sub-techniques based on their target environment and desired level of stealth. A common real-world scenario is a phishing attack that drops a payload into the Registry Run key. For example, a macro-enabled document downloads a binary to `%TEMP%` and then uses `reg.exe add` to set a Run key pointing to that binary. Upon the next user logon, the binary executes, establishing persistence.
+
+In enterprise environments, adversaries often use scheduled tasks to survive reboots. A task set to run at system startup can launch a C2 beacon. This is harder to detect than a simple Run key because scheduled tasks can be hidden from standard user interfaces and can be configured to run as `SYSTEM` or a specific service account.
+
+More sophisticated actors, such as those targeting critical infrastructure, may deploy bootkits. The Shamoon wiper malware, for instance, used a bootkit component to overwrite the MBR, ensuring the system could not boot normally and displaying a ransom note. In espionage campaigns, bootkits like LoJax (attributed to APT28) modified UEFI firmware to persist even after a hard drive replacement.
+
+Another real-world application is the abuse of legitimate autostart locations for lateral movement. Once an adversary gains access to a high-value server, they may install a service that automatically starts on all domain-joined machines via Group Policy. This propagates the malware across the network.
+
+**Security Relevance**
+
+For a security engineer, T1547 is critical because it represents a primary persistence vector that must be monitored and controlled. The security relevance is multi-faceted:
+
+- **Detection**: Standard endpoint detection and response (EDR) tools can monitor for new entries in Registry Run keys, modifications to the Startup folder, and creation of new services or scheduled tasks. However, adversaries often use techniques to evade these detections, such as using obfuscated command lines or abusing legitimate binaries (e.g., `rundll32.exe`). Security engineers must correlate autostart events with other indicators, such as network connections to known-bad IPs or file creation in unusual directories.
+- **Prevention**: Hardening autostart mechanisms is essential. This includes restricting write permissions to the `HKLM\Software\Microsoft\Windows\CurrentVersion\Run` key and the system-wide Startup folder. Application whitelisting (e.g., AppLocker, Windows Defender Application Control) can block unauthorized executables from running at boot or logon. Disabling unnecessary services and using least-privilege principles for service accounts reduces the attack surface.
+- **Investigation**: When investigating a compromise, the first step is often to enumerate all autostart locations. Tools like `Autoruns` (from Sysinternals) provide a comprehensive view. Security engineers should look for unsigned binaries, files in unusual paths, or entries with suspicious command-line arguments. Correlating the timestamp of an autostart entry with other events (e.g., a phishing email, a user logon) helps establish the timeline of the attack.
+- **Compliance**: Many compliance frameworks (e.g., NIST 800-53, CIS Controls) require monitoring for unauthorized software execution. T1547 directly maps to controls like CM-8 (Information System Component Inventory) and SI-4 (Information System Monitoring). Auditing autostart mechanisms is a standard part of a security baseline.
+
+**Key Takeaways**
+- T1547 is a broad technique covering many autostart mechanisms; security engineers must monitor all of them, not just Registry Run keys, as adversaries will use the least-monitored path.
+- Detection relies on correlating autostart events with other suspicious activity, such as network connections or file writes, because autostart entries alone can be legitimate.
+- Prevention is best achieved through a combination of least-privilege configurations, application whitelisting, and regular auditing of autostart locations using tools like Autoruns.

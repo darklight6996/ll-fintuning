@@ -1,0 +1,130 @@
+0.0: Explicitly Not Mapped (and related controls)
+
+Overview
+This policy setting controls whether security questions can be used to reset local 
+account passwords. The security question feature does not apply to domain accounts, 
+only local accounts on the workstation. 
+The recommended state for this setting is: Enabled.
+
+This policy setting controls whether the clipboard can be used to transfer data from the 
+Remote Desktop session to the client. 
+The recommended state for this setting is: Enabled: Disable clipboard transfers 
+from server to client.
+
+This policy setting allows you to specify whether Remote Desktop Services requires 
+secure Remote Procedure Call (RPC) communication with all clients or allows 
+unsecured communication. 
+You can use this policy setting to strengthen the security of RPC communication with 
+clients by allowing only authenticated and encrypted requests. 
+The recommended state for this setting is: Enabled.
+
+This policy setting allows you to configure a time limit for disconnected Remote Desktop 
+Services sessions. 
+The recommended state for this setting is: Enabled: 1 minute.
+
+This setting denies or allows access to the Store application. 
+The recommended state for this setting is: Enabled. 
+Note: Per Microsoft TechNet and MSKB 3135657, this policy setting does not apply to 
+any Windows 10 editions other than Enterprise and Education.
+
+Why This Matters
+Users could establish security questions that are easily guessed or sleuthed by 
+observing the user’s social media accounts, making it easier for a malicious actor to 
+change the local user account password and gain access to the computer as that user 
+account.
+
+In a more security-sensitive environment, it is desirable to reduce the possible attack 
+surface. The need for the clipboard to transfer data from a Remote Desktop session to a 
+client is rare, so it makes sense to reduce the number of unexpected avenues for 
+malicious activity to occur.
+
+Allowing unsecure RPC communication can exposes the server to man in the middle 
+attacks and data disclosure attacks.
+
+This setting helps to prevent active Remote Desktop sessions from tying up the 
+computer for long periods of time while not in use, preventing computing resources from 
+being consumed by large numbers of disconnected but still active sessions. In addition, 
+old, forgotten Remote Desktop sessions that are still active can cause password 
+lockouts if the user's password has changed but the old session is still running. For 
+systems that limit the number of connected users (e.g. servers in the default 
+Administrative mode - 2 sessions only), other users' old but still active sessions can 
+prevent another user from connecting, resulting in an effective denial of service. This 
+setting is important to ensure a disconnected session is properly terminated. 
+In addition, session timeouts that are misconfigured or set for a long period of time can 
+leave the system open to an attacker hijacking the session.
+
+Only applications approved by an IT department should be installed. Allowing users to 
+install third-party applications can lead to missed patches and potential zero day 
+vulnerabilities.
+
+Audit Steps
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\System:NoLocalPasswordResetQuestions
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services:SCClipLevel
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal 
+Services:fEncryptRPCTraffic
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 60000. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal 
+Services:MaxDisconnectionTime
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\WindowsStore:RemoveWindowsStore
+
+Remediation
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Credential User Interface\Prevent 
+the use of security questions for local accounts
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: Disable clipboard transfers from server to 
+client. 
+Administrative Templates\Windows Components\Remote Desktop Session 
+Host\Device and Resource Redirection\Restrict clipboard transfer from server 
+to client
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Remote Desktop Services\Remote 
+Desktop Session Host\Security\Require secure RPC communication
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 1 minute. 
+Administrative Templates\Windows Components\Remote Desktop Services\Remote 
+Desktop Session Host\Session Time Limits\Set time limit for disconnected 
+sessions
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Store\Turn off the Store 
+application
+
+Key Takeaways
+- Users could establish security questions that are easily guessed or sleuthed by  observing the user’s social media accounts, making it easier for a malicious actor to  change the local user account password and gain access to the computer as that user  account.
+- In a more security-sensitive environment, it is desirable to reduce the possible attack  surface.
+- The need for the clipboard to transfer data from a Remote Desktop session to a  client is rare, so it makes sense to reduce the number of unexpected avenues for  malicious activity to occur.

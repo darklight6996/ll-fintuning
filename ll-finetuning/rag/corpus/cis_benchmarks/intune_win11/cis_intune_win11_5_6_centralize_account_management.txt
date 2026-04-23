@@ -1,0 +1,25 @@
+5.6: Centralize Account Management
+
+Overview
+This policy setting allows an organization to prevent its devices from showing feedback 
+questions from Microsoft. 
+The recommended state for this setting is: Feedback notifications are disabled.
+
+Why This Matters
+Users should not be sending any feedback to third-party vendors in an enterprise 
+managed environment.
+
+Audit Steps
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Experience:DoNotShowFeed backNotifications_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 1. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Experie nce:DoNotShowFeedbackNotifications
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Feedback notifications are disabled: 
+Experience\Do not show feedback notifications
+
+Key Takeaways
+- Users should not be sending any feedback to third-party vendors in an enterprise  managed environment.

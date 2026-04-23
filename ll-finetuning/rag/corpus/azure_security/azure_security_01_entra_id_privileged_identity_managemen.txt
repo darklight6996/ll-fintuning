@@ -1,0 +1,70 @@
+Privileged Identity Management (PIM) in Microsoft Entra ID provides time-based and approval-based role activation to mitigate the risks of standing administrative access. PIM is not a role assignment tool; it is a just-in-time (JIT) activation service that governs how eligible users elevate to privileged roles. This article covers the mechanics of PIM roles and activation, focusing on configuration, workflow, and security implications for identity infrastructure.
+
+**Definition**
+
+PIM roles are Azure AD directory roles and Azure resource roles that are configured for activation rather than permanent assignment. An eligible assignment means a user does not have active role permissions until they request and are approved for activation. Activation is a time-bound process that elevates the user’s token with the role’s permissions for a defined duration. PIM enforces multi-factor authentication (MFA), justification, approval workflows, and audit logging during each activation. The core principle is that no user holds privileged roles continuously; instead, they request elevation only when performing administrative tasks.
+
+**Key Components**
+
+**Eligible vs. Active Assignments**
+- Eligible assignment: User can activate the role on demand. No permissions are granted until activation completes.
+- Active assignment: User has permanent role permissions. PIM still logs usage but does not enforce JIT. Active assignments should be rare and reserved for emergency break-glass accounts.
+- Time-bound assignments: Both eligible and active assignments can have start and end dates for temporary access.
+
+**Activation Settings**
+Each role in PIM has a configurable activation policy. Key settings include:
+- Activation maximum duration: Default is 1 hour, maximum is 8 hours. Shorter durations reduce exposure window.
+- Require MFA on activation: Enforces Azure AD MFA challenge before elevation. Mandatory for production environments.
+- Require approval: One or two approvers must approve the activation request. Approvers cannot approve their own requests.
+- Require justification: User must provide a text reason for activation. This populates the audit log.
+- Require ticket information: Optionally enforce a helpdesk ticket number for traceability.
+- Require conditional access: Enforces a specific Conditional Access policy during activation (e.g., compliant device, trusted location).
+
+**Activation Workflow**
+1. User signs in to the Azure portal or uses the Microsoft Entra admin center.
+2. User navigates to PIM, selects “My roles,” and requests activation for an eligible role.
+3. User completes MFA challenge if required.
+4. User enters justification and optionally a ticket number.
+5. If approval is required, the request enters a pending state. Approvers receive email notifications.
+6. Approver reviews the request in PIM or via email, and approves or denies.
+7. Upon approval, the user’s token is updated with the role’s permissions for the configured duration.
+8. The activation is logged in the Azure AD audit log and PIM activation report.
+9. After the duration expires, the role is automatically deactivated. Users can also deactivate early.
+
+**Role Types Supported**
+- Azure AD roles: Global Administrator, Privileged Role Administrator, Exchange Administrator, etc.
+- Azure resource roles: Owner, Contributor, User Access Administrator at subscription, resource group, or resource scope.
+- Groups: PIM can manage eligibility for Azure AD security groups that are assigned to roles.
+
+**Real-World Application**
+
+**Scenario 1: Tiered Administration**
+A security engineer needs to manage Exchange Online settings but should not have Global Administrator access. The engineer is made eligible for the Exchange Administrator role with a 2-hour activation window, MFA required, and approval from the Identity Team. When a mailbox migration requires permission changes, the engineer activates the role, completes the task, and the role expires automatically. This prevents lateral movement if the engineer’s account is compromised.
+
+**Scenario 2: Emergency Break-Glass**
+Two break-glass accounts are configured with permanent Global Administrator active assignments but with strict Conditional Access policies (e.g., only from a specific management workstation, with hardware token MFA). All other administrators use eligible assignments. During a crisis, if the PIM service itself is unavailable, the break-glass accounts provide a fallback. PIM activation logs still capture usage of these accounts because they are monitored in PIM.
+
+**Scenario 3: Vendor Access**
+A third-party contractor requires temporary Contributor access to a development subscription. The contractor is made eligible for the role with a 7-day maximum activation duration, approval from the subscription owner, and a mandatory ticket number. The contractor activates the role only during working hours. After the contract ends, the eligible assignment is removed. No permanent access remains.
+
+**Security Relevance**
+
+**Reducing Standing Privileges**
+PIM directly addresses the primary attack vector of compromised privileged accounts. By eliminating permanent role assignments, an attacker cannot immediately use a stolen credential to perform administrative actions. They must first pass MFA and potentially receive approval, which adds friction and detection opportunity.
+
+**Audit and Forensics**
+Every activation generates an audit event with user identity, role, timestamp, duration, justification, and approval details. This data feeds into SIEM systems for anomaly detection. Unusual activation patterns—such as multiple activations in a short period, activations outside business hours, or activations without justification—can trigger alerts.
+
+**Compliance Alignment**
+PIM activation logs satisfy compliance requirements for least privilege, access reviews, and separation of duties. Many frameworks (SOC 2, ISO 27001, NIST 800-53) require documented approval for privileged access. PIM provides this natively.
+
+**Limitations and Risks**
+- PIM does not protect against token theft after activation. Once a user has an active role token, that token can be used until it expires or the session ends. Short activation durations mitigate this.
+- Approval bypass: If approvers are compromised, they can approve malicious requests. Use multiple approvers and require strong authentication for approvers.
+- Service dependency: If Entra ID is unavailable, PIM activation may fail. Break-glass accounts with permanent assignments are necessary.
+- Misconfiguration: Roles with “Require approval” disabled allow self-activation without oversight. Audit all role settings regularly.
+
+**Key Takeaways**
+- PIM enforces just-in-time activation for privileged roles, eliminating standing access and reducing the blast radius of credential compromise.
+- Activation settings—MFA, approval, justification, and duration—must be configured per role based on risk, with shorter durations and mandatory MFA for all production roles.
+- Audit logs from PIM activations are critical for security monitoring and compliance; integrate them with SIEM and review activation patterns for anomalies.

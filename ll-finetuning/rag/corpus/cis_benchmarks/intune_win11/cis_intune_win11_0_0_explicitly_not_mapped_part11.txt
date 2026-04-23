@@ -1,0 +1,154 @@
+0.0: Explicitly Not Mapped (and related controls)
+
+Overview
+This policy setting controls the behavior of all User Account Control (UAC) policy 
+settings for the computer. If you change this policy setting, you must restart your 
+computer. 
+The recommended state for this setting is: Enabled. 
+Note: If this policy setting is disabled, the Security Center notifies you that the overall 
+security of the operating system has been reduced.
+
+This policy setting controls whether application write failures are redirected to defined 
+registry and file system locations. This policy setting mitigates applications that run as 
+administrator and write run-time application data to: 
+• 
+%ProgramFiles% 
+• 
+%windir% 
+• 
+%windir%\System32 
+• 
+HKLM\SOFTWARE 
+The recommended state for this setting is: Enabled.
+
+This setting manages non-Administrator users' ability to install Windows app packages. 
+The recommended state for this setting is: Allow. 
+Warning: If the Self Service Password Reset (SSPR) feature is used in Microsoft Entra 
+ID, an exception to this recommendation is needed as it's known to interfere with SSPR.
+
+This setting controls whether or not Windows Installer should use system permissions 
+when it installs any program on the system. 
+Note: This setting appears both in the Computer Configuration and User Configuration 
+folders. To make this setting effective, you must enable the setting in both folders. 
+Caution: If enabled, skilled users can take advantage of the permissions this setting 
+grants to change their privileges and gain permanent access to restricted files and 
+folders. Note that the User Configuration version of this setting is not guaranteed to be 
+secure. 
+The recommended state for this setting is: Disabled.
+
+This setting controls whether or not Windows Installer should use system permissions 
+when it installs any program on the system. 
+Note: This setting appears both in the Computer Configuration and User Configuration 
+folders. To make this setting effective, you must enable the setting in both folders. 
+Caution: If enabled, skilled users can take advantage of the permissions this setting 
+grants to change their privileges and gain permanent access to restricted files and 
+folders. Note that the User Configuration version of this setting is not guaranteed to be 
+secure. 
+The recommended state for this setting is: Disabled.
+
+This policy setting determines whether published User Activities can be uploaded to the 
+cloud. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+This is the setting that turns on or off UAC. If this setting is disabled, UAC will not be 
+used and any security benefits and risk mitigations that are dependent on UAC will not 
+be present on the system.
+
+This setting reduces vulnerabilities by ensuring that legacy applications only write data 
+to permitted locations.
+
+In a corporate managed environment, application installations should be managed 
+centrally by IT staff, not by end users.
+
+Users with limited privileges can exploit this feature by creating a Windows Installer 
+installation package that creates a new local account that belongs to the local built-in 
+Administrators group, adds their current account to the local built-in Administrators 
+group, installs malicious software, or performs other unauthorized activities.
+
+Users with limited privileges can exploit this feature by creating a Windows Installer 
+installation package that creates a new local account that belongs to the local built-in 
+Administrators group, adds their current account to the local built-in Administrators 
+group, installs malicious software, or performs other unauthorized activities.
+
+Due to privacy concerns, data should never be sent to any third-party since this data 
+could contain sensitive information.
+
+Audit Steps
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System:EnableLUA
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System:EnableVirtuali zation
+
+For Explicitly Not Mapped:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\ApplicationManagement:Bl ockNonAdminUserInstall_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 1. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Applica tionManagement:BlockNonAdminUserInstall
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer:AlwaysInstallElevated
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKU\[USER 
+SID]\Software\Policies\Microsoft\Windows\Installer:AlwaysInstallElevated
+
+For Explicitly Not Mapped:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Privacy:UploadUserActivi ties_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Privacy
+:UploadUserActivities
+
+Remediation
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+Local Policies Security Options\User Account Control: Run all administrators 
+in Admin Approval Mode
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+Local Policies Security Options\User Account Control: Virtualize file and 
+registry write failures to per-user locations
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Allow. 
+Microsoft App Store\Block Non Admin User Install
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled: 
+Microsoft App Store\MSI Always install with elevated privileges
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled: 
+Microsoft App Store\MSI Always install with elevated privileges (User)
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled: 
+Privacy\Upload User Activities
+
+Key Takeaways
+- This is the setting that turns on or off UAC.
+- If this setting is disabled, UAC will not be  used and any security benefits and risk mitigations that are dependent on UAC will not  be present on the system.
+- This setting reduces vulnerabilities by ensuring that legacy applications only write data  to permitted locations.

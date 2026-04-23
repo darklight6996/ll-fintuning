@@ -1,0 +1,52 @@
+**Definition**
+
+Recover function planning, within the NIST Cybersecurity Framework (CSF), refers to the structured process of developing, documenting, and maintaining the capabilities necessary to restore any capabilities or services that were impaired due to a cybersecurity event. It is the fourth function in the CSF core (Identify, Protect, Detect, Respond, Recover) and focuses on returning to normal operations while incorporating lessons learned. Unlike incident response planning, which stops at containment and eradication, recover planning specifically addresses the timeline, dependencies, and verification steps required to bring systems, data, and business processes back to a known good state. The planning must account for both technical restoration (e.g., rebuilding servers, restoring databases) and operational recovery (e.g., re-establishing network connectivity, validating user access).
+
+**Key Components**
+
+Effective recover function planning is built on several interdependent components. Each must be documented, tested, and updated regularly.
+
+- **Recovery Point Objective (RPO) and Recovery Time Objective (RTO) Definitions**  
+  RPO defines the maximum acceptable age of data that must be restored (e.g., 15 minutes of data loss). RTO defines the maximum acceptable downtime for a system or service (e.g., 4 hours). These metrics must be assigned to every critical asset and service, not just databases. They drive backup frequency, replication strategy, and failover architecture.
+
+- **Backup and Restoration Procedures**  
+  This includes detailed, step-by-step instructions for restoring data from primary, secondary, and offline backups. Procedures must specify the tools used (e.g., Veeam, AWS Backup, native SQL Server tools), the order of restoration (e.g., operating system first, then application, then data), and validation steps (e.g., checksum verification, test queries). Air-gapped or immutable backups should be included to protect against ransomware.
+
+- **Alternate Processing Sites and Failover Mechanisms**  
+  For critical services, the plan must identify alternate sites (hot, warm, or cold) and the failover mechanism (manual, automated, or semi-automated). This includes DNS changes, load balancer reconfiguration, and VPN re-establishment. The plan should specify who has authority to initiate failover and under what conditions.
+
+- **Communication and Escalation Paths**  
+  Recovery requires coordination across IT, security, legal, PR, and executive leadership. The plan must include a contact tree with primary and secondary contacts, escalation triggers (e.g., if RTO is exceeded by 30 minutes), and predefined templates for internal and external notifications. This is separate from incident response communications; it focuses on status updates during the recovery window.
+
+- **Validation and Testing Procedures**  
+  Every recovery plan must include a testing schedule (e.g., quarterly tabletop exercises, semi-annual full restoration tests). Tests must simulate realistic scenarios (e.g., ransomware encryption of file servers, database corruption, cloud provider outage). Results must be documented, and any failures must trigger a plan revision within 30 days.
+
+- **Lessons Learned and Plan Improvement**  
+  After any recovery event or test, a formal lessons-learned session must be conducted. Findings are categorized as technical (e.g., backup corruption), procedural (e.g., unclear RTO for a specific app), or personnel (e.g., missing contact info). Each finding must have an owner and a target completion date.
+
+**Real-World Application**
+
+Consider a mid-sized financial services firm that processes credit card transactions. Their recover function plan might include:
+
+- **RPO/RTO for transaction database:** RPO = 5 minutes, RTO = 1 hour. This is achieved via synchronous replication to a secondary data center and hourly transaction log backups to an immutable S3 bucket.
+- **Backup restoration procedure:** Documented in a runbook with screenshots. Step 1: Verify backup integrity via SHA-256 hash. Step 2: Restore OS from gold image. Step 3: Restore database from latest full backup. Step 4: Apply transaction log backups. Step 5: Run validation script (checks last 100 transactions). Step 6: Notify compliance officer.
+- **Failover mechanism:** Automated DNS failover via Route 53 health checks. If the primary site is unreachable for 60 seconds, traffic is routed to the secondary site. The plan includes a manual override if automated failover fails.
+- **Testing:** Every six months, the firm conducts a full failover test during a maintenance window. The test includes restoring the database from the immutable backup (not just the replica) to verify air-gapped recovery works. In the last test, they discovered that the validation script did not account for a new transaction type, leading to a false negative. The script was updated within two weeks.
+- **Communication:** During a real ransomware event, the recovery team used a predefined Slack channel and a shared status dashboard. The plan included a 30-minute status update cadence to the CISO and a 60-minute update to the board. This prevented confusion and allowed the CEO to provide accurate timelines to regulators.
+
+**Security Relevance**
+
+Recover function planning is directly tied to an organization’s resilience against advanced threats, particularly ransomware and destructive attacks. Without a tested recover plan, an organization may be forced to pay ransoms, accept indefinite downtime, or restore from corrupted backups. From a security engineering perspective, the recover plan is the last line of defense. It assumes that all other controls (firewalls, EDR, MFA) have failed. Therefore, the plan must be designed to operate under the assumption that the attacker has compromised the primary environment, including backup servers if they are not properly segmented.
+
+Key security considerations include:
+
+- **Immutability and Air-Gapping:** Backups must be stored in a manner that prevents deletion or encryption by an attacker. This means write-once-read-many (WORM) storage, offline tapes, or cloud object locking. The recover plan must include procedures for accessing these backups without exposing credentials to the compromised environment.
+- **Separation of Duties:** The team that manages backups should not be the same team that manages production systems, to prevent a single compromised account from destroying both. The recover plan must define who holds the keys to the immutable backups and how they are accessed during an incident.
+- **Integrity Verification:** Before any restoration, the plan must include a step to verify that the backup has not been tampered with. This can be done via cryptographic hashes, blockchain-based verification, or third-party attestation.
+- **Post-Recovery Hardening:** After recovery, the plan should include steps to patch the vulnerability that led to the incident, rotate all credentials, and re-scan the environment before returning to production. This prevents re-infection.
+
+**Key Takeaways**
+
+1.  Recover function planning must define specific, measurable RPO and RTO for every critical asset, and these metrics must drive the technical architecture for backups and failover.
+2.  The plan is only as reliable as its testing; conduct full restoration tests at least twice per year, including from immutable backups, and remediate any failures within 30 days.
+3.  Security engineers must design recover plans assuming the attacker has compromised the primary environment, requiring immutable backups, separation of duties, and integrity verification steps.

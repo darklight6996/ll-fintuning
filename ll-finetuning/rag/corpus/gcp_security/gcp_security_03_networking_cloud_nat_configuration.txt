@@ -1,0 +1,36 @@
+Cloud NAT (Network Address Translation) is a managed Google Cloud service that enables private Compute Engine instances to access the internet or other Google Cloud services through a NAT gateway, without requiring external IP addresses. It translates private IP addresses from a Virtual Private Cloud (VPC) subnet to a set of public IP addresses, allowing outbound-only connectivity. Cloud NAT is not a proxy or a firewall; it operates at the network layer (Layer 3) and performs source NAT (SNAT) for outbound traffic and destination NAT (DNAT) for inbound response traffic.
+
+**Key Components**
+
+- **NAT Gateway**: A regional, software-defined gateway that handles address translation. It is not a physical appliance; it is a managed service that scales automatically within a region.
+- **Cloud Router**: Required to create a Cloud NAT gateway. The Cloud Router manages dynamic routing and holds the NAT configuration. It must exist in the same region as the NAT gateway.
+- **NAT IP Addresses**: A set of static or ephemeral external IP addresses assigned to the gateway. These IPs are used as the source IP for outbound traffic. You can allocate multiple IPs to increase port capacity and avoid port exhaustion.
+- **NAT Rules**: Optional rules that define how traffic is translated. Rules can match based on source IP ranges, destination IP ranges, or protocols. They allow granular control over which private IPs use which NAT IPs.
+- **Port Allocation**: Cloud NAT uses dynamic port allocation per source IP and destination IP/port tuple. Each NAT IP provides approximately 64,512 source ports. Port exhaustion occurs when concurrent connections exceed available ports; adding more NAT IPs mitigates this.
+- **Logging**: Cloud NAT supports flow logs for NAT gateways. Logs capture metadata such as source IP, destination IP, port, and protocol. Enable logging for auditing and troubleshooting, but be aware of cost implications due to log volume.
+- **Timeouts**: Configurable timeout settings for TCP, UDP, and ICMP connections. Default TCP established timeout is 600 seconds; adjust based on application behavior to prevent premature connection drops.
+
+**Real-World Application**
+
+A common use case is a private Kubernetes cluster where worker nodes have no external IPs. The cluster needs to pull container images from Docker Hub or push logs to an external SIEM. Without Cloud NAT, these outbound requests would fail. By attaching a Cloud NAT gateway to the cluster’s VPC subnet, all outbound traffic from pods and nodes is SNATed to the NAT IPs. This ensures connectivity without exposing nodes to inbound internet traffic.
+
+Another scenario is a multi-tier application where backend instances in a private subnet need to call third-party APIs. For example, a payment processing service running on a private Compute Engine instance must send HTTPS requests to an external payment gateway. Cloud NAT provides the outbound path while keeping the instance inaccessible from the internet. This reduces the attack surface.
+
+For compliance with regulatory frameworks like PCI DSS or SOC 2, Cloud NAT can be used to centralize outbound traffic through a single set of IPs. This simplifies allowlisting on external firewalls and enables consistent logging of all outbound connections. You can also combine Cloud NAT with VPC firewall rules to restrict which instances can use the NAT gateway, enforcing least-privilege access.
+
+**Security Relevance**
+
+Cloud NAT directly impacts security posture in several ways:
+
+- **Reduced Attack Surface**: Instances without external IPs cannot be directly reached from the internet. Cloud NAT provides outbound-only connectivity, eliminating inbound exposure. This is a fundamental security control for private subnets.
+- **IP Address Management**: Using a small set of NAT IPs simplifies allowlisting on external services. Instead of managing hundreds of ephemeral external IPs, you control a few static IPs. This reduces the risk of misconfigured firewall rules.
+- **Logging and Monitoring**: NAT flow logs provide visibility into outbound traffic. Security teams can detect anomalous outbound connections, such as data exfiltration attempts or communication with known malicious IPs. Integrate logs with SIEM tools for real-time alerting.
+- **Port Exhaustion Risks**: If the NAT gateway runs out of source ports, new outbound connections fail. This can cause application outages. Monitor port utilization and scale NAT IPs accordingly. Port exhaustion can also be exploited by attackers to cause denial of service (DoS) against outbound connectivity.
+- **NAT Rules for Segmentation**: Use NAT rules to enforce that specific subnets or VMs use designated NAT IPs. For example, isolate traffic from a sensitive database subnet to a separate NAT IP that is allowlisted only for necessary external services. This prevents cross-contamination of traffic.
+- **Cloud NAT vs. Proxy**: Cloud NAT is not a substitute for a forward proxy. It does not inspect traffic, terminate TLS, or provide content filtering. For deep packet inspection or URL filtering, deploy a separate proxy or next-generation firewall. Cloud NAT operates transparently to applications.
+- **Compliance Considerations**: Many compliance frameworks require logging of all network connections. Cloud NAT logs, combined with VPC flow logs, provide a complete audit trail. Ensure logs are retained according to policy and are immutable to prevent tampering.
+
+**Key Takeaways**
+- Cloud NAT enables outbound internet access for private instances without external IPs, reducing the attack surface and simplifying IP management.
+- Always enable NAT flow logs for security monitoring, and monitor port utilization to prevent connection failures from port exhaustion.
+- Cloud NAT is not a security appliance; it must be combined with VPC firewall rules, proxy services, and logging to meet compliance and security requirements.

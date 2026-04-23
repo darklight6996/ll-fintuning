@@ -1,0 +1,40 @@
+Server-side request forgery (SSRF) is a web security vulnerability that allows an attacker to induce the server-side application to make HTTP requests to an arbitrary domain of the attacker’s choosing. In a typical SSRF attack, the attacker exploits a server-side feature that fetches remote resources, such as a URL input for importing data, webhooks, or image processing. The core danger is that the server, not the client, performs the request, which means the request originates from an internal network or trusted IP range. This enables the attacker to bypass network access controls, interact with internal services (e.g., databases, metadata endpoints, or cloud instance APIs), and potentially achieve remote code execution or data exfiltration.
+
+**Key Components of SSRF**
+
+- **User-Controlled Input**: The attack surface begins where the application accepts a URL or hostname from the user. Common entry points include form fields for importing profiles, fetching remote files, or processing webhook callbacks. Even indirect input, such as parsing XML external entities (XXE) or reading from uploaded files, can trigger SSRF.
+- **Server-Side Request Execution**: The application must have a function that makes outbound HTTP requests based on that input. This is often implemented using libraries like cURL, Guzzle, or Python’s `requests` module. The request is executed with the server’s network privileges, not the client’s.
+- **Internal Network Access**: The server typically resides in a private subnet with access to internal services (e.g., 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) and cloud metadata endpoints (e.g., 169.254.169.254 for AWS, GCP, Azure). SSRF exploits this trust boundary.
+- **Response Feedback**: The attacker often needs to see the response from the internal service to extract data. Blind SSRF occurs when the response is not returned to the attacker, but side-channel techniques (e.g., timing, out-of-band DNS exfiltration) can still confirm the request was made.
+
+**Real-World Application**
+
+Consider a web application that allows users to import a profile picture by providing a URL. The server fetches the image from that URL, resizes it, and stores it. An attacker supplies `http://169.254.169.254/latest/meta-data/iam/security-credentials/admin` (the AWS metadata endpoint). The server, running in an AWS environment, makes a GET request to that internal IP. The metadata service returns the IAM role’s temporary credentials, which the attacker can then use to access S3 buckets or other AWS resources.
+
+Another common scenario involves internal service discovery. An attacker iterates through internal IP ranges (e.g., `http://10.0.0.1:8080`, `http://10.0.0.2:8080`) to find a Jenkins server or a Redis instance without authentication. If the internal service responds, the attacker can read configuration files, execute commands, or pivot deeper into the network.
+
+In cloud environments, SSRF is frequently used to access the cloud provider’s metadata service. For example, on Google Cloud, the metadata endpoint is `http://metadata.google.internal/computeMetadata/v1/`. An attacker can retrieve project IDs, service account tokens, and SSH keys. Similarly, on Azure, the endpoint is `http://169.254.169.254/metadata/instance?api-version=2021-02-01`.
+
+**Security Relevance**
+
+SSRF is a critical vulnerability because it bridges the gap between the public-facing web server and the internal network. It is frequently listed in the OWASP Top 10 (as part of A10:2021 – Server-Side Request Forgery) and is a common vector in high-severity CVEs. For a security engineer, understanding SSRF is essential for both defensive coding and penetration testing.
+
+**Defensive Measures**
+
+- **Allowlist Validation**: The most effective defense is to validate the user-supplied URL against a strict allowlist of permitted domains or IP ranges. If the application only needs to fetch from a specific external service (e.g., `https://api.example.com`), reject all other URLs.
+- **Block Private and Metadata IPs**: Implement a deny list for private IP ranges (RFC 1918), loopback addresses (127.0.0.0/8), link-local addresses (169.254.0.0/16), and cloud metadata IPs. This can be done at the application layer or via network-level egress filtering.
+- **Disable Unnecessary Protocols**: SSRF attacks often leverage protocols other than HTTP, such as `file://`, `gopher://`, or `dict://`. Ensure the URL parser and HTTP client only support HTTP and HTTPS, and reject any other scheme.
+- **Use a Dedicated HTTP Client**: Avoid using generic URL-fetching functions that follow redirects blindly. Configure the client to have a timeout, limit the number of redirects, and disable automatic redirects to internal IPs.
+- **Network Segmentation**: Place the web server in a DMZ with strict egress rules. The server should only be allowed to connect to specific external IPs/ports, and all internal traffic should be routed through a proxy that enforces allowlists.
+- **Authentication for Internal Services**: Even if an SSRF occurs, internal services should require authentication. For example, Redis should be configured with `requirepass`, and cloud metadata endpoints should be protected with IMDSv2 (AWS) or similar mechanisms.
+
+**Detection and Testing**
+
+- **Static Analysis**: Scan code for functions that accept user input and pass it to HTTP clients (e.g., `curl_exec`, `file_get_contents`, `requests.get`). Flag any instance where the URL is not validated against an allowlist.
+- **Dynamic Testing**: During penetration tests, inject URLs pointing to a controlled external server (e.g., Burp Collaborator) to detect outbound requests. Then attempt internal IPs and metadata endpoints to confirm the vulnerability.
+- **Logging and Monitoring**: Monitor outbound HTTP requests from the server for unexpected destinations, especially to private IPs or cloud metadata endpoints. Alert on any such traffic.
+
+**Key Takeaways**
+1. SSRF exploits server-side request functionality to access internal networks and cloud metadata, often leading to credential theft or lateral movement.
+2. The primary defense is strict allowlist validation of user-supplied URLs, combined with blocking private and metadata IP ranges at the application and network layers.
+3. Security engineers must treat any feature that fetches remote resources as a high-risk attack surface and enforce egress controls, authentication for internal services, and continuous monitoring.

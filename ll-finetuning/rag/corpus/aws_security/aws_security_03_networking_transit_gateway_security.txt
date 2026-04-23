@@ -1,0 +1,61 @@
+Transit Gateway security focuses on controlling traffic flow, enforcing segmentation, and preventing unauthorized access across a central network hub that connects multiple virtual private clouds (VPCs), on-premises networks, and remote offices. A Transit Gateway acts as a regional router, but unlike a simple router, it requires explicit security controls to prevent lateral movement and data exfiltration between attached networks.
+
+**Definition**
+
+A Transit Gateway is a managed network transit hub that interconnects VPCs and on-premises networks through a single, central gateway. Security in this context means implementing policies that govern which attachments can communicate, how traffic is inspected, and what routes are advertised. Without security configuration, a Transit Gateway defaults to allowing all routes between attachments, creating a flat network where any connected VPC can reach any other. Security engineering must override this default behavior.
+
+**Key Components**
+
+**1. Route Tables and Segmentation**
+Each Transit Gateway attachment (VPC, VPN, Direct Connect) is associated with a route table. You can create multiple route tables to isolate groups of attachments. For example, production VPCs can share one route table, development VPCs another, and no routes exist between them. This is the primary mechanism for network segmentation.
+
+- **Static routes** – Manually defined entries that force traffic through specific attachments, such as a security appliance.
+- **Propagation** – Automatically adds routes from an attachment’s CIDR block into a route table. Control propagation carefully; enabling it on a route table shared with untrusted attachments can create unintended paths.
+
+**2. Attachment-Level Controls**
+Each attachment has a unique attachment ID. You can apply resource-based policies (e.g., AWS RAM) to control which accounts or VPCs can attach to the Transit Gateway. Additionally, you can modify the attachment’s route table association to enforce which route table governs its traffic.
+
+**3. Network Firewall Integration**
+Transit Gateways support integration with managed firewall services (e.g., AWS Network Firewall, third-party appliances). Traffic can be routed through a firewall VPC before reaching its destination. This is configured by creating a route table that points all inter-VPC traffic to a firewall appliance’s elastic network interface (ENI).
+
+- **Ingress/Egress inspection** – Force all traffic entering or leaving the Transit Gateway through a centralized inspection VPC.
+- **Stateful filtering** – Firewalls can track connection state, which is critical for protocols like FTP or SIP that use dynamic ports.
+
+**4. VPN and Direct Connect Security**
+When connecting on-premises networks, the Transit Gateway supports IPsec VPN tunnels and Direct Connect virtual interfaces. Security considerations include:
+- **Tunnel authentication** – Use pre-shared keys or certificate-based authentication for VPNs.
+- **BGP filtering** – Apply prefix filters on BGP sessions to prevent route hijacking or advertisement of unauthorized CIDRs.
+- **Encryption** – Direct Connect traffic is not encrypted by default; consider adding a VPN overlay or MACsec for physical layer encryption.
+
+**5. Cross-Account Sharing**
+Transit Gateways can be shared across AWS accounts using AWS Resource Access Manager (RAM). Security implications:
+- **Centralized control** – The owning account manages route tables and propagation; participant accounts cannot modify routes.
+- **Attachment permissions** – Participant accounts can only attach VPCs they own. The owner can revoke sharing at any time, which deletes all participant attachments.
+
+**Real-World Application**
+
+**Scenario: Multi-Account, Multi-VPC Environment with Compliance Requirements**
+A financial services company uses a Transit Gateway to connect 20 VPCs across three accounts: production, development, and shared services. Compliance requires that production VPCs never communicate directly with development VPCs, and all traffic to the internet must pass through a centralized inspection VPC.
+
+**Implementation:**
+1. Create three route tables: `prod-rt`, `dev-rt`, `shared-rt`.
+2. Associate all production VPC attachments with `prod-rt`. Associate development VPC attachments with `dev-rt`. Associate the shared services VPC (containing firewalls and logging) with `shared-rt`.
+3. Configure `prod-rt` with a static route for `0.0.0.0/0` pointing to the firewall ENI in the shared services VPC. Do not add routes to development CIDRs.
+4. Configure `dev-rt` with a static route for `0.0.0.0/0` also pointing to the firewall ENI, but no routes to production CIDRs.
+5. Enable route propagation only for the Direct Connect attachment into `shared-rt` (for on-premises connectivity). Disable propagation for all VPC attachments to prevent automatic route leaks.
+6. Deploy AWS Network Firewall in the shared services VPC with stateful rules that log all traffic and block known malicious IPs.
+
+**Outcome:** Production and development VPCs cannot communicate directly. All outbound traffic is inspected. On-premises traffic enters through the shared services VPC and is subject to the same firewall policies.
+
+**Security Relevance**
+
+Transit Gateway security directly addresses the risk of lateral movement in cloud environments. In a flat network, a compromised workload in one VPC can pivot to other VPCs. Transit Gateway route tables enforce segmentation at the network layer, which is a fundamental defense-in-depth control.
+
+- **Compliance mapping** – Segmentation via Transit Gateway supports PCI DSS requirement 1.3 (isolate cardholder data from untrusted networks) and NIST SP 800-53 SC-7 (boundary protection).
+- **Audit trail** – CloudTrail logs all Transit Gateway API calls (e.g., CreateTransitGatewayRoute, AssociateTransitGatewayRouteTable). Use these logs to detect unauthorized route modifications.
+- **Limitations** – Transit Gateway does not inspect packet payloads. It is a Layer 3 device. For Layer 7 inspection, you must integrate with a firewall. Also, Transit Gateway does not support multicast or broadcast; use unicast routing only.
+
+**Key Takeaways**
+- Transit Gateway route tables are the primary control for network segmentation; always use separate route tables for environments with different trust levels.
+- Never rely solely on route propagation; explicitly define static routes to inspection appliances and disable propagation for untrusted attachments.
+- Integrate a stateful firewall (Network Firewall or third-party appliance) to inspect inter-VPC and egress traffic, as Transit Gateway alone provides no packet inspection.

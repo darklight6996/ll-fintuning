@@ -1,0 +1,56 @@
+Service principals and app registrations are the identity and access management constructs within Microsoft Entra ID that enable applications, automation tools, and services to authenticate and obtain permissions to access resources. An app registration is the application object that defines the authentication configuration, while a service principal is the instantiation of that app registration in a specific tenant, representing the application’s identity for runtime operations. Understanding the security implications of these two entities is critical because they bypass user-based conditional access policies and often hold privileged roles.
+
+**Key Components**
+
+- **App Registration (Application Object):** This is the global, tenant-agnostic definition of an application. It contains:
+  - **Redirect URIs:** Endpoints where tokens are sent after authentication. Misconfigured URIs can expose tokens to unauthorized parties.
+  - **API Permissions:** Delegated and application permissions requested by the app. Delegated permissions act on behalf of a signed-in user; application permissions grant the app its own identity with elevated access.
+  - **Certificates & Secrets:** Credentials used for client authentication. Certificates are preferred over secrets due to longer validity and stronger cryptographic control.
+  - **Public Client vs. Confidential Client:** Public clients (mobile, desktop) cannot securely store secrets; confidential clients (web apps, daemons) can.
+
+- **Service Principal (Service Principal Object):** This is the local representation of the app registration in a specific Entra ID tenant. It includes:
+  - **Tenant ID:** Uniquely identifies the tenant where the service principal exists.
+  - **Object ID:** Used for role assignments and policy targeting.
+  - **Owners:** Users or groups that can manage the service principal. Overly broad ownership increases lateral movement risk.
+  - **Consent Grants:** Records of permissions that have been consented to, either by an admin or by users. Admin consent grants are tenant-wide and persistent.
+
+- **Credentials:** Two primary types:
+  - **Client Secrets:** Symmetric keys stored as plaintext in the app registration. They expire and must be rotated. A leaked secret can be used until it is revoked.
+  - **Certificates:** Asymmetric keys (X.509) that provide stronger security. They can be rotated without downtime if using key vault integration.
+
+- **Authentication Flows:**
+  - **Authorization Code Flow (with PKCE):** Used by web apps and native apps. PKCE prevents authorization code interception.
+  - **Client Credentials Flow:** Used by daemons and server-to-server scenarios. No user interaction; the service principal authenticates directly.
+  - **On-Behalf-Of Flow:** Used when a service needs to call another service on behalf of a user. Requires careful token exchange handling.
+
+**Real-World Application**
+
+Consider a scenario where a DevOps pipeline uses a service principal to deploy infrastructure to Azure. The app registration is configured with the client credentials flow, and the service principal is assigned the Contributor role on a subscription. The security engineer must:
+
+1. **Restrict Credential Exposure:** Store the client secret or certificate in Azure Key Vault, not in pipeline variables or source code. Use managed identities for Azure resources when possible, which eliminate the need for stored credentials entirely.
+2. **Limit Scope of Permissions:** Assign the service principal the least privilege role (e.g., Contributor on a specific resource group, not the entire subscription). Use custom roles if built-in roles are too permissive.
+3. **Implement Conditional Access for Service Principals:** While service principals cannot be targeted by user-based conditional access policies, you can use Conditional Access for workload identities (preview) to enforce location, risk, and device compliance for service principal authentication.
+4. **Monitor and Audit:** Enable diagnostic settings for the Entra ID Audit Logs and Sign-in Logs. Monitor for failed authentication attempts, unusual credential usage, and consent grants to unknown applications. Use Microsoft Sentinel or a SIEM to alert on service principal privilege escalation.
+
+Another common use case is a third-party SaaS application that requests delegated permissions to read user mail. The security engineer must evaluate whether the requested permissions are necessary and whether admin consent should be granted. Granting admin consent for “Mail.Read” across all users is a significant data exposure risk. Instead, consider using application permissions with granular scopes or requiring user consent for each session.
+
+**Security Relevance**
+
+Service principals and app registrations are a primary attack vector because they operate outside user authentication controls. Key security concerns include:
+
+- **Credential Theft:** A leaked client secret or compromised certificate allows an attacker to authenticate as the service principal indefinitely. Attackers often search for secrets in GitHub repositories, CI/CD logs, and configuration files.
+- **Overprivileged Service Principals:** Service principals assigned Global Administrator, Application Administrator, or other high-privilege roles can be used to create backdoor users, modify directory settings, or grant additional permissions. Regularly review role assignments using Privileged Identity Management (PIM) for service principals.
+- **Consent Phishing:** Malicious applications can trick users into granting delegated permissions that expose sensitive data. Block user consent for high-risk permissions and require admin consent for all application permissions.
+- **Stale Service Principals:** Orphaned service principals with active credentials and role assignments are a common finding in security audits. Implement a lifecycle policy that disables and removes service principals after 90 days of inactivity.
+- **Misconfigured Redirect URIs:** Allowing wildcard or HTTP redirect URIs can lead to token interception. Enforce HTTPS and restrict URIs to specific, verified endpoints.
+
+To mitigate these risks, enforce the following controls:
+- Use certificates instead of client secrets wherever possible.
+- Rotate secrets and certificates on a defined schedule (e.g., every 90 days for secrets, annually for certificates).
+- Enable Azure AD Identity Protection for workload identities to detect anomalous sign-in behavior.
+- Implement a zero-trust model: treat every service principal as a potential threat and validate its requests at every layer.
+
+**Key Takeaways**
+1. Service principals are identities that bypass user conditional access policies; they must be secured with certificate-based credentials, least-privilege role assignments, and strict lifecycle management.
+2. Consent grants for app registrations are a high-risk operation—block user consent for application permissions and audit all admin consent grants regularly.
+3. Monitor service principal authentication logs for anomalies, credential reuse, and privilege escalation, and integrate these signals into your incident response workflows.

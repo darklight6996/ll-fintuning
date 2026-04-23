@@ -1,0 +1,123 @@
+8.3: Enable Operating System Anti-Exploitation Features/ (and related controls)
+
+Overview
+With this rule, admins can prevent unsigned or untrusted executable files from running 
+from USB removable drives, including SD cards. Blocked file types include executable 
+files (such as .exe, .dll, or .scr) 
+The recommended state for this setting is: Block.
+
+This rule prevents VBA macros from calling Win32 APIs. Office VBA enables Win32 API 
+calls. 
+The recommended state for this setting is: Block.
+
+This rule provides an extra layer of protection against ransomware. It uses both client 
+and cloud heuristics to determine whether a file resembles ransomware. This rule 
+doesn't block files that have one or more of the following characteristics: 
+The file has already been found to be unharmful in the Microsoft cloud. The file is a valid 
+signed file. The file is prevalent enough to not be considered as ransomware. The rule 
+tends to err on the side of caution to prevent ransomware. 
+The recommended state for this setting is: Audit. Configuring this setting to Block also 
+conforms to the benchmark. 
+Note: Cloud-delivered protection must be enabled to use this rule.
+
+This policy setting configures the number of days after the last scan (of any type) before 
+an aggressive Quick Scan is automatically triggered. 
+The recommended state for this setting is: 7 days or fewer.
+
+Why This Matters
+Attack surface reduction helps prevent actions and apps that are typically used by 
+exploit-seeking malware to infect machines.
+
+Malware can abuse VBA macro calls with various methods, such as calling Win32 APIs 
+to launch malicious shellcode without writing anything directly to disk. Most 
+organizations don't rely on the ability to call Win32 APIs in their day-to-day functioning, 
+even if they use macros in other ways.
+
+This ASR rule is can help an organization enhance it's protection against ransomware 
+by using both cloud and local heuristics. 
+Note: Cloud-delivered protection must be enabled to use this rule.
+
+Antivirus scans should be performed on a regular basis so that malicious software can 
+be detected and remediated before malicious activity occurs.
+
+Audit Steps
+For Enable Operating System Anti-Exploitation Features/:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Defender:AttackSurfaceRe ductionRules_WinningProvider 
+2. Navigate to the following registry location and confirm the value contains 
+b2b3f03d-6a65-4f7b-a9c7-1c7ef74a9ba4=1 (Block). 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\default\Device\Defende r:AttackSurfaceReductionRules 
+Note: The following key can also be queried for the requisite value, however if Tamper 
+Protection is enabled it will only be readable by SYSTEM 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:ASRRules 
+Note #2: The contents of ASRRules is a single large string containing the GUID of each 
+ASR rule separated with a pipe delimiter. Below is an example of what the Registry 
+would display if all recommendations that allow Audit or Block are set to Block. 
+56a863a9-875e-4185-98a7-b882c64b5ce5=1|7674ba52-37eb-4a4f-a9a1f0f9a1619a2c=1|D4F940AB-401B-4EFC-AADC-AD5F3C50688A=1|9e6c4e1f-7d60-472fba1a-a39ef669e4b2=1|BE9BA2D9-53EA-4CDC-84E5-9B1EEEE46550=1|5BEB7EFE-FD9A4556-801D-275E5FFC04CC=1|D3E037E1-3EB8-44C8-A917-57927947596D=1|3B576869A4EC-4529-8536-B80A7769E899=1|75668C1F-73B5-4CF0-BB933ECF5CB7CC84=1|26190899-1602-49e8-8b27-eb1d0a1ce869=1|e6db77e5-3df2-4cf1b95a-636979351e5b=1|b2b3f03d-6a65-4f7b-a9c7-1c7ef74a9ba4=1|92E97FA1-2EDF4476-BDD6-9DD0B4DDDC7B=1
+
+For Enable Operating System Anti-Exploitation Features/:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Defender:AttackSurfaceRe ductionRules_WinningProvider 
+2. Navigate to the following registry location and confirm the value contains 
+92e97fa1-2edf-4476-bdd6-9dd0b4dddc7b=1 (Block). 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\default\Device\Defende r:AttackSurfaceReductionRules 
+Note: The following key can also be queried for the requisite value, however if Tamper 
+Protection is enabled it will only be readable by SYSTEM 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:ASRRules 
+Note #2: The contents of ASRRules is a single large string containing the GUID of each 
+ASR rule separated with a pipe delimiter. Below is an example of what the Registry 
+would display if all recommendations that allow Audit or Block are set to Block. 
+56a863a9-875e-4185-98a7-b882c64b5ce5=1|7674ba52-37eb-4a4f-a9a1f0f9a1619a2c=1|D4F940AB-401B-4EFC-AADC-AD5F3C50688A=1|9e6c4e1f-7d60-472fba1a-a39ef669e4b2=1|BE9BA2D9-53EA-4CDC-84E5-9B1EEEE46550=1|5BEB7EFE-FD9A4556-801D-275E5FFC04CC=1|D3E037E1-3EB8-44C8-A917-57927947596D=1|3B576869A4EC-4529-8536-B80A7769E899=1|75668C1F-73B5-4CF0-BB933ECF5CB7CC84=1|26190899-1602-49e8-8b27-eb1d0a1ce869=1|e6db77e5-3df2-4cf1b95a-636979351e5b=1|b2b3f03d-6a65-4f7b-a9c7-1c7ef74a9ba4=1|92E97FA1-2EDF4476-BDD6-9DD0B4DDDC7B=1
+
+For Enable Operating System Anti-Exploitation Features/:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Defender:AttackSurfaceRe ductionRules_WinningProvider 
+2. Navigate to the following registry location and confirm the value contains 
+c1db55ab-c21a-4637-bb3f-a12568109d35=1 (Block) or c1db55ab-c21a4637-bb3f-a12568109d35=2 (Audit). 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\default\Device\Defende r:AttackSurfaceReductionRules 
+Note: The following key can also be queried for the requisite value, however if Tamper 
+Protection is enabled it will only be readable by SYSTEM 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:ASRRules 
+Note #2: The contents of ASRRules is a single large string containing the GUID of each 
+ASR rule separated with a pipe delimiter. Below is an example of what the Registry 
+would display if all recommendations that allow Audit or Block are set to Block. 
+56a863a9-875e-4185-98a7-b882c64b5ce5=1|7674ba52-37eb-4a4f-a9a1f0f9a1619a2c=1|D4F940AB-401B-4EFC-AADC-AD5F3C50688A=1|9e6c4e1f-7d60-472fba1a-a39ef669e4b2=1|BE9BA2D9-53EA-4CDC-84E5-9B1EEEE46550=1|5BEB7EFE-FD9A4556-801D-275E5FFC04CC=1|D3E037E1-3EB8-44C8-A917-57927947596D=1|3B576869A4EC-4529-8536-B80A7769E899=1|75668C1F-73B5-4CF0-BB933ECF5CB7CC84=1|26190899-1602-49e8-8b27-eb1d0a1ce869=1|e6db77e5-3df2-4cf1b95a-636979351e5b=1|b2b3f03d-6a65-4f7b-a9c7-1c7ef74a9ba4=1|92E97FA1-2EDF4476-BDD6-9DD0B4DDDC7B=1
+
+For Enable Operating System Anti-Exploitation Features/:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 7. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:DaysUntilAggressiveCatchupQuickScan
+
+Remediation
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block. 
+Defender\Block untrusted and unsigned processes that run from USB
+
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block. 
+Defender\Block Win32 API calls from Office macros
+
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Audit or Block. 
+Defender\Use advanced protection against ransomware
+
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 7 days or fewer. 
+Defender\Days Until Aggressive Catchup Quick Scan
+
+Key Takeaways
+- Attack surface reduction helps prevent actions and apps that are typically used by  exploit-seeking malware to infect machines.
+- Malware can abuse VBA macro calls with various methods, such as calling Win32 APIs  to launch malicious shellcode without writing anything directly to disk.
+- Most  organizations don't rely on the ability to call Win32 APIs in their day-to-day functioning,  even if they use macros in other ways.

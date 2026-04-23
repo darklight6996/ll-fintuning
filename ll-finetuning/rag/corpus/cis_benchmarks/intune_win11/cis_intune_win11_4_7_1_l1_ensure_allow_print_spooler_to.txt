@@ -1,0 +1,31 @@
+4.7.1: (L1) Ensure 'Allow Print Spooler to accept client
+
+Overview
+This policy setting controls whether the Print Spooler service will accept client 
+connections. 
+The recommended state for this setting is: Disabled. 
+Note: The Print Spooler service must be restarted for changes to this policy to take 
+effect.
+
+Why This Matters
+Disabling the ability for the Print Spooler service to accept client connections mitigates 
+remote attacks against the PrintNightmare vulnerability (CVE-2021-34527) and other 
+remote Print Spooler attacks. However, this recommendation does not mitigate against 
+local attacks on the Print Spooler service.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 2. 
+HKLM\Software\Policies\Microsoft\Windows 
+NT\Printers:RegisterSpoolerRemoteRpcEndPoint
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Printers\Allow Print Spooler to accept client 
+connections
+
+Key Takeaways
+- Disabling the ability for the Print Spooler service to accept client connections mitigates  remote attacks against the PrintNightmare vulnerability (CVE-2021-34527) and other  remote Print Spooler attacks.
+- However, this recommendation does not mitigate against  local attacks on the Print Spooler service.

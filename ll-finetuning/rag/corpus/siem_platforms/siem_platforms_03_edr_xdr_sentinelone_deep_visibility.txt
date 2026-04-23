@@ -1,0 +1,58 @@
+**Definition**
+
+SentinelOne Deep Visibility is a real-time query and search capability within the Singularity XDR platform that provides unfiltered, granular access to endpoint telemetry. Unlike traditional EDR solutions that rely on pre-defined detection rules or sampled data, Deep Visibility stores every process event, network connection, file modification, registry change, and kernel-level action as structured data. This allows security engineers to execute arbitrary SQL-like queries against the full historical dataset, enabling retroactive threat hunting, forensic analysis, and custom detection logic without requiring agents to re-collect data.
+
+The core distinction from standard endpoint detection is that Deep Visibility does not rely on alert-driven investigation. It treats all endpoint activity as a searchable dataset, not just events that triggered a rule. This shifts the paradigm from reactive alert triage to proactive data exploration.
+
+**Key Components**
+
+**1. Data Ingestion and Storage**
+- Every endpoint agent captures and forwards telemetry for process creation, network connections, file system events (create, modify, delete, rename), registry operations, and module loads.
+- Data is stored in a normalized schema within the SentinelOne cloud or on-premises management console. Retention periods are configurable, typically ranging from 30 to 90 days depending on licensing.
+- The ingestion pipeline uses a schema-on-read model, meaning raw events are preserved without aggregation or summarization. This ensures no loss of granularity for later queries.
+
+**2. Query Language (VQL)**
+- Deep Visibility uses a proprietary query language called VQL (Visibility Query Language), which is syntactically similar to SQL but optimized for time-series and event-based data.
+- Queries can filter by time range, endpoint group, specific processes, file paths, network destinations, or any combination of fields.
+- Example query structure: `SELECT ProcessName, CommandLine, NetworkDestination FROM Processes WHERE EventType = 'CreateProcess' AND Time > NOW() - 7 DAYS AND ProcessName LIKE '%powershell%'`
+- Queries support aggregation (COUNT, SUM, AVG), grouping, and ordering. Results can be exported as CSV or JSON for external analysis.
+
+**3. Real-Time and Historical Modes**
+- **Historical mode**: Queries against stored data, typically returning results within seconds to minutes depending on dataset size and query complexity.
+- **Real-time mode**: Queries that run continuously, streaming new events as they occur. This is used for custom detection rules or live monitoring of specific indicators.
+- Both modes can be combined: a historical query can establish a baseline, then a real-time query can alert on deviations.
+
+**4. Schema and Fields**
+- The schema includes tables for processes, network connections, file events, registry events, and module loads.
+- Key fields per table: Timestamp, AgentID, ProcessID, ParentProcessID, User, SHA1, MD5, FilePath, CommandLine, SourceIP, DestinationIP, DestinationPort, Protocol, RegistryKey, RegistryValue, and EventType.
+- Custom fields can be added via agent configuration for proprietary applications or compliance requirements.
+
+**5. Integration with SentinelOne Detection Engine**
+- Deep Visibility queries can be saved as custom detection rules. When a query returns results that match a defined threshold (e.g., more than 10 network connections to a known bad IP in 5 minutes), an alert is generated.
+- These custom rules run in real-time and are independent of the built-in behavioral AI models. This allows engineers to create detections for specific IoCs, TTPs, or compliance controls without waiting for vendor updates.
+
+**Real-World Application**
+
+**Scenario 1: Retroactive Threat Hunting for Lateral Movement**
+A security engineer suspects that a compromised credential was used to move laterally via RDP. Using Deep Visibility, they run a query: `SELECT SourceIP, DestinationIP, User, ProcessName FROM NetworkConnections WHERE DestinationPort = 3389 AND Time > NOW() - 14 DAYS AND User != 'SYSTEM'`. The results show all RDP connections, including those from non-admin accounts. The engineer can then pivot to process creation events on the destination endpoints to see if any suspicious binaries were executed immediately after the RDP session.
+
+**Scenario 2: Fileless Malware Investigation**
+An alert fires for a suspicious PowerShell command. The engineer queries Deep Visibility for all process creation events where the parent process is PowerShell and the child process is `rundll32.exe` or `regsvr32.exe` within the last 24 hours. The query returns the full command lines, allowing the engineer to decode the obfuscated payload and identify the C2 server from the network connection logs.
+
+**Scenario 3: Compliance Reporting for Data Exfiltration**
+A compliance audit requires proof that no sensitive files were copied to external USB drives. The engineer runs: `SELECT FilePath, User, ProcessName FROM FileEvents WHERE EventType = 'Write' AND FilePath LIKE '%*.xlsx%' AND DeviceID != 'C:'`. This returns all writes to removable media, which can be correlated with user identity and process context.
+
+**Security Relevance**
+
+Deep Visibility directly addresses several critical security engineering requirements:
+
+- **Hunting for Unknown Threats**: Because the data is unfiltered, engineers can search for patterns that do not match any known signature. This is essential for detecting zero-day exploits, living-off-the-land binaries, and custom malware.
+- **Reducing Mean Time to Respond (MTTR)**: Instead of waiting for an alert to generate a forensic package, engineers can query the exact data they need in seconds. This eliminates the back-and-forth of requesting logs from multiple sources.
+- **Custom Detection Logic**: Organizations with specific threat models (e.g., industrial control systems, healthcare, finance) can write queries that match their unique attack surface. This is not possible with generic EDR rules.
+- **Validation of Existing Controls**: Engineers can query for events that should have been blocked by other security tools (e.g., firewall, application whitelisting). If a blocked process still appears in Deep Visibility, it indicates a control failure.
+- **Forensic Integrity**: The data is immutable once ingested. Queries can be re-run at any time to verify findings, which is critical for incident response and legal proceedings.
+
+**Key Takeaways**
+- Deep Visibility provides unfiltered, queryable access to all endpoint telemetry, enabling retroactive hunting and custom detection that goes beyond pre-defined rules.
+- The VQL query language allows security engineers to write precise, time-bound queries against process, network, file, and registry events for both historical and real-time analysis.
+- Practical use cases include lateral movement detection, fileless malware investigation, and compliance auditing, all of which reduce MTTR and improve detection coverage.

@@ -1,0 +1,129 @@
+9.2: Ensure Only Approved Ports, Protocols and Services (and related controls)
+
+Overview
+This setting controls whether users are permitted to change installation options that 
+typically are available only to system administrators. The security features of Windows 
+Installer normally prevent users from changing installation options that are typically 
+reserved for system administrators, such as specifying the directory to which files are 
+installed. If Windows Installer detects that an installation package has permitted the 
+user to change a protected option, it stops the installation and displays a message. 
+These security features operate only when the installation program is running in a 
+privileged security context in which it has access to directories denied to the user. 
+The recommended state for this setting is: Disabled.
+
+This policy setting specifies whether Windows apps can be activated by voice (apps and 
+Cortana) while the system is locked. 
+The recommended state for this setting is: Enabled: Force Deny.
+
+This policy setting controls whether encrypted items are allowed to be indexed. When 
+this setting is changed, the index is rebuilt completely. Full volume encryption (such as 
+BitLocker Drive Encryption or a non-Microsoft solution) must be used for the location of 
+the index to maintain security for encrypted files. 
+The recommended state for this setting is: Block.
+
+This policy setting determines the amount of diagnostic and usage data reported to 
+Microsoft: 
+The recommended state for this setting is: Basic or Security. 
+Note: If your organization relies on Windows Update, the minimum recommended 
+setting is Required diagnostic data. Because no Windows Update information is 
+collected when diagnostic data is off, important information about update failures is not 
+sent. Microsoft uses this information to fix the causes of those failures and improve the 
+quality of updates. 
+Note #2: The Configure diagnostic data opt-in settings user interface group policy can 
+be used to prevent end users from changing their data collection settings. 
+Note #3: Enhanced diagnostic data setting is not available on Windows 11 and 
+Windows Server 2022 and has been replaced with policies that can control the amount 
+of optional diagnostic data that is sent. For more information on these settings visit 
+Manage diagnostic data using Group Policy and MDM
+
+The Bluetooth service supports discovery and association of remote Bluetooth devices. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+In an enterprise managed environment, only IT staff with administrative rights should be 
+installing or changing software on a system. Allowing users the ability to have any 
+control over installs can risk unapproved software from being installed or removed from 
+a system, which could cause the system to become vulnerable to compromise.
+
+Access to any computer resource should not be allowed when the device is locked.
+
+Indexing and allowing users to search encrypted files could potentially reveal 
+confidential data stored within the encrypted files.
+
+Sending any data to a third-party vendor is a security concern and should only be done 
+on an as needed basis.
+
+Bluetooth technology has inherent security risks - especially prior to the v2.1 standard. 
+Wireless Bluetooth traffic is not well encrypted (if at all), so in a high-security 
+environment, it should not be permitted, in spite of the added inconvenience of not 
+being able to use Bluetooth devices.
+
+Audit Steps
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer:EnableUserControl
+
+For Ensure Only Approved Ports, Protocols and Services:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Privacy:LetAppsActivateW
+ithVoiceAboveLock_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 2. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Privacy
+:LetAppsActivateWithVoiceAboveLock
+
+For Ensure Only Approved Ports, Protocols and Services:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Search:AllowIndexingEncr yptedStoresOrItems_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Search:
+AllowIndexingEncryptedStoresOrItems
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0 or 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection:AllowTelemetry_Policy
+Manager
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\bthserv:Start
+
+Remediation
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled: 
+Microsoft App Store\MSI Allow user control over installs
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: Force Deny: 
+Privacy\Let Apps Activate With Voice Above Lock
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block: 
+Search\Allow Indexing Encrypted Stores Or Items
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Basic or Security: 
+System\Allow Telemetry
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name bthserv -StartupType Disabled
+
+Key Takeaways
+- In an enterprise managed environment, only IT staff with administrative rights should be  installing or changing software on a system.
+- Allowing users the ability to have any  control over installs can risk unapproved software from being installed or removed from  a system, which could cause the system to become vulnerable to compromise.
+- Access to any computer resource should not be allowed when the device is locked.

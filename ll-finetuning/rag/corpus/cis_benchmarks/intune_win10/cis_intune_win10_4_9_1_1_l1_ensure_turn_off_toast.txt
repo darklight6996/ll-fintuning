@@ -1,0 +1,26 @@
+4.9.1.1: (L1) Ensure 'Turn off toast notifications on the lock screen
+
+Overview
+This policy setting turns off toast notifications on the lock screen. 
+The recommended state for this setting is Enabled.
+
+Why This Matters
+While this feature can be handy for users, applications that provide toast notifications 
+might display sensitive personal or business data while the device is left unattended.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKU\[USER 
+SID]\Software\Policies\Microsoft\Windows\CurrentVersion\PushNotifications:NoT
+oastApplicationNotificationOnLockScreen
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Start Menu and Taskbar\Notifications\Turn off toast 
+notifications on the lock screen (User)
+
+Key Takeaways
+- While this feature can be handy for users, applications that provide toast notifications  might display sensitive personal or business data while the device is left unattended.

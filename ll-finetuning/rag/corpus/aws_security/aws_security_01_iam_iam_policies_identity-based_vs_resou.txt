@@ -1,0 +1,57 @@
+Identity and Access Management (IAM) policies are the core mechanism for defining permissions in AWS. They are JSON documents that specify who (principal) can perform which actions (effect, action) on what resources (resource) under which conditions (condition). A critical distinction exists between two policy types: identity-based policies and resource-based policies. Understanding this distinction is essential for designing secure, least-privilege access architectures.
+
+**Definition**
+
+An **identity-based policy** is a permissions document that is attached directly to an IAM identity (user, group, or role). It defines what actions that identity is allowed or denied to perform on specified resources. The policy’s effect is scoped to the identity it is attached to.
+
+A **resource-based policy** is a permissions document that is attached directly to an AWS resource (e.g., an S3 bucket, an SQS queue, a KMS key, a Lambda function). It defines which principals (AWS accounts, IAM users, roles, or federated users) are allowed or denied access to that specific resource. The policy is evaluated when a principal attempts to access the resource.
+
+**Key Components**
+
+Both policy types share the same JSON structure: `Version`, `Statement` (containing `Effect`, `Principal`, `Action`, `Resource`, and `Condition`). However, the `Principal` element is the critical differentiator.
+
+- **Identity-Based Policies:**
+    - **Principal:** Implicit. The principal is the identity the policy is attached to. You do not specify a `Principal` element in the policy document.
+    - **Resource:** Explicit. You must specify the ARN(s) of the resources the identity can access. Wildcards are common (e.g., `"Resource": "*"` for broad permissions).
+    - **Attachment:** Attached to IAM users, groups, or roles.
+    - **Scope:** Defines permissions for a specific identity across all resources it needs to access.
+
+- **Resource-Based Policies:**
+    - **Principal:** Explicit. You must specify the principal(s) that are granted or denied access. This can be an AWS account ID, an IAM role ARN, an IAM user ARN, or a federated user session.
+    - **Resource:** Implicit. The resource is the AWS resource the policy is attached to. You do not specify a `Resource` element (or you use `"Resource": "*"` which refers to the resource itself).
+    - **Attachment:** Attached directly to the resource (e.g., S3 bucket policy, SQS queue policy, KMS key policy).
+    - **Scope:** Defines who can access that specific resource.
+
+**Real-World Application**
+
+The choice between identity-based and resource-based policies depends on the access pattern you need to enforce.
+
+- **Identity-Based Policy Example:** Granting an EC2 instance (via an IAM role) read-only access to all S3 buckets in the account.
+    - Create an IAM role with an identity-based policy: `{"Effect": "Allow", "Action": "s3:GetObject", "Resource": "arn:aws:s3:::*/*"}`
+    - Attach the role to the EC2 instance. The instance can now read objects from any bucket in the account. This is centralized permission management.
+
+- **Resource-Based Policy Example:** Granting a user from a different AWS account (Account B) write access to a specific S3 bucket in your account (Account A).
+    - In Account A, attach a resource-based policy to the S3 bucket: `{"Effect": "Allow", "Principal": {"AWS": "arn:aws:iam::ACCOUNT-B-ID:user/ExternalUser"}, "Action": "s3:PutObject", "Resource": "arn:aws:s3:::your-bucket/*"}`
+    - The user in Account B can now write to that bucket, provided Account B also has an identity-based policy allowing `s3:PutObject` to that bucket. This is cross-account access management.
+
+- **Combined Use:** A common pattern is using resource-based policies to grant cross-account access, while using identity-based policies to manage permissions for users and roles within the same account. For example, an S3 bucket policy might grant access to a specific IAM role from another account, while the role itself has an identity-based policy that restricts which actions it can perform on that bucket.
+
+**Security Relevance**
+
+The distinction between policy types has direct security implications.
+
+- **Least Privilege:** Identity-based policies are generally preferred for granting permissions to users and roles within your account because they allow you to centralize permission management and audit trails. Resource-based policies are necessary for cross-account access but introduce a distributed permission model that can be harder to audit.
+
+- **Permission Boundaries:** Identity-based policies can be combined with permission boundaries (also identity-based) to set the maximum permissions an identity can have. Resource-based policies are not subject to permission boundaries. This means a resource-based policy can grant a principal more permissions than its identity-based policy would normally allow, if the identity-based policy also allows the action. The effective permissions are the union of the identity-based policy and the resource-based policy.
+
+- **Cross-Account Access Risks:** Resource-based policies are the primary mechanism for cross-account access. They must be carefully scoped. A common mistake is using `"Principal": "*"` which grants access to any principal in any account. This should be avoided unless the resource is intentionally public. Always specify the exact principal ARN or account ID.
+
+- **Evaluation Logic:** When a principal attempts to access a resource, AWS evaluates both the identity-based policy (attached to the principal) and the resource-based policy (attached to the resource). An explicit deny in either policy overrides any allow. An allow in either policy is sufficient for access, provided no deny exists. This means a resource-based policy can grant access that an identity-based policy would not normally allow, and vice versa. This is a critical nuance for security engineers to understand when designing access controls.
+
+- **Auditing and Monitoring:** Identity-based policies are easier to audit because they are centralized in IAM. Resource-based policies are distributed across resources. Use AWS Config rules and IAM Access Analyzer to detect overly permissive resource-based policies (e.g., policies that grant access to external accounts or to all authenticated users).
+
+**Key Takeaways**
+
+1.  Identity-based policies define what an identity can do; resource-based policies define who can access a resource. The `Principal` element is the key structural difference.
+2.  Resource-based policies are essential for cross-account access but introduce a distributed permission model that requires careful auditing to prevent unintended public access.
+3.  Effective permissions are the union of identity-based and resource-based policies, with explicit denies always overriding allows. Always verify both policy types when troubleshooting access issues.

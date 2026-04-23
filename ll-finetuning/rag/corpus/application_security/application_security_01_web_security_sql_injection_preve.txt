@@ -1,0 +1,59 @@
+SQL injection (SQLi) is a code injection technique that exploits a security vulnerability occurring in the database layer of an application. The vulnerability is present when user input is either incorrectly filtered for string literal escape characters embedded in SQL statements or user input is not strongly typed and thereby unexpectedly executed. It allows an attacker to interfere with the queries that an application makes to its database, potentially reading, modifying, or deleting data, and in some cases, executing administrative operations on the database server.
+
+**Key Components of SQL Injection Prevention**
+
+Effective prevention requires a layered defense strategy. The following components are non-negotiable for any production system.
+
+- **Parameterized Queries (Prepared Statements):** This is the primary defense. Parameterized queries force the database to treat user input as data, not as executable SQL code. The SQL statement is defined first, and placeholders are used for parameters. The database engine then compiles the statement template and binds the input values separately. This ensures that even if an attacker supplies malicious SQL syntax, it is never interpreted as part of the command. This technique is supported by all major programming languages and database drivers (e.g., PDO in PHP, `PreparedStatement` in Java, parameterized queries in Python's `sqlite3` or `psycopg2`).
+
+- **Stored Procedures:** When implemented correctly, stored procedures can offer similar protection to parameterized queries. The key requirement is that the stored procedure itself does not use dynamic SQL generation (e.g., concatenating input into a string within the procedure). The database access layer should call the stored procedure with parameters, not construct the call string dynamically. Stored procedures are not a silver bullet; they are only effective if the procedure code is written securely.
+
+- **Input Validation and Whitelisting:** While not a replacement for parameterized queries, input validation is a critical secondary control. Validate all input against a strict whitelist of allowed characters, types, and lengths. For example, if a field expects a numeric ID, reject any input containing non-numeric characters. This reduces the attack surface and can catch errors early. Blacklisting (filtering out known bad patterns like `' OR 1=1--`) is unreliable and should never be the sole defense.
+
+- **Escaping User Input:** This is a legacy technique and should only be used when parameterized queries are not possible (e.g., in some legacy database APIs). Escaping functions (like `mysql_real_escape_string` in PHP) add backslashes before dangerous characters. This is error-prone and database-specific. It is far less secure than parameterized queries because it relies on the developer to remember to escape every single piece of input and to use the correct function for the specific database. Prefer parameterized queries in all new code.
+
+- **Least Privilege Principle:** The database account used by the application should have the minimum permissions necessary. For example, a web application that only reads data should use a database user with only `SELECT` privileges. If an SQL injection vulnerability exists, limiting the account's privileges can prevent the attacker from executing `INSERT`, `UPDATE`, `DELETE`, or `DROP` statements. Never use a database administrator account (like `sa` or `root`) for application connections.
+
+- **Web Application Firewall (WAF):** A WAF can provide a layer of defense by inspecting HTTP traffic and blocking requests that match known SQL injection patterns. This is a compensating control, not a fix for insecure code. A WAF can be bypassed by sophisticated attackers and should not be relied upon as the primary prevention mechanism. It is useful for providing time to patch a known vulnerability.
+
+**Real-World Application**
+
+Consider a login form that takes a username and password. An insecure implementation might build a query like this (pseudocode):
+
+```
+query = "SELECT * FROM users WHERE username = '" + userInput + "' AND password = '" + passInput + "'"
+```
+
+An attacker can input `admin' --` as the username, resulting in:
+
+```
+SELECT * FROM users WHERE username = 'admin' --' AND password = 'anything'
+```
+
+The `--` comments out the rest of the query, bypassing authentication.
+
+The secure implementation using a parameterized query (Python with `sqlite3` example):
+
+```
+cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (userInput, passInput))
+```
+
+Here, the `?` placeholders are bound to the user input values. The database driver handles escaping and quoting automatically. The input `admin' --` is treated as a literal string value for the username parameter, not as SQL code. The query will look for a user whose username is literally `admin' --`, which will likely return no results.
+
+Another common real-world scenario is in search functionality. An insecure implementation might concatenate user input directly into a `LIKE` clause. A secure implementation uses a parameterized query with the `LIKE` clause, ensuring the wildcard characters (`%`, `_`) are part of the data, not the SQL structure.
+
+**Security Relevance**
+
+SQL injection remains one of the most critical web application security risks, consistently ranking high in the OWASP Top 10. A successful SQL injection attack can lead to:
+
+- **Data Breach:** The attacker can extract sensitive data, including personally identifiable information (PII), financial records, and authentication credentials.
+- **Data Loss or Corruption:** The attacker can modify or delete data, leading to business disruption and integrity issues.
+- **Privilege Escalation:** The attacker can use the database to execute operating system commands, potentially gaining control of the server.
+- **Compliance Violations:** A data breach resulting from SQL injection can lead to severe penalties under regulations like GDPR, HIPAA, and PCI DSS. PCI DSS Requirement 6.5.1 explicitly mandates that web applications be protected against SQL injection.
+
+For a security engineer, the relevance is direct: every database query that accepts any form of user input must be reviewed and hardened. Code reviews must specifically check for string concatenation in SQL statements. Automated static analysis tools (SAST) and dynamic analysis tools (DAST) should be configured to detect SQL injection patterns. The cost of remediation is highest after deployment; prevention during development is the only viable strategy.
+
+**Key Takeaways**
+1.  **Parameterized queries are the only reliable primary defense** against SQL injection; all user-supplied data must be passed as parameters, never concatenated into SQL strings.
+2.  **Implement defense in depth** by combining parameterized queries with strict input validation, least privilege database accounts, and a WAF as a compensating control.
+3.  **Treat stored procedures with caution**; they are only safe if they do not use dynamic SQL generation internally. Always verify the procedure code itself is not vulnerable.

@@ -1,0 +1,63 @@
+**Definition**
+
+Organization policies, within the context of Identity and Access Management (IAM), are a set of rules that govern access to resources across an entire cloud or enterprise environment. Unlike resource-based policies that are attached to individual resources (e.g., a specific S3 bucket or a virtual machine), organization policies are applied at the hierarchy level—typically to a root organization, folder, or project. They enforce constraints on all principals (users, groups, service accounts) and resources within that scope. These policies are often implemented using a policy language such as AWS Organizations Service Control Policies (SCPs), Google Cloud Organization Policies, or Azure Policy. Their primary function is to establish a security baseline that cannot be overridden by lower-level permissions, ensuring that even administrators with broad IAM roles are subject to the same guardrails.
+
+**Key Components**
+
+Organization policies consist of several critical components that define their behavior and scope:
+
+- **Policy Hierarchy and Inheritance**: Policies are applied at the organization node and cascade down to all child folders, projects, and resources. Inheritance is typically additive and restrictive. For example, an SCP that denies access to a specific service will apply to all accounts under that organizational unit (OU). This hierarchical model prevents configuration drift and ensures consistent enforcement.
+
+- **Effect (Allow/Deny)**: The core logic of a policy is the effect statement. In most implementations, deny rules take precedence over allow rules. This is a fundamental security principle: an explicit deny cannot be overridden by an allow from a less restrictive policy. This allows security teams to block dangerous actions (e.g., disabling CloudTrail logging) regardless of what IAM roles grant.
+
+- **Conditions and Constraints**: Policies can include conditions that refine when a rule applies. Common conditions include IP address ranges, time-based restrictions, Multi-Factor Authentication (MFA) presence, or specific resource tags. For example, an organization policy might deny all access to resources unless the request originates from a corporate VPN IP range.
+
+- **Resource and Action Lists**: Policies specify which services and actions are affected. In AWS SCPs, this is done via `Resource` and `Action` elements. A policy might deny `ec2:RunInstances` for all resources, effectively preventing any EC2 instance creation across the organization.
+
+- **Exemptions and Exceptions**: Some policy engines allow for exemptions at lower levels. For instance, Azure Policy has exemptions for specific scopes or resources. However, security engineers should use exemptions sparingly and audit them regularly, as they create gaps in the baseline.
+
+- **Policy Types**: Different cloud providers offer distinct policy types. AWS has SCPs (for account permissions) and Resource Control Policies (RCPs, for resource-level controls). Google Cloud has Organization Policies (e.g., constraints on service usage). Azure has Azure Policy (for resource compliance) and Azure Blueprints (for environment governance). Understanding the specific type is crucial for correct implementation.
+
+**Real-World Application**
+
+A common real-world use case is enforcing data residency and compliance. Suppose an organization must comply with GDPR, which requires that personal data remain within the European Union. An organization policy can be configured to deny the creation of resources in non-EU regions. For example, in AWS, an SCP can be written as:
+
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Deny",
+      "Action": "ec2:RunInstances",
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": ["eu-west-1", "eu-central-1", "eu-west-2"]
+        }
+      }
+    }
+  ]
+}
+```
+
+This policy denies EC2 instance launches in any region outside the specified EU regions. It applies to all accounts under the OU, including root users. Even if a developer has full `ec2:*` permissions in their IAM role, this SCP will block the action.
+
+Another application is enforcing mandatory encryption. An organization policy can require that all storage buckets (e.g., S3, GCS) have encryption enabled. In Google Cloud, this is done via the `constraints/storage.requireEncryption` constraint. If a project attempts to create an unencrypted bucket, the policy denies the operation.
+
+Security engineers also use organization policies to restrict service usage. For example, to prevent the use of legacy or insecure services, a policy can deny access to specific API actions. This is particularly useful during cloud migrations or when deprecating services.
+
+**Security Relevance**
+
+Organization policies are a cornerstone of defense-in-depth in IAM. Their security relevance stems from their ability to enforce a least-privilege baseline that is immune to accidental or malicious over-permissioning at lower levels. Without organization policies, a single misconfigured IAM role in a child account could grant full administrative access to an attacker. With organization policies, that same role is still constrained by the higher-level deny rules.
+
+They are also critical for preventing privilege escalation. For instance, a common attack vector is creating new IAM users or roles with elevated permissions. An organization policy can deny the `iam:CreateUser` or `iam:PassRole` actions across the entire organization, blocking this escalation path.
+
+Furthermore, organization policies support compliance automation. By codifying regulatory requirements (e.g., PCI DSS, HIPAA, SOC 2) into policies, security teams can continuously enforce controls without manual audits. For example, a policy that denies public access to storage buckets ensures that data exposure is prevented by default.
+
+However, organization policies have limitations. They do not grant permissions; they only restrict them. Therefore, they must be used in conjunction with IAM roles and resource-based policies. Overly restrictive policies can break legitimate workflows, so thorough testing in a non-production environment is essential. Additionally, policy evaluation can be complex when multiple policies apply at different hierarchy levels. Security engineers must understand the evaluation logic of their specific cloud provider to avoid unintended denials.
+
+**Key Takeaways**
+
+- Organization policies enforce a security baseline at the hierarchy level that cannot be overridden by lower-level IAM permissions, making them essential for preventing privilege escalation and configuration drift.
+- They use a deny-precedence model, where explicit denies in organization policies block actions even if an IAM role grants them, enabling strict control over critical actions like resource creation in unauthorized regions.
+- Real-world applications include enforcing data residency, mandatory encryption, and service usage restrictions, all of which support compliance automation and reduce the attack surface across the entire cloud environment.

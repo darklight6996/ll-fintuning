@@ -1,0 +1,55 @@
+Process injection, catalogued as MITRE ATT&CK technique T1055, is a method used by adversaries to execute arbitrary code within the address space of a separate live process. This technique is a primary vector for privilege escalation, defense evasion, and credential theft. By running malicious code within a trusted or higher-privileged process, the injected code inherits the security context and permissions of that target process, effectively bypassing user-mode access controls and security monitoring that inspects new process creation.
+
+**Key Components of T1055**
+
+The execution of process injection relies on a sequence of Windows API calls and memory management operations. The core components are:
+
+- **Target Process Selection:** The adversary identifies a process with a desired privilege level (e.g., `lsass.exe` for SYSTEM privileges) or one that is whitelisted by security software (e.g., `svchost.exe`, `explorer.exe`). The `OpenProcess` API is used to obtain a handle to the target process, requiring appropriate access rights such as `PROCESS_VM_WRITE`, `PROCESS_VM_OPERATION`, and `PROCESS_CREATE_THREAD`.
+
+- **Memory Allocation:** The `VirtualAllocEx` API allocates memory within the target process’s virtual address space. The allocation size must accommodate the payload (shellcode or DLL). The memory is typically flagged with `MEM_COMMIT | MEM_RESERVE` and permissions set to `PAGE_READWRITE`.
+
+- **Payload Writing:** The `WriteProcessMemory` API writes the malicious payload (e.g., shellcode or a DLL path) into the allocated memory region. For DLL injection, the payload is the full path to a malicious DLL. For shellcode injection, the payload is executable binary code.
+
+- **Execution Triggering:** The adversary forces the target process to execute the injected code. Common methods include:
+  - **CreateRemoteThread:** Creates a new thread in the target process, starting at the address of the injected payload or at `LoadLibraryA` (for DLL injection).
+  - **SetThreadContext:** Modifies the instruction pointer of an existing thread in the target process to point to the injected shellcode.
+  - **QueueUserAPC:** Queues an Asynchronous Procedure Call (APC) to an existing thread, which will execute the payload when the thread enters an alertable state.
+  - **NtCreateThreadEx:** A lower-level alternative to `CreateRemoteThread`, often used to bypass user-mode hooks.
+
+- **Privilege Escalation Mechanism:** Once the injected code runs within the target process, it operates with that process’s token. If the target process runs as SYSTEM or a high-integrity account, the injected code gains those privileges. This bypasses the need for the adversary to directly elevate their own process token.
+
+**Real-World Application**
+
+T1055 is a staple in advanced persistent threat (APT) operations and commodity malware. Specific real-world examples include:
+
+- **Mimikatz via LSASS Injection:** Adversaries inject a DLL containing Mimikatz into `lsass.exe` to dump plaintext credentials and Kerberos tickets. Because `lsass.exe` runs as SYSTEM, the injected code has unrestricted access to the Local Security Authority Subsystem Service, bypassing user-mode restrictions.
+
+- **Cobalt Strike Beacon Injection:** Cobalt Strike’s `inject` command uses `CreateRemoteThread` or `NtCreateThreadEx` to inject Beacon shellcode into a benign process like `explorer.exe` or `notepad.exe`. This hides the Beacon’s network activity and process footprint from endpoint detection and response (EDR) tools that monitor for new suspicious processes.
+
+- **Process Hollowing (T1055.012):** A variant where the adversary creates a legitimate process in a suspended state, unmaps its original code, writes malicious code into the process memory, and then resumes the main thread. This technique is used by malware like Dridex and TrickBot to evade process-based allowlisting.
+
+- **Thread Execution Hijacking (T1055.003):** Used by ransomware such as Ryuk, where an existing thread in a target process is suspended, its context is modified to point to shellcode, and then resumed. This avoids creating a new thread, which can be a detection signal.
+
+**Security Relevance for Defenders**
+
+Understanding T1055 is critical for building effective detection and prevention controls. The technique directly undermines privilege separation and process isolation, which are foundational security boundaries in Windows.
+
+- **Detection Challenges:** Process injection does not create a new process, so traditional process creation monitoring (e.g., Event ID 4688) is ineffective. Detection must focus on anomalous API call patterns, such as a low-privilege process calling `OpenProcess` on a SYSTEM process with `PROCESS_ALL_ACCESS`, or a process making repeated `WriteProcessMemory` calls followed by `CreateRemoteThread`.
+
+- **Common Indicators:**
+  - Unusual cross-process memory operations (e.g., `OpenProcess` + `VirtualAllocEx` + `WriteProcessMemory` + `CreateRemoteThread` sequence).
+  - Thread creation in a process that does not normally spawn threads (e.g., `lsass.exe` creating a new thread).
+  - Memory regions in a process with `PAGE_EXECUTE_READWRITE` permissions, especially if the memory was initially allocated as `PAGE_READWRITE`.
+  - DLLs loaded from unusual paths (e.g., `C:\Users\Public\` or `C:\Temp\`) into system processes.
+
+- **Mitigation Strategies:**
+  - **Enable Windows Defender Credential Guard:** Isolates `lsass.exe` using virtualization-based security, preventing direct memory access even from SYSTEM-level code.
+  - **Enable Attack Surface Reduction (ASR) Rules:** Rules like "Block process injections via the Windows common language runtime" and "Block executable files from running unless they meet a prevalence, age, or trusted list criterion" can block common injection vectors.
+  - **Use Endpoint Detection and Response (EDR) with Behavioral Analytics:** EDR solutions that monitor API call stacks and cross-process access patterns can detect injection attempts in real time.
+  - **Implement Application Control (e.g., AppLocker, WDAC):** Restrict which executables and DLLs can run, making it harder for adversaries to load malicious payloads.
+  - **Harden Process Access:** Use tools like Windows Defender System Guard to enforce minimum privilege levels for process handles.
+
+**Key Takeaways**
+- Process injection (T1055) allows code execution within a higher-privileged process, bypassing user-mode access controls and enabling privilege escalation without creating a new process.
+- Detection requires monitoring cross-process API call sequences (OpenProcess, VirtualAllocEx, WriteProcessMemory, CreateRemoteThread) and anomalous memory permissions, not just process creation events.
+- Mitigation relies on a layered approach including Credential Guard, ASR rules, behavioral EDR, and application control to block the prerequisite API calls and payload delivery.

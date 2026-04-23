@@ -1,0 +1,144 @@
+9.2: Ensure Only Approved Ports, Protocols and Services (and related controls)
+
+Overview
+This policy setting controls whether a device will automatically sign-in the last interactive 
+user after Windows Update restarts the system. 
+The recommended state for this setting is: Disabled.
+
+This policy setting allows you to manage whether the Windows Remote Management 
+(WinRM) service sends and receives unencrypted messages over the network. 
+The recommended state for this setting is: Disabled.
+
+This policy setting removes the Spotlight collection setting in Personalization, rendering 
+the user unable to select and subsequently download daily images from Microsoft to the 
+system desktop. 
+The recommended state for this setting is: 0.
+
+This policy setting determines whether cloud consumer account state content is allowed 
+in all Windows experiences. 
+The recommended state for this setting is: Enabled.
+
+This policy setting determines whether the LAN Manager (LM) hash value for the new 
+password is stored when the password is changed. The LM hash is relatively weak and 
+prone to attack compared to the cryptographically stronger Microsoft Windows NT hash. 
+Since LM hashes are stored on the local computer in the security database, passwords 
+can then be easily compromised if the database is attacked. 
+Note: Older operating systems and some third-party applications may fail when this 
+policy setting is enabled. Also, note that the password will need to be changed on all 
+accounts after you enable this setting to gain the proper benefit. 
+The recommended state for this setting is: Enabled.
+
+This policy setting determines which behaviors are allowed by clients for applications 
+using the NTLM Security Support Provider (SSP). The SSP Interface (SSPI) is used by 
+applications that need authentication services. The setting does not modify how the 
+authentication sequence works but instead require certain behaviors in applications that 
+use the SSPI. 
+The recommended state for this setting is: Require NTLM and 128-bit encryption. 
+Note: These values are dependent on the Network security: LAN Manager 
+Authentication Level security setting value.
+
+Why This Matters
+Disabling this feature will prevent the caching of user's credentials and unauthorized 
+use of the device, and also ensure the user is aware of the restart.
+
+Encrypting WinRM network traffic reduces the risk of an attacker viewing or modifying 
+WinRM messages as they transit the network.
+
+Disabling this setting will help ensure your data is not shared with any third party. The 
+Windows Spotlight feature collects data and uses that data to display images from 
+Microsoft.
+
+The use of consumer accounts in an enterprise managed environment is not good 
+security practice as it could lead to possible data leakage.
+
+The SAM file can be targeted by attackers who seek access to username and password 
+hashes. Such attacks use special tools to crack passwords, which can then be used to 
+impersonate users and gain access to resources on your network. These types of 
+attacks will not be prevented if you enable this policy setting, but it will be much more 
+difficult for these types of attacks to succeed.
+
+You can enable both options for this policy setting to help protect network traffic that 
+uses the NTLM Security Support Provider (NTLM SSP) from being exposed or 
+tampered with by an attacker who has gained access to the same network. In other 
+words, these options help protect against man-in-the-middle attacks.
+
+Audit Steps
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System:DisableAutomat icRestartSignOn
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service:AllowUnencryptedTraffi c
+
+For Ensure Only Approved Ports, Protocols and Services:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\(USER 
+SID)\Experience:AllowSpotlightCollection_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\(USER 
+SID)\Experience:AllowSpotlightCollection
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent:DisableConsumerAccountS
+tateContent
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Control\Lsa:NoLMHash
+
+For Ensure Only Approved Ports, Protocols and:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 537395200. 
+HKLM\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0:NTLMMinClientSec
+
+Remediation
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Windows Components\Windows Logon Options\Sign-in and 
+lock last interactive user automatically after a restart
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Windows Components\Windows Remote Management 
+(WinRM)\WinRM Service\Allow unencrypted traffic
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 0: 
+Experience\Allow Spotlight Collection (User)
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+Experience\Disable Consumer Account State Content
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+Local Policies Security Options\Network security: Do not store LAN Manager 
+hash value on next password change
+
+For Ensure Only Approved Ports, Protocols and:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Require NTLM and 128-bit encryption: 
+Local Policies Security Options\Network security: Minimum session security 
+for NTLM SSP based (including secure RPC) clients
+
+Key Takeaways
+- Disabling this feature will prevent the caching of user's credentials and unauthorized  use of the device, and also ensure the user is aware of the restart.
+- Encrypting WinRM network traffic reduces the risk of an attacker viewing or modifying  WinRM messages as they transit the network.
+- Disabling this setting will help ensure your data is not shared with any third party.

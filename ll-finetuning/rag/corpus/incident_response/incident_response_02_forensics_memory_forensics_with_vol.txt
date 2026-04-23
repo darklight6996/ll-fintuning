@@ -1,0 +1,45 @@
+Memory forensics is the process of acquiring and analyzing the volatile memory (RAM) of a running computer system. Unlike disk forensics, which examines persistent storage, memory forensics captures the state of the operating system, running processes, network connections, loaded kernel modules, and decrypted data at the moment of acquisition. This is critical because artifacts that exist only in memory—such as encryption keys, injected shellcode, or rootkits that hide files from the filesystem—are lost when the system is powered down. Volatility is the de facto open-source framework for performing this analysis. It is a Python-based tool that supports a wide range of memory profiles for Windows, Linux, and macOS, enabling an examiner to extract and interpret data from a raw memory dump.
+
+**Key Components of Volatility**
+
+Volatility operates by parsing the memory dump against a specific OS profile. The profile defines the data structures, symbol tables, and memory layout for that particular kernel version. Without the correct profile, the framework cannot interpret the binary data correctly.
+
+- **Profiles:** Each OS version and architecture (e.g., Win10x64_19041, LinuxUbuntu_5_4_0-x64) requires a dedicated profile. Volatility 2 uses separate profile files; Volatility 3 uses symbol tables (ISF JSON files) that are more portable.
+- **Plugins:** The core functionality is delivered through plugins. Each plugin performs a specific forensic task. Common plugins include:
+    - `pslist`: Lists active processes by walking the doubly linked list of `EPROCESS` structures.
+    - `psscan`: Scans physical memory for `EPROCESS` objects using pool tag scanning, useful for finding hidden or terminated processes.
+    - `netscan`: Extracts network connections and listening sockets from the `_TCPT_OBJECT` and `_UDP_OBJECT` structures.
+    - `cmdline`: Retrieves the command-line arguments for each process.
+    - `malfind`: Scans for injected code by identifying memory regions that are writable and executable (RWX) and contain suspicious patterns.
+    - `hivelist`: Lists registry hives loaded in memory, allowing extraction of registry keys.
+    - `dumpfiles`: Extracts files from memory based on the file cache or mapped files.
+- **Memory Acquisition:** Volatility analyzes a dump file; it does not acquire it. Acquisition tools like FTK Imager, WinPmem, or LiME must be used to create a raw memory image (e.g., `.raw`, `.mem`, `.vmem`). The acquisition must be performed on a live system before shutdown.
+- **Volatility 2 vs. Volatility 3:** Volatility 2 (Python 2) is legacy but still widely used for its extensive plugin library. Volatility 3 (Python 3) is the current development branch, offering faster performance, native symbol table support, and a plugin architecture that does not require separate profile downloads. For new investigations, Volatility 3 is recommended.
+
+**Real-World Application**
+
+Memory forensics with Volatility is applied in incident response, malware analysis, and rootkit detection. A typical workflow follows these steps:
+
+1.  **Acquire the memory dump.** Use a trusted tool on the compromised host. For Windows, `winpmem_mini.exe` is a lightweight option. For Linux, `LiME` is common. Verify the integrity of the dump with a hash.
+2.  **Identify the correct profile.** Run `volatility -f dump.raw imageinfo` (Volatility 2) or `volatility -f dump.raw windows.info` (Volatility 3) to get a suggested profile.
+3.  **Enumerate processes.** Run `pslist` and `psscan`. Compare the two outputs. A process visible in `psscan` but absent from `pslist` is likely hidden by a rootkit.
+4.  **Examine network connections.** Run `netscan`. Look for connections to known malicious IPs, unusual ports, or processes making outbound connections that should not (e.g., `svchost.exe` connecting to an external IP on port 443).
+5.  **Extract command lines.** Run `cmdline` on suspicious PIDs. Look for encoded PowerShell commands, base64 strings, or execution from temporary directories.
+6.  **Scan for code injection.** Run `malfind`. It will flag memory pages with the RWX permission. Dump these pages with `malfind -D <output_dir>` and analyze them with a disassembler or strings utility.
+7.  **Extract artifacts.** Use `dumpfiles` to recover files that were open in memory. Use `hivelist` and `printkey` to examine registry keys related to persistence (e.g., `Run` keys).
+8.  **Correlate with disk forensics.** Cross-reference process paths, loaded DLLs, and registry keys with files found on the disk image. A process running from a deleted file is a strong indicator of malware.
+
+**Security Relevance**
+
+Memory forensics is essential for detecting advanced threats that evade traditional disk-based analysis. Its primary security relevance includes:
+
+- **Rootkit Detection:** Rootkits that hook system calls or hide processes, files, or network connections operate in kernel memory. Volatility’s `psxview` and `modscan` plugins can reveal discrepancies between kernel data structures, exposing the rootkit.
+- **In-Memory Malware:** Fileless malware, such as PowerShell-based attacks or reflective DLL injection, never writes a malicious executable to disk. The only evidence exists in process memory. `malfind` and `ldrmodules` can detect these injections.
+- **Credential Theft:** Tools like Mimikatz extract plaintext passwords from LSASS memory. Volatility’s `lsadump` plugin can recover these credentials from the dump without running the tool on the live system, preserving evidence.
+- **Encryption Key Recovery:** Full disk encryption (e.g., BitLocker, FileVault) protects data at rest, but the decryption key resides in memory while the system is running. Volatility can locate these keys, enabling decryption of the disk image for further analysis.
+- **Timeline Reconstruction:** By correlating process creation times, network connections, and file access from memory, an analyst can reconstruct the attacker’s timeline of actions, even if logs have been cleared.
+
+**Key Takeaways**
+- Memory forensics captures volatile artifacts (processes, network connections, encryption keys) that are lost on shutdown, making it indispensable for detecting fileless malware and rootkits.
+- Volatility is the standard framework for analysis; its plugin architecture (e.g., pslist, malfind, netscan) allows systematic extraction of OS data structures from a memory dump.
+- A rigorous workflow—acquire, profile, enumerate, scan, extract, correlate—ensures that hidden or injected artifacts are identified and linked to the broader incident.

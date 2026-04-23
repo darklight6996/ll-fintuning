@@ -1,0 +1,39 @@
+4.5.1: (L1) Ensure 'MSS: (AutoAdminLogon) Enable Automatic
+
+Overview
+This setting is separate from the Welcome screen feature in Windows XP and Windows 
+Vista; if that feature is disabled, this setting is not disabled. If you configure a computer 
+for automatic logon, anyone who can physically gain access to the computer can also 
+gain access to everything that is on the computer, including any network or networks to 
+which the computer is connected. Also, if you enable automatic logon, the password is 
+stored in the registry in plaintext, and the specific registry key that stores this value is 
+remotely readable by the Authenticated Users group. 
+For additional information, see Microsoft Knowledge Base article 324737: How to turn 
+on automatic logon in Windows. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+If you configure a computer for automatic logon, anyone who can physically gain access 
+to the computer can also gain access to everything that is on the computer, including 
+any network or networks that the computer is connected to. Also, if you enable 
+automatic logon, the password is stored in the registry in plaintext. The specific registry 
+key that stores this setting is remotely readable by the Authenticated Users group. As a 
+result, this entry is appropriate only if the computer is physically secured and if you 
+ensure that untrusted users cannot remotely see the registry.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a REG_SZ 
+value of 0. 
+HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon:AutoAdminLogon
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to `Disabled. 
+Administrative Templates\MSS (Legacy)\MSS: (AutoAdminLogon) Enable Automatic 
+Logon (not recommended)
+
+Key Takeaways
+- If you configure a computer for automatic logon, anyone who can physically gain access  to the computer can also gain access to everything that is on the computer, including  any network or networks that the computer is connected to.
+- Also, if you enable  automatic logon, the password is stored in the registry in plaintext.
+- The specific registry  key that stores this setting is remotely readable by the Authenticated Users group.

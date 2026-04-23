@@ -1,0 +1,71 @@
+Incident investigation and triage in Microsoft Sentinel relies heavily on Kusto Query Language (KQL) to filter, correlate, and prioritize security events. Triage is the process of determining which alerts require immediate action, and investigation is the subsequent deep dive into the underlying data. KQL is the primary tool for both stages because it allows direct access to raw logs, normalized tables, and threat intelligence feeds within the Sentinel workspace.
+
+**Definition**
+
+Incident investigation and triage using Sentinel KQL refers to the systematic application of Kusto queries to assess the severity, scope, and root cause of security incidents. Triage queries are designed to quickly reduce noise and surface high-fidelity alerts. Investigation queries are more complex, often joining multiple tables over time windows to reconstruct attack chains. The goal is to move from an alert to a confirmed verdict—malicious, benign, or suspicious—with supporting evidence.
+
+**Key Components**
+
+- **Time-Boxed Filtering**: Every triage query must include a time range filter. Use `where Timestamp between (datetime(2025-01-01) .. datetime(2025-01-02))` or the `ago()` function, e.g., `where Timestamp > ago(1h)`. Without this, queries scan the entire workspace and become unusable during an active incident.
+
+- **Alert Enrichment via `SecurityAlert` Table**: The `SecurityAlert` table contains normalized alert metadata. Key columns include `AlertName`, `AlertSeverity`, `CompromisedEntity`, and `StartTime`. A typical triage query starts here:  
+  `SecurityAlert | where TimeGenerated > ago(4h) | where AlertSeverity in ("High", "Medium") | summarize count() by AlertName, CompromisedEntity`
+
+- **Entity Correlation with `IdentityInfo` and `DeviceInfo`**: After identifying a compromised entity, use `IdentityInfo` to get user details (UPN, department, risk level) and `DeviceInfo` for device properties (OS, last seen, IP). Example:  
+  `IdentityInfo | where TimeGenerated > ago(1d) | where AccountUPN == "user@domain.com" | project AccountUPN, RiskLevel, Department`
+
+- **Process and Network Evidence via `DeviceProcessEvents` and `DeviceNetworkEvents`**: For endpoint detection, these tables provide process creation, network connections, and file creation events. A common investigation query:  
+  `DeviceProcessEvents | where TimeGenerated > ago(1h) | where InitiatingProcessFileName has_any ("powershell.exe", "cmd.exe") | where ProcessCommandLine contains "-enc"`  
+  This flags encoded command execution, a common attacker technique.
+
+- **Threat Intelligence Matching**: Use the `ThreatIntelligenceIndicator` table to cross-reference IPs, domains, or hashes. Example:  
+  `let maliciousIPs = ThreatIntelligenceIndicator | where Active == true | where IndicatorType == "ipv4" | project IndicatorValue;`  
+  `DeviceNetworkEvents | where RemoteIP in (maliciousIPs)`
+
+- **Aggregation and Scoring**: Use `summarize` with `dcount()`, `make_set()`, and `count()` to group events by user, device, or process. A triage score can be computed by counting distinct alert types per entity:  
+  `SecurityAlert | summarize AlertCount = count(), DistinctAlertTypes = dcount(AlertName) by CompromisedEntity | where AlertCount > 5`
+
+**Real-World Application**
+
+Scenario: A "Mimikatz-like behavior" alert fires on a domain controller. The triage engineer runs the following KQL sequence:
+
+1. **Initial Triage**:  
+   `SecurityAlert | where TimeGenerated > ago(30m) | where AlertName contains "Mimikatz" | project CompromisedEntity, StartTime, AlertSeverity`  
+   Result: Alert on DC01, severity High, 10 minutes ago.
+
+2. **Entity Enrichment**:  
+   `IdentityInfo | where TimeGenerated > ago(1d) | where AccountUPN == "DC01$" | project AccountUPN, RiskLevel`  
+   Result: DC01 is a domain controller account, risk level Medium.
+
+3. **Process Investigation**:  
+   `DeviceProcessEvents | where TimeGenerated > ago(1h) | where DeviceName == "dc01.contoso.com" | where FileName in~ ("mimikatz.exe", "procdump.exe", "taskmgr.exe") | project Timestamp, FileName, ProcessCommandLine, AccountName`  
+   Result: `procdump.exe` launched by `svc_backup` account with command `-ma lsass.exe`. This is a strong indicator of credential dumping.
+
+4. **Network Evidence**:  
+   `DeviceNetworkEvents | where TimeGenerated > ago(1h) | where DeviceName == "dc01.contoso.com" | where RemotePort == 445 | project Timestamp, RemoteIP, RemotePort, InitiatingProcessFileName`  
+   Result: Outbound SMB connections to an external IP `203.0.113.5` from `procdump.exe`.
+
+5. **Threat Intel Cross-Reference**:  
+   `let badIP = "203.0.113.5";`  
+   `ThreatIntelligenceIndicator | where IndicatorValue == badIP | project IndicatorType, ThreatType, ConfidenceScore`  
+   Result: IP is a known C2 server with confidence 85.
+
+6. **Incident Escalation**: The engineer creates a Sentinel incident with the KQL results as evidence, tags it as "Credential Access / Exfiltration", and assigns it to the response team.
+
+**Security Relevance**
+
+KQL-driven triage directly reduces mean time to respond (MTTR). Without structured queries, engineers waste time manually sifting through logs. With KQL, you can:
+
+- **Automate Triage Rules**: Create analytics rules that use KQL to suppress low-confidence alerts or automatically escalate high-confidence ones. For example, a rule that fires only when a process event matches a known IOCs from threat intelligence.
+
+- **Reduce False Positives**: Use KQL to baseline normal behavior. For instance, `DeviceProcessEvents | where InitiatingProcessFileName == "svchost.exe" | where ProcessCommandLine !startswith "C:\\Windows\\System32"` can filter out legitimate svchost activity.
+
+- **Enable Hunting**: Proactive hunting queries, such as searching for unusual logon patterns (`SigninLogs | where ResultType == "0" | where Location not in ("US", "CA")`), become part of the triage workflow when an incident is suspected.
+
+- **Maintain Chain of Custody**: KQL queries can be saved and timestamped, providing a reproducible audit trail of what data was examined and when. This is critical for compliance (e.g., PCI DSS, SOC 2) and legal proceedings.
+
+**Key Takeaways**
+
+- Always start triage with time-bound queries on the `SecurityAlert` table, then pivot to entity-specific tables like `DeviceProcessEvents` and `IdentityInfo` for evidence.
+- Use `summarize` and `make_set` to aggregate events per entity, enabling rapid prioritization of high-volume, high-severity incidents.
+- Integrate threat intelligence matching directly into your investigation queries to automatically flag known malicious indicators and reduce manual cross-referencing.

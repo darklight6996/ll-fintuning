@@ -1,0 +1,44 @@
+Serverless computing shifts security responsibility from infrastructure management to application and configuration layers. In a serverless model, the cloud provider manages the physical servers, runtime environment, and operating system, but the customer remains responsible for code, data, and access controls. This shared responsibility model introduces distinct security concerns that differ from traditional container or VM-based architectures.
+
+**Definition**
+
+Serverless security concerns are the specific vulnerabilities and attack vectors that arise from Function-as-a-Service (FaaS) and Backend-as-a-Service (BaaS) deployments. Unlike serverful architectures where you control the network perimeter and host-level security, serverless functions are ephemeral, stateless, and executed in a multi-tenant environment. The primary security implications include event injection, insecure function dependencies, broken authentication at the function level, and data exposure through misconfigured triggers. The attack surface shifts from the OS and network to the function code, its dependencies, and the cloud provider’s API gateway.
+
+**Key Components**
+
+**1. Event Injection and Input Validation**
+Serverless functions are triggered by events from sources like HTTP requests, database changes, or message queues. An attacker can craft malicious payloads that exploit insufficient input validation. For example, a function that processes S3 object creation events may be vulnerable to path traversal if it does not sanitize the object key. This can lead to unauthorized data access or code execution. Security engineers must treat every event source as untrusted and implement strict input validation, parameterized queries, and output encoding within the function code.
+
+**2. Insecure Dependencies and Supply Chain**
+Functions often include third-party libraries and packages. Because functions are stateless and start cold, they frequently download dependencies at invocation time. If a package repository is compromised or a dependency contains a known vulnerability, every function using that dependency becomes exploitable. Unlike container images that can be scanned before deployment, serverless dependencies are often resolved at runtime. Mitigation requires using dependency lock files, scanning with tools like Snyk or OWASP Dependency-Check, and implementing a policy to only allow vetted, signed packages.
+
+**3. Function Permissions and IAM Misconfiguration**
+Each serverless function requires an IAM role to access other cloud services (e.g., DynamoDB, SQS, S3). Overly permissive roles are a leading cause of data breaches. A function that only needs read access to one S3 bucket should not have write access to all buckets. The principle of least privilege must be enforced at the function level. Additionally, functions can be invoked by other services; misconfigured resource-based policies can allow unauthorized services or accounts to trigger a function, leading to resource exhaustion or data exfiltration.
+
+**4. Insecure Secrets Management**
+Environment variables are commonly used to pass API keys, database credentials, or encryption keys to serverless functions. If these variables are logged, exposed in error messages, or visible in the cloud console, secrets are compromised. Serverless functions should never hardcode secrets. Use a dedicated secrets manager (e.g., AWS Secrets Manager, Azure Key Vault) and retrieve secrets at runtime via SDK calls with minimal caching. Ensure that function logs are encrypted and access-controlled.
+
+**5. Denial of Service and Resource Exhaustion**
+Serverless platforms auto-scale, but this can be weaponized. An attacker can send a high volume of events to trigger excessive function invocations, leading to unexpected cost spikes or hitting account-level concurrency limits. Without proper throttling, a single compromised function can exhaust downstream resources like database connections. Implement concurrency limits per function, set up budget alerts, and use API Gateway throttling to cap request rates.
+
+**6. Cold Start and Execution Environment Isolation**
+When a function is invoked after a period of inactivity, the provider spins up a new execution environment. This cold start can introduce latency, but more critically, it may reuse a sandbox from a previous invocation. While providers isolate execution environments, vulnerabilities in the hypervisor or runtime can theoretically allow data leakage between tenants. Security engineers must assume that function state is not preserved between invocations and never store sensitive data in global variables or temporary files.
+
+**Real-World Application**
+
+Consider a serverless application that processes user-uploaded images. An S3 bucket triggers a Lambda function that resizes the image and stores metadata in DynamoDB. A security engineer must address the following:
+
+- **Event Injection**: The function receives the object key from the S3 event. If the function uses this key directly in a file path without sanitization, an attacker can upload a file with a key like `../../etc/passwd` to read system files. Mitigation: Validate the key against a whitelist pattern and use a safe temporary directory.
+- **IAM Permissions**: The Lambda execution role must have `s3:GetObject` on the source bucket and `dynamodb:PutItem` on the specific table. Do not use wildcard resources. Also, the S3 bucket policy must restrict invocation to only the specific Lambda function ARN.
+- **Secrets**: If the function needs to call an external API with a token, retrieve it from Secrets Manager at invocation, not from an environment variable. Set the secret rotation policy to 90 days.
+- **Dependencies**: The image processing library (e.g., Sharp or Pillow) may have known CVEs. Use a dependency scanner in the CI/CD pipeline and pin exact versions. Rebuild the deployment package when patches are released.
+- **Resource Exhaustion**: Set the Lambda concurrency limit to 100 to prevent runaway costs. Configure DynamoDB auto-scaling with a maximum capacity to avoid throttling.
+
+**Security Relevance**
+
+Serverless security is critical because the attack surface is abstracted but not eliminated. Traditional perimeter defenses like network firewalls and host-based IDS are ineffective. The primary defense is secure coding practices, rigorous IAM governance, and continuous monitoring of function behavior. A single misconfigured trigger or overly permissive role can expose terabytes of data. Additionally, the ephemeral nature of functions makes forensic analysis difficult—logs and metrics are the only artifacts. Security engineers must implement centralized logging, enable function-level tracing (e.g., AWS X-Ray), and set up anomaly detection for unusual invocation patterns or data access.
+
+**Key Takeaways**
+- Serverless shifts security responsibility to code, dependencies, and IAM configuration; input validation and least privilege are non-negotiable.
+- Secrets must never be stored in environment variables or code; always use a dedicated secrets manager with runtime retrieval.
+- Implement function-level concurrency limits, budget alerts, and dependency scanning to prevent cost-based denial of service and supply chain attacks.

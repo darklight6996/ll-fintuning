@@ -1,0 +1,63 @@
+**Definition**
+
+T1562 Impair Defenses is a defense evasion technique defined in the MITRE ATT&CK framework. It encompasses any action taken by an adversary to disable, remove, or degrade security tools, logging mechanisms, and protective controls on a target system. The primary objective is to reduce the likelihood of detection during the intrusion lifecycle, from initial access through exfiltration. This technique directly undermines the visibility and response capabilities that security teams rely on.
+
+**Key Components**
+
+T1562 is divided into several sub-techniques, each targeting a specific layer of defense:
+
+- **Disable or Modify Tools (T1562.001):** Attackers stop or alter security software processes, such as antivirus, endpoint detection and response (EDR) agents, or host-based firewalls. Common methods include terminating processes via taskkill, stopping services with sc stop, or uninstalling tools using msiexec. In memory, they may patch API hooks placed by security products to bypass user-mode monitoring.
+
+- **Disable Windows Event Logging (T1562.002):** Adversaries suppress forensic evidence by stopping the Windows Event Log service (EventLog) or clearing specific logs (e.g., Security, System, PowerShell Operational). They may also modify registry keys under HKLM\SYSTEM\CurrentControlSet\Services\EventLog to disable log channels or set a small maximum log size to cause automatic overwrite.
+
+- **Disable or Modify System Firewall (T1562.004):** Attackers turn off the Windows Firewall or create allow rules for malicious traffic. Commands like netsh advfirewall set allprofiles state off disable all filtering. On Linux, iptables or ufw may be stopped or flushed. This enables command-and-control (C2) communication and lateral movement without triggering network alerts.
+
+- **Disable or Modify Cloud Logging (T1562.007):** In cloud environments (AWS, Azure, GCP), adversaries disable or delete logging configurations such as AWS CloudTrail trails, Azure Activity Log diagnostic settings, or VPC Flow Logs. They may also modify IAM policies to remove logging permissions, preventing the collection of evidence.
+
+- **Indicator Blocking (T1562.006):** Attackers block telemetry from being sent to SIEM or EDR consoles. This can involve modifying host files to redirect security product domains to 127.0.0.1, adding firewall rules to block outbound traffic to specific IPs, or using proxy-aware malware to filter out security-related HTTP requests.
+
+- **Disable or Modify Cloud Security Controls (T1562.008):** Specific to SaaS and IaaS, adversaries disable security groups, web application firewalls (WAF), or intrusion detection systems (IDS). For example, modifying AWS Security Group rules to allow all inbound traffic or disabling Azure Security Center monitoring for a subscription.
+
+**Real-World Application**
+
+Real-world examples demonstrate how T1562 is executed in practice:
+
+- **Ransomware Deployment:** The Ryuk ransomware variant commonly executes commands to stop Windows Defender and other antivirus services before encrypting files. It uses WMIC or PowerShell to disable real-time monitoring: `powershell Set-MpPreference -DisableRealtimeMonitoring $true`. This ensures encryption proceeds without interruption.
+
+- **APT29 (Cozy Bear) Operations:** This group has been observed disabling Windows Event Logging by stopping the EventLog service and clearing logs after credential theft. They also modify the registry to prevent log generation for specific event IDs, such as 4624 (successful logon) and 4648 (logon with explicit credentials).
+
+- **Cloud Credential Theft:** In a 2021 incident, attackers gained access to an AWS environment and disabled CloudTrail logging by deleting the trail configuration. They then performed reconnaissance and exfiltrated S3 bucket data without generating audit logs. The attack was only discovered after a billing anomaly triggered a manual review.
+
+- **Living off the Land (LotL):** Many T1562 implementations use native OS tools to avoid detection. For example, attackers use `sc config EventLog start= disabled` to persist the disabled state across reboots, or `wevtutil cl Security` to clear logs without third-party binaries.
+
+**Security Relevance**
+
+For security engineers, T1562 is critical because it represents a direct attack on the visibility layer. If defenses are impaired, subsequent malicious actions—such as lateral movement, privilege escalation, or data exfiltration—become invisible to monitoring tools. This technique is often a precursor to more destructive phases.
+
+Detection strategies must focus on behavioral anomalies rather than static signatures:
+
+- **Process and Service Monitoring:** Track unexpected termination of security processes (e.g., MsMpEng.exe, SentinelOne, CrowdStrike Falcon). Use Sysmon Event ID 1 (process creation) to log command lines containing "stop", "disable", or "uninstall" targeting security services.
+
+- **Registry and File Integrity Monitoring:** Monitor changes to critical registry keys (e.g., HKLM\SOFTWARE\Policies\Microsoft\Windows Defender) and security tool installation directories. Any modification should trigger an alert.
+
+- **Log Source Health Checks:** Implement a heartbeat mechanism for all log sources. If Windows Event Log, syslog, or CloudTrail stops sending data within a defined interval, raise a high-severity alert. This detects both accidental misconfiguration and intentional impairment.
+
+- **Network Telemetry:** Monitor for outbound connections to known security vendor domains being blocked at the host level (DNS sinkholing). Also watch for firewall rule changes via audit logs (e.g., Windows Security Event ID 4946 for rule modifications).
+
+- **Cloud API Monitoring:** In AWS, enable CloudTrail Insights to detect unusual API activity, such as StopLogging or DeleteTrail calls. In Azure, use Azure Policy to enforce that diagnostic settings cannot be removed without approval.
+
+Mitigation involves hardening the environment to make impairment more difficult:
+
+- **Tamper Protection:** Enable tamper protection features in EDR solutions (e.g., Microsoft Defender for Endpoint Tamper Protection). This prevents unauthorized process termination or registry changes even with administrative privileges.
+
+- **Least Privilege:** Restrict administrative access to security tools and logging services. Use separate service accounts with minimal permissions for log collection. Implement just-in-time (JIT) access for critical changes.
+
+- **Immutable Logs:** Forward logs to a write-once, read-many (WORM) storage solution or a separate SIEM with append-only permissions. This prevents attackers from deleting or modifying historical logs after gaining access.
+
+- **Application Control:** Use Windows Defender Application Control (WDAC) or AppLocker to block execution of scripts and binaries that attempt to disable security tools. Whitelist only approved administrative tools.
+
+**Key Takeaways**
+
+- T1562 Impair Defenses is a critical precursor to many attacks; detecting it early can prevent lateral movement and data exfiltration.
+- Focus detection on behavioral anomalies—process termination, log source gaps, and registry changes—rather than relying solely on signature-based alerts.
+- Implement tamper protection, immutable logging, and least privilege to raise the cost of executing this technique for adversaries.

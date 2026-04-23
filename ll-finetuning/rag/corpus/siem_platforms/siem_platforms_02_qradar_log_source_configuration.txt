@@ -1,0 +1,47 @@
+Log source configuration in IBM QRadar defines how the platform ingests, parses, and normalizes event data from external systems. Without correct configuration, QRadar cannot correlate events, generate offenses, or provide accurate reporting. This article covers the definition, key components, real-world application, and security relevance of log source configuration.
+
+**Definition**
+
+A log source configuration is a set of parameters that tells QRadar how to connect to a specific device or application, what protocol to use for data transmission, and how to interpret the incoming raw logs. Each log source has a unique type (e.g., Linux OS, Cisco ASA, Windows Event Log) that maps to a specific DSM (Device Support Module). The DSM handles parsing and normalization. Configuration includes connection details, authentication credentials, and optional parameters like time zone, log format overrides, and event grouping.
+
+**Key Components**
+
+- **Log Source Type**: Determines which DSM QRadar uses. Selecting the wrong type causes parsing failures or incorrect field mapping. Examples: “Microsoft Windows Security Event Log” vs. “Microsoft Windows System Event Log.”
+- **Protocol**: The method of log delivery. Common protocols:
+  - **Syslog** (UDP/TCP): Standard for network devices, Linux hosts, and many appliances. UDP is faster but unreliable; TCP ensures delivery.
+  - **SNMP Traps**: Used by older network gear and some UPS systems.
+  - **WMI (Windows Management Instrumentation)**: For pulling Windows Event Logs directly from domain-joined hosts.
+  - **JDBC**: For database logs (e.g., Oracle, MySQL) via SQL queries.
+  - **File Monitor**: Reads log files from a local or network directory (e.g., Apache access logs).
+  - **API/Agentless**: For cloud services like AWS CloudTrail or Office 365.
+- **Authentication**: Required for pull-based protocols (WMI, JDBC, API). Use dedicated service accounts with least privilege. For syslog, authentication is typically absent; rely on network segmentation and firewall rules.
+- **Log Source Identifier**: A unique value (IP address, hostname, or custom string) that QRadar uses to associate incoming events with this log source. For syslog, this is usually the source IP. For WMI, it is the target hostname.
+- **Time Zone**: Critical for accurate correlation. If the log source sends events in UTC but the configuration says local time, event timestamps will be offset, breaking time-based rules.
+- **Coalescing Events**: Some DSMs combine multiple raw log lines into a single normalized event. Disable coalescing if you need every raw line preserved for forensic analysis.
+- **Status Monitoring**: QRadar tracks last event received time. Configure alerts for log sources that stop sending data (e.g., after 10 minutes of silence). This is essential for compliance with regulations like PCI DSS requirement 10.5.2.
+
+**Real-World Application**
+
+Consider a deployment with 500 Windows servers, 50 Cisco firewalls, and 10 Linux application servers.
+
+- **Windows Servers**: Use WMI protocol. Create a single log source configuration per server, or use a “Windows Security Event Log” type with a domain service account. For large environments, deploy the QRadar WinCollect agent to offload processing from the console and reduce WMI overhead. Each WinCollect instance can handle hundreds of servers.
+- **Cisco Firewalls**: Use syslog over TCP to avoid packet loss. Configure each firewall to send logs to the QRadar console IP on a dedicated port (e.g., 514). Create one log source per firewall, type “Cisco ASA,” with the firewall’s management IP as the identifier. Set the time zone to match the firewall’s local time.
+- **Linux Servers**: Use syslog over UDP for performance. Configure rsyslog to forward auth.log and syslog to QRadar. Create log sources with type “Linux OS” and the server IP as identifier. For high-volume environments, use TCP with a load balancer to distribute logs across multiple QRadar collectors.
+
+After configuration, validate by checking the “Log Activity” tab. Filter by the log source name and confirm events appear with correct source IP, destination IP, username, and event name. If events show as “Unknown” or “Parsed but not normalized,” the DSM may be outdated or the log format may have changed.
+
+**Security Relevance**
+
+Proper log source configuration directly impacts threat detection and compliance.
+
+- **Detection Accuracy**: If a log source is misconfigured (e.g., wrong type or time zone), QRadar may miss critical events like failed logins or firewall denies. For example, a Windows security event for account lockout (Event ID 4740) will not trigger a rule if the DSM is set to “System” instead of “Security.”
+- **Compliance**: Regulations like PCI DSS, HIPAA, and SOX require centralized logging with tamper protection. A log source that stops sending data without alerting creates a compliance gap. Configure status monitoring and test it quarterly.
+- **Forensic Integrity**: Log sources must preserve original timestamps and raw message content. If coalescing is enabled, you may lose individual events needed for incident reconstruction. For critical systems, disable coalescing and store raw logs in a separate archive.
+- **Attack Surface Reduction**: Use dedicated service accounts with minimal privileges for WMI and JDBC log sources. Rotate credentials regularly. For syslog, restrict source IPs at the firewall to prevent spoofing.
+- **Performance Impact**: Overly broad log source configurations (e.g., pulling all Windows Event Logs instead of only Security and System) can overwhelm the QRadar console. Use filtering at the source or agent level to reduce volume.
+
+**Key Takeaways**
+
+1. Always select the correct log source type and DSM version; mismatches cause parsing failures and missed detections.
+2. Configure time zone explicitly per log source and enable status monitoring with alerts for log source inactivity to maintain compliance.
+3. Use dedicated, least-privilege authentication for pull-based protocols and restrict syslog source IPs to prevent log injection or spoofing.

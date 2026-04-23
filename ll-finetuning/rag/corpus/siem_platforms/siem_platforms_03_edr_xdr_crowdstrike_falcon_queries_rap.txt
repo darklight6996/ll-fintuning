@@ -1,0 +1,50 @@
+CrowdStrike Falcon queries, specifically within the Raptor data schema, represent the primary method for performing ad-hoc, real-time, and scheduled searches across endpoint telemetry. Raptor is the next-generation query language and data architecture that succeeded the legacy Event Search (based on Splunk). It is a schema-on-read system optimized for high cardinality data, nested objects, and rapid retrieval across the Falcon Data Replicator (FDR) and real-time streams. Unlike traditional flat log searches, Raptor queries operate on a normalized data model where events are structured as typed entities with nested fields.
+
+**Definition**
+
+A Raptor query is a structured search expression written in the Raptor Query Language (RQL) that interrogates the CrowdStrike data lake. The data lake ingests events from the Falcon sensor, including process creation, network connections, file system operations, registry modifications, and detection-related telemetry. Raptor queries are executed against indexed fields and can span any configurable time window, from minutes to months. The output is a set of JSON objects, each representing a single event or aggregated result, depending on the query syntax. RQL is not SQL; it uses a pipe-based syntax similar to Kusto Query Language (KQL) but with CrowdStrike-specific functions and field names.
+
+**Key Components**
+
+- **Data Sources and Event Types**: Raptor queries target specific event types defined by the schema. Common sources include `ProcessRollup2` (process creation), `NetworkConnectIP4` (outbound connections), `DnsRequest` (DNS queries), `FileWritten` (file modifications), and `DetectionSummary` (alerts). Each event type has a predefined set of fields. For example, `ProcessRollup2` includes `CommandLine`, `ParentBaseFileName`, `SHA256String`, and `UserName`.
+
+- **Time Range**: Every query requires a time constraint. This is specified using `#event_simpleName` combined with a time filter, or by using the `timespan` parameter in the API. In the UI, you select a relative or absolute range. In API calls, you must provide `start` and `end` timestamps in RFC 3339 format.
+
+- **Filtering and Projection**: Filters are applied using `| where` clauses. For example, `| where CommandLine contains "powershell"` or `| where SHA256String = "abc123"`. Projection is done with `| select` to limit output fields, which reduces data transfer and improves performance. Aggregation uses `| groupBy` with functions like `count()`, `distinctCount()`, or `sum()`.
+
+- **Functions and Operators**: Raptor supports string functions (`toupper`, `substring`), IP address functions (`cidr_match`), hash lookups, and time-based functions (`TimeModulo` for bucketing). The `| join` operator allows correlating events across different event types on a common field, such as `TargetProcessId` or `ContextTimeStamp`.
+
+- **Output and Export**: Results can be viewed in the Falcon UI, exported as CSV or JSON, or consumed via the API. For large datasets, use `| limit` to cap results. Scheduled searches can be configured to run at intervals and trigger alerts or send reports.
+
+**Real-World Application**
+
+A security engineer investigating a suspected lateral movement event would use a multi-step Raptor query chain.
+
+1. **Initial Detection**: A `DetectionSummary` event fires for a suspicious `wmic.exe` execution. The engineer extracts the `aid` (Agent ID) and `ContextTimeStamp`.
+
+2. **Process Tree Reconstruction**: Query `ProcessRollup2` for that `aid` within a 5-minute window around the timestamp. Filter by `TargetProcessId` or `ParentProcessId` to map parent-child relationships. Use `| select Aid, TargetProcessId, ParentProcessId, CommandLine, FileName, UserName` to build the process ancestry.
+
+3. **Network Connection Correlation**: Query `NetworkConnectIP4` for the same `aid` and time range. Filter by `ContextProcessId` matching the suspicious process ID. Extract `RemoteIP` and `RemotePort`. Use `cidr_match(RemoteIP, "10.0.0.0/8")` to identify internal vs. external destinations.
+
+4. **File Artifact Discovery**: Query `FileWritten` for the same `aid` and time range. Filter by `TargetProcessId` to see what files the suspicious process wrote. Look for `.ps1`, `.vbs`, or `.dll` files in non-standard directories.
+
+5. **Aggregation and Hunting**: To find other hosts that connected to the same `RemoteIP`, run a query against `NetworkConnectIP4` across the entire environment, grouping by `Aid` and `RemoteIP`. Use `| groupBy([Aid, RemoteIP], function=count()) | where count > 1` to identify multiple hosts contacting the same external IP.
+
+This workflow demonstrates how Raptor queries enable pivot-based investigation without leaving the CrowdStrike console, reducing mean time to respond (MTTR).
+
+**Security Relevance**
+
+Raptor queries are critical for proactive threat hunting, incident response, and compliance validation. They allow security engineers to:
+
+- **Validate Detection Coverage**: Query for specific TTPs (e.g., `CommandLine contains "reg add"` combined with `ParentBaseFileName = "cmd.exe"`) to confirm sensors are capturing expected behaviors.
+- **Baseline Normal Activity**: Use aggregation queries to establish normal process execution patterns per host or user, then set alerts for deviations.
+- **Compliance Auditing**: Retrieve all process executions by privileged users (`UserName in ("admin", "svc_account")`) over a 90-day period for audit reports.
+- **False Positive Tuning**: Correlate detection events with raw telemetry to determine if an alert was triggered by legitimate administrative activity or a misconfigured application.
+- **Threat Hunting**: Write queries for known indicators, such as specific command-line arguments used by ransomware families, or anomalous DNS queries to newly registered domains.
+
+Because Raptor queries operate on raw telemetry, they provide visibility that is not available through pre-built dashboards or canned reports. This makes them indispensable for advanced security operations centers (SOCs) that need to answer novel questions during an active investigation.
+
+**Key Takeaways**
+- Raptor queries use a pipe-based language (RQL) to search normalized, nested event data across the CrowdStrike data lake, enabling real-time and historical endpoint telemetry analysis.
+- Effective querying requires understanding event types, field names, and functions like `groupBy`, `cidr_match`, and `join` to correlate processes, network connections, and file events.
+- Raptor queries are essential for reducing MTTR, validating detection logic, and performing compliance audits, providing raw telemetry access beyond pre-built dashboards.

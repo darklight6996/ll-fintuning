@@ -1,0 +1,74 @@
+Device trust assessment is the continuous evaluation of a device’s security posture, identity, and compliance against defined policies before granting or maintaining access to resources. In a zero trust architecture, trust is never implicit based on network location; it must be re-verified for every access request. Device trust assessment ensures that only devices meeting minimum security standards can connect to sensitive data or applications.
+
+**Key Components**
+
+A robust device trust assessment system relies on several interdependent components:
+
+- **Device Identity and Authentication**  
+  Each device must have a unique, verifiable identity. This is typically achieved through certificates (e.g., X.509) issued by a public key infrastructure (PKI) or through hardware-backed attestation like Trusted Platform Module (TPM) 2.0. Without strong identity, an attacker can spoof a legitimate device.
+
+- **Posture and Compliance Checks**  
+  The device’s current security state is evaluated against a baseline policy. Common checks include:  
+  - Operating system patch level  
+  - Antivirus/EDR agent status and last scan date  
+  - Disk encryption (e.g., BitLocker, FileVault) enabled  
+  - Firewall active and configured  
+  - Presence of unauthorized software or jailbreak/root status  
+  - Certificate expiration and revocation status  
+
+- **Continuous Monitoring and Reassessment**  
+  Trust is not a one-time event. The assessment must be repeated at each access request and periodically during active sessions. Changes in device posture—such as a disabled firewall or missing patch—should trigger immediate revocation of access. This is often implemented via a session token with a short time-to-live (TTL) or via a real-time event stream from endpoint agents.
+
+- **Policy Enforcement Point (PEP) and Policy Decision Point (PDP)**  
+  The PEP (e.g., a VPN gateway, reverse proxy, or network access control) intercepts access requests and queries the PDP. The PDP evaluates the device’s identity and posture against policy and returns an allow/deny/restrict decision. The PEP then enforces that decision, potentially granting limited access (e.g., only to a remediation portal) if the device is non-compliant.
+
+- **Integration with Identity and Access Management (IAM)**  
+  Device trust assessment must be combined with user authentication and authorization. A compromised user on a compliant device is still a risk; similarly, a non-compliant device used by a privileged user should be blocked. The assessment result is often passed as a claim or attribute in the access token (e.g., via SAML or OAuth scopes).
+
+**Real-World Application**
+
+Consider a large enterprise with a mix of corporate-managed laptops, contractor devices, and personal mobile phones accessing a cloud-based SaaS application.
+
+- **Initial Access**  
+  A user attempts to log in from a corporate laptop. The device presents a certificate issued by the company’s MDM. The PDP checks:  
+  - Certificate is valid and not revoked  
+  - OS is Windows 11 with latest security updates  
+  - CrowdStrike Falcon agent is running and reporting healthy  
+  - Disk encryption is active  
+  - No remote desktop software or unauthorized browser extensions  
+
+  If all checks pass, the PDP issues a short-lived access token (e.g., 15 minutes). The user is granted access to the application.
+
+- **Session Continuity**  
+  During the session, the endpoint agent sends heartbeat signals every 60 seconds. If the agent detects that the firewall was disabled or a critical patch is missing, it sends an alert to the PDP. The PDP immediately revokes the session token. The next API call from the device is denied, and the user is redirected to a remediation page.
+
+- **Non-Compliant Device**  
+  A contractor tries to access the same application from a personal iPad that is not enrolled in MDM. The device trust assessment fails because no certificate is presented. The PDP returns a deny decision. The user is blocked entirely, or if policy allows, granted access only to a web-based file upload portal with no download capability.
+
+- **BYOD Scenario**  
+  An employee uses a personal Android phone to check email. The device is enrolled in a mobile device management (MDM) system that enforces a passcode, encryption, and a minimum OS version. The device trust assessment passes, but the access token is scoped to email only. Attempts to access internal file shares are denied because the device is not corporate-managed.
+
+**Security Relevance**
+
+Device trust assessment directly mitigates several attack vectors:
+
+- **Credential Theft and Lateral Movement**  
+  Even if an attacker steals valid user credentials, they cannot access resources from a non-compliant or unmanaged device. This breaks the common attack chain where stolen credentials are used from a personal machine.
+
+- **Malware and Ransomware Propagation**  
+  By blocking devices with disabled antivirus or missing patches, the attack surface is reduced. A compromised device that fails posture checks is quarantined before it can exfiltrate data or spread malware.
+
+- **Insider Threats**  
+  A disgruntled employee cannot bypass controls by using a non-corporate device. Device trust assessment ensures that all access is tied to a known, managed endpoint, making audit trails more reliable.
+
+- **Supply Chain and Third-Party Risk**  
+  Contractors and partners must meet the same device security standards as employees. This enforces a consistent security baseline across the entire ecosystem.
+
+- **Compliance**  
+  Regulations such as HIPAA, PCI DSS, and GDPR require controls over device security. Device trust assessment provides auditable evidence that only compliant devices access protected data.
+
+**Key Takeaways**
+
+- Device trust assessment is a continuous, policy-driven evaluation of a device’s identity and security posture, required for every access request in a zero trust architecture.
+- Implementation requires strong device identity (certificates/TPM), real-time posture monitoring, and tight integration with IAM and policy enforcement points.
+- Properly deployed, it prevents credential theft, lateral movement, and malware propagation by ensuring only compliant devices can access resources.

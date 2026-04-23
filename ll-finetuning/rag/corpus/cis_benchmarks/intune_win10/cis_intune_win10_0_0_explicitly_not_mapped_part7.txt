@@ -1,0 +1,131 @@
+0.0: Explicitly Not Mapped (and related controls)
+
+Overview
+This policy setting configures the encryption type (space only and whole) used by 
+BitLocker Drive Encryption. 
+The recommended state for this setting is: Enabled: Used Space Only encryption 
+or Enabled: Full encryption. 
+Note: Changing the encryption type does not affect drives that are already encrypted or 
+if encryption is in progress. 
+Note #2: If the option full encryption is selected, the entire drive be encrypted. If the 
+option used space only encryption is selected, only the portion of the drive used to store 
+data will be encrypted.
+
+This policy setting controls whether administrator accounts are displayed when a user 
+attempts to elevate a running application. 
+The recommended state for this setting is: Disabled.
+
+This policy setting controls whether security questions can be used to reset local 
+account passwords. The security question feature does not apply to domain accounts, 
+only local accounts on the workstation. 
+The recommended state for this setting is: Enabled.
+
+This policy setting allows you to specify whether Remote Desktop Services requires 
+secure Remote Procedure Call (RPC) communication with all clients or allows 
+unsecured communication. 
+You can use this policy setting to strengthen the security of RPC communication with 
+clients by allowing only authenticated and encrypted requests. 
+The recommended state for this setting is: Enabled.
+
+This policy setting allows you to configure a time limit for disconnected Remote Desktop 
+Services sessions. 
+The recommended state for this setting is: Enabled: 1 minute.
+
+Why This Matters
+The type of encryption (used space only or full) used by BitLocker should be an 
+organizational decision and not an end user decision.
+
+Users could see the list of administrator accounts, making it slightly easier for a 
+malicious user who has logged onto a console session to try to crack the passwords of 
+those accounts.
+
+Users could establish security questions that are easily guessed or sleuthed by 
+observing the user’s social media accounts, making it easier for a malicious actor to 
+change the local user account password and gain access to the computer as that user 
+account.
+
+Allowing unsecure RPC communication can exposes the server to man in the middle 
+attacks and data disclosure attacks.
+
+This setting helps to prevent active Remote Desktop sessions from tying up the 
+computer for long periods of time while not in use, preventing computing resources from 
+being consumed by large numbers of disconnected but still active sessions. In addition, 
+old, forgotten Remote Desktop sessions that are still active can cause password 
+lockouts if the user's password has changed but the old session is still running. For 
+systems that limit the number of connected users (e.g. servers in the default 
+Administrative mode - 2 sessions only), other users' old but still active sessions can 
+prevent another user from connecting, resulting in an effective denial of service. This 
+setting is important to ensure a disconnected session is properly terminated. 
+In addition, session timeouts that are misconfigured or set for a long period of time can 
+leave the system open to an attacker hijacking the session.
+
+Audit Steps
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1 or 2. 
+HKLM\SOFTWARE\Policies\Microsoft\FVE:OSEncryptionType
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\CredUI:EnumerateAdmin istrators
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\System:NoLocalPasswordResetQuestions
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal 
+Services:fEncryptRPCTraffic
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 60000. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal 
+Services:MaxDisconnectionTime
+
+Remediation
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Used Space Only encryption or Full encryption 
+Administrative Templates\Windows Components\BitLocker Drive 
+Encryption\Operating System Drives\Enforce drive encryption type on operating 
+system drives: Select the encryption type: (Device)
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Windows Components\Credential User 
+Interface\Enumerate administrator accounts on elevation
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Credential User Interface\Prevent 
+the use of security questions for local accounts
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Remote Desktop Services\Remote 
+Desktop Session Host\Security\Require secure RPC communication
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 1 minute. 
+Administrative Templates\Windows Components\Remote Desktop Services\Remote 
+Desktop Session Host\Session Time Limits\Set time limit for disconnected 
+sessions
+
+Key Takeaways
+- The type of encryption (used space only or full) used by BitLocker should be an  organizational decision and not an end user decision.
+- Users could see the list of administrator accounts, making it slightly easier for a  malicious user who has logged onto a console session to try to crack the passwords of  those accounts.
+- Users could establish security questions that are easily guessed or sleuthed by  observing the user’s social media accounts, making it easier for a malicious actor to  change the local user account password and gain access to the computer as that user  account.

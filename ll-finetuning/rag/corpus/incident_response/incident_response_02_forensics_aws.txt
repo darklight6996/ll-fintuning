@@ -1,0 +1,58 @@
+Definition
+
+AWS forensics refers to the systematic collection, preservation, analysis, and presentation of digital evidence from Amazon Web Services environments. Unlike traditional on-premises forensics, AWS forensics must account for shared responsibility, ephemeral resources, API-driven infrastructure, and distributed logging. The primary challenge is that cloud evidence is often volatile, geographically distributed, and subject to rapid deletion or modification by automated processes. Forensic investigators must rely on AWS-native tools, snapshots, logs, and API call histories to reconstruct events.
+
+Key Components
+
+1. Evidence Sources
+   - CloudTrail: Records all API calls made to the AWS environment. Essential for reconstructing user actions, role assumptions, and service interactions. Must be enabled across all regions and with log file validation turned on.
+   - VPC Flow Logs: Captures IP traffic metadata for network interfaces. Useful for identifying lateral movement, data exfiltration attempts, and unauthorized connections.
+   - AWS Config: Tracks configuration changes to resources. Provides a historical timeline of resource state changes, which is critical for identifying unauthorized modifications.
+   - Amazon GuardDuty: Generates findings based on threat intelligence and anomaly detection. Can serve as an initial alert for forensic investigation triggers.
+   - S3 Access Logs and CloudFront Logs: Record object-level access and content delivery requests. Essential for data breach investigations.
+   - EC2 Instance Metadata and Memory: Instance metadata (e.g., IAM role credentials, user data) can be retrieved via the metadata service. Memory forensics requires snapshotting the instance or using tools like LiME before termination.
+   - EBS Snapshots: Point-in-time copies of block storage. Must be taken before instance termination to preserve disk evidence. Snapshots can be analyzed by attaching to a forensics instance in a separate account.
+
+2. Preservation Techniques
+   - Enable AWS Organizations with SCPs to prevent deletion of logs and snapshots during an incident.
+   - Use S3 Object Lock or Glacier Vault Lock to make logs immutable.
+   - Isolate compromised resources by applying security groups that block all traffic, but do not terminate instances until forensic copies are made.
+   - Create EBS snapshots of all relevant volumes before any remediation steps.
+   - Capture memory from running EC2 instances using tools like Amazon Inspector or custom scripts that dump /proc/kcore and /dev/mem.
+
+3. Analysis Methods
+   - Log aggregation: Centralize CloudTrail, VPC Flow Logs, and application logs into a single S3 bucket or a SIEM like Splunk or ELK stack.
+   - Timeline reconstruction: Correlate CloudTrail events with VPC Flow Logs and GuardDuty findings to build a sequence of actions.
+   - Disk analysis: Mount EBS snapshots to a forensics instance and examine file systems, registry hives (Windows), and application artifacts.
+   - Network flow analysis: Use tools like Zeek or tcpdump on captured VPC Flow Logs to identify beaconing, large data transfers, or unusual protocols.
+
+4. Chain of Custody
+   - All evidence must be stored in S3 buckets with versioning and access logging enabled.
+   - Use AWS CloudTrail to log every access to forensic data.
+   - Maintain a separate forensics account with strict IAM policies to prevent contamination.
+   - Document every command executed and every snapshot created with timestamps and user identity.
+
+Real-World Application
+
+Consider a scenario where an attacker compromises an IAM user key and uses it to launch unauthorized EC2 instances for cryptocurrency mining. The forensic process would proceed as follows:
+
+- Detection: GuardDuty generates a finding for "UnauthorizedAccess:EC2/MaliciousIPCaller.Custom" or a billing anomaly alert.
+- Preservation: Immediately disable the compromised IAM key. Enable CloudTrail if not already active. Create EBS snapshots of all running instances. Capture VPC Flow Logs for the affected VPC.
+- Collection: Export CloudTrail logs for the relevant time window. Download VPC Flow Logs from S3. Retrieve AWS Config history for the compromised account.
+- Analysis: Correlate the CloudTrail event "RunInstances" with the compromised user ARN. Identify the source IP from the CloudTrail record. Cross-reference VPC Flow Logs to see outbound connections from the mining instances to known mining pools. Examine EBS snapshots for any persistence mechanisms (e.g., cron jobs, SSH keys).
+- Remediation: Terminate unauthorized instances. Rotate all IAM keys. Apply SCPs to restrict instance launches to approved AMIs. Enable multi-factor authentication on all privileged users.
+
+Security Relevance
+
+AWS forensics is critical for incident response, compliance audits, and legal proceedings. Without proper forensic capabilities, organizations cannot determine the root cause of a breach, scope of data exfiltration, or attacker persistence. Key security implications include:
+
+- Shared Responsibility Model: AWS is responsible for the security of the cloud; the customer is responsible for security in the cloud. Forensic readiness must be built into the customer's architecture.
+- Ephemeral Resources: Containers, Lambda functions, and auto-scaled instances may exist for minutes. Forensic data must be captured proactively.
+- Log Integrity: Attackers often attempt to delete or modify logs. Immutable log storage and centralized logging prevent tampering.
+- Cross-Account Visibility: In multi-account environments, forensic data must be aggregated into a single security account to enable correlation.
+- Legal Admissibility: Evidence must meet standards for chain of custody and data integrity to be used in court or regulatory proceedings.
+
+Key Takeaways
+- Enable CloudTrail, VPC Flow Logs, and AWS Config across all regions and accounts before an incident occurs; retroactive collection is often impossible.
+- Preserve evidence by taking EBS snapshots and capturing instance memory before any remediation actions, and store logs in immutable S3 buckets.
+- Use a dedicated forensics account with strict IAM controls and separate logging to maintain chain of custody and prevent evidence contamination.

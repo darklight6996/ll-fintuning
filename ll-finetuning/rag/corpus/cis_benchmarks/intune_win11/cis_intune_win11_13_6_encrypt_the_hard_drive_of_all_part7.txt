@@ -1,0 +1,88 @@
+13.6: Encrypt the Hard Drive of All Mobile Devices. (and related controls)
+
+Overview
+This policy setting determines which encryption method should be used for operating 
+system drives. 
+The recommended state for this setting is: XTS-AES 128-bit or (higher)
+
+This setting allows Admin to disable all UI (notification for encryption and warning 
+prompt for other disk encryption) and turn on encryption on the user machines silently. 
+When you disable the warning prompt, the OS drive's recovery key will back up to the 
+user's Microsoft Entra account. When you allow the warning prompt, the user who 
+receives the prompt can select where to back up the OS drive's recovery key. 
+The endpoint for a fixed data drive's backup is chosen in the following order: 
+1. The user's Windows Server Active Directory Domain Services account. 
+2. The user's Microsoft Entra account. 
+3. The user's personal OneDrive (MDM/MAM only). 
+Encryption will wait until one of these three locations backs up successfully. 
+The recommended state for this setting is: Disabled. 
+Note: Starting in Windows 10, version 1803, the value 0 can only be set for Microsoft 
+Entra joined devices. Windows will attempt to silently enable BitLocker for value 0.
+
+This setting allows Admins to enforce "Require Device Encryption" policy for scenarios 
+where policy is pushed while current logged-on user is non-admin/standard user. 
+This policy is tied to "Allow Warning For Other Disk Encryption" policy being set to "0", 
+i.e, Silent encryption is enforced. 
+If "Allow Warning For Other Disk Encryption" isn't set, or is set to "1", "Require Device 
+Encryption" policy won't try to encrypt drive(s) if a standard user is the current logged-on 
+user in the system. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+The default value of AES-CBC 128-bit is used for backwards compatibility with other 
+operating systems. Using the other available ciphers will increase the level of security 
+for sensitive data, but it may impact compatibility with other operating systems. 
+This setting is included in the benchmark because it is automatically added when 
+'Choose drive encryption method and cipher strength' is enabled. System administrators 
+should use the most secure cipher available to them whenever possible.
+
+Silent encryption enables BitLocker to encrypt data without prompting the user, ensuring 
+the encryption process is uninterrupted.
+
+Enabling this ensures all fixed drives are encrypted regardless of the privileges 
+assigned to the currently logged in user.
+
+Audit Steps
+For Encrypt the Hard Drive of All Mobile Devices.:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 6 or 7. 
+HKLM\SOFTWARE\Policies\Microsoft\FVE:EncryptionMethodWithXtsRdv
+
+For Encrypt the Hard Drive of All Mobile Devices.:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\BitLocker:AllowWarningFo rOtherDiskEncryption_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Bitlock er:AllowWarningForOtherDiskEncryption
+
+For Encrypt the Hard Drive of All Mobile Devices.:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\BitLocker:AllowStandardU
+serEncryption_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 1. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Bitlock er:AllowStandardUserEncryption
+
+Remediation
+For Encrypt the Hard Drive of All Mobile Devices.:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to: XTS-AES 128-bit or XTS-AES 256-bit. 
+Administrative Templates\Windows Components\BitLocker Drive Encryption\Choose 
+drive encryption method and cipher strength (Windows 10 [Version 1511] and 
+later)\Select the encryption method for removable data drives:
+
+For Encrypt the Hard Drive of All Mobile Devices.:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled: 
+Bitlocker\Allow Warning For Other Disk Encryption
+
+For Encrypt the Hard Drive of All Mobile Devices.:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+Bitlocker\Allow Standard User Encryption
+
+Key Takeaways
+- The default value of AES-CBC 128-bit is used for backwards compatibility with other  operating systems.
+- Using the other available ciphers will increase the level of security  for sensitive data, but it may impact compatibility with other operating systems.
+- This setting is included in the benchmark because it is automatically added when  'Choose drive encryption method and cipher strength' is enabled.

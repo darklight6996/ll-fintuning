@@ -1,0 +1,49 @@
+PCI DSS v4.0 is the current version of the Payment Card Industry Data Security Standard, effective March 2024, with future-dated requirements becoming mandatory by March 2025 and March 2026. It defines 12 core requirements organized into six control objectives. These requirements apply to any entity that stores, processes, or transmits cardholder data (CHD) or sensitive authentication data (SAD). The standard is not a regulation but a contractual mandate enforced by acquiring banks and payment brands.
+
+**Key Components of PCI DSS v4.0 Requirements 1-12**
+
+The 12 requirements are grouped under six goals:
+
+- **Goal 1: Build and Maintain a Secure Network and Systems**
+  - **Requirement 1: Install and Maintain Network Security Controls.** This mandates a documented network security control (NSC) configuration, including firewalls, routers, and cloud security groups. Key changes in v4.0 include explicit coverage of cloud environments and the requirement for a formal review of NSC rulesets at least every six months. You must restrict inbound and outbound traffic to only what is necessary for business, and all connections from untrusted networks must be terminated at the NSC.
+  - **Requirement 2: Apply Secure Configurations to All System Components.** This replaces the older "do not use vendor defaults" language. It requires hardening baselines for all system components, including network devices, servers, and applications. v4.0 adds specific requirements for managing system components in virtualized environments and containerized deployments. You must maintain a configuration standard that addresses known security vulnerabilities and removes unnecessary services.
+
+- **Goal 2: Protect Cardholder Data**
+  - **Requirement 3: Protect Stored Cardholder Data.** This covers data retention and disposal policies, encryption of stored PAN, and rendering PAN unreadable anywhere it is stored. v4.0 introduces a more granular approach to data retention schedules and requires documented cryptographic key management procedures. You must implement a data discovery mechanism to locate all CHD storage points.
+  - **Requirement 4: Protect Cardholder Data with Strong Cryptography During Transmission Over Open, Public Networks.** This mandates TLS 1.2 or higher for all CHD transmitted over open networks. v4.0 clarifies that this applies to internal networks if they are considered "public" (e.g., guest Wi-Fi) and requires documented cipher suites and certificate management processes.
+
+- **Goal 3: Maintain a Vulnerability Management Program**
+  - **Requirement 5: Protect All Systems and Networks from Malicious Software.** This requires anti-malware solutions on all systems commonly affected by malware, with specific exclusions for systems not at risk. v4.0 adds requirements for anti-malware on mobile devices and cloud workloads, and mandates automated scanning and alerting.
+  - **Requirement 6: Develop and Maintain Secure Systems and Applications.** This covers patch management, secure coding practices, and vulnerability scanning. v4.0 introduces a requirement for a formal software development lifecycle (SDLC) that includes security requirements, code review, and penetration testing of custom code. External vulnerability scans must be performed quarterly by an Approved Scanning Vendor (ASV).
+
+- **Goal 4: Implement Strong Access Control Measures**
+  - **Requirement 7: Restrict Access to Cardholder Data by Business Need to Know.** This mandates role-based access control (RBAC) and a formal access control policy. v4.0 requires that access rights be reviewed at least every six months, and that privileged access be granted only for the minimum time necessary.
+  - **Requirement 8: Identify and Authenticate Access to System Components.** This covers unique user IDs, strong passwords (or multi-factor authentication), and session timeouts. v4.0 makes multi-factor authentication (MFA) mandatory for all access to the cardholder data environment (CDE), not just remote access. It also requires that MFA be implemented using a FIPS 140-2 validated or equivalent method.
+  - **Requirement 9: Restrict Physical Access to Cardholder Data.** This covers physical security controls for data centers, server rooms, and any location storing CHD. v4.0 adds requirements for video surveillance and visitor logs to be retained for at least three months.
+
+- **Goal 5: Regularly Monitor and Test Networks**
+  - **Requirement 10: Log and Monitor All Access to Network Resources and Cardholder Data.** This mandates audit trails for all user activity, including privileged users, and requires log retention for at least 12 months (with the last 3 months immediately accessible). v4.0 introduces a requirement for automated log correlation and alerting, and mandates that logs be protected from modification.
+  - **Requirement 11: Test Security of Systems and Networks Regularly.** This covers quarterly external and internal vulnerability scans, annual penetration testing (including application-layer testing), and intrusion detection/prevention systems (IDS/IPS). v4.0 requires that penetration testing include testing of segmentation controls and that IDS/IPS signatures be updated at least monthly.
+
+- **Goal 6: Maintain an Information Security Policy**
+  - **Requirement 12: Support Information Security with Organizational Policies and Programs.** This is the governance requirement. It mandates a formal security policy, risk assessment process, and security awareness program. v4.0 introduces a requirement for a formal incident response plan (IRP) that is tested at least annually, and for a documented process for managing service providers (e.g., third-party due diligence).
+
+**Real-World Application**
+
+A typical implementation for a mid-sized e-commerce company would involve:
+
+- **Network segmentation** (Req 1): Placing the CDE behind a dedicated firewall with strict rules allowing only HTTPS (port 443) from the web tier to the application tier, and only database traffic (e.g., port 3306) from the application tier to the database tier. All other traffic is denied.
+- **Configuration hardening** (Req 2): Applying CIS benchmarks to all servers, disabling root SSH login, removing unnecessary packages, and using a configuration management tool (e.g., Ansible) to enforce the baseline.
+- **Data protection** (Req 3-4): Using tokenization to replace PANs after authorization, encrypting stored PANs with AES-256, and enforcing TLS 1.2 on all external-facing web servers.
+- **Access control** (Req 7-8): Implementing an IAM system with MFA for all CDE access, using a privileged access management (PAM) solution for database administrators, and conducting quarterly access reviews.
+- **Monitoring** (Req 10-11): Deploying a SIEM to collect logs from firewalls, servers, and databases, with alerts for failed login attempts and unauthorized outbound connections. Running quarterly ASV scans and annual penetration tests.
+- **Governance** (Req 12): Creating a security policy that is reviewed annually, conducting phishing simulations for all employees, and maintaining a list of all service providers with signed BAAs.
+
+**Security Relevance**
+
+PCI DSS v4.0 directly addresses real-world attack vectors. Requirement 1 prevents lateral movement by segmenting the CDE. Requirement 2 reduces the attack surface by eliminating default credentials and unnecessary services. Requirements 3 and 4 protect data at rest and in transit, mitigating the impact of a breach. Requirements 5 and 6 close known vulnerabilities that attackers routinely exploit. Requirements 7-9 enforce the principle of least privilege, limiting damage from compromised accounts. Requirements 10 and 11 provide detection and validation capabilities, enabling rapid incident response. Requirement 12 ensures that security is not a one-time project but a continuous program with executive support.
+
+**Key Takeaways**
+- PCI DSS v4.0 is a prescriptive, 12-requirement framework that mandates specific technical controls for network security, data protection, access control, monitoring, and governance, with new emphasis on cloud, MFA, and automated logging.
+- Real-world compliance requires implementing network segmentation, configuration hardening, encryption, RBAC with MFA, continuous monitoring via SIEM and vulnerability scanning, and a formal incident response plan.
+- The standard’s security relevance lies in its direct mitigation of common attack paths: segmentation stops lateral movement, encryption protects data, access controls limit privilege escalation, and logging enables detection.

@@ -1,0 +1,49 @@
+DDoS Protection Standard configuration refers to the baseline set of network and application-layer defenses deployed to mitigate volumetric, protocol, and resource-layer attacks. This configuration is not a single product but a layered architecture of thresholds, rate limits, and filtering rules designed to absorb or deflect malicious traffic while preserving legitimate access. Standard configurations are typically implemented at the network edge, often via scrubbing centers, cloud-based mitigation services, or on-premises appliances, and are tuned to protect against common attack vectors without requiring per-incident manual intervention.
+
+**Key Components**
+
+A standard DDoS protection configuration consists of several interdependent components, each addressing a specific attack surface.
+
+- **Traffic Profiling and Baselines:** The foundation of any standard configuration is an understanding of normal traffic patterns. This includes average bandwidth (bps), packet rate (pps), and connection rate (cps) for the protected asset. Baselines are established over a period of at least two weeks to account for daily and weekly variations. These baselines are used to set static thresholds that trigger mitigation actions when traffic deviates beyond a defined multiple (e.g., 2x or 3x the baseline).
+
+- **Static Thresholds:** These are hard limits applied at the network edge. Common thresholds include:
+    - **Bandwidth (bps):** Triggers when total inbound traffic exceeds a preset value, typically set at 150-200% of peak legitimate traffic.
+    - **Packet Rate (pps):** Critical for mitigating floods of small packets (e.g., SYN floods, DNS amplification). A typical threshold might be 50,000 pps for a small web server, scaled up for larger infrastructure.
+    - **Connection Rate (cps):** Limits the number of new TCP connections per second. A standard value is 1,000-5,000 cps for a single public IP, depending on expected user load.
+    - **Concurrent Connections:** Caps the total number of active TCP sessions. Exceeding this threshold often indicates a slow-rate attack or resource exhaustion attempt.
+
+- **Rate Limiting and Connection Management:** These mechanisms enforce the thresholds above.
+    - **SYN Proxy:** Intercepts TCP handshakes on behalf of the protected server. The proxy completes the three-way handshake with the client, and only forwards established connections to the backend. This absorbs SYN floods and prevents the server’s connection queue from filling.
+    - **Connection Rate Limiting:** Drops or delays new connection attempts once the cps threshold is exceeded. This is often implemented via a token bucket algorithm.
+    - **Per-IP Rate Limiting:** Limits the number of requests or connections from a single source IP. A standard configuration might allow 100 requests per second per IP for an HTTP service.
+
+- **Protocol Validation:** This component drops malformed or non-compliant packets before they reach the application.
+    - **TCP State Validation:** Drops packets that do not match the expected TCP state machine (e.g., RST packets without a prior SYN, or data packets on a half-open connection).
+    - **Fragment Reassembly and Validation:** Reassembles IP fragments and drops incomplete or overlapping fragments, which are common in teardrop and other fragmentation-based attacks.
+    - **Protocol Anomaly Detection:** Blocks packets with invalid header values, such as a TTL of 0 or a source IP that matches a private range (RFC 1918) on public interfaces.
+
+- **Application-Layer Filters:** For HTTP/HTTPS services, standard configurations include basic application-layer defenses.
+    - **User-Agent Filtering:** Blocks requests with known malicious or empty User-Agent strings. A common rule is to block requests with User-Agent "Mozilla/4.0" (a common default in attack tools).
+    - **Request Rate Limiting:** Limits the number of HTTP requests per second per source IP, typically set at 200-500 for a standard web application.
+    - **URI Path Validation:** Blocks requests to non-existent or sensitive paths (e.g., /wp-admin, /xmlrpc.php) unless explicitly allowed.
+
+**Real-World Application**
+
+A standard DDoS protection configuration is deployed in front of a typical web application or API endpoint. For example, a company hosting an e-commerce site on a single public IP behind a cloud-based mitigation service would apply the following:
+
+1.  **Baseline:** After two weeks of monitoring, the peak legitimate traffic is 200 Mbps, 10,000 pps, and 500 cps.
+2.  **Thresholds:** Bandwidth threshold set at 400 Mbps, packet rate at 25,000 pps, connection rate at 1,500 cps.
+3.  **SYN Proxy:** Enabled for all TCP ports 80 and 443.
+4.  **Per-IP Rate Limit:** 150 requests per second per IP for HTTP.
+5.  **Protocol Validation:** TCP state validation enabled; fragments dropped unless reassembled successfully.
+
+When a volumetric attack begins, the mitigation service detects the bandwidth spike to 500 Mbps. The static threshold triggers, and traffic is redirected to a scrubbing center. The SYN proxy absorbs the handshake flood, while per-IP rate limiting drops excessive requests from attacking sources. Legitimate users, whose traffic falls within the thresholds, continue to access the site with minimal latency increase (typically under 10 ms). The standard configuration handles the attack without any manual tuning, allowing the security team to focus on higher-priority incidents.
+
+**Security Relevance**
+
+A properly configured standard DDoS protection layer is the first line of defense against the most common attack types, which account for over 80% of all DDoS events according to industry reports. Without it, even a small SYN flood (e.g., 50,000 pps) can exhaust a server’s connection table, causing a denial of service for all users. The standard configuration reduces the attack surface by enforcing strict protocol compliance and absorbing volumetric traffic before it reaches the application. It also provides a consistent baseline for incident response: when an attack exceeds the standard thresholds, it triggers an escalation to a more aggressive, manually-tuned mitigation profile. For compliance frameworks such as PCI DSS or SOC 2, a documented standard DDoS configuration is often a required control for availability and resilience. The configuration must be reviewed and updated at least quarterly to account for changes in legitimate traffic patterns and emerging attack vectors.
+
+**Key Takeaways**
+- A standard DDoS configuration relies on static thresholds derived from traffic baselines, not on real-time anomaly detection, making it predictable and low-maintenance.
+- The most critical components are SYN proxy, connection rate limiting, and protocol validation, as they address the majority of common attack vectors.
+- Regular baseline reviews (quarterly minimum) are essential to prevent false positives and ensure the configuration remains effective as legitimate traffic evolves.

@@ -1,0 +1,42 @@
+Role-Based Access Control (RBAC) is a security model that restricts system access to authorized users based on their organizational role. In the context of Microsoft Entra ID (formerly Azure AD), RBAC is implemented through role definitions and assignments that govern permissions for Azure resources, Microsoft 365 services, and other integrated applications. The core principle is that users are assigned to roles, and roles are granted permissions, rather than assigning permissions directly to individual users. This abstraction simplifies management, reduces error, and enforces the principle of least privilege.
+
+**Key Components of Entra ID RBAC**
+
+Entra ID RBAC consists of three fundamental elements: security principals, role definitions, and scope.
+
+- **Security Principals**: These are the entities that can be assigned a role. They include users, groups (both security and Microsoft 365), service principals (application identities), and managed identities. Using groups as security principals is a best practice because it allows you to manage role assignments through group membership, which can be automated via dynamic group rules or identity governance processes.
+
+- **Role Definitions**: A role definition is a collection of permissions. Entra ID provides over 60 built-in roles (e.g., Global Administrator, User Administrator, Application Administrator). Each built-in role has a specific set of allowed actions (e.g., "microsoft.directory/users/update"). You can also create custom roles to meet granular requirements. Custom roles are defined using a JSON template that specifies the permissions and assignable scopes.
+
+- **Scope**: The scope defines the boundary within which the role assignment is effective. In Entra ID, scope can be set at the tenant level (entire directory), an administrative unit (a subset of users, groups, or devices), or a specific application registration or enterprise application. Scoping prevents a role from granting permissions beyond the intended resource boundary.
+
+**Real-World Application: Implementing RBAC in Entra ID**
+
+A common scenario is managing access to a production Azure subscription and its associated Entra ID resources. The following steps illustrate a secure implementation:
+
+1. **Define Roles Based on Job Functions**: Map each team's responsibilities to a role. For example:
+   - **Security Operations Team**: Needs to read sign-in logs, audit logs, and manage conditional access policies. Assign the "Security Reader" and "Conditional Access Administrator" roles.
+   - **Application Developers**: Need to register and manage their own applications but not modify other teams' apps. Create a custom role scoped to a specific application registration with permissions for "microsoft.directory/applications/update" and "microsoft.directory/applications/credentials/update".
+   - **Help Desk**: Needs to reset passwords and manage user licenses. Assign the "Helpdesk Administrator" role, scoped to an administrative unit containing only their supported user population.
+
+2. **Use Groups for Role Assignments**: Instead of assigning roles to individual users, create security groups for each role (e.g., "SG-SecurityOps-Admins", "SG-AppDev-TeamA"). Assign the role to the group. When a user joins or leaves a team, you only update group membership. This scales efficiently and integrates with HR-driven provisioning tools.
+
+3. **Apply Least Privilege at Scope**: For the help desk example, create an administrative unit (AU) named "US-East Users" and add the relevant user objects to it. Then assign the "Helpdesk Administrator" role to the "SG-HelpDesk" group with scope set to that AU. The help desk can now manage only those users, not the entire directory.
+
+4. **Audit and Monitor Assignments**: Use Entra ID audit logs to track role assignments and activations. For privileged roles (e.g., Global Administrator), enable Privileged Identity Management (PIM) to require just-in-time activation with approval workflows. Regularly review role assignments using access reviews to remove stale permissions.
+
+**Security Relevance**
+
+RBAC directly mitigates several common security risks:
+
+- **Overprivileged Accounts**: By enforcing least privilege, RBAC reduces the blast radius of a compromised account. A help desk account with a scoped role cannot escalate privileges to modify global policies.
+- **Insider Threats**: Granular scoping and group-based assignments make it harder for a malicious insider to gain unauthorized access across the organization. Custom roles prevent users from inheriting excessive permissions from broad built-in roles.
+- **Compliance Violations**: Regulatory frameworks (e.g., SOC 2, ISO 27001, NIST) require documented access controls and separation of duties. RBAC provides an auditable trail of who has what permission and why. Scoping to administrative units helps meet data residency and jurisdictional requirements.
+- **Operational Drift**: Without RBAC, permissions tend to accumulate over time as users change roles. Group-based assignments and access reviews ensure that permissions are revoked when a user leaves a group or scope changes.
+
+A critical security consideration is the use of the Global Administrator role. This role should be assigned to fewer than five break-glass accounts, protected with phishing-resistant MFA, and monitored with real-time alerts. All other administrative tasks should be delegated through more specific roles. Additionally, custom roles must be carefully tested in a non-production environment to avoid inadvertently granting permissions that bypass security controls, such as the ability to modify conditional access policies or delete audit logs.
+
+**Key Takeaways**
+- Always assign roles to groups, not individual users, to enable scalable and auditable permission management.
+- Use administrative units and custom roles to scope permissions to the smallest necessary resource boundary.
+- Regularly audit role assignments with access reviews and enforce just-in-time activation for highly privileged roles via Privileged Identity Management.

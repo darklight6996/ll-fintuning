@@ -1,0 +1,48 @@
+Log correlation for lateral movement detection is the process of analyzing multiple, disparate event logs across a network to identify sequences of activity that indicate an attacker has moved from one compromised host to another. Lateral movement is a critical phase in the kill chain where an adversary, having gained initial access, pivots through the environment to reach high-value targets or escalate privileges. Single-log analysis often misses these multi-step attacks because each individual event (e.g., a failed login, a scheduled task creation) may appear benign in isolation. Correlation links these events across time, source, and destination to reveal the underlying malicious pattern.
+
+**Key Components**
+
+Effective log correlation for lateral movement relies on three foundational components: data sources, correlation rules, and a correlation engine.
+
+- **Data Sources**: The following logs are essential for detecting lateral movement.
+  - **Authentication Logs (Windows Security Event ID 4624/4625, Linux /var/log/auth.log)**: Track successful and failed logon attempts. Focus on logon type 3 (network) and type 10 (remote interactive) as these are common for lateral movement via PsExec, WMI, or RDP.
+  - **Process Creation Logs (Event ID 4688, Sysmon Event ID 1)**: Capture command-line arguments, parent-child process relationships, and image paths. Look for anomalous execution of tools like `wmic.exe`, `psexec.exe`, `schtasks.exe`, or `sc.exe`.
+  - **Network Connection Logs (Sysmon Event ID 3, Windows Firewall logs, Zeek conn.log)**: Record outbound connections from internal hosts to other internal hosts on administrative ports (445/SMB, 3389/RDP, 5985/WinRM, 135/RPC).
+  - **Service and Scheduled Task Creation Logs (Event ID 7045, Event ID 4698)**: Indicate persistence or remote execution setup. An attacker often creates a service or task on a remote host to execute a payload.
+  - **File Share Access Logs (Event ID 5140, 5145)**: Reveal access to network shares, especially ADMIN$ or C$, which are common targets for tool staging.
+
+- **Correlation Rules**: These are logical conditions that define suspicious sequences. Examples include:
+  - **Time-bound sequence**: A network connection from Host A to Host B on port 445, followed within 5 seconds by a process creation on Host B with `psexec` in the command line, followed by a new service creation on Host B.
+  - **Anomalous account behavior**: A user account authenticating from Host A to Host B (Event ID 4624, logon type 3) when that account has never authenticated to Host B before, and the source host is not a known management server.
+  - **Tool execution chain**: Execution of `wmic.exe` on Host A with a `/node:` parameter pointing to Host B, immediately followed by a process creation on Host B with a suspicious binary path.
+
+- **Correlation Engine**: This is the software that ingests logs, applies rules, and generates alerts. Common engines include SIEMs (Splunk, Elastic Security, Microsoft Sentinel) and dedicated detection platforms. The engine must support:
+  - **Stateful correlation**: Tracking events across multiple log sources over a sliding time window.
+  - **Entity enrichment**: Mapping IP addresses to hostnames, usernames to departments, and known asset criticality.
+  - **False positive tuning**: Allowing analysts to whitelist known administrative activity (e.g., patch management tools, backup servers).
+
+**Real-World Application**
+
+Consider a scenario where an attacker gains initial access via a phishing email on a workstation (Host A). The attacker then attempts to move to a domain controller (Host B).
+
+- **Step 1 (Initial Recon)**: Host A executes `net view` and `nltest /dsgetdc` to enumerate domain resources. Log correlation would flag this as a reconnaissance pattern if Host A is not a domain admin workstation.
+- **Step 2 (Credential Theft)**: The attacker dumps LSASS memory on Host A (Event ID 10 from Sysmon, or Event ID 4688 with `procdump` or `mimikatz`). This event alone is suspicious but not conclusive of lateral movement.
+- **Step 3 (Remote Execution)**: The attacker uses the stolen credentials to execute `psexec \\HostB -s cmd.exe`. This generates:
+  - A network connection from Host A to Host B on port 445 (Sysmon Event ID 3).
+  - A logon event on Host B with logon type 3, using the stolen account (Event ID 4624).
+  - A process creation on Host B for `PSEXESVC.exe` (Event ID 4688).
+  - A service creation on Host B (Event ID 7045).
+- **Correlation**: The correlation engine links these four events within a 10-second window. The rule “Network connection to SMB + Remote logon + Service creation + Process creation from known lateral movement tool” fires an alert. Without correlation, each event might be dismissed: the network connection is normal for SMB traffic, the logon is a successful authentication, and the service creation could be legitimate software installation.
+
+**Security Relevance**
+
+Lateral movement detection is a high-priority use case because it represents the point where an attacker transitions from a foothold to broader compromise. Early detection at this stage can prevent data exfiltration, ransomware deployment, or domain-wide compromise. Log correlation is the only practical method to detect these multi-step attacks at scale, as manual log review is infeasible in environments with thousands of hosts.
+
+Correlation also reduces alert fatigue. A single failed login (Event ID 4625) is common and often benign. However, a correlation rule that combines “10 failed logins from Host A to Host B within 5 minutes” with “subsequent successful logon from Host A to Host B” and “process creation of `cmd.exe` on Host B” is highly indicative of a password spray followed by lateral movement. This precision allows security teams to focus on high-fidelity alerts.
+
+Furthermore, correlation provides context for incident response. When an alert fires, the correlated events form a timeline that shows the attacker’s exact path. This enables responders to immediately contain the source host (Host A) and the target host (Host B), rather than guessing which systems are affected. It also aids in identifying the initial access vector by tracing back through the correlated events.
+
+**Key Takeaways**
+- Lateral movement detection requires correlating authentication, process, network, and service creation logs across multiple hosts within a short time window to identify multi-step attack sequences.
+- Correlation rules must be tuned to filter out legitimate administrative activity (e.g., patching, backups) to avoid false positives while still catching anomalous tool usage like PsExec or WMI.
+- Implementing log correlation for lateral movement directly reduces mean time to detect (MTTD) and provides a clear attack path for containment and remediation.
