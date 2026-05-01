@@ -1,0 +1,29 @@
+# Ubuntu - Core Dependencies for ll-finetuning project
+# SYSTEM REQUIREMENTS:
+# 1. NVIDIA CUDA Toolkit 12.1+
+# 2. build-essential, python3-dev
+
+# PyTorch with CUDA 12.1 support
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch
+transformers
+peft
+datasets
+accelerate
+sentencepiece
+bitsandbytes
+scipy
+huggingface_hub
+
+# Retrieval Augmented Generation (RAG) & Vector Search
+sentence-transformers
+faiss-cpu
+
+# Data Extraction & Processing
+PyMuPDF        # Provides 'fitz' for PDF processing
+beautifulsoup4 # Provides 'bs4' for web scraping
+lxml           # High-performance XML/HTML parser for BeautifulSoup
+requests       # For web requests
+tiktoken       # For token-based text chunking
+tqdm           # For progress bars
+numpy

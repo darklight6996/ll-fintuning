@@ -9,7 +9,7 @@ MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 
 dataset = load_dataset(
     "json", 
-    data_files="D:/AI Dev/ll-fintuning/ll-finetuning/data/data.jsonl"
+    data_files=r"C:\Users\UsamaMaqbool\OneDrive - Agency VA\Documents\Documents\ll-fintuning\ll-finetuning\data\portswigger_alpaca.jsonl"
     )
 
 #Load tokenizer and model

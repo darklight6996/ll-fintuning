@@ -1,0 +1,8 @@
+### BEGIN CHUNK ###
+# ID: SecNotes_now_live_on_HackTheBox_hacks_stuff_000
+# SOURCE: Secnotes Now Live On Hackthebox Hacks Stuff
+# SECTION: Writeup
+### CONTENT ###
+Title: SecNotes now live on HackTheBox hacks stuff URL: https://0xdf.gitlab.io/2018/08/25/secnotes-now-live-on-hackthebox.html ================================================================================ SecNotes now live on HackTheBox ctf htb-secnotes hackthebox windows Aug 25, 2018 My first submission to HTB, SecNotes, went live today! I was aiming for an easy (20 pt) Windows box, but it released as a medium (30 pt) box. First blood for user just fell, 1 hour and 9 minutes in. Still waiting on root. I hope people enjoy, and if you do the box, please reach out to me on the forums or direct message and let me know what you thought of it, and how you solved it. I’d be very excited to hear if there were any unintended paths discovered.
+### END CHUNK ###
+
