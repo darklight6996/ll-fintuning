@@ -1,0 +1,94 @@
+# Category: Defense Evasion
+name: "Event Log Tampering – Clearing and Modifying Logs"
+id: "defense-evasion-eventlog-001"
+category: "offensive_security"
+subcategory: "defense_evasion"
+difficulty: "beginner"
+estimated_time: "30 minutes"
+
+description: |
+  Clear or modify Windows event logs to remove evidence of malicious
+  activity. This can be done using built-in tools like `wevtutil` or
+  PowerShell, or by stopping the Event Log service and deleting log files.
+
+learning_objectives:
+  - Understand Windows Event Log structure
+  - Use wevtutil to clear logs
+  - Use PowerShell to clear specific event sources
+  - Delete log files to hide traces
+
+tools:
+  - wevtutil
+  - PowerShell
+  - Windows Event Viewer
+  - Mimikatz (for log manipulation)
+
+prerequisites:
+  - Administrator privileges
+
+steps:
+  - id: "step1"
+    phase: "clear"
+    action: "Clear all application logs"
+    commands:
+      - "wevtutil cl Application"
+      - "wevtutil cl Security"
+      - "wevtutil cl System"
+    expected_output: "Logs cleared"
+    detection: "Event 1102 (Audit log cleared) is logged"
+
+  - id: "step2"
+    phase: "selective"
+    action: "Clear only specific events (e.g., PowerShell logs)"
+    commands:
+      - "wevtutil cl Windows PowerShell"
+    expected_output: "PowerShell logs cleared"
+    detection: "May not be logged if only that log is cleared"
+
+  - id: "step3"
+    phase: "stealth"
+    action: "Stop Event Log service and delete .evtx files"
+    commands:
+      - "net stop EventLog"
+      - "del C:\Windows\System32\winevt\Logs\*.evtx"
+    expected_output: "All logs deleted; service restarts later"
+    detection: "Large gap in logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1070.001"
+    description: "Indicator Removal: Clear Windows Event Logs"
+  - standard: "NIST SP 800-53"
+    control: "AU-10"
+    description: "Non-repudiation"
+
+detection:
+  network_indicators:
+    - "None"
+  log_indicators:
+    - "Event 1102 (audit log cleared)"
+    - "Missing logs"
+  endpoint_indicators:
+    - "wevtutil or PowerShell commands"
+
+remediation:
+  immediate:
+    - "Send logs to a SIEM in real-time"
+    - "Restrict who can clear logs"
+  long_term:
+    - "Enable Windows Event Forwarding"
+    - "Monitor for log clearing events"
+
+variables:
+  log_name: "Application"
+
+assessment_questions:
+  - "What Windows event ID is generated when the security log is cleared?"
+  - "How can you prevent unauthorized log clearing?"
+  - "What alternative to wevtutil can be used to clear logs?"
+
+references:
+  - url: "https://attack.mitre.org/techniques/T1070/001/"
+    title: "MITRE T1070.001"
+  - url: "https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/wevtutil"
+    title: "wevtutil documentation"

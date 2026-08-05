@@ -1,0 +1,93 @@
+# Category: Cloud Security - Serverless
+name: "Serverless Function Abuse – Invoking with Malicious Payloads"
+id: "cloud-serverless-abuse-001"
+category: "cloud_security"
+subcategory: "serverless"
+difficulty: "intermediate"
+estimated_time: "45 minutes"
+
+description: |
+  Exploit misconfigured serverless functions (AWS Lambda, GCP Cloud Functions,
+  Azure Functions) by invoking them with crafted payloads to cause high
+  execution cost, denial of service, or expose internal data.
+
+learning_objectives:
+  - Understand serverless invocation models (HTTP, event‑driven)
+  - Identify public endpoints for serverless functions
+  - Send malicious payloads to trigger errors or resource exhaustion
+  - Identify information leakage in error responses
+
+tools:
+  - curl
+  - Python (requests)
+  - AWS CLI (for Lambda invoke)
+
+prerequisites:
+  - Public endpoint URL of serverless function
+  - No authentication (or weak)
+
+steps:
+  - id: "step1"
+    phase: "recon"
+    action: "Identify function endpoint"
+    commands:
+      - "# From documentation or scanning"
+      - "curl https://<function>.cloudfunctions.net"
+    expected_output: "HTTP response (maybe 200 OK)"
+    detection: "Cloud provider logs show invocation"
+
+  - id: "step2"
+    phase: "payload"
+    action: "Send large or malformed payload"
+    commands:
+      - '# JSON with deep nesting'
+      - '{"data": {"a": {"b": ...}}}'
+      - "# Or extremely large body (e.g., 10MB)"
+    expected_output: "Function may time out or throw error revealing stack trace"
+    detection: "Cloud logs show errors; billing spikes"
+
+  - id: "step3"
+    phase: "impact"
+    action: "Cause high cost by repeated invocations"
+    commands:
+      - "# Use parallel curl to invoke thousands of times"
+    expected_output: "Billing increases; possible DoS"
+    detection: "Cloud provider may throttle or alert"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1499"
+    description: "Endpoint Denial of Service"
+  - standard: "CIS Serverless Benchmarks"
+    control: "1.1"
+    description: "Implement authentication"
+
+detection:
+  network_indicators:
+    - "Many invocations from same IP"
+  log_indicators:
+    - "Function error logs with malformed input"
+  endpoint_indicators:
+    - "curl scripts"
+
+remediation:
+  immediate:
+    - "Add authentication (e.g., API keys) to functions"
+    - "Set maximum payload size and timeout limits"
+  long_term:
+    - "Implement function‑level rate limiting"
+    - "Use WAF to protect HTTP endpoints"
+
+variables:
+  function_url: "https://us-central1-project.cloudfunctions.net/myfunc"
+
+assessment_questions:
+  - "What are common serverless pricing models and how can an attacker abuse them?"
+  - "How can you validate input in a serverless function?"
+  - "What is cold start and how can it be abused?"
+
+references:
+  - url: "https://cloud.google.com/functions/docs/bestpractices/security"
+    title: "GCP Cloud Functions Security"
+  - url: "https://docs.aws.amazon.com/lambda/latest/dg/lambda-security.html"
+    title: "AWS Lambda Security"

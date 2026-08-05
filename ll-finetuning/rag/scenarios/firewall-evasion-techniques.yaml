@@ -1,0 +1,204 @@
+# Category: Network Penetration Testing - Firewall Evasion
+name: "Firewall and IDS Evasion Techniques"
+id: "net-fw-evasion-001"
+category: "network_penetration_testing"
+subcategory: "firewall_evasion"
+difficulty: "intermediate"
+estimated_time: "60"
+
+tags:
+  - network
+  - firewall
+  - evasion
+  - ids-bypass
+  - nmap
+  - fragmentation
+  - decoy
+  - source-port
+  - timing
+  - offensivesecurity
+  - redteam
+  - pentest
+  - mitre-t1090
+  - mitre-t1205
+  - nist-800-53
+  - pci-dss
+
+description: |
+  Test and bypass firewall and IDS/IPS controls using Nmap evasion techniques,
+  packet fragmentation, source port manipulation, and timing adjustments.
+  Used in authorized penetration tests to validate defensive control effectiveness.
+
+learning_objectives:
+  - Apply Nmap scan evasion flags to bypass packet inspection
+  - Use decoy scanning and source port manipulation
+  - Fragment packets to evade signature-based IDS
+  - Validate firewall rule effectiveness through bypass testing
+
+tools:
+  - "nmap"
+  - "hping3"
+  - "scapy"
+  - "proxychains"
+  - "socat"
+
+prerequisites:
+  - "Written authorization from target owner"
+  - "External/internal foothold for testing"
+  - "Understanding of TCP/IP and firewall rule logic"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify firewall presence and filtering type"
+    commands:
+      - "# Check for filtered vs closed ports"
+      - "nmap -sS -p80,443,22,445 [target_ip] --reason"
+      - "# Filtered = stateful firewall dropping packets"
+      - "# Closed = port unreachable (host reachable, port closed)"
+      - "# TTL-based OS and hop analysis"
+      - "traceroute [target_ip]"
+      - "nmap --traceroute [target_ip] -p80"
+      - "# Identify ACL vs stateful firewall"
+      - "hping3 -S -p 80 [target_ip] -c 5"
+      - "hping3 -A -p 80 [target_ip] -c 5"
+    expected_output: "Firewall type identified — ACL, stateful, or deep packet inspection"
+    detection: "SYN probes from external IP in firewall logs"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Source port manipulation to bypass ACL rules"
+    commands:
+      - "# Use source port 53 (DNS) — often allowed outbound"
+      - "nmap -sS -p[target_ports] --source-port 53 [target_ip]"
+      - "# Use source port 80 (HTTP)"
+      - "nmap -sS -p[target_ports] --source-port 80 [target_ip]"
+      - "# hping3 source port manipulation"
+      - "hping3 -S -s 53 -p [target_port] [target_ip]"
+      - "# If port opens with source 53 — confirm ACL weakness"
+      - "nmap -sS -g 53 -p[target_ports] [target_ip] -v"
+    expected_output: "Ports reachable via source port manipulation that were previously filtered"
+    detection: "Inbound connections with source port 53 to non-DNS services"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Packet fragmentation to bypass signature inspection"
+    commands:
+      - "# Fragment packets (8-byte fragments)"
+      - "nmap -sS -f -p[target_ports] [target_ip]"
+      - "# Double fragmentation"
+      - "nmap -sS -ff -p[target_ports] [target_ip]"
+      - "# Custom MTU fragmentation"
+      - "nmap -sS --mtu 8 -p[target_ports] [target_ip]"
+      - "nmap -sS --mtu 16 -p[target_ports] [target_ip]"
+      - "# hping3 fragmentation"
+      - "hping3 -S -f -p [target_port] [target_ip]"
+    expected_output: "Open ports discovered through fragmented packets that evaded DPI"
+    detection: "Fragmented TCP SYN packets in IDS logs; reassembly anomalies"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "Decoy scanning to obscure attacker IP"
+    commands:
+      - "# Scan with decoy IPs"
+      - "nmap -sS -D RND:10 -p[target_ports] [target_ip]"
+      - "# Specific decoy IPs (choose live hosts to avoid RSTs)"
+      - "nmap -sS -D [decoy1],[decoy2],[decoy3],ME [target_ip] -p[target_ports]"
+      - "# Random decoys with spoofed source"
+      - "nmap -sS -D RND:5 --source-port 53 [target_ip]"
+      - "# Idle scan (completely blind — uses zombie host)"
+      - "# Find zombie: host with low IPID increment"
+      - "nmap -O --script ipidseq [zombie_ip]"
+      - "nmap -sI [zombie_ip] [target_ip] -p[target_ports] -v"
+    expected_output: "Scan results with attacker IP hidden among decoy addresses"
+    detection: "Multiple IPs performing identical scan patterns simultaneously"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "Timing adjustments to evade rate-based detection"
+    commands:
+      - "# Paranoid timing (1 packet every 5 minutes)"
+      - "nmap -sS -T0 -p[target_ports] [target_ip]"
+      - "# Sneaky (15 second delay)"
+      - "nmap -sS -T1 -p[target_ports] [target_ip]"
+      - "# Custom timing options"
+      - "nmap -sS --scan-delay 500ms --max-scan-delay 2s -p[target_ports] [target_ip]"
+      - "# Randomize host order to avoid sequential patterns"
+      - "nmap -sS --randomize-hosts -iL /tmp/targets.txt -p[target_ports]"
+      - "# Rate limiting"
+      - "nmap -sS --max-rate 5 -p[target_ports] [target_ip]"
+    expected_output: "Scan completed below IDS detection threshold for rate-based alerts"
+    detection: "Low-and-slow scan patterns over extended time window; port scan correlation"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "Badsum and data length manipulation"
+    commands:
+      - "# Send packets with bad checksums (test for stateful inspection)"
+      - "nmap -sS --badsum -p[target_ports] [target_ip]"
+      - "# If open returned — firewall not validating checksums"
+      - "# Append random data to packets"
+      - "nmap -sS --data-length 25 -p[target_ports] [target_ip]"
+      - "nmap -sS --data-length 100 -p[target_ports] [target_ip]"
+      - "# Random data with source port"
+      - "nmap -sS -g 53 --data-length 25 -p[target_ports] [target_ip]"
+    expected_output: "Results revealing firewall inspection quality — badsum open = weak inspection"
+    detection: "Malformed packet patterns in IDS/IPS logs"
+
+compliance_controls:
+  - standard: "NIST 800-53 Rev5"
+    control: "CA-8"
+    description: "Penetration testing — validate defensive control effectiveness"
+  - standard: "PCI DSS v4.0"
+    control: "11.4.1"
+    description: "Penetration testing validates network security controls"
+  - standard: "CIS Controls v8"
+    control: "13.1"
+    description: "Centralize security event alerting — validate IDS effectiveness"
+
+detection:
+  network_indicators:
+    - "Fragmented TCP SYN packets from single source IP"
+    - "Port scans with source port 53 to non-DNS services"
+    - "Multiple source IPs performing identical scan patterns (decoy scan)"
+    - "Extremely low scan rates from single IP over extended periods"
+  log_indicators:
+    - "IDS: port scan detection with fragmented packets"
+    - "Firewall: inbound ACK packets without prior SYN (ACK scan)"
+    - "Firewall: source port 53 on non-UDP/DNS traffic"
+  endpoint_indicators:
+    - "N/A — network-level evasion technique"
+
+remediation:
+  immediate:
+    - "Enable stateful packet inspection on all perimeter firewalls"
+    - "Enable TCP checksum validation on IDS/IPS"
+    - "Configure IDS to detect fragmented scan patterns"
+  long_term:
+    - "Implement behavioral IDS (not just signature-based)"
+    - "Deploy full packet capture for forensic analysis of evasion attempts"
+    - "Tune rate-based detection thresholds using actual pen test data"
+    - "Validate firewall rule logic with regular authorized evasion testing"
+
+variables:
+  target_ip: "203.0.113.10"
+  target_ports: "22,80,443,3389"
+  decoy1: "10.0.0.1"
+  decoy2: "10.0.0.2"
+  decoy3: "10.0.0.3"
+  zombie_ip: "10.0.0.50"
+
+assessment_questions:
+  - "What is an idle scan and why does it completely hide the attacker's IP?"
+  - "How does packet fragmentation bypass signature-based IDS?"
+  - "Why does source port 53 sometimes bypass firewall ACL rules?"
+  - "What is the difference between T0 and T1 Nmap timing templates?"
+  - "How do badsum packets help identify firewall inspection quality?"
+
+references:
+  - url: "https://nmap.org/book/man-bypass-firewalls-ids.html"
+    title: "Nmap Firewall/IDS Evasion"
+  - url: "https://hping.org/manpage.html"
+    title: "hping3 Manual"
+  - url: "https://scapy.readthedocs.io/"
+    title: "Scapy Packet Manipulation"

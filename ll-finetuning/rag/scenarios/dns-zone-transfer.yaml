@@ -1,0 +1,103 @@
+# Category: Network Security
+name: "DNS Zone Transfer (AXFR) – Information Disclosure"
+id: "network-dns-axfr-001"
+category: "network_security"
+subcategory: "dns"
+difficulty: "beginner"
+estimated_time: "30 minutes"
+
+description: |
+  Perform a DNS zone transfer (AXFR) to enumerate all records in a domain
+  if the DNS server is misconfigured to allow transfers from any host. This
+  reveals internal hostnames, IP addresses, mail servers, and other
+  infrastructure data useful for further attacks.
+
+learning_objectives:
+  - Understand DNS zone transfer mechanism (AXFR)
+  - Identify misconfigured DNS servers
+  - Use dig or nslookup to perform zone transfer
+  - Interpret zone data for reconnaissance
+
+tools:
+  - dig
+  - nslookup
+  - host
+  - dnsrecon
+  - fierce
+
+prerequisites:
+  - Target domain
+  - DNS server that allows AXFR from the attacker's IP
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Find authoritative NS servers for domain"
+    commands:
+      - "# Use dig to query NS records"
+      - "dig NS example.com"
+      - "# Or use nslookup"
+      - "nslookup -type=NS example.com"
+    expected_output: "List of authoritative name servers"
+    detection: "DNS query logs showing NS lookups"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Attempt zone transfer on each NS"
+    commands:
+      - "# Try AXFR query"
+      - "dig AXFR example.com @ns1.example.com"
+      - "# Or with nslookup"
+      - "nslookup -type=AXFR example.com ns1.example.com"
+    expected_output: "Full zone file including all A, CNAME, MX, TXT records"
+    detection: "DNS server logs with AXFR request; high volume of DNS responses"
+
+  - id: "step3"
+    phase: "analysis"
+    action: "Analyze zone data for attack surface"
+    commands:
+      - "# List all internal hostnames"
+      - "# Identify mail servers (MX), web servers (www), admin panels"
+      - "# Look for subdomains revealing staging, dev, internal"
+    expected_output: "Map of infrastructure"
+    detection: "None (passive) unless monitored"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1590"
+    description: "Gather Victim Network Information"
+  - standard: "CIS DNS Benchmarks"
+    control: "1.1.1"
+    description: "Restrict zone transfers to authorized servers"
+
+detection:
+  network_indicators:
+    - "AXFR query on port 53 from an unauthorized IP"
+  log_indicators:
+    - "DNS server log with `AXFR` query"
+    - "Large response size (zone file)"
+  endpoint_indicators:
+    - "dig or dnsrecon execution"
+
+remediation:
+  immediate:
+    - "Restrict zone transfers to only secondary DNS servers"
+    - "Use TSIG for authenticated transfers"
+  long_term:
+    - "Implement split‑horizon DNS to hide internal records"
+    - "Monitor for AXFR attempts"
+
+variables:
+  target_domain: "example.com"
+  ns_server: "ns1.example.com"
+
+assessment_questions:
+  - "What is the difference between AXFR and IXFR?"
+  - "Why is a zone transfer dangerous?"
+  - "How can TSIG prevent unauthorized zone transfers?"
+
+references:
+  - url: "https://www.ietf.org/rfc/rfc1035.html"
+    title: "RFC 1035 - DNS Implementation"
+  - url: "https://www.cymru.com/DNS-zone-transfers/"
+    title: "DNS Zone Transfer Security"

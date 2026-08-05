@@ -1,0 +1,248 @@
+name: "Windows Memory Forensics with Volatility"
+id: "forensics-win-mem-001"
+category: "Forensics & Incident Response"
+subcategory: "Windows Forensics"
+difficulty: "advanced"
+estimated_time: "120"
+
+tags:
+  - volatility
+  - memory-forensics
+  - windows
+  - incident-response
+  - malware-analysis
+  - winpmem
+  - process-injection
+  - dumpit
+  - credentials
+  - timeline
+
+description: |
+  Acquire and analyze Windows memory images using Volatility 3 to identify malicious
+  processes, injected code, network connections, and attacker artifacts. Covers
+  live acquisition and offline analysis workflows.
+
+learning_objectives:
+  - Acquire memory from live Windows systems using WinPmem and Magnet RAM Capture
+  - Analyze memory images with Volatility 3 plugins
+  - Identify process injection, hollowing, and malicious network activity
+  - Extract artifacts: credentials, command history, encryption keys
+
+tools:
+  - "Volatility 3"
+  - "WinPmem"
+  - "Magnet RAM Capture"
+  - "Rekall"
+  - "Strings Utility"
+  - "Python 3"
+
+prerequisites:
+  - "Administrative access to target Windows system (for acquisition)"
+  - "Volatility 3 installed on analysis workstation"
+  - "Sufficient storage for memory image (same size as system RAM)"
+  - "Basic Windows process and memory architecture knowledge"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Acquire memory from live Windows system"
+    commands:
+      - "# Method 1: WinPmem (recommended)"
+      - "winpmem_mini_x64_rc2.exe /tmp/memory.raw"
+      - "# Method 2: Magnet RAM Capture"
+      - "MagnetRAMCapture.exe /accepteula /go"
+      - "# Method 3: DumpIt (for incident response)"
+      - "DumpIt.exe /output C:\\temp\\memory.dmp /q"
+      - "# Verify image integrity"
+      - "sha256sum /tmp/memory.raw > /tmp/memory.raw.sha256"
+      - "# Get system info for analysis"
+      - "systeminfo > /tmp/sysinfo.txt"
+      - "date /t >> /tmp/sysinfo.txt && time /t >> /tmp/sysinfo.txt"
+    expected_output: "Raw memory image file with SHA256 hash for chain of custody"
+    detection: "Event ID 4656 — handle to physical memory device opened; WinPmem driver load"
+
+  - id: "step2"
+    phase: "reconnaissance"
+    action: "Setup Volatility 3 and identify memory image profile"
+    commands:
+      - "pip3 install volatility3"
+      - "# Or from source"
+      - "git clone https://github.com/volatilityfoundation/volatility3.git /opt/volatility3"
+      - "cd /opt/volatility3 && pip3 install -r requirements.txt"
+      - "# Identify OS version from memory"
+      - "python3 /opt/volatility3/vol.py -f /tmp/memory.raw windows.info"
+      - "# Get basic system information"
+      - "python3 /opt/volatility3/vol.py -f /tmp/memory.raw windows.info | grep -E 'OS|Version|Kernel'"
+    expected_output: "OS version, build number, and memory architecture confirmed"
+    detection: "N/A — offline analysis"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Process analysis — identify suspicious processes"
+    commands:
+      - "# List all processes"
+      - "python3 vol.py -f /tmp/memory.raw windows.pslist"
+      - "# Process tree (parent-child relationships)"
+      - "python3 vol.py -f /tmp/memory.raw windows.pstree"
+      - "# Hidden processes (not in EPROCESS list)"
+      - "python3 vol.py -f /tmp/memory.raw windows.psscan"
+      - "# Compare pslist vs psscan (hidden process detection)"
+      - "python3 vol.py -f /tmp/memory.raw windows.pslist > /tmp/pslist.txt"
+      - "python3 vol.py -f /tmp/memory.raw windows.psscan > /tmp/psscan.txt"
+      - "diff <(awk '{print $2}' /tmp/pslist.txt | sort) <(awk '{print $2}' /tmp/psscan.txt | sort)"
+      - "# Identify suspicious parent-child (e.g., Word spawning cmd.exe)"
+      - "python3 vol.py -f /tmp/memory.raw windows.pstree | grep -A3 -B3 'cmd.exe\\|powershell.exe\\|wscript\\|cscript'"
+    expected_output: "Process list with PIDs, parent PIDs, timestamps, and any hidden processes"
+    detection: "N/A — offline analysis"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "Network connection analysis"
+    commands:
+      - "# Active and terminated network connections"
+      - "python3 vol.py -f /tmp/memory.raw windows.netstat"
+      - "# All connections including closed"
+      - "python3 vol.py -f /tmp/memory.raw windows.netscan"
+      - "# Filter for established connections"
+      - "python3 vol.py -f /tmp/memory.raw windows.netscan | grep -i 'ESTABLISHED'"
+      - "# Identify unusual outbound connections"
+      - "python3 vol.py -f /tmp/memory.raw windows.netscan | awk '{print $5}' | grep -v '0.0.0.0\\|127.0.0\\|::' | sort -u"
+      - "# Map connections to processes"
+      - "python3 vol.py -f /tmp/memory.raw windows.netscan | grep -E '4444|8443|1337|8080' "
+    expected_output: "Active and recent network connections with associated process names and PIDs"
+    detection: "N/A — offline analysis"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "Code injection and hollowing detection"
+    commands:
+      - "# Detect VAD anomalies (injected code)"
+      - "python3 vol.py -f /tmp/memory.raw windows.malfind"
+      - "# Malfind with output directory for extracted regions"
+      - "python3 vol.py -f /tmp/memory.raw windows.malfind --dump --pid [suspicious_pid]"
+      - "# DLL list per process (detect hollowing)"
+      - "python3 vol.py -f /tmp/memory.raw windows.dlllist --pid [suspicious_pid]"
+      - "# LDR module list (compare with DLL list)"
+      - "python3 vol.py -f /tmp/memory.raw windows.ldrmodules --pid [suspicious_pid]"
+      - "# Detect unlinked DLLs (hidden DLLs)"
+      - "python3 vol.py -f /tmp/memory.raw windows.ldrmodules | grep 'False'"
+      - "# Check for process hollowing (PE header in VAD)"
+      - "python3 vol.py -f /tmp/memory.raw windows.vadinfo --pid [suspicious_pid]"
+    expected_output: "Memory regions with executable code but no backing file — indicates injection"
+    detection: "N/A — offline analysis"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "Extract artifacts — command history, registry, clipboard"
+    commands:
+      - "# Command history (cmd.exe console input)"
+      - "python3 vol.py -f /tmp/memory.raw windows.cmdline"
+      - "# Console input/output history"
+      - "python3 vol.py -f /tmp/memory.raw windows.consoles"
+      - "# Environment variables per process"
+      - "python3 vol.py -f /tmp/memory.raw windows.envars --pid [suspicious_pid]"
+      - "# Registry hives"
+      - "python3 vol.py -f /tmp/memory.raw windows.registry.hivelist"
+      - "# Print specific registry key"
+      - "python3 vol.py -f /tmp/memory.raw windows.registry.printkey --key 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run'"
+      - "# Clipboard contents"
+      - "python3 vol.py -f /tmp/memory.raw windows.clipboard"
+      - "# Screenshot (desktop bitmap)"
+      - "python3 vol.py -f /tmp/memory.raw windows.screenshot --dump"
+    expected_output: "Command history, registry persistence keys, clipboard contents, desktop screenshot"
+    detection: "N/A — offline analysis"
+
+  - id: "step7"
+    phase: "post_exploitation"
+    action: "Extract credentials from memory"
+    commands:
+      - "# Extract NTLM hashes from LSASS"
+      - "python3 vol.py -f /tmp/memory.raw windows.hashdump"
+      - "# LSASS process dump for offline Mimikatz analysis"
+      - "python3 vol.py -f /tmp/memory.raw windows.dumpfiles --pid [lsass_pid] --dump"
+      - "# Run Mimikatz on extracted LSASS dump (on isolated analysis VM)"
+      - "mimikatz.exe 'sekurlsa::minidump lsass.DMP' 'sekurlsa::logonpasswords full' exit"
+      - "# Cached domain credentials"
+      - "python3 vol.py -f /tmp/memory.raw windows.cachedump"
+      - "# LSA secrets"
+      - "python3 vol.py -f /tmp/memory.raw windows.lsadump"
+      - "# TrueCrypt / Bitlocker keys"
+      - "python3 vol.py -f /tmp/memory.raw windows.bitlocker"
+    expected_output: "NTLM hashes, cached credentials, and encryption keys from memory"
+    detection: "N/A — offline forensic analysis"
+
+  - id: "step8"
+    phase: "post_exploitation"
+    action: "Timeline creation and IOC extraction"
+    commands:
+      - "# Create memory timeline"
+      - "python3 vol.py -f /tmp/memory.raw timeliner | sort > /tmp/mem_timeline.txt"
+      - "# Extract all strings from suspicious process"
+      - "python3 vol.py -f /tmp/memory.raw windows.memmap --pid [suspicious_pid] --dump"
+      - "strings -n 6 pid.[suspicious_pid].dmp > /tmp/process_strings.txt"
+      - "# Search for IP addresses in memory"
+      - "strings /tmp/memory.raw | grep -oE '\\b([0-9]{1,3}\\.){3}[0-9]{1,3}\\b' | sort -u | grep -v '0\\.0\\.0\\|127\\.0\\.0\\|255\\.' > /tmp/ip_addresses.txt"
+      - "# Search for URLs"
+      - "strings /tmp/memory.raw | grep -oE 'https?://[A-Za-z0-9._/-]+' | sort -u > /tmp/urls.txt"
+      - "# Search for base64 blobs"
+      - "strings /tmp/memory.raw | grep -oE '[A-Za-z0-9+/]{50,}={0,2}' | sort -u > /tmp/base64_blobs.txt"
+    expected_output: "Timeline CSV, IOC lists (IPs, URLs, domains), suspicious strings"
+    detection: "N/A — offline analysis"
+
+compliance_controls:
+  - standard: "NIST 800-53 Rev5"
+    control: "IR-4"
+    description: "Incident handling — memory forensics supports containment and eradication"
+  - standard: "NIST 800-53 Rev5"
+    control: "AU-12"
+    description: "Audit record generation"
+  - standard: "CIS Controls v8"
+    control: "17.4"
+    description: "Establish and maintain an incident response plan"
+  - standard: "PCI DSS v4.0"
+    control: "12.10.1"
+    description: "Incident response plan includes forensic investigation procedures"
+
+detection:
+  network_indicators:
+    - "N/A — memory acquisition may generate outbound C2 traffic visible in netstat output"
+  log_indicators:
+    - "Event ID 4656 — handle requested to physical memory (during acquisition)"
+    - "WinPmem driver installation events in System log"
+  endpoint_indicators:
+    - "Memory acquisition tool execution in process list"
+    - "Large file creation (memory.raw) on disk during acquisition"
+
+remediation:
+  immediate:
+    - "After forensic analysis, identify and isolate compromised systems"
+    - "Extract all IOCs (IPs, hashes, domains) for blocking and threat intelligence"
+    - "Reset credentials found in memory dump"
+  long_term:
+    - "Enable Windows Credential Guard to protect credentials in memory"
+    - "Implement EDR with memory scanning capabilities"
+    - "Train IR team on memory forensics procedures"
+    - "Create and maintain memory analysis runbooks per malware family"
+
+variables:
+  memory_image: "/tmp/memory.raw"
+  suspicious_pid: "1234"
+  lsass_pid: "752"
+  output_dir: "/tmp/volatility_output"
+
+assessment_questions:
+  - "What is the difference between windows.pslist and windows.psscan in Volatility?"
+  - "How does windows.malfind detect process injection in memory?"
+  - "What memory artifacts indicate process hollowing versus DLL injection?"
+  - "Why compare pslist output with psscan output during analysis?"
+  - "What information can be extracted from LSASS memory besides NTLM hashes?"
+
+references:
+  - url: "https://github.com/volatilityfoundation/volatility3"
+    title: "Volatility 3 Framework"
+  - url: "https://github.com/Velocidex/WinPmem"
+    title: "WinPmem Memory Acquisition"
+  - url: "https://volatility3.readthedocs.io/"
+    title: "Volatility 3 Documentation"
+  - url: "https://www.magnetforensics.com/resources/magnet-ram-capture/"
+    title: "Magnet RAM Capture"

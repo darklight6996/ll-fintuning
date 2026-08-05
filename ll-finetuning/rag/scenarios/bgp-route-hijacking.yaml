@@ -1,0 +1,95 @@
+# Category: Network Security - BGP
+name: "BGP Route Hijacking – Traffic Interception"
+id: "network-bgp-hijack-001"
+category: "network_security"
+subcategory: "bgp"
+difficulty: "advanced"
+estimated_time: "90 minutes"
+
+description: |
+  Exploit BGP protocol weaknesses to hijack IP prefixes and redirect traffic
+  to an attacker-controlled network. This can lead to traffic interception,
+  eavesdropping, and denial of service. This scenario demonstrates how BGP
+  hijacking works using BGP simulation tools.
+
+learning_objectives:
+  - Understand BGP routing and path selection
+  - Use tools like BGPemu or BGP-SRx to simulate
+  - Announce a more specific prefix to redirect traffic
+  - Analyze impact on network connectivity
+
+tools:
+  - BGPemu (BGP emulator)
+  - Quagga/FRRouting
+  - ExaBGP (for BGP injection)
+  - Python (bgpstream)
+
+prerequisites:
+  - Basic understanding of BGP
+  - Simulated environment (or lab)
+
+steps:
+  - id: "step1"
+    phase: "setup"
+    action: "Set up BGP session with a router"
+    commands:
+      - "# Using ExaBGP to inject announcement"
+      - "# Prefix: 203.0.113.0/24"
+    expected_output: "BGP neighbor accepts route"
+    detection: "BGP logs show route announcement"
+
+  - id: "step2"
+    phase: "hijack"
+    action: "Announce a more specific prefix (e.g., /25) with higher metric"
+    commands:
+      - "# Announce 203.0.113.0/25 to attract traffic"
+    expected_output: "Traffic destined to those IPs is redirected"
+    detection: "Network monitoring may detect anomalous routing"
+
+  - id: "step3"
+    phase: "intercept"
+    action: "Capture and analyze traffic"
+    commands:
+      - "# Use tcpdump on the intercepting router"
+    expected_output: "Victim traffic captured"
+    detection: "Latency changes; traceroute anomalies"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1557"
+    description: "Adversary-in-the-Middle"
+  - standard: "NIST SP 800-53"
+    control: "SC-7"
+    description: "Boundary Protection"
+
+detection:
+  network_indicators:
+    - "Unusual BGP route announcements"
+    - "AS path changes"
+  log_indicators:
+    - "BGP logs with prefix changes"
+  endpoint_indicators:
+    - "ExaBGP processes"
+
+remediation:
+  immediate:
+    - "Use RPKI to validate route origins"
+    - "Implement BGP filters (prefix lists, AS path filters)"
+  long_term:
+    - "Deploy BGPsec (when available)"
+    - "Monitor for route leaks and hijacks"
+
+variables:
+  prefix: "203.0.113.0/24"
+  attacker_as: "64500"
+
+assessment_questions:
+  - "What is BGP route hijacking and why is it possible?"
+  - "How does RPKI help prevent hijacking?"
+  - "What is the difference between a route leak and a hijack?"
+
+references:
+  - url: "https://www.bgpmon.net/"
+    title: "BGPmon"
+  - url: "https://www.rpki.net/"
+    title: "RPKI"

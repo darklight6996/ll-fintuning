@@ -1,0 +1,93 @@
+# Category: Network Security - OSPF
+name: "OSPF Protocol Attacks – Spoofing and Route Injection"
+id: "network-ospf-attack-001"
+category: "network_security"
+subcategory: "ospf"
+difficulty: "advanced"
+estimated_time: "80 minutes"
+
+description: |
+  Exploit OSPF (Open Shortest Path First) authentication weaknesses to
+  inject fake routes or become a designated router, allowing traffic
+  redirection and man-in-the-middle attacks within an OSPF domain.
+
+learning_objectives:
+  - Understand OSPF operation and LSAs
+  - Use tools like `ospf-attack` or `scapy` to spoof OSPF packets
+  - Inject a false LSA to redirect traffic
+  - Become the Designated Router to intercept communication
+
+tools:
+  - OSPF attack tool (Kali)
+  - Scapy (Python)
+  - Wireshark (for analysis)
+
+prerequisites:
+  - Access to OSPF network (same area)
+  - Knowledge of OSPF configuration
+
+steps:
+  - id: "step1"
+    phase: "recon"
+    action: "Capture OSPF packets to get parameters"
+    commands:
+      - "# Use tcpdump to capture OSPF (proto 89)"
+      - "tcpdump -i eth0 -n proto 89"
+    expected_output: "Area ID, router ID, network addresses"
+    detection: "None"
+
+  - id: "step2"
+    phase: "attack"
+    action: "Inject forged LSA"
+    commands:
+      - "# Using scapy to craft OSPF packet"
+      - "# Set area, type, router ID, etc."
+      - "# Announce fake route to a target network"
+    expected_output: "Routers update their routing table"
+    detection: "OSPF logs show LSA changes"
+
+  - id: "step3"
+    phase: "mitm"
+    action: "Route traffic through attacker"
+    expected_output: "Traffic interception"
+    detection: "Network latency, TTL changes"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1557"
+    description: "Adversary-in-the-Middle"
+  - standard: "NIST SP 800-53"
+    control: "SC-7"
+
+detection:
+  network_indicators:
+    - "Multiple OSPF adjacencies from same router"
+    - "Unusual LSAs"
+  log_indicators:
+    - "Router logs with LSA changes"
+  endpoint_indicators:
+    - "scapy, ospf-attack"
+
+remediation:
+  immediate:
+    - "Enable OSPF authentication (MD5 or SHA)"
+    - "Use passive interfaces"
+  long_term:
+    - "Implement IPSec for routing protocols"
+    - "Monitor OSPF neighbor changes"
+
+variables:
+  area_id: "0.0.0.0"
+  router_id: "192.168.1.1"
+  fake_network: "10.0.0.0/24"
+
+assessment_questions:
+  - "What OSPF packet types can be used in attacks?"
+  - "How does OSPF authentication prevent injection?"
+  - "What is the role of the Designated Router?"
+
+references:
+  - url: "https://tools.ietf.org/html/rfc2328"
+    title: "OSPF RFC"
+  - url: "https://www.cisco.com/c/en/us/support/docs/ip/open-shortest-path-first-ospf/13672-15.html"
+    title: "Cisco OSPF Security"

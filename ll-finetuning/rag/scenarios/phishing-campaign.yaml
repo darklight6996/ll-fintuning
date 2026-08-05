@@ -1,0 +1,109 @@
+# Category: Social Engineering
+name: "Phishing Campaign – Credential Harvesting via Email"
+id: "social-phishing-001"
+category: "social_engineering"
+subcategory: "phishing"
+difficulty: "beginner"
+estimated_time: "60 minutes"
+
+description: |
+  Design and execute a phishing campaign to harvest credentials from
+  corporate users. This scenario covers building a convincing phishing
+  email, setting up a fake login page, and using tools like Gophish to
+  manage the campaign and track clicks.
+
+learning_objectives:
+  - Understand phishing attack lifecycle
+  - Craft a compelling phishing email (urgency, spoofed sender)
+  - Set up a replica login page (e.g., Office 365, Gmail)
+  - Use Gophish to automate campaign delivery and tracking
+
+tools:
+  - Gophish
+  - SET (Social‑Engineer Toolkit)
+  - Apache/Nginx
+  - PHP (for credential capture)
+  - Evilginx2 (for reverse proxy phishing)
+
+prerequisites:
+  - Domain name and email server (or use free SMTP relays)
+  - Basic HTML/PHP skills
+  - Target email list
+
+steps:
+  - id: "step1"
+    phase: "setup"
+    action: "Create phishing infrastructure"
+    commands:
+      - "# Register a domain similar to target (e.g., microsoft-update.com)"
+      - "# Set up SSL certificate (Let's Encrypt)"
+      - "# Deploy a cloned login page (e.g., Office 365)"
+      - "# Install Gophish"
+      - "sudo apt install gophish"
+    expected_output: "Phishing site live with HTTPS, Gophish dashboard running"
+    detection: "Domain blacklist; URL reputation services may flag"
+
+  - id: "step2"
+    phase: "execution"
+    action: "Send phishing emails"
+    commands:
+      - "# Configure Gophish: add campaign, import targets, design email"
+      - "# Set 'Your account will expire' as subject, include urgency"
+      - "# Use spoofed 'From' header (if allowed)"
+      - "# Launch campaign and monitor clicks"
+    expected_output: "Emails delivered; clicks recorded in Gophish"
+    detection: "Email security gateways may flag; users may report"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Harvest credentials and use them"
+    commands:
+      - "# Credentials stored in Gophish or custom PHP log"
+      - "cat /var/log/phish/creds.txt"
+      - "# Log into the real service to collect data or pivot"
+    expected_output: "Valid credentials obtained"
+    detection: "SIEM alerts for anomalous logins; impossible travel"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1566"
+    description: "Phishing"
+  - standard: "NIST SP 800-53"
+    control: "AT-2"
+    description: "Security Awareness Training"
+
+detection:
+  network_indicators:
+    - "Phishing domain resolving to attacker IP"
+    - "Email headers showing spoofing"
+  log_indicators:
+    - "SPF/DKIM failures for the domain"
+    - "User reports of phishing emails"
+  endpoint_indicators:
+    - "No direct endpoint indicator"
+
+remediation:
+  immediate:
+    - "Report and block phishing domain"
+    - "Reset passwords for compromised users"
+    - "Enable MFA to prevent credential reuse"
+  long_term:
+    - "Regular security awareness training (phishing simulations)"
+    - "Deploy email authentication (SPF, DKIM, DMARC)"
+    - "Implement Conditional Access policies"
+
+variables:
+  phishing_domain: "microsoft-update.com"
+  target_email_list: "employees.csv"
+  gophish_port: "3333"
+
+assessment_questions:
+  - "What are common emotional triggers used in phishing emails?"
+  - "How does DMARC help prevent email spoofing?"
+  - "Why is MFA the best defense against credential phishing?"
+
+references:
+  - url: "https://getgophish.com/"
+    title: "Gophish – Open‑source phishing framework"
+  - url: "https://www.phishtank.com/"
+    title: "PhishTank for domain reputation"

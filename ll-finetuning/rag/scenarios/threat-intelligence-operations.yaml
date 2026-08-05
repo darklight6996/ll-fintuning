@@ -1,0 +1,203 @@
+# Category: Blue Team - Threat Intelligence
+name: "Cyber Threat Intelligence Operations"
+id: "blue-cti-001"
+category: "blue_team"
+subcategory: "threat_intelligence"
+difficulty: "intermediate"
+estimated_time: "90"
+
+tags:
+  - threat-intelligence
+  - cti
+  - mitre-attack
+  - ioc
+  - ttp
+  - misp
+  - stix
+  - taxii
+  - osint
+  - threat-actor
+  - dark-web
+  - indicator-sharing
+  - blue-team
+  - soc
+  - nist-800-150
+  - detection-engineering
+
+description: |
+  Establish and operate a cyber threat intelligence program covering IOC collection,
+  threat actor profiling, TTP analysis, and intelligence sharing. Covers MISP
+  deployment, STIX/TAXII integration, and operationalizing intelligence into
+  detection rules and defensive controls.
+
+learning_objectives:
+  - Collect and analyze threat intelligence from open and closed sources
+  - Map threat actor TTPs to MITRE ATT&CK framework
+  - Operationalize IOCs into SIEM detection rules and firewall blocks
+  - Share threat intelligence using STIX/TAXII standards
+
+tools:
+  - "misp"
+  - "opencti"
+  - "maltego"
+  - "shodan"
+  - "virustotal"
+  - "python3"
+  - "stix2_library"
+
+prerequisites:
+  - "MISP or OpenCTI instance deployed"
+  - "Threat intelligence feeds configured"
+  - "SIEM integration available"
+  - "Understanding of MITRE ATT&CK framework"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Configure threat intelligence feeds in MISP"
+    commands:
+      - "# Install MISP (Docker)"
+      - "git clone https://github.com/misp/misp-docker.git /opt/misp-docker"
+      - "cd /opt/misp-docker && docker compose up -d"
+      - "# Add free threat intelligence feeds via MISP UI or CLI"
+      - "# Key free feeds to enable:"
+      - "# - CIRCL OSINT feed"
+      - "# - Abuse.ch URLhaus"
+      - "# - Abuse.ch MalwareBazaar"
+      - "# - Feodo Tracker (botnet C2)"
+      - "# - PhishTank"
+      - "# - MITRE ATT&CK STIX feed"
+      - "# Fetch feeds via MISP CLI"
+      - "misp-cli fetch --feed 'https://www.circl.lu/doc/misp/feed-osint/'"
+      - "# Pull MITRE ATT&CK STIX data"
+      - "curl -s 'https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json' -o /tmp/mitre_attack.json"
+      - "python3 -c \"import json; d=json.load(open('/tmp/mitre_attack.json')); print(f'ATT&CK objects: {len(d[\\\"objects\\\"])}')\" 2>/dev/null"
+    expected_output: "MISP configured with active threat feeds and MITRE ATT&CK data loaded"
+    detection: "N/A — CTI platform setup"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "IOC enrichment and analysis workflow"
+    commands:
+      - "# VirusTotal IOC lookup"
+      - "curl -s 'https://www.virustotal.com/api/v3/files/[sha256_hash]' -H 'x-apikey: [vt_api_key]' | python3 -c \"import sys,json; d=json.load(sys.stdin); stats=d.get('data',{}).get('attributes',{}).get('last_analysis_stats',{}); print(f'Malicious: {stats.get(\\\"malicious\\\",0)}, Suspicious: {stats.get(\\\"suspicious\\\",0)}, Undetected: {stats.get(\\\"undetected\\\",0)}')\" 2>/dev/null"
+      - "# IP reputation check"
+      - "curl -s 'https://www.virustotal.com/api/v3/ip_addresses/[suspicious_ip]' -H 'x-apikey: [vt_api_key]' | python3 -c \"import sys,json; d=json.load(sys.stdin); a=d.get('data',{}).get('attributes',{}); print(f'Country: {a.get(\\\"country\\\",\\\"N/A\\\")}, AS: {a.get(\\\"as_owner\\\",\\\"N/A\\\")}, Malicious: {a.get(\\\"last_analysis_stats\\\",{}).get(\\\"malicious\\\",0)}')\" 2>/dev/null"
+      - "# Domain enrichment"
+      - "curl -s 'https://www.virustotal.com/api/v3/domains/[suspicious_domain]' -H 'x-apikey: [vt_api_key]' | python3 -m json.tool | grep -E 'malicious|registrar|creation_date' 2>/dev/null"
+      - "# Check MISP for existing knowledge"
+      - "curl -s -X POST 'https://[misp_url]/attributes/restSearch' -H 'Authorization: [misp_key]' -H 'Content-Type: application/json' -d '{\"value\":\"[suspicious_ip]\",\"type\":\"ip-dst\"}' | python3 -m json.tool 2>/dev/null | head -30"
+      - "# AbuseIPDB lookup"
+      - "curl -s 'https://api.abuseipdb.com/api/v2/check?ipAddress=[suspicious_ip]&maxAgeInDays=90' -H 'Key: [abuseipdb_key]' -H 'Accept: application/json' | python3 -m json.tool 2>/dev/null | grep -E 'abuseConfidenceScore|totalReports|countryCode'"
+    expected_output: "Enriched IOC data with reputation scores, geography, and historical context"
+    detection: "N/A — IOC enrichment via public APIs"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Threat actor profiling and TTP mapping"
+    commands:
+      - "# Query MITRE ATT&CK for threat group TTPs"
+      - "python3 << 'EOF'\nimport json, urllib.request\nurl = 'https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json'\nwith urllib.request.urlopen(url) as r:\n    data = json.loads(r.read())\n\n# Find specific threat group\ntarget_group = 'APT29'\ngroups = [o for o in data['objects'] if o.get('type') == 'intrusion-set' and target_group.lower() in o.get('name','').lower()]\nif groups:\n    g = groups[0]\n    print(f'Group: {g[\"name\"]}')\n    print(f'Aliases: {g.get(\"aliases\", [])}')\n    print(f'Description: {g.get(\"description\",\"\")[:200]}...')\nelse:\n    print(f'{target_group} not found in ATT&CK data')\nEOF"
+      - "# Map observed TTPs to ATT&CK techniques"
+      - "python3 << 'EOF'\nttps_observed = [\n    {'id': 'T1566.001', 'name': 'Spearphishing Attachment', 'phase': 'initial-access'},\n    {'id': 'T1059.001', 'name': 'PowerShell', 'phase': 'execution'},\n    {'id': 'T1055', 'name': 'Process Injection', 'phase': 'defense-evasion'},\n    {'id': 'T1003.001', 'name': 'LSASS Memory', 'phase': 'credential-access'},\n    {'id': 'T1021.002', 'name': 'SMB/Windows Admin Shares', 'phase': 'lateral-movement'},\n    {'id': 'T1486', 'name': 'Data Encrypted for Impact', 'phase': 'impact'},\n]\nprint('Observed TTP Chain:')\nphases = {}\nfor ttp in ttps_observed:\n    phases.setdefault(ttp['phase'], []).append(f\"{ttp['id']}: {ttp['name']}\")\nfor phase, techniques in phases.items():\n    print(f'\\n[{phase.upper()}]')\n    for t in techniques: print(f'  - {t}')\nEOF"
+    expected_output: "Threat actor profile with mapped MITRE ATT&CK TTPs and kill chain"
+    detection: "N/A — threat intelligence analysis"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Operationalize IOCs into defensive controls"
+    commands:
+      - "# Export IOCs from MISP for firewall blocking"
+      - "curl -s -X POST 'https://[misp_url]/attributes/restSearch' -H 'Authorization: [misp_key]' -H 'Content-Type: application/json' -d '{\"type\":\"ip-dst\",\"to_ids\":true,\"last\":\"7d\"}' | python3 -c \"import sys,json; attrs=json.load(sys.stdin).get('response',{}).get('Attribute',[]); [print(a['value']) for a in attrs]\" > /tmp/block_ips.txt 2>/dev/null"
+      - "# Apply to iptables (Linux firewall)"
+      - "while read ip; do iptables -A INPUT -s $ip -j DROP; iptables -A OUTPUT -d $ip -j DROP; done < /tmp/block_ips.txt"
+      - "# Generate Sigma rule from observed TTPs"
+      - "cat > /tmp/apt_detection.yml << 'EOF'\ntitle: APT PowerShell Download Cradle - CTI Derived\nid: cti-derived-001\nstatus: experimental\ndescription: Detection derived from threat intelligence on observed APT TTPs\ntags:\n    - attack.execution\n    - attack.t1059.001\n    - attack.t1566.001\nlogsource:\n    product: windows\n    category: process_creation\ndetection:\n    selection:\n        Image|endswith: '\\\\powershell.exe'\n        CommandLine|contains|all:\n            - 'DownloadString'\n            - 'IEX'\n    condition: selection\nfalsepositives:\n    - Legitimate administrative scripts\nlevel: high\nEOF"
+      - "sigma check /tmp/apt_detection.yml 2>/dev/null || echo 'Sigma rule created — validate with sigma-cli'"
+      - "# Push IOC hashes to EDR block list (CrowdStrike example)"
+      - "curl -s -X POST 'https://api.crowdstrike.com/iocs/entities/indicators/v1' -H 'Authorization: Bearer [falcon_token]' -H 'Content-Type: application/json' -d '{\"indicators\":[{\"type\":\"sha256\",\"value\":\"[malicious_hash]\",\"action\":\"prevent\",\"severity\":\"critical\",\"description\":\"CTI: [threat_actor]\"}]}' 2>/dev/null | python3 -m json.tool | head -10"
+    expected_output: "IOCs operationalized into firewall rules, EDR blocks, and detection rules"
+    detection: "N/A — defensive control implementation"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "STIX/TAXII intelligence sharing"
+    commands:
+      - "pip3 install stix2 taxii2client"
+      - "python3 << 'EOF'\nfrom stix2 import Indicator, Bundle, ThreatActor, Relationship\nimport json, datetime\n\n# Create STIX objects\nthreat_actor = ThreatActor(\n    name='APT-Example',\n    threat_actor_types=['nation-state'],\n    aliases=['Group123'],\n    description='Nation-state threat actor targeting financial sector',\n    goals=['Financial theft', 'Espionage'],\n    sophistication='advanced',\n)\n\nindicator = Indicator(\n    name='Malicious IP - C2 Server',\n    indicator_types=['malicious-activity'],\n    pattern=\"[ipv4-addr:value = '198.51.100.1']\",\n    pattern_type='stix',\n    valid_from=datetime.datetime.now(datetime.timezone.utc),\n    description='C2 server used by APT-Example campaign',\n    labels=['c2'],\n)\n\nbundle = Bundle(objects=[threat_actor, indicator])\nwith open('/tmp/threat_intel.stix.json', 'w') as f:\n    f.write(bundle.serialize(pretty=True))\nprint(f'STIX bundle created with {len(bundle.objects)} objects')\nprint('Saved to /tmp/threat_intel.stix.json')\nEOF"
+      - "# Query TAXII server for intelligence"
+      - "python3 << 'EOF'\nfrom taxii2client.v21 import Server\ntry:\n    server = Server('https://cti-taxii.mitre.org/taxii/', verify=True)\n    for api_root in server.api_roots:\n        print(f'API Root: {api_root.title}')\n        for collection in api_root.collections:\n            print(f'  Collection: {collection.title} ({collection.id})')\nexcept Exception as e:\n    print(f'TAXII query: {e}')\nEOF"
+    expected_output: "STIX bundle created with threat actor and indicator objects; TAXII collection listing"
+    detection: "N/A — intelligence sharing activity"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Generate intelligence report for stakeholders"
+    commands:
+      - "python3 << 'EOF'\nimport datetime\n\nreport = {\n    'title': 'Weekly Threat Intelligence Summary',\n    'date': str(datetime.date.today()),\n    'classification': 'TLP:GREEN',\n    'executive_summary': 'Increased activity by financially-motivated threat actors targeting payment systems.',\n    'threat_actors_tracked': 3,\n    'iocs_collected': {'ips': 47, 'domains': 23, 'hashes': 156, 'urls': 89},\n    'iocs_operationalized': {'firewall_blocks': 47, 'edr_blocks': 156, 'siem_rules': 4},\n    'key_ttps': [\n        'T1566.001 - Spearphishing Attachment (High confidence)',\n        'T1059.001 - PowerShell Execution (High confidence)',\n        'T1486 - Ransomware Deployment (Medium confidence)',\n    ],\n    'recommended_actions': [\n        'Apply patches for CVE-2023-44487 (HTTP/2 Rapid Reset)',\n        'Enable PowerShell ScriptBlock logging',\n        'Review email gateway for .lnk attachment blocking',\n    ]\n}\n\nprint(f'=== {report[\"title\"]} ===')\nprint(f'Date: {report[\"date\"]}  Classification: {report[\"classification\"]}')\nprint(f'\\n{report[\"executive_summary\"]}')\nprint(f'\\nIOCs Collected: {sum(report[\"iocs_collected\"].values())} total')\nfor t, c in report['iocs_collected'].items(): print(f'  {t}: {c}')\nprint(f'\\nKey TTPs Observed:')\nfor ttp in report['key_ttps']: print(f'  - {ttp}')\nprint(f'\\nRecommended Actions:')\nfor action in report['recommended_actions']: print(f'  [{chr(9744)}] {action}')\nEOF"
+    expected_output: "Weekly intelligence report with IOC counts, TTPs, and recommended defensive actions"
+    detection: "N/A — report generation"
+
+compliance_controls:
+  - standard: "NIST 800-150"
+    control: "All sections"
+    description: "Guide to cyber threat information sharing"
+  - standard: "NIST 800-53 Rev5"
+    control: "PM-16"
+    description: "Threat awareness program"
+  - standard: "CIS Controls v8"
+    control: "17.1"
+    description: "Designate personnel to manage incident handling"
+  - standard: "SOC2 CC7.1"
+    control: "CC7.1"
+    description: "Threat monitoring and detection"
+
+detection:
+  network_indicators:
+    - "N/A — CTI is a defensive intelligence activity"
+  log_indicators:
+    - "MISP event creation from automated feeds"
+    - "Firewall rule creation from CTI IOC export"
+  endpoint_indicators:
+    - "EDR IOC import events from CTI platform"
+    - "Sigma rule deployment from CTI-derived detections"
+
+remediation:
+  immediate:
+    - "Block all Critical and High confidence IOCs at firewall and EDR immediately"
+    - "Apply Sigma rules for observed TTPs to SIEM"
+    - "Alert SOC team on any matching indicators in the environment"
+  long_term:
+    - "Subscribe to sector-specific ISAC for relevant threat intelligence"
+    - "Integrate MISP with SIEM for automated IOC ingestion"
+    - "Conduct monthly threat briefings with security leadership"
+    - "Contribute anonymized IOCs back to sharing communities"
+
+variables:
+  misp_url: "https://misp.example.com"
+  misp_key: "YOUR_MISP_API_KEY"
+  vt_api_key: "YOUR_VT_API_KEY"
+  abuseipdb_key: "YOUR_ABUSEIPDB_KEY"
+  falcon_token: "YOUR_FALCON_TOKEN"
+  suspicious_ip: "198.51.100.1"
+  suspicious_domain: "malicious.example.com"
+  sha256_hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  malicious_hash: "aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899"
+  threat_actor: "FIN7"
+
+assessment_questions:
+  - "What is the difference between strategic, operational, and tactical threat intelligence?"
+  - "How does STIX/TAXII enable automated threat intelligence sharing?"
+  - "What is TLP (Traffic Light Protocol) and what does TLP:GREEN mean?"
+  - "How do you operationalize threat intelligence into defensive controls?"
+  - "What is the MITRE ATT&CK Navigator and how is it used for threat profiling?"
+
+references:
+  - url: "https://www.misp-project.org/"
+    title: "MISP Threat Intelligence Platform"
+  - url: "https://attack.mitre.org/"
+    title: "MITRE ATT&CK Framework"
+  - url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-150.pdf"
+    title: "NIST SP 800-150 Cyber Threat Information Sharing"
+  - url: "https://oasis-open.github.io/cti-documentation/"
+    title: "STIX/TAXII Documentation"

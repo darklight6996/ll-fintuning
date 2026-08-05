@@ -1,0 +1,149 @@
+name: "Unauthorized Change Detection"
+id: "CM-01"
+category: "Change Management & DevOps"
+subcategory: "Process + Technical"
+difficulty: "intermediate"
+estimated_time: "45"
+
+tags:
+  - change-management
+  - devops
+  - azure
+  - azure-activity-logs
+  - itsm
+  - servicenow
+  - jira
+  - unauthorized-changes
+  - production
+  - ci-cd
+  - log-analytics
+  - splunk
+  - soc2
+  - cc8.1
+  - cc8.2
+  - compliance
+  - process-audit
+
+description: |
+  Detect production changes that occurred without proper change tickets
+  in ITSM systems. Validates SOC 2 CC8.1 (Change Management).
+
+learning_objectives:
+  - Correlate production deployments with change tickets
+  - Identify infrastructure changes without Jira/ServiceNow approval
+  - Verify emergency change procedures are followed
+  - Check for direct production modifications bypassing CI/CD
+  - Document unauthorized changes for remediation
+
+tools:
+  - "Azure Activity Logs"
+  - "Azure DevOps / GitHub Actions logs"
+  - "ITSM system (Jira, ServiceNow)"
+  - "PowerShell / Azure CLI"
+  - "Log Analytics / Splunk"
+
+prerequisites:
+  - "Read access to Azure Activity Logs and deployment logs"
+  - "ITSM system integration or export capability"
+  - "Log Analytics workspace access"
+
+steps:
+  - id: "step1"
+    phase: "enumeration"
+    action: "Extract all production resource modifications from Azure Activity Logs"
+    commands:
+      - "az monitor activity-log list --start-time {start_date} --end-time {end_date} --query "[?contains(operationName.value, 'Microsoft.Compute/virtualMachines/write') || contains(operationName.value, 'Microsoft.Web/sites/write') || contains(operationName.value, 'Microsoft.Sql/servers/write') || contains(operationName.value, 'Microsoft.Network/networkSecurityGroups/write')].{Operation:operationName.value, Resource:resourceId, Caller:caller, Time:eventTimestamp, Status:status.value}" -o table"
+      - "# Alternative: Query Log Analytics"
+      - "AzureActivity | where TimeGenerated > ago(90d) | where OperationName contains 'write' or OperationName contains 'delete' | where ActivityStatus == 'Succeeded' | where ResourceGroup contains 'prod' or ResourceGroup contains 'prd' | project TimeGenerated, OperationName, Caller, ResourceGroup, Resource, SubscriptionId | order by TimeGenerated desc"
+    expected_output: "All write/delete operations on production resources in audit period"
+    detection: "N/A - audit data extraction"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Extract approved change tickets from ITSM"
+    commands:
+      - "SELECT change_id, title, description, status, approved_by, approval_date, implementation_date, affected_systems, risk_level, change_type FROM change_tickets WHERE implementation_date >= {start_date} AND implementation_date <= {end_date} AND status = 'approved' AND affected_systems LIKE '%prod%'"
+    expected_output: "All approved production change tickets in audit period"
+    detection: "N/A - audit data extraction"
+
+  - id: "step3"
+    phase: "verification"
+    action: "Correlate Azure changes with change tickets"
+    commands:
+      - "# Match resource modifications to change tickets by time/resource"
+      - "SELECT al.operation_name, al.resource_id, al.caller, al.event_timestamp, ct.change_id, ct.approved_by FROM azure_activity_log al LEFT JOIN change_tickets ct ON al.resource_id LIKE CONCAT('%', ct.affected_systems, '%') AND ABS(TIMESTAMPDIFF(MINUTE, al.event_timestamp, ct.implementation_date)) < 120 WHERE ct.change_id IS NULL AND al.event_timestamp >= {start_date}"
+    expected_output: "Azure resource modifications without matching change tickets"
+    detection: "N/A - audit correlation"
+
+  - id: "step4"
+    phase: "verification"
+    action: "Check for direct Azure portal/CLI changes bypassing CI/CD"
+    commands:
+      - "AzureActivity | where TimeGenerated > ago(90d) | where OperationName contains 'write' | where Caller != 'AzureDevOps-Service' and Caller != 'GitHub-Actions' and Caller != 'System' | where ResourceGroup contains 'prod' | project TimeGenerated, OperationName, Caller, CallerIpAddress, ResourceGroup, Resource | order by TimeGenerated desc"
+    expected_output: "Changes made by individual users rather than service principals/automation"
+    detection: "N/A - audit verification"
+
+  - id: "step5"
+    phase: "verification"
+    action: "Verify emergency changes followed post-approval process"
+    commands:
+      - "SELECT change_id, change_type, created_date, approval_date, implementation_date, post_approval_date, emergency_justification FROM change_tickets WHERE change_type = 'emergency' AND implementation_date >= {start_date}"
+      - "# Flag emergency changes without post-approval"
+      - "SELECT * FROM change_tickets WHERE change_type = 'emergency' AND (post_approval_date IS NULL OR post_approval_date > DATE_ADD(implementation_date, INTERVAL 48 HOUR))"
+    expected_output: "Emergency changes with or without proper post-approval documentation"
+    detection: "N/A - audit verification"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Generate unauthorized change report"
+    commands:
+      - "TotalProductionChanges: 150; WithApprovedTicket: 132; WithoutTicket: 12; DirectPortalChanges: 6; EmergencyWithoutPostApproval: 3; PassRate: 88%"
+    expected_output: "Change management compliance metrics for SOC 2 evidence"
+    detection: "N/A - audit reporting"
+
+compliance_controls:
+  - standard: "SOC 2"
+    control: "CC8.1"
+    description: "Change Management - changes authorized and tested"
+  - standard: "SOC 2"
+    control: "CC8.2"
+    description: "System changes - authorized, tested, and approved"
+  - standard: "NIST 800-53"
+    control: "CM-3"
+    description: "Configuration Change Control"
+
+detection:
+  network_indicators:
+    - "Azure portal access from individual IPs for production resource modifications"
+  log_indicators:
+    - "Azure Activity Logs showing write operations without corresponding deployment pipeline runs"
+    - "Direct CLI/PowerShell modifications to production resources"
+  endpoint_indicators:
+    - "az or Azure PowerShell commands executed against production subscriptions"
+
+remediation:
+  immediate:
+    - "Require change tickets for all production modifications retroactively"
+    - "Disable direct production access for non-automation accounts"
+    - "Document emergency changes with post-approval within 48 hours"
+  long_term:
+    - "Implement Azure Policy preventing direct production modifications"
+    - "Require all changes via CI/CD pipelines with automated change ticket creation"
+    - "Deploy Azure Blueprints for standardized environment deployment"
+    - "Enable just-in-time (JIT) access for emergency production changes"
+    - "Implement infrastructure-as-code (Terraform/ARM) with mandatory PR approval"
+
+variables:
+  start_date: "[AUDIT_START_DATE]"
+  end_date: "[AUDIT_END_DATE]"
+  production_resource_group: "[PROD_RESOURCE_GROUP_PATTERN]"
+
+assessment_questions:
+  - "What percentage of production changes had approved change tickets?"
+  - "How many changes were made directly via portal/CLI bypassing CI/CD?"
+  - "Were emergency changes properly documented with post-approval?"
+  - "Is there automated correlation between deployments and change tickets?"
+
+references:
+  - url: "https://www.aicpa.org/content/dam/aicpa/interestareas/frc/assuranceadvisoryservices/downloadabledocuments/trust-services-criteria.pdf"
+    title: "AICPA Trust Services Criteria"

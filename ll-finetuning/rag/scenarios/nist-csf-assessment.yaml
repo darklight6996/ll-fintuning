@@ -1,0 +1,218 @@
+# Category: Compliance - NIST Frameworks
+name: "NIST Cybersecurity Framework 2.0 Assessment"
+id: "compliance-nist-csf-001"
+category: "compliance"
+subcategory: "nist_frameworks"
+difficulty: "intermediate"
+estimated_time: "120 minutes"
+
+description: |
+  Assess an organization's cybersecurity posture against the NIST Cybersecurity
+  Framework 2.0 (CSF 2.0). Covers all six functions: Govern, Identify, Protect,
+  Detect, Respond, and Recover with evidence collection and maturity scoring.
+
+learning_objectives:
+  - Understand NIST CSF 2.0 structure and six core functions
+  - Conduct maturity assessment across all CSF categories
+  - Map existing controls to CSF subcategories
+  - Develop target profile and gap analysis
+
+tools:
+  - nist_csf_tool
+  - spreadsheet_tool
+  - awscli
+  - powershell
+  - python3
+
+prerequisites:
+  - Access to organizational policies and control documentation
+  - Understanding of NIST CSF 2.0 framework
+  - Stakeholder interviews scheduled
+  - Access to technical systems for evidence collection
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "GV - Govern: Review cybersecurity governance structures"
+    commands:
+      - "# GV.OC - Organizational Context"
+      - "# Evidence: Mission statement, business objectives, regulatory requirements"
+      - "# GV.RM - Risk Management Strategy"
+      - "# Evidence: Risk appetite statement, risk management policy, risk register"
+      - "# GV.RR - Roles, Responsibilities, Authorities"
+      - "# Evidence: CISO charter, security team org chart, RACI matrix"
+      - "# GV.PO - Policy"
+      - "# Evidence: Information security policy, acceptable use policy, approval records"
+      - "ls -la /policies/ | grep -iE 'security|risk|governance|acceptable'"
+      - "# GV.OV - Oversight"
+      - "# Evidence: Board/executive security reviews, audit committee charter"
+      - "# GV.SC - Cybersecurity Supply Chain Risk Management"
+      - "# Evidence: Vendor risk assessment process, third-party inventory"
+      - "cat /tmp/vendor_inventory.csv 2>/dev/null | head -10"
+    expected_output: "Governance evidence artifacts and documented maturity rating (Initial/Developing/Defined/Managed/Optimizing)"
+    detection: "N/A — compliance assessment"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "ID - Identify: Asset management and risk assessment"
+    commands:
+      - "# ID.AM - Asset Management"
+      - "# Collect hardware and software asset inventory"
+      - "aws ec2 describe-instances --query 'Reservations[*].Instances[*].{ID:InstanceId,Type:InstanceType,State:State.Name,Name:Tags[?Key==`Name`]|[0].Value}' --output table 2>/dev/null"
+      - "aws s3 ls 2>/dev/null | wc -l && echo ' S3 buckets'"
+      - "aws rds describe-db-instances --query 'DBInstances[*].{ID:DBInstanceIdentifier,Engine:Engine,State:DBInstanceStatus}' --output table 2>/dev/null"
+      - "# ID.RA - Risk Assessment"
+      - "# Evidence: Annual risk assessment, threat modeling results, risk register"
+      - "ls -la /risk/assessments/ 2>/dev/null"
+      - "# ID.IM - Improvement"
+      - "# Evidence: Lessons learned log, security roadmap, control improvement tracking"
+      - "# Automated asset discovery check"
+      - "nmap -sn [internal_range] -oG /tmp/live_hosts.txt 2>/dev/null"
+      - "grep 'Up' /tmp/live_hosts.txt | wc -l"
+    expected_output: "Asset inventory completeness, risk register status, improvement tracking artifacts"
+    detection: "N/A — internal asset discovery"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "PR - Protect: Review protective controls"
+    commands:
+      - "# PR.AA - Identity Management, Authentication, Access Control"
+      - "# MFA enforcement check"
+      - "aws iam get-account-summary --query 'SummaryMap.AccountMFAEnabled' 2>/dev/null"
+      - "# Check password policy"
+      - "aws iam get-account-password-policy 2>/dev/null"
+      - "# PR.AT - Awareness and Training"
+      - "# Evidence: Training completion records, phishing simulation results"
+      - "# PR.DS - Data Security"
+      - "# Check S3 encryption"
+      - "aws s3api list-buckets --query 'Buckets[*].Name' --output text 2>/dev/null | tr '\\t' '\\n' | while read b; do enc=$(aws s3api get-bucket-encryption --bucket $b 2>/dev/null | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d[\"ServerSideEncryptionConfiguration\"][\"Rules\"][0][\"ApplyServerSideEncryptionByDefault\"][\"SSEAlgorithm\"])' 2>/dev/null || echo 'NONE'); echo \"$b: $enc\"; done"
+      - "# PR.IR - Technology Infrastructure Resilience"
+      - "# Evidence: Backup policy, recovery procedures, HA architecture"
+      - "aws backup list-backup-plans --query 'BackupPlansList[*].{Name:BackupPlanName,ID:BackupPlanId}' 2>/dev/null"
+      - "# PR.PS - Platform Security (patching)"
+      - "aws ssm describe-instance-patch-states-for-patch-group --patch-group 'Production' 2>/dev/null | head -20"
+    expected_output: "Protective control status across identity, data security, and platform hardening"
+    detection: "N/A — read-only API calls for evidence collection"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "DE - Detect: Review detection capabilities"
+    commands:
+      - "# DE.CM - Continuous Monitoring"
+      - "# Check CloudTrail"
+      - "aws cloudtrail describe-trails --query 'trailList[*].{Name:Name,MultiRegion:IsMultiRegionTrail,S3:S3BucketName}' 2>/dev/null"
+      - "# Check GuardDuty"
+      - "aws guardduty list-detectors 2>/dev/null"
+      - "aws guardduty get-detector --detector-id $(aws guardduty list-detectors --query 'DetectorIds[0]' --output text 2>/dev/null) 2>/dev/null | grep -E 'Status|FindingPublishingFrequency'"
+      - "# Check Security Hub"
+      - "aws securityhub describe-hub 2>/dev/null | grep -E 'HubArn|AutoEnableControls'"
+      - "# SIEM check"
+      - "# Evidence: SIEM query coverage report, use case library, detection rule count"
+      - "# DE.AE - Adverse Event Analysis"
+      - "# Evidence: Alert triage procedures, SIEM correlation rules, threat hunting results"
+      - "# Check Inspector for vulnerability detection"
+      - "aws inspector2 get-configuration 2>/dev/null | grep -E 'status|autoEnable'"
+    expected_output: "Detection capability status including logging, monitoring, and alerting coverage"
+    detection: "N/A — read-only API calls"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "RS - Respond: Review incident response capabilities"
+    commands:
+      - "# RS.MA - Incident Management"
+      - "# Evidence: Incident response plan, IRP approval date, contact list"
+      - "ls -la /policies/incident_response* /runbooks/IR* 2>/dev/null"
+      - "# RS.AN - Incident Analysis"
+      - "# Evidence: Forensic capability documentation, SIEM queries, playbooks"
+      - "# RS.CO - Incident Response Reporting and Communication"
+      - "# Evidence: Breach notification procedures, regulatory reporting templates"
+      - "# RS.MI - Incident Mitigation"
+      - "# Evidence: Containment procedures, eradication runbooks"
+      - "# Check IR exercise history"
+      - "ls -la /ir/exercises/ /ir/tabletops/ 2>/dev/null"
+      - "# RS.IM - Improvements"
+      - "# Evidence: Post-incident reviews, lessons learned log, control updates"
+      - "python3 << 'EOF'\nimport os, datetime\nir_log = '/ir/incident_log.csv'\nif os.path.exists(ir_log):\n    import csv\n    with open(ir_log) as f:\n        incidents = list(csv.DictReader(f))\n    print(f'Total incidents logged: {len(incidents)}')\n    with_pir = sum(1 for i in incidents if i.get('post_incident_review','').lower() == 'yes')\n    print(f'With post-incident review: {with_pir}')\nelse:\n    print('No incident log found — IR-001 gap')\nEOF"
+    expected_output: "IR plan currency, exercise history, and incident log with post-incident review rate"
+    detection: "N/A — evidence review"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "RC - Recover: Review recovery and resilience capabilities"
+    commands:
+      - "# RC.RP - Incident Recovery Plan Execution"
+      - "# Evidence: Business continuity plan, disaster recovery plan, RTO/RPO definitions"
+      - "ls -la /policies/bcp* /policies/drp* /policies/disaster_recovery* 2>/dev/null"
+      - "# RC.CO - Incident Recovery Communication"
+      - "# Evidence: Crisis communication plan, stakeholder notification templates"
+      - "# Check backup coverage"
+      - "aws backup list-backup-jobs --by-state COMPLETED --query 'BackupJobs[*].{Resource:ResourceArn,Status:State,CompletionDate:CompletionDate}' 2>/dev/null | head -20"
+      - "# Check RTO/RPO for critical systems"
+      - "python3 << 'EOF'\nimport json\ntry:\n    with open('/continuity/rto_rpo_register.json') as f:\n        systems = json.load(f)\n    print(f'Systems with defined RTO/RPO: {len(systems)}')\n    no_dr = [s['name'] for s in systems if not s.get('dr_tested')]\n    print(f'Systems without DR test: {len(no_dr)}')\nexcept FileNotFoundError:\n    print('No RTO/RPO register found — RC gap')\nEOF"
+    expected_output: "Recovery capability documentation, backup coverage, and DR test history"
+    detection: "N/A — evidence review"
+
+  - id: "step7"
+    phase: "post_exploitation"
+    action: "Generate CSF maturity scoring and gap analysis"
+    commands:
+      - "cat > /tmp/csf_scoring.py << 'EOF'\nfunctions = {\n    'GV': {'name': 'Govern', 'score': 0, 'max': 5},\n    'ID': {'name': 'Identify', 'score': 0, 'max': 5},\n    'PR': {'name': 'Protect', 'score': 0, 'max': 5},\n    'DE': {'name': 'Detect', 'score': 0, 'max': 5},\n    'RS': {'name': 'Respond', 'score': 0, 'max': 5},\n    'RC': {'name': 'Recover', 'score': 0, 'max': 5},\n}\ntiers = {1: 'Partial', 2: 'Risk Informed', 3: 'Repeatable', 4: 'Adaptive'}\nprint('NIST CSF 2.0 Maturity Assessment')\nprint('=' * 50)\nfor fn, data in functions.items():\n    tier = min(4, max(1, round(data['score'])))\n    print(f\"{fn} - {data['name']:12}: Tier {tier} ({tiers[tier]})\")\nprint('=' * 50)\nprint('Target Profile: Tier 3 (Repeatable) for all functions')\nEOF"
+      - "python3 /tmp/csf_scoring.py"
+    expected_output: "CSF maturity tier ratings per function and gap to target profile"
+    detection: "N/A — report generation"
+
+compliance_controls:
+  - standard: "NIST CSF 2.0"
+    control: "GV, ID, PR, DE, RS, RC"
+    description: "Full NIST Cybersecurity Framework 2.0 assessment"
+  - standard: "NIST 800-53 Rev5"
+    control: "All families"
+    description: "NIST SP 800-53 control family mapping"
+  - standard: "ISO 27001:2022"
+    control: "All Annex A controls"
+    description: "ISO 27001 cross-mapping"
+  - standard: "SOC2"
+    control: "CC1-CC9"
+    description: "SOC2 Trust Service Criteria cross-mapping"
+
+detection:
+  network_indicators:
+    - "N/A — compliance assessment"
+  log_indicators:
+    - "AWS read-only API calls for evidence collection"
+  endpoint_indicators:
+    - "Evidence artifacts stored in audit repository"
+
+remediation:
+  immediate:
+    - "Enable MFA for all users (PR.AA gap)"
+    - "Enable GuardDuty and Security Hub (DE.CM gap)"
+    - "Formalize incident response plan if not documented (RS.MA gap)"
+    - "Enable CloudTrail in all regions (DE.CM gap)"
+  long_term:
+    - "Implement GRC platform for continuous CSF measurement"
+    - "Conduct annual CSF assessment to track tier progression"
+    - "Develop target profile and 3-year roadmap to Tier 3"
+    - "Align CSF assessment with SOC2 and ISO 27001 for efficiency"
+
+variables:
+  organization: "Example Corp"
+  assessment_date: "2024-01-01"
+  internal_range: "10.0.0.0/8"
+  aws_profile: "production"
+  target_tier: "3"
+
+assessment_questions:
+  - "What is the new function added in NIST CSF 2.0 compared to CSF 1.1?"
+  - "What is the difference between a CSF Profile and a CSF Tier?"
+  - "How does NIST CSF 2.0 map to NIST 800-53 Rev5 controls?"
+  - "What is Tier 3 (Repeatable) in the NIST CSF implementation tiers?"
+  - "How does the Govern function in CSF 2.0 differ from previous versions?"
+
+references:
+  - url: "https://www.nist.gov/cyberframework"
+    title: "NIST Cybersecurity Framework 2.0"
+  - url: "https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final"
+    title: "NIST SP 800-53 Rev5"
+  - url: "https://www.nist.gov/system/files/documents/2024/02/26/csf-2-0-core-with-examples.xlsx"
+    title: "NIST CSF 2.0 Core with Examples"

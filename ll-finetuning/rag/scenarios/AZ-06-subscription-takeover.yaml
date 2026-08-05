@@ -1,0 +1,173 @@
+name: "Subscription Takeover via Owner Role"
+id: "AZ-06"
+category: "Cloud Security"
+subcategory: "Azure / Cloud Security"
+difficulty: "advanced"
+estimated_time: "50"
+
+tags:
+  - azure
+  - subscription
+  - rbac
+  - owner-role
+  - privilege-escalation
+  - user-access-administrator
+  - custom-roles
+  - management-group
+  - service-principal
+  - soc2
+  - cc6.3
+  - cc6.1
+  - compliance
+  - iam
+
+description: |
+  Assess Azure subscription RBAC for overly broad Owner role assignments,
+  inheritance paths, and service principals with subscription-level access.
+  Maps to SOC 2 CC6.3 (RBAC) and CC6.1 (Logical Access).
+
+learning_objectives:
+  - Enumerate all role assignments at subscription, resource group, and resource scope
+  - Identify Owner role assignments that could enable subscription takeover
+  - Find inherited permissions that create unintended privilege escalation paths
+  - Assess service principals with subscription Owner access
+  - Verify if custom roles grant excessive permissions
+
+tools:
+  - "Azure CLI"
+  - "Azure PowerShell (Az module)"
+  - "PowerShell"
+  - "Steampipe"
+
+prerequisites:
+  - "Azure subscription with Reader or User Access Administrator role"
+  - "Azure CLI or Az PowerShell module"
+  - "Understanding of Azure RBAC inheritance model"
+
+steps:
+  - id: "step1"
+    phase: "enumeration"
+    action: "List all role assignments at subscription scope"
+    commands:
+      - "az role assignment list --scope /subscriptions/{subscription_id} --query '[].{Principal:principalName, Type:principalType, Role:roleDefinitionName, Scope:scope}' -o table"
+      - "Get-AzRoleAssignment -Scope /subscriptions/{subscription_id} | Select-Object DisplayName, SignInName, ObjectType, RoleDefinitionName, Scope | Export-Csv -Path 'sub_role_assignments.csv' -NoTypeInformation"
+    expected_output: "All role assignments at subscription level with principal names and types"
+    detection: "Role assignment enumeration in Azure Activity Logs"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Identify Owner and User Access Administrator role assignments"
+    commands:
+      - "az role assignment list --scope /subscriptions/{subscription_id} --query '[?roleDefinitionName==`Owner` || roleDefinitionName==`User Access Administrator`].{Principal:principalName, Type:principalType, Role:roleDefinitionName, Scope:scope}' -o table"
+      - "Get-AzRoleAssignment -Scope /subscriptions/{subscription_id} | Where-Object { $_.RoleDefinitionName -in @('Owner','User Access Administrator') } | Select-Object DisplayName, SignInName, ObjectType, RoleDefinitionName, Scope | Export-Csv -Path 'sub_owner_assignments.csv' -NoTypeInformation"
+    expected_output: "All principals with Owner or User Access Administrator at subscription scope"
+    detection: "Role assignment reads for high-privilege roles"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Enumerate custom roles and their permissions"
+    commands:
+      - "az role definition list --custom-only --query '[].{Name:name, Actions:permissions[0].actions, NotActions:permissions[0].notActions, AssignableScopes:assignableScopes}' -o json"
+      - "Get-AzRoleDefinition -Custom | Select-Object Name, @{N='Actions';E={$_.Actions -join ','}}, @{N='NotActions';E={$_.NotActions -join ','}}, @{N='AssignableScopes';E={$_.AssignableScopes -join ','}} | Export-Csv -Path 'custom_roles.csv' -NoTypeInformation"
+    expected_output: "All custom role definitions with their action permissions and assignable scopes"
+    detection: "Role definition enumeration in Azure Activity Logs"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Test if current principal can elevate privileges via role assignment"
+    commands:
+      - "# Check if current user has User Access Administrator or Owner"
+      - "az role assignment list --assignee $(az account show --query 'user.name' -o tsv) --query '[].roleDefinitionName' -o tsv"
+      - "# If User Access Admin, attempt to assign Owner to self or service principal"
+      - "az role assignment create --assignee-object-id {target_principal_id} --role Owner --scope /subscriptions/{subscription_id}"
+    expected_output: "Successful role assignment creation confirming privilege escalation capability"
+    detection: "Role assignment creation events; Owner role grants in audit logs"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "Check for inherited permissions at resource group and resource scope"
+    commands:
+      - "# List all role assignments across all resource groups in subscription"
+      - "az role assignment list --all --query '[?contains(scope, `/resourceGroups/`)].{Principal:principalName, Role:roleDefinitionName, Scope:scope}' -o table | head -50"
+      - "# Check for Management Group inherited assignments"
+      - "az role assignment list --scope /subscriptions/{subscription_id} --include-inherited --query '[].{Principal:principalName, Role:roleDefinitionName, Scope:scope, Inherited:scope!=`/subscriptions/{subscription_id}`}' -o table"
+    expected_output: "Role assignments showing inheritance from management groups or parent scopes"
+    detection: "Role assignment enumeration with --include-inherited flag"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "Identify service principals with subscription-level Owner access"
+    commands:
+      - "az role assignment list --scope /subscriptions/{subscription_id} --query '[?principalType==`ServicePrincipal` && roleDefinitionName==`Owner`].{SPName:principalName, AppId:principalId, Scope:scope}' -o table"
+      - "Get-AzRoleAssignment -Scope /subscriptions/{subscription_id} | Where-Object { $_.ObjectType -eq 'ServicePrincipal' -and $_.RoleDefinitionName -eq 'Owner' } | Select-Object DisplayName, ObjectId, @{N='AppId';E={(Get-AzADServicePrincipal -ObjectId $_.ObjectId).AppId}}, Scope | Export-Csv -Path 'sp_owner_assignments.csv' -NoTypeInformation"
+    expected_output: "Service principals with Owner role at subscription scope"
+    detection: "Service principal role assignment enumeration"
+
+  - id: "step7"
+    phase: "post_exploitation"
+    action: "Generate subscription RBAC risk assessment"
+    commands:
+      - "$report = @{ TotalSubAssignments=(Import-Csv sub_role_assignments.csv).Count; OwnerAssignments=(Import-Csv sub_owner_assignments.csv | Where-Object { $_.Role -eq 'Owner' }).Count; UAAAssignments=(Import-Csv sub_owner_assignments.csv | Where-Object { $_.Role -eq 'User Access Administrator' }).Count; CustomRolesWithWildcard=(Import-Csv custom_roles.csv | Where-Object { $_.Actions -match '\*' }).Count; SPsWithOwner=(Import-Csv sp_owner_assignments.csv).Count }; $report | ConvertTo-Json | Out-File 'sub_rbac_risk.json'"
+    expected_output: "sub_rbac_risk.json with quantified RBAC risks"
+    detection: "N/A - reporting step"
+
+compliance_controls:
+  - standard: "SOC 2"
+    control: "CC6.3"
+    description: "RBAC - validate least privilege and separation of duties"
+  - standard: "SOC 2"
+    control: "CC6.1"
+    description: "Logical access controls - verify subscription access governance"
+  - standard: "NIST 800-53"
+    control: "AC-6"
+    description: "Least Privilege - subscription-level role assignments"
+  - standard: "CIS Azure"
+    control: "1.23"
+    description: "Ensure that no subscriptions have Owner permissions for external accounts"
+
+detection:
+  network_indicators:
+    - "Management API calls to management.azure.com for role assignment operations"
+    - "Bulk role assignment enumeration across subscription"
+  log_indicators:
+    - "Azure Activity Logs: Microsoft.Authorization/roleAssignments/read and /write"
+    - "Audit logs showing Owner role assignment creation"
+    - "Sign-In Logs: Authentication to Azure Resource Manager API"
+  endpoint_indicators:
+    - "Azure CLI executing az role assignment create with Owner role"
+    - "PowerShell New-AzRoleAssignment for subscription scope"
+
+remediation:
+  immediate:
+    - "Remove Owner role from any external/guest accounts at subscription scope"
+    - "Replace Owner with Contributor + custom roles for service principals"
+    - "Remove User Access Administrator from non-administrative accounts"
+    - "Review and restrict custom roles with wildcard (*) permissions"
+    - "Enable Azure AD Privileged Identity Management for subscription Owner role"
+  long_term:
+    - "Implement management group hierarchy with inherited deny policies"
+    - "Deploy Azure Policy to prevent Owner role assignments at subscription scope"
+    - "Require multi-party approval for Owner role activation via PIM"
+    - "Quarterly access reviews for all subscription-level role assignments"
+    - "Use Azure Lighthouse for delegated administration instead of direct Owner access"
+    - "Implement break-glass account procedures with monitoring and alerting"
+
+variables:
+  subscription_id: "[TARGET_SUBSCRIPTION_ID]"
+  target_principal_id: "[TARGET_PRINCIPAL_OBJECT_ID]"
+  resource_group: "[RESOURCE_GROUP_NAME]"
+
+assessment_questions:
+  - "How many principals have Owner role at subscription scope?"
+  - "Are there service principals with subscription Owner access?"
+  - "Do any custom roles grant wildcard (*) permissions?"
+  - "Are there inherited permissions from management groups creating unintended access?"
+  - "Is PIM enforced for Owner and User Access Administrator roles?"
+
+references:
+  - url: "https://docs.microsoft.com/en-us/azure/role-based-access-control/overview"
+    title: "Azure RBAC Overview"
+  - url: "https://docs.microsoft.com/en-us/azure/role-based-access-control/custom-roles"
+    title: "Azure Custom Roles"
+  - url: "https://docs.microsoft.com/en-us/azure/active-directory/privileged-identity-management/pim-resource-roles-assign-roles"
+    title: "Assign Azure Resource Roles in PIM"

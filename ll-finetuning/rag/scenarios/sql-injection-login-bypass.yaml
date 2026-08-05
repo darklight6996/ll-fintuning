@@ -1,0 +1,95 @@
+# Category: SQL Injection
+name: "SQL injection vulnerability allowing login bypass"
+id: "sql-injection-login-bypass-001"
+category: "sql_injection"
+subcategory: "authentication_bypass"
+difficulty: "apprentice"
+estimated_time: "30 minutes"
+
+description: |
+  This lab contains a SQL injection vulnerability in the login functionality.
+  The application uses a SQL query like:
+  `SELECT * FROM users WHERE username = 'user' AND password = 'pass'`
+  By injecting a payload into the username or password field, an attacker
+  can bypass authentication and log in as any user, including the administrator.
+
+learning_objectives:
+  - Understand SQL injection in authentication contexts
+  - Bypass login using `OR 1=1` or `--` comments
+  - Gain unauthorized access to the application
+
+tools:
+  - Burp Suite
+  - curl
+  - Web browser
+
+prerequisites:
+  - Basic understanding of SQL syntax
+  - Access to the lab environment
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify the login form"
+    commands:
+      - "# Navigate to the login page"
+      - "# Intercept the login POST request"
+    expected_output: "The request contains username and password parameters"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Inject SQL payload to bypass authentication"
+    commands:
+      - "# Use username: administrator'--"
+      - "# And any password"
+      - "# Or use: username: admin' OR 1=1--"
+    expected_output: "Successful login as administrator"
+    detection: "Web server logs may show unusual login attempts"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Access administrative functionality"
+    commands:
+      - "# After login, access the admin panel"
+    expected_output: "Access to sensitive administrative functions"
+    detection: "Audit logs may show unauthorized access"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "SQL keywords in login parameters"
+  log_indicators:
+    - "Database error messages"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use parameterized queries for authentication"
+    - "Implement strong password policies"
+  long_term:
+    - "Use multi-factor authentication"
+    - "Implement account lockout after failed attempts"
+
+variables:
+  lab_url: "https://lab-id.web-security-academy.net"
+  login_endpoint: "/login"
+
+assessment_questions:
+  - "What does the `--` comment do in SQL?"
+  - "Why does `OR 1=1` bypass authentication?"
+  - "What is the difference between a login bypass and a data extraction attack?"
+
+references:
+  - url: "https://portswigger.net/web-security/sql-injection"
+    title: "PortSwigger SQL Injection"
+  - url: "https://owasp.org/www-community/attacks/SQL_Injection"
+    title: "OWASP SQL Injection"

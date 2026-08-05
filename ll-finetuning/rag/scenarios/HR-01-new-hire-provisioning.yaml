@@ -1,0 +1,154 @@
+name: "New Hire Provisioning Audit"
+id: "HR-01"
+category: "HR & Identity Lifecycle"
+subcategory: "Process Verification"
+difficulty: "beginner"
+estimated_time: "30"
+
+tags:
+  - hr
+  - identity-lifecycle
+  - onboarding
+  - provisioning
+  - access-management
+  - itsm
+  - servicenow
+  - jira
+  - hris
+  - workday
+  - soc2
+  - cc6.1
+  - cc1.4
+  - compliance
+  - process-audit
+  - rbac
+
+description: |
+  Verify that new employee access provisioning follows documented approval
+  workflows and that access is granted only after proper authorization.
+  Maps to SOC 2 CC6.1 (Logical Access).
+
+learning_objectives:
+  - Verify new hire access requests have approved tickets
+  - Confirm access provisioning occurs after start date, not before
+  - Validate role-based access templates are used consistently
+  - Check for excessive initial access grants
+  - Document evidence for SOC 2 Type II audit
+
+tools:
+  - "ITSM platform (ServiceNow, Jira, Remedy)"
+  - "Azure AD / Identity Management System"
+  - "HRIS (Workday, BambooHR, ADP)"
+  - "Excel / PowerBI for analysis"
+
+prerequisites:
+  - "Read access to ITSM ticketing system"
+  - "Read access to identity management platform"
+  - "Read access to HRIS system"
+  - "Sampling methodology for audit testing"
+
+steps:
+  - id: "step1"
+    phase: "enumeration"
+    action: "Select sample of new hires from past 12 months"
+    commands:
+      - "# From HRIS, export new hires with start dates"
+      - "SELECT employee_id, first_name, last_name, email, department, job_title, hire_date, manager_id FROM employees WHERE hire_date >= DATE_SUB(NOW(), INTERVAL 12 MONTH)"
+      - "# Export to CSV for analysis"
+    expected_output: "Sample of 25-50 new hires with hire dates and job details"
+    detection: "N/A - audit data extraction"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Correlate ITSM tickets with new hire records"
+    commands:
+      - "# From ITSM, search for provisioning tickets by employee name/email"
+      - "SELECT ticket_id, employee_email, request_type, status, created_date, approved_date, provisioned_date FROM access_requests WHERE created_date >= DATE_SUB(NOW(), INTERVAL 12 MONTH) AND request_type LIKE '%new hire%'"
+      - "# Match tickets to HRIS records"
+    expected_output: "Matched list of new hires with their provisioning tickets and approval dates"
+    detection: "N/A - audit data correlation"
+
+  - id: "step3"
+    phase: "verification"
+    action: "Verify approval exists before provisioning"
+    commands:
+      - "# Check that approved_date < provisioned_date for all records"
+      - "# Flag any cases where provisioned_date is NULL or < approved_date"
+      - "SELECT * FROM access_requests WHERE provisioned_date < approved_date OR approved_date IS NULL"
+    expected_output: "List of exceptions where provisioning occurred without approval or before approval"
+    detection: "N/A - audit exception identification"
+
+  - id: "step4"
+    phase: "verification"
+    action: "Verify access granted matches role template"
+    commands:
+      - "# Compare granted access to standard role template for job title"
+      - "SELECT ar.employee_email, ar.granted_roles, rt.standard_roles FROM access_requests ar JOIN role_templates rt ON ar.job_title = rt.job_title WHERE ar.granted_roles != rt.standard_roles"
+    expected_output: "Exceptions where new hire received non-standard or excessive access"
+    detection: "N/A - audit exception identification"
+
+  - id: "step5"
+    phase: "verification"
+    action: "Check for pre-start-date access provisioning"
+    commands:
+      - "# Compare provisioned_date to hire_date from HRIS"
+      - "SELECT e.employee_id, e.first_name, e.last_name, e.hire_date, ar.provisioned_date, DATEDIFF(ar.provisioned_date, e.hire_date) as days_before_start FROM employees e JOIN access_requests ar ON e.email = ar.employee_email WHERE ar.provisioned_date < e.hire_date"
+    expected_output: "List of new hires provisioned before their official start date"
+    detection: "N/A - audit exception identification"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Generate audit evidence package"
+    commands:
+      - "# Create evidence file with test results"
+      - "SampleSize: 50; ApprovedBeforeProvisioned: 48; Exceptions: 2; PreStartProvisioning: 1; NonStandardAccess: 3; PassRate: 90%"
+      - "# Export to JSON for SOC 2 evidence"
+    expected_output: "Audit evidence document with sample size, exceptions, and pass/fail metrics"
+    detection: "N/A - audit reporting"
+
+compliance_controls:
+  - standard: "SOC 2"
+    control: "CC6.1"
+    description: "Logical access controls - verify access granted only after approval"
+  - standard: "SOC 2"
+    control: "CC1.4"
+    description: "COSO - establish authority and responsibility for access decisions"
+  - standard: "NIST 800-53"
+    control: "AC-2"
+    description: "Account Management - automated provisioning with approval workflow"
+
+detection:
+  network_indicators:
+    - "N/A - process audit"
+  log_indicators:
+    - "ITSM ticket creation without corresponding approval workflow"
+    - "Identity management logs showing access grants before approval timestamps"
+  endpoint_indicators:
+    - "N/A - process audit"
+
+remediation:
+  immediate:
+    - "Document all exceptions found during audit"
+    - "Require manager approval before any access provisioning"
+    - "Implement system-enforced workflow preventing pre-approval provisioning"
+  long_term:
+    - "Automate provisioning via ITSM integration with identity platform"
+    - "Implement role-based access control (RBAC) templates for each job function"
+    - "Require secondary approval for privileged access during onboarding"
+    - "Quarterly review of provisioning exceptions and trends"
+
+variables:
+  sample_size: "[AUDIT_SAMPLE_SIZE]"
+  date_range_start: "[AUDIT_PERIOD_START]"
+  date_range_end: "[AUDIT_PERIOD_END]"
+
+assessment_questions:
+  - "What percentage of new hires had approved tickets before access provisioning?"
+  - "Were any new hires provisioned before their start date?"
+  - "Did any new hires receive access beyond their role template?"
+  - "Is the provisioning process automated or manual?"
+  - "Are there documented role-based access templates for each job function?"
+
+references:
+  - url: "https://www.aicpa.org/content/dam/aicpa/interestareas/frc/assuranceadvisoryservices/downloadabledocuments/trust-services-criteria.pdf"
+    title: "AICPA Trust Services Criteria"

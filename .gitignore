@@ -1,14 +1,41 @@
-# Virtual environments
+# Virtual environments & IDE
 .venv/
 venv/
 env/
+ENV/
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Python cache
+# Python cache & build artifacts
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+build/
+dist/
+*.egg-info/
 
-# Editor
-.vscode/
-
-# OS files
+# OS metadata
 .DS_Store
+Thumbs.db
+
+# RAG indexes & vector databases (re-buildable locally via scripts)
+faiss_index/
+yaml_index/
+*.index
+*.pkl
+sessions.db
+*.db
+
+# Fine-tuning model outputs, adapters, and checkpoints
+lora-output*/
+lora-adapters*/
+checkpoint-*/
+results/
+models/
+
+# Dataset & environment overrides (if sensitive/large)
+.env

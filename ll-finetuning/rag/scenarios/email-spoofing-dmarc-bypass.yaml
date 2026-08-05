@@ -1,0 +1,94 @@
+# Category: Email Security
+name: "Email Spoofing – DMARC Bypass via Subdomain Misconfiguration"
+id: "email-dmarc-bypass-001"
+category: "email_security"
+subcategory: "spoofing"
+difficulty: "intermediate"
+estimated_time: "50 minutes"
+
+description: |
+  Identify subdomains that lack DMARC policies (or have p=none) and use them
+  to spoof emails from the main domain. This bypasses DMARC protection if the
+  parent domain's policy is strict but subdomains are unprotected.
+
+learning_objectives:
+  - Understand DMARC, SPF, DKIM
+  - Enumerate subdomains using OSINT
+  - Test subdomain's DMARC policy with tools
+  - Send spoofed emails from vulnerable subdomains
+
+tools:
+  - dig (for DMARC record lookup)
+  - dmarc-check (Python)
+  - email-tester
+  - swaks (for sending)
+
+prerequisites:
+  - Target domain with DMARC policy on main domain, but subdomains loose
+  - Ability to send emails (e.g., using an SMTP relay)
+
+steps:
+  - id: "step1"
+    phase: "enumeration"
+    action: "Find subdomains and check their DMARC records"
+    commands:
+      - "# Use subfinder to enumerate"
+      - "subfinder -d example.com"
+      - "# For each, query _dmarc subdomain"
+      - "dig _dmarc.subdomain.example.com TXT"
+    expected_output: "List of subdomains with DMARC policies"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Send spoofed email from a vulnerable subdomain"
+    commands:
+      - "# Using swaks"
+      - "swaks --to victim@example.com --from spoofed@vulnerable.example.com --body '...'"
+    expected_output: "Email delivered; DMARC may not block if p=none or absent"
+    detection: "Email gateway may flag if SPF/DKIM fail"
+
+  - id: "step3"
+    phase: "impact"
+    action: "Use spoofed email for phishing"
+    expected_output: "User may trust email and click malicious link"
+    detection: "User reports phishing"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1566"
+    description: "Phishing"
+  - standard: "NIST SP 800-53"
+    control: "SI-4"
+    description: "Monitoring"
+
+detection:
+  network_indicators:
+    - "Emails from subdomains with no SPF/DMARC"
+  log_indicators:
+    - "Mail server logs showing fail of SPF/DKIM"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Set DMARC policy to p=reject on all subdomains"
+    - "Use strict SPF records for all subdomains"
+  long_term:
+    - "Implement MTA-STS for enhanced security"
+    - "Monitor DMARC reports for anomalies"
+
+variables:
+  target_domain: "example.com"
+  vulnerable_subdomain: "dev.example.com"
+
+assessment_questions:
+  - "What is the purpose of DMARC's p=reject vs p=none?"
+  - "How can you find subdomains missing DMARC?"
+  - "Why would a subdomain be vulnerable even if the parent is protected?"
+
+references:
+  - url: "https://dmarc.org/"
+    title: "DMARC Organization"
+  - url: "https://www.uriports.com/blog/dmarc-guide/"
+    title: "DMARC Guide"

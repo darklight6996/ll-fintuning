@@ -1,0 +1,188 @@
+name: "Conditional Access Policy Bypass"
+id: "AZ-07"
+category: "Cloud Security"
+subcategory: "Azure / Cloud Security"
+difficulty: "advanced"
+estimated_time: "55"
+
+tags:
+  - azure
+  - azure-ad
+  - conditional-access
+  - mfa
+  - mfa-bypass
+  - legacy-auth
+  - ropc
+  - token-tactics
+  - device-compliance
+  - trusted-location
+  - soc2
+  - cc6.1
+  - cc7.1
+  - compliance
+  - authentication
+
+description: |
+  Test Azure AD Conditional Access policies for bypass opportunities including
+  legacy authentication, trusted location abuse, device compliance gaps, and
+  MFA enforcement weaknesses. Maps to SOC 2 CC6.1 (Logical Access).
+
+learning_objectives:
+  - Enumerate all Conditional Access policies and their conditions
+  - Identify policies with weak or missing MFA requirements
+  - Test legacy authentication bypass paths
+  - Assess trusted location/IP-based policy bypass risks
+  - Verify device compliance and hybrid join requirements
+
+tools:
+  - "Microsoft Graph PowerShell"
+  - "Azure CLI"
+  - "TokenTactics"
+  - "ROADtools"
+  - "PowerShell"
+  - "Burp Suite"
+
+prerequisites:
+  - "Azure AD account with standard user privileges"
+  - "Microsoft.Graph PowerShell module with Policy.Read.All"
+  - "Understanding of Conditional Access policy structure"
+  - "Ability to test from different network locations"
+
+steps:
+  - id: "step1"
+    phase: "enumeration"
+    action: "Enumerate all Conditional Access policies and their configurations"
+    commands:
+      - "Get-MgIdentityConditionalAccessPolicy -All | Select-Object DisplayName, State, @{N='UsersIncluded';E={($_.Conditions.Users.IncludeUsers | Measure-Object).Count}}, @{N='UsersExcluded';E={($_.Conditions.Users.ExcludeUsers | Measure-Object).Count}}, @{N='AppsIncluded';E={($_.Conditions.Applications.IncludeApplications | Measure-Object).Count}}, @{N='LocationsIncluded';E={($_.Conditions.Locations.IncludeLocations | Measure-Object).Count}}, @{N='ClientApps';E={($_.Conditions.ClientAppTypes) -join ','}}, @{N='GrantControls';E={($_.GrantControls.BuiltInControls) -join ','}}, @{N='SessionControls';E={$_.SessionControls.SignInFrequency.Value}} | Export-Csv -Path 'ca_policies.csv' -NoTypeInformation"
+      - "Get-MgIdentityConditionalAccessNamedLocation -All | Select-Object DisplayName, @{N='Type';E={$_.AdditionalProperties['@odata.type']}}, @{N='IPRanges';E={($_.AdditionalProperties['ipRanges'] | ForEach-Object { $_.ipAddress }) -join ','}}, @{N='Countries';E={($_.AdditionalProperties['countriesAndRegions']) -join ','}}, @{N='Trusted';E={$_.AdditionalProperties['isTrusted']}} | Export-Csv -Path 'ca_locations.csv' -NoTypeInformation"
+    expected_output: "All CA policies with included/excluded users, apps, locations, and grant controls"
+    detection: "Policy.Read.All API calls; Conditional Access policy enumeration"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Identify policies with weak or missing MFA requirements"
+    commands:
+      - "Get-MgIdentityConditionalAccessPolicy -All | Where-Object { $_.State -eq 'enabled' -and ($_.GrantControls.BuiltInControls -notcontains 'mfa' -and $_.GrantControls.BuiltInControls -notcontains 'passwordChange') } | Select-Object DisplayName, @{N='GrantControls';E={($_.GrantControls.BuiltInControls) -join ','}}, @{N='Apps';E={($_.Conditions.Applications.IncludeApplications) -join ','}} | Export-Csv -Path 'ca_no_mfa.csv' -NoTypeInformation"
+      - "# Check for policies that exclude specific users from MFA"
+      - "Get-MgIdentityConditionalAccessPolicy -All | Where-Object { $_.Conditions.Users.ExcludeUsers.Count -gt 0 -and $_.GrantControls.BuiltInControls -contains 'mfa' } | Select-Object DisplayName, @{N='ExcludedUsers';E={($_.Conditions.Users.ExcludeUsers | ForEach-Object { (Get-MgUser -UserId $_).UserPrincipalName }) -join ','}}, @{N='ExcludedGroups';E={($_.Conditions.Users.ExcludeGroups | ForEach-Object { (Get-MgGroup -GroupId $_).DisplayName }) -join ','}} | Export-Csv -Path 'ca_mfa_exclusions.csv' -NoTypeInformation"
+    expected_output: "Policies without MFA and policies with MFA exclusions (break-glass, service accounts, etc.)"
+    detection: "Bulk user/group resolution for excluded principals"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Test legacy authentication bypass against MFA policies"
+    commands:
+      - "# Attempt ROPC flow which bypasses Conditional Access"
+      - "curl -X POST 'https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token' -H 'Content-Type: application/x-www-form-urlencoded' -d 'client_id={client_id}&scope=https://graph.microsoft.com/.default&username={username}&password={password}&grant_type=password'"
+      - "# If successful, test IMAP/SMTP basic auth (if enabled)"
+      - "# Requires specific client_id for Exchange Online"
+      - "curl -X POST 'https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token' -d 'client_id=d3590ed6-52b3-4102-aeff-aad2292ab01c&scope=https://outlook.office365.com/IMAP.AccessAsUser.All&username={username}&password={password}&grant_type=password'"
+    expected_output: "Valid access token obtained without MFA challenge, confirming CA bypass via legacy auth"
+    detection: "Legacy authentication sign-ins in Azure AD logs; ROPC grant type usage"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Test trusted location bypass from non-trusted network"
+    commands:
+      - "# Attempt sign-in from VPN/non-corporate IP and check if CA blocks"
+      - "Connect-MgGraph -Scopes 'User.Read' -TenantId {tenant_id}"
+      - "# Review sign-in logs for CA evaluation results"
+      - "Get-MgAuditLogSignIn -Filter "userPrincipalName eq '{username}'" -Top 10 | Select-Object CreatedDateTime, AppDisplayName, IpAddress, @{N='CAResult';E={$_.ConditionalAccessStatus}}, @{N='CAPolicies';E={($_.AppliedConditionalAccessPolicies | ForEach-Object { $_.DisplayName + ':' + $_.Result }) -join ';'}} | Format-Table -AutoSize"
+    expected_output: "Sign-in logs showing CA policy evaluation results (success/failure/notApplied)"
+    detection: "Sign-in from new IP addresses; CA policy evaluation logging"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Test device compliance bypass via browser vs native app"
+    commands:
+      - "# Check if CA requires device compliance for browser but not for mobile apps"
+      - "# Attempt sign-in via browser (should require compliant device)"
+      - "# Attempt sign-in via mobile app or IMAP (may bypass device compliance)"
+      - "Get-MgIdentityConditionalAccessPolicy -All | Where-Object { $_.Conditions.ClientAppTypes -contains 'browser' -and $_.GrantControls.BuiltInControls -contains 'compliantDevice' } | Select-Object DisplayName, @{N='ClientAppTypes';E={($_.Conditions.ClientAppTypes) -join ','}}, @{N='GrantControls';E={($_.GrantControls.BuiltInControls) -join ','}}"
+    expected_output: "Policies requiring device compliance and which client app types they cover"
+    detection: "Device compliance checks in Intune/Endpoint Manager logs"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "Check for token replay and refresh token abuse"
+    commands:
+      - "# Use TokenTactics to test token manipulation"
+      - "Import-Module TokenTactics"
+      - "# Attempt to use refresh token from different device/location"
+      - "# This tests if CA is re-evaluated on token refresh"
+      - "Get-MgAuditLogSignIn -Filter "userPrincipalName eq '{username}' and correlationId eq '{correlation_id}'" | Select-Object CreatedDateTime, IpAddress, Location, @{N='CAResult';E={$_.ConditionalAccessStatus}}"
+    expected_output: "Sign-in logs showing whether CA is re-evaluated on token refresh from new location"
+    detection: "Token refresh from new locations; CA re-evaluation events"
+
+  - id: "step7"
+    phase: "post_exploitation"
+    action: "Generate Conditional Access gap analysis report"
+    commands:
+      - "$report = @{ TotalPolicies=(Import-Csv ca_policies.csv).Count; EnabledPolicies=(Import-Csv ca_policies.csv | Where-Object { $_.State -eq 'enabled' }).Count; PoliciesWithoutMFA=(Import-Csv ca_no_mfa.csv).Count; PoliciesWithExclusions=(Import-Csv ca_mfa_exclusions.csv).Count; LegacyAuthEnabled=$false; TrustedLocationCount=(Import-Csv ca_locations.csv | Where-Object { $_.Trusted -eq 'True' }).Count }; $report | ConvertTo-Json | Out-File 'ca_gap_analysis.json'"
+    expected_output: "ca_gap_analysis.json with quantified CA policy gaps"
+    detection: "N/A - reporting step"
+
+compliance_controls:
+  - standard: "SOC 2"
+    control: "CC6.1"
+    description: "Logical access controls - verify MFA enforcement across all access paths"
+  - standard: "SOC 2"
+    control: "CC7.1"
+    description: "Detection - identify authentication bypass attempts"
+  - standard: "NIST 800-53"
+    control: "IA-2"
+    description: "Identification and Authentication - multi-factor authentication"
+  - standard: "CIS Azure"
+    control: "1.1"
+    description: "Ensure that multi-factor authentication is enabled for all privileged users"
+
+detection:
+  network_indicators:
+    - "Token requests to login.microsoftonline.com with grant_type=password"
+    - "Sign-in attempts from non-trusted IP ranges that succeed without MFA"
+    - "Browser vs mobile app sign-in patterns for same user"
+  log_indicators:
+    - "Azure AD Sign-In Logs: ConditionalAccessStatus = 'failure' or 'notApplied'"
+    - "Audit Logs: CA policy modifications or exclusions"
+    - "Sign-In Logs: Legacy authentication protocol usage (IMAP, POP3, SMTP)"
+  endpoint_indicators:
+    - "PowerShell executing Get-MgIdentityConditionalAccessPolicy"
+    - "curl making ROPC token requests"
+    - "TokenTactics module import and execution"
+
+remediation:
+  immediate:
+    - "Block all legacy authentication via baseline CA policy"
+    - "Remove user exclusions from MFA policies (use break-glass accounts only)"
+    - "Require MFA for all cloud apps, not just selected ones"
+    - "Enable sign-in risk-based policies requiring MFA for medium/high risk"
+    - "Restrict trusted locations to specific corporate IP ranges with VPN enforcement"
+  long_term:
+    - "Implement passwordless authentication (FIDO2, Windows Hello)"
+    - "Deploy continuous access evaluation (CAE) for real-time policy enforcement"
+    - "Require compliant or hybrid Azure AD joined devices for all admin access"
+    - "Implement session controls with sign-in frequency limits (max 4-8 hours)"
+    - "Enable token protection for sensitive applications"
+    - "Quarterly review of CA policies against MITRE ATT&CK T1078 (Valid Accounts)"
+
+variables:
+  tenant_id: "[TARGET_TENANT_ID]"
+  username: "[TEST_USERNAME]"
+  password: "[TEST_PASSWORD]"
+  client_id: "[TEST_CLIENT_ID]"
+  correlation_id: "[SIGN_IN_CORRELATION_ID]"
+
+assessment_questions:
+  - "Are there any CA policies that do not require MFA?"
+  - "Does legacy authentication bypass all CA policies?"
+  - "Are there user/group exclusions from MFA policies that create bypass paths?"
+  - "Is device compliance required for all client app types or only browsers?"
+  - "Are CA policies re-evaluated on token refresh from new locations?"
+
+references:
+  - url: "https://docs.microsoft.com/en-us/azure/active-directory/conditional-access/overview"
+    title: "Azure AD Conditional Access Overview"
+  - url: "https://docs.microsoft.com/en-us/azure/active-directory/conditional-access/howto-conditional-access-policy-block-legacy"
+    title: "Block Legacy Authentication with Conditional Access"
+  - url: "https://github.com/rvrsh3ll/TokenTactics"
+    title: "TokenTactics - Azure AD Token Manipulation Testing"

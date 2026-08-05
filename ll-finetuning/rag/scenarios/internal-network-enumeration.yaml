@@ -1,0 +1,214 @@
+# Category: Network Penetration Testing - Internal Enumeration
+name: "Internal Network Enumeration"
+id: "net-int-enum-001"
+category: "network_penetration_testing"
+subcategory: "internal_recon"
+difficulty: "beginner"
+estimated_time: "60"
+
+tags:
+  - network
+  - enumeration
+  - internal
+  - nmap
+  - smb
+  - ldap
+  - snmp
+  - netbios
+  - responder
+  - crackmapexec
+  - offensivesecurity
+  - redteam
+  - mitre-t1046
+  - mitre-t1135
+  - pci-dss
+  - nist-800-53
+
+description: |
+  Enumerate internal network hosts, services, shares, and domain information
+  from an initial foothold. Covers host discovery, port scanning, SMB/LDAP
+  enumeration, and SNMP community string testing.
+
+learning_objectives:
+  - Discover live hosts and open services on internal network segments
+  - Enumerate SMB shares, users, and domain information
+  - Test SNMP community strings for information disclosure
+  - Map internal attack surface for further exploitation
+
+tools:
+  - "nmap"
+  - "crackmapexec"
+  - "enum4linux-ng"
+  - "ldapsearch"
+  - "onesixtyone"
+  - "snmpwalk"
+  - "netdiscover"
+
+prerequisites:
+  - "Initial foothold on internal network (shell or VPN)"
+  - "Low-privilege domain or local account"
+  - "Written authorization from target owner"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Discover live hosts on internal network segments"
+    commands:
+      - "# ARP-based host discovery (Layer 2)"
+      - "netdiscover -r [internal_cidr] -P -N"
+      - "arp-scan --localnet"
+      - "# Nmap ping sweep"
+      - "nmap -sn [internal_cidr] -oG /tmp/live_hosts.txt"
+      - "grep 'Up' /tmp/live_hosts.txt | awk '{print $2}' > /tmp/hosts.txt"
+      - "# ICMP + TCP ping sweep"
+      - "nmap -sn -PE -PP -PS21,22,23,25,80,443,445,3389 [internal_cidr] -oG /tmp/sweep.txt"
+    expected_output: "List of live internal hosts with IP addresses"
+    detection: "ARP flood from single source; ICMP sweep in IDS logs"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Port scan live hosts for common internal services"
+    commands:
+      - "# Fast scan common ports"
+      - "nmap -sV -p21,22,23,25,53,80,88,135,139,389,443,445,636,1433,3306,3389,5985,5986,8080,8443 -iL /tmp/hosts.txt -oA /tmp/nmap_internal"
+      - "# Full port scan on key targets"
+      - "nmap -sV -p- --min-rate 1000 [target_ip] -oA /tmp/nmap_full_[target_ip]"
+      - "# OS detection on live hosts"
+      - "nmap -O --osscan-guess -iL /tmp/hosts.txt -oN /tmp/os_detect.txt"
+    expected_output: "Open ports, service versions, and OS fingerprints for all live hosts"
+    detection: "Port scan signatures in IDS/IPS; high SYN rate in firewall logs"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "SMB enumeration — shares, users, and domain info"
+    commands:
+      - "# Null session enumeration"
+      - "crackmapexec smb [internal_cidr] --shares"
+      - "crackmapexec smb [internal_cidr] -u '' -p '' --shares"
+      - "crackmapexec smb [internal_cidr] -u 'guest' -p '' --shares"
+      - "# With credentials"
+      - "crackmapexec smb [internal_cidr] -u [username] -p [password] --shares --sessions --loggedon-users --users --groups"
+      - "# Enum4linux-ng for comprehensive SMB/NetBIOS enum"
+      - "enum4linux-ng -A [target_ip] -u [username] -p [password]"
+      - "# List share contents"
+      - "smbclient -L //[target_ip]/ -U '[username]%[password]'"
+      - "smbclient //[target_ip]/[share_name] -U '[username]%[password]' -c 'ls'"
+    expected_output: "Share list, user accounts, group memberships, and domain information"
+    detection: "Multiple SMB auth attempts from single source; null session connections in logs"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "LDAP enumeration of Active Directory"
+    commands:
+      - "# Anonymous LDAP bind check"
+      - "ldapsearch -H ldap://[dc_ip] -x -b '' -s base"
+      - "# Enumerate domain root"
+      - "ldapsearch -H ldap://[dc_ip] -x -D '[username]@[domain]' -w '[password]' -b 'DC=[dc1],DC=[dc2]' '(objectclass=*)' | head -100"
+      - "# Enumerate all users"
+      - "ldapsearch -H ldap://[dc_ip] -x -D '[username]@[domain]' -w '[password]' -b 'DC=[dc1],DC=[dc2]' '(objectclass=user)' sAMAccountName description memberOf"
+      - "# Enumerate all groups"
+      - "ldapsearch -H ldap://[dc_ip] -x -D '[username]@[domain]' -w '[password]' -b 'DC=[dc1],DC=[dc2]' '(objectclass=group)' cn member"
+      - "# Find admin accounts"
+      - "ldapsearch -H ldap://[dc_ip] -x -D '[username]@[domain]' -w '[password]' -b 'DC=[dc1],DC=[dc2]' '(&(objectclass=user)(adminCount=1))' sAMAccountName"
+    expected_output: "AD user accounts, groups, OUs, and privileged account listing"
+    detection: "LDAP queries against DC from non-standard source; enumeration query patterns"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "SNMP enumeration for network devices and servers"
+    commands:
+      - "# Test common community strings"
+      - "onesixtyone -c /usr/share/seclists/Discovery/SNMP/snmp.txt [internal_cidr]"
+      - "# Full SNMP walk with 'public'"
+      - "snmpwalk -v2c -c public [target_ip]"
+      - "# Get specific OIDs"
+      - "snmpget -v2c -c public [target_ip] sysDescr.0"
+      - "snmpwalk -v2c -c public [target_ip] hrSWInstalledName"
+      - "snmpwalk -v2c -c public [target_ip] 1.3.6.1.2.1.25.4.2.1.2"
+      - "# SNMP user enumeration (if SNMPv3)"
+      - "nmap -sU -p161 --script=snmp-brute [target_ip]"
+      - "nmap -sU -p161 --script=snmp-info,snmp-interfaces,snmp-processes [target_ip]"
+    expected_output: "Device descriptions, installed software, running processes via SNMP"
+    detection: "SNMP community string brute-force attempts in network device logs"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "NetBIOS and WINS enumeration"
+    commands:
+      - "# NetBIOS name table scan"
+      - "nmap -sU -p137 --script=nbstat [internal_cidr]"
+      - "nmblookup -A [target_ip]"
+      - "# NetBIOS name resolution"
+      - "nbtscan -r [internal_cidr]"
+      - "# Check for WINS server"
+      - "nmap -sU -p42 [internal_cidr] --open"
+    expected_output: "NetBIOS names, MAC addresses, and workgroup/domain membership"
+    detection: "NetBIOS scan from non-domain workstation; nbtscan traffic in IDS"
+
+compliance_controls:
+  - standard: "NIST 800-53 Rev5"
+    control: "CA-8"
+    description: "Penetration testing — internal network assessment"
+  - standard: "PCI DSS v4.0"
+    control: "11.4.1"
+    description: "Penetration testing methodology includes internal network testing"
+  - standard: "CIS Controls v8"
+    control: "18.1"
+    description: "Establish and maintain a penetration testing program"
+  - standard: "ISO 27001:2022"
+    control: "A.8.8"
+    description: "Management of technical vulnerabilities"
+
+detection:
+  network_indicators:
+    - "Sequential port scans from single internal IP"
+    - "High-volume SMB authentication attempts"
+    - "LDAP enumeration queries from non-DC source"
+    - "SNMP community string brute force attempts"
+  log_indicators:
+    - "IDS alerts for internal port sweep"
+    - "Windows Event ID 4625: failed logon attempts during null session testing"
+    - "LDAP query volume anomaly from workstation"
+  endpoint_indicators:
+    - "Nmap/crackmapexec execution artifacts on pivot host"
+    - "Enum4linux output files in temp directories"
+
+remediation:
+  immediate:
+    - "Disable SMB null sessions via registry: RestrictNullSessAccess=1"
+    - "Disable anonymous LDAP bind on domain controllers"
+    - "Change default SNMP community strings (public/private)"
+    - "Block SNMP (UDP 161) at internal firewall between segments"
+  long_term:
+    - "Implement network segmentation — workstations should not reach DCs directly"
+    - "Deploy network IDS/IPS with internal scan detection rules"
+    - "Restrict LDAP access to authorized management stations"
+    - "Upgrade SNMP to v3 with authentication and encryption"
+
+variables:
+  internal_cidr: "192.168.1.0/24"
+  target_ip: "192.168.1.10"
+  dc_ip: "192.168.1.5"
+  domain: "corp.example.com"
+  dc1: "corp"
+  dc2: "example"
+  username: "jsmith"
+  password: "Password123"
+  share_name: "SYSVOL"
+
+assessment_questions:
+  - "What is the risk of SNMP v1/v2c community strings being guessable?"
+  - "Why are null SMB sessions a security concern in modern Windows environments?"
+  - "How does anonymous LDAP bind expose Active Directory data?"
+  - "What network segmentation control prevents lateral movement after initial compromise?"
+  - "How does NetBIOS name scanning help an attacker identify high-value targets?"
+
+references:
+  - url: "https://github.com/cddmp/enum4linux-ng"
+    title: "Enum4linux-ng"
+  - url: "https://github.com/byt3bl33d3r/CrackMapExec"
+    title: "CrackMapExec"
+  - url: "https://nmap.org/nsedoc/scripts/"
+    title: "Nmap NSE Scripts"
+  - url: "https://book.hacktricks.xyz/network-services-pentesting/pentesting-ldap"
+    title: "HackTricks LDAP Enumeration"

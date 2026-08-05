@@ -1,0 +1,101 @@
+# Category: Cloud Security - GCP
+name: "GCP Cloud Functions Enumeration and Exploitation"
+id: "cloud-gcp-functions-001"
+category: "cloud_security"
+subcategory: "gcp"
+difficulty: "intermediate"
+estimated_time: "45 minutes"
+
+description: |
+  Enumerate GCP Cloud Functions to discover publicly accessible endpoints
+  and function configuration. Attackers can identify functions that handle
+  sensitive data, invoke them with malicious payloads, or read source code
+  if not properly secured.
+
+learning_objectives:
+  - Understand GCP Cloud Functions architecture
+  - List functions using `gcloud` and REST API
+  - Invoke functions with crafted JSON to cause side effects
+  - Access function logs to glean information
+
+tools:
+  - gcloud CLI
+  - curl
+  - jq
+
+prerequisites:
+  - GCP project access (viewer role or higher)
+  - Function may have public HTTP trigger
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "List Cloud Functions in project"
+    commands:
+      - "# List functions"
+      - "gcloud functions list --project=<PROJECT_ID>"
+      - "# Get details of a specific function"
+      - "gcloud functions describe <FUNCTION_NAME> --project=<PROJECT_ID>"
+      - "# Check its trigger (HTTP, Pub/Sub, etc.)"
+    expected_output: "List of functions with trigger URLs"
+    detection: "Cloud Audit Logs: `cloudfunctions.functions.list`"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Invoke HTTP‑triggered function with malicious payload"
+    commands:
+      - "# If function has HTTP trigger, use curl"
+      - "curl -X POST https://<REGION>-<PROJECT>.cloudfunctions.net/<FUNCTION> -H 'Content-Type: application/json' -d '{\"input\": \"malicious\"}'"
+      - "# Look for error messages revealing logic or env vars"
+    expected_output: "Error messages or unexpected behavior revealing sensitive info"
+    detection: "Function logs showing invocation with malformed input"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Access function logs via Stackdriver"
+    commands:
+      - "# Read logs for the function"
+      - "gcloud functions logs read <FUNCTION_NAME> --project=<PROJECT_ID>"
+      - "# Look for environment variables, errors, or data passed"
+    expected_output: "Logs containing credentials or business logic"
+    detection: "Cloud Audit Logs: `logging.logEntries.list`"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1526"
+    description: "Cloud Service Discovery"
+  - standard: "CIS GCP Foundations"
+    control: "3.2"
+    description: "Ensure Cloud Functions are not publicly accessible"
+
+detection:
+  network_indicators:
+    - "Requests to cloudfunctions.net from suspicious IPs"
+  log_indicators:
+    - "Function logs showing high error rates"
+  endpoint_indicators:
+    - "gcloud functions commands"
+
+remediation:
+  immediate:
+    - "Use IAM to restrict who can invoke functions"
+    - "Validate all input in function code"
+  long_term:
+    - "Use secret management for credentials"
+    - "Enable VPC Serverless access to protect functions"
+
+variables:
+  project_id: "my-gcp-project"
+  function_name: "hello-world"
+  region: "us-central1"
+
+assessment_questions:
+  - "What are the main triggers for GCP Cloud Functions?"
+  - "How can you restrict access to an HTTP‑triggered function?"
+  - "Why is logging important for both attackers and defenders?"
+
+references:
+  - url: "https://cloud.google.com/functions/docs"
+    title: "Cloud Functions Documentation"
+  - url: "https://cloud.google.com/functions/docs/security"
+    title: "Security in Cloud Functions"

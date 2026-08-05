@@ -1,0 +1,103 @@
+# Category: Intelligence Gathering
+name: "Geolocation OSINT – Tracking Physical Locations from Images and Data"
+id: "osint-geolocation-001"
+category: "osint"
+subcategory: "geolocation"
+difficulty: "intermediate"
+estimated_time: "75 minutes"
+
+description: |
+  Extract geolocation information from publicly available data, primarily
+  EXIF metadata from photos, check‑in data, and street view imagery. This
+  technique helps pinpoint the physical location of a target or an
+  organization's facility, which can aid in physical penetration testing
+  or social engineering.
+
+learning_objectives:
+  - Understand EXIF metadata (GPS coordinates, camera model, timestamp)
+  - Use tools like exiftool to extract GPS data from images
+  - Correlate coordinates with maps (Google Maps, OpenStreetMap)
+  - Perform reverse image search to find locations of landmarks
+
+tools:
+  - exiftool
+  - Metagoofil
+  - Google Maps/Street View
+  - GeoInt tools (PictureThis, GeoGuessr)
+  - Python (PIL, pillow)
+
+prerequisites:
+  - Images from the target (e.g., from social media, company website)
+  - Internet access for mapping APIs
+
+steps:
+  - id: "step1"
+    phase: "image_acquisition"
+    action: "Collect images from target sources"
+    commands:
+      - "# Download images from company website or social media"
+      - "wget -r -A .jpg,.png https://example.com/media"
+      - "# Or use Metagoofil to scrape documents"
+    expected_output: "Set of images to analyze"
+    detection: "None (passive)"
+
+  - id: "step2"
+    phase: "metadata_extraction"
+    action: "Extract GPS coordinates using exiftool"
+    commands:
+      - "# Extract all metadata"
+      - "exiftool image.jpg"
+      - "# Specifically filter for GPS"
+      - "exiftool image.jpg -GPS*"
+      - "# If coordinates exist, note them"
+    expected_output: "GPS Latitude and Longitude, timestamp, and camera info"
+    detection: "None"
+
+  - id: "step3"
+    phase: "mapping"
+    action: "Map coordinates to physical location"
+    commands:
+      - "# Open Google Maps with coordinates"
+      - "# Or use OpenStreetMap"
+      - "curl 'https://nominatim.openstreetmap.org/reverse?lat=40.123&lon=-74.456&format=json'"
+    expected_output: "Street address and building name"
+    detection: "N/A"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1591"
+    description: "Gather Victim Org Information (physical location)"
+  - standard: "NIST SP 800-53"
+    control: "PE-6"
+    description: "Monitoring Physical Access"
+
+detection:
+  network_indicators:
+    - "Metadata download from public sources"
+  log_indicators:
+    - "None"
+  endpoint_indicators:
+    - "exiftool, Metagoofil executions"
+
+remediation:
+  immediate:
+    - "Strip EXIF data from images before publishing (use tools like exiftool -all=)"
+    - "Avoid sharing photos taken near sensitive locations"
+  long_term:
+    - "Implement corporate policy to remove metadata from all public images"
+    - "Educate employees on physical OSINT risks"
+
+variables:
+  target_url: "https://example.com/gallery"
+  image_file: "image.jpg"
+
+assessment_questions:
+  - "What other metadata besides GPS can be found in EXIF?"
+  - "How can you geolocate an image without EXIF data?"
+  - "What is the difference between geolocation and reverse geocoding?"
+
+references:
+  - url: "https://exiftool.org/"
+    title: "exiftool – Official Site"
+  - url: "https://www.bellingcat.com/resources/how-tos/geolocation-guide/"
+    title: "Bellingcat Geolocation Guide"

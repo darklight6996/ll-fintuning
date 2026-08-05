@@ -1,0 +1,89 @@
+# Category: Web Security
+name: "HTTP Parameter Pollution – Bypassing Validation and Access Control"
+id: "web-hpp-001"
+category: "offensive_security"
+subcategory: "web_application"
+difficulty: "intermediate"
+estimated_time: "45 minutes"
+
+description: |
+  Exploit HTTP Parameter Pollution (HPP) by sending multiple parameters with
+  the same name to confuse the server-side parsing. This can bypass input
+  validation, access control, or cause unexpected behavior.
+
+learning_objectives:
+  - Understand how different web frameworks handle duplicate parameters
+  - Use Burp Suite to send multiple same-named parameters
+  - Bypass IP-based restrictions or SQL filters
+  - Manipulate business logic
+
+tools:
+  - Burp Suite
+  - curl
+  - Python (requests)
+
+prerequisites:
+  - Web application that uses parameters for authorization or validation
+  - Knowledge of backend language (PHP, Java, Node.js)
+
+steps:
+  - id: "step1"
+    phase: "test"
+    action: "Send request with duplicate parameter"
+    commands:
+      - "curl 'http://target.com/page?param=value1&param=value2'"
+    expected_output: "Different behavior than with single parameter"
+    detection: "None"
+
+  - id: "step2"
+    phase: "bypass"
+    action: "Use HPP to bypass IP whitelist"
+    commands:
+      - "?ip=127.0.0.1&ip=attacker_ip"
+      - "# If backend uses first param, bypass"
+    expected_output: "Access granted"
+    detection: "Logs may show both IPs"
+
+  - id: "step3"
+    phase: "impact"
+    action: "Exploit to perform unauthorized actions"
+    expected_output: "Privilege escalation or data exposure"
+    detection: "Anomalous access"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests with duplicate parameters"
+  log_indicators:
+    - "App logs may show multiple values"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Adopt a consistent parsing strategy (e.g., use last occurrence)"
+    - "Sanitize inputs by checking for duplicates"
+  long_term:
+    - "Use parameter validation in middleware"
+    - "Implement strong input validation on all parameters"
+
+variables:
+  target_url: "http://target.com/page"
+
+assessment_questions:
+  - "How does parameter pollution differ from injection?"
+  - "What are common parsing behaviors in PHP vs Java?"
+  - "How can you prevent HPP?"
+
+references:
+  - url: "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/04-Testing_for_HTTP_Parameter_Pollution"
+    title: "OWASP HPP"
+  - url: "https://portswigger.net/web-security/parameter-pollution"
+    title: "PortSwigger HPP"

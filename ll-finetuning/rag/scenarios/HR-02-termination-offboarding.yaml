@@ -1,0 +1,163 @@
+name: "Termination/Offboarding Verification"
+id: "HR-02"
+category: "HR & Identity Lifecycle"
+subcategory: "Process Verification"
+difficulty: "beginner"
+estimated_time: "45"
+
+tags:
+  - hr
+  - identity-lifecycle
+  - offboarding
+  - termination
+  - access-revocation
+  - zombie-accounts
+  - azure-ad
+  - vpn
+  - email
+  - physical-access
+  - soc2
+  - cc6.2
+  - cc6.1
+  - compliance
+  - process-audit
+
+description: |
+  Critical audit to confirm that terminated employee access is revoked within
+  24 hours of termination. Validates SOC 2 CC6.2 (Prior to Termination)
+  and prevents zombie access.
+
+learning_objectives:
+  - Verify terminated employee access revocation timing
+  - Confirm all access types are disabled (AD, cloud, VPN, email, physical)
+  - Check for orphaned accounts or reactivated access
+  - Validate offboarding ticket completion
+  - Document evidence for SOC 2 Type II
+
+tools:
+  - "HRIS system"
+  - "Azure AD / Active Directory"
+  - "VPN logs"
+  - "Email system (Exchange/Office 365)"
+  - "Physical access system (badging)"
+  - "ITSM platform"
+
+prerequisites:
+  - "Read access to HRIS, AD, and ITSM systems"
+  - "Access to VPN and email logs"
+  - "Physical access system reports"
+  - "Sampling methodology"
+
+steps:
+  - id: "step1"
+    phase: "enumeration"
+    action: "Select sample of terminated employees from past 12 months"
+    commands:
+      - "# From HRIS, export terminations"
+      - "SELECT employee_id, first_name, last_name, email, department, termination_date, termination_type, last_day_worked FROM employees WHERE termination_date >= DATE_SUB(NOW(), INTERVAL 12 MONTH) AND status = 'terminated'"
+    expected_output: "Sample of 25-50 terminated employees with termination dates"
+    detection: "N/A - audit data extraction"
+
+  - id: "step2"
+    phase: "verification"
+    action: "Check Azure AD/Active Directory account status"
+    commands:
+      - "Get-MgUser -All | Where-Object { $_.UserPrincipalName -in @({terminated_emails}) } | Select-Object UserPrincipalName, AccountEnabled, @{N='LastSignIn';E={$_.SignInActivity.LastSignInDateTime}}, @{N='DaysSinceTermination';E={[math]::Round(((Get-Date) - [datetime]{termination_date}).TotalDays,0)}}"
+      - "# Check if any terminated accounts are still enabled"
+      - "Get-ADUser -Filter {EmailAddress -in {terminated_emails}} -Properties AccountExpirationDate,Enabled,LastLogonDate | Select-Object Name,Enabled,LastLogonDate,AccountExpirationDate"
+    expected_output: "Account status for all terminated employees - any still enabled are exceptions"
+    detection: "N/A - audit verification"
+
+  - id: "step3"
+    phase: "verification"
+    action: "Verify access revocation across all systems within 24 hours"
+    commands:
+      - "# Check VPN access logs for post-termination connections"
+      - "SELECT user_id, login_time, logout_time, source_ip FROM vpn_logs WHERE user_id IN ({terminated_user_ids}) AND login_time > {termination_date} + INTERVAL 24 HOUR"
+      - "# Check email access after termination"
+      - "Get-Mailbox -Identity {terminated_email} | Get-MailboxFolderStatistics | Select-Object FolderPath, ItemsInFolder, @{N='LastAccess';E={$_.LastModified}}"
+      - "# Check for mailbox access after termination date"
+    expected_output: "Any VPN logins, email access, or mailbox activity after termination + 24 hours"
+    detection: "N/A - audit verification"
+
+  - id: "step4"
+    phase: "verification"
+    action: "Check for reactivated or transferred accounts"
+    commands:
+      - "# Search for UPN/email reuse or account reactivation"
+      - "Get-MgAuditLogDirectoryAudit -Filter "activityDisplayName eq 'Update user' and targetResources/any(t: t/userPrincipalName eq '{terminated_email}')" | Select-Object ActivityDateTime, ActivityDisplayName, @{N='ModifiedProperties';E={$_.TargetResources[0].ModifiedProperties | Where-Object { $_.DisplayName -eq 'AccountEnabled' } | ForEach-Object { $_.DisplayName + ':' + $_.OldValue + '->' + $_.NewValue }}}}"
+      - "# Check if disabled accounts were re-enabled"
+    expected_output: "Any audit log entries showing account reactivation after termination"
+    detection: "N/A - audit verification"
+
+  - id: "step5"
+    phase: "verification"
+    action: "Verify offboarding ticket completion"
+    commands:
+      - "# From ITSM, check offboarding ticket status"
+      - "SELECT ticket_id, employee_email, created_date, closed_date, status, checklist_completed FROM offboarding_tickets WHERE employee_email IN ({terminated_emails})"
+      - "# Verify all checklist items completed"
+    expected_output: "Offboarding ticket completion status with any incomplete items"
+    detection: "N/A - audit verification"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Generate offboarding effectiveness report"
+    commands:
+      - "SampleSize: 50; RevokedWithin24H: 47; Revoked24-48H: 2; NotRevoked: 1; PostTermVPNAccess: 0; PostTermEmailAccess: 1; ReactivatedAccounts: 0; PassRate: 94%"
+    expected_output: "Audit evidence with timing metrics and exception documentation"
+    detection: "N/A - audit reporting"
+
+compliance_controls:
+  - standard: "SOC 2"
+    control: "CC6.2"
+    description: "Prior to termination - access removed in a timely manner"
+  - standard: "SOC 2"
+    control: "CC6.1"
+    description: "Logical access controls - complete access revocation"
+  - standard: "NIST 800-53"
+    control: "AC-2(4)"
+    description: "Account Management - automated audit actions"
+
+detection:
+  network_indicators:
+    - "VPN connections from terminated employee credentials"
+    - "Azure AD sign-ins from disabled accounts"
+  log_indicators:
+    - "Successful authentication events for terminated users"
+    - "Account re-enablement events after termination date"
+    - "Mailbox access logs showing read/send after termination"
+  endpoint_indicators:
+    - "Device registrations still active for terminated users"
+
+remediation:
+  immediate:
+    - "Immediately disable any still-active terminated accounts"
+    - "Revoke all sessions and tokens for terminated users"
+    - "Remove device registrations and MFA methods"
+    - "Block terminated user emails at gateway"
+  long_term:
+    - "Automate offboarding via HRIS-AD integration with same-day revocation"
+    - "Implement real-time monitoring for terminated user access attempts"
+    - "Deploy SOAR playbook for automatic offboarding upon HRIS status change"
+    - "Quarterly access certification including terminated user verification"
+    - "Integrate physical badging system with identity platform"
+
+variables:
+  sample_size: "[AUDIT_SAMPLE_SIZE]"
+  termination_date: "[TERMINATION_DATE]"
+  terminated_email: "[TERMINATED_USER_EMAIL]"
+  terminated_user_ids: "[TERMINATED_USER_IDS]"
+
+assessment_questions:
+  - "What percentage of terminated employees had all access revoked within 24 hours?"
+  - "Were there any post-termination access attempts (VPN, email, cloud)?"
+  - "Were any terminated accounts reactivated after initial disablement?"
+  - "Is offboarding fully automated or does it require manual steps?"
+  - "Are there documented offboarding checklists for all access types?"
+
+references:
+  - url: "https://www.aicpa.org/content/dam/aicpa/interestareas/frc/assuranceadvisoryservices/downloadabledocuments/trust-services-criteria.pdf"
+    title: "AICPA Trust Services Criteria"
+  - url: "https://docs.microsoft.com/en-us/azure/active-directory/users-groups-roles/users-revoke-access"
+    title: "Revoke User Access in Azure AD"

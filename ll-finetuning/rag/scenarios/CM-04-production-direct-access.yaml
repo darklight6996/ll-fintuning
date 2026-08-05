@@ -1,0 +1,168 @@
+name: "Production Direct Access Test"
+id: "CM-04"
+category: "Change Management & DevOps"
+subcategory: "Process + Technical"
+difficulty: "intermediate"
+estimated_time: "35"
+
+tags:
+  - change-management
+  - devops
+  - production
+  - network-security
+  - bastion
+  - jump-host
+  - rdp
+  - ssh
+  - database
+  - nmap
+  - netcat
+  - azure
+  - azure-bastion
+  - soc2
+  - cc6.6
+  - cc6.1
+  - compliance
+  - network-segmentation
+
+description: |
+  Confirm developers cannot SSH/RDP directly to production databases
+  or servers. Validates SOC 2 CC6.6 (System Boundaries).
+
+learning_objectives:
+  - Test network connectivity to production resources from developer workstations
+  - Verify jump host/bastion host requirements are enforced
+  - Check for exposed production endpoints
+  - Validate Azure Bastion or equivalent is in use
+  - Document production access paths
+
+tools:
+  - "nmap"
+  - "nc (netcat)"
+  - "Azure CLI"
+  - "PowerShell"
+  - "Azure Bastion"
+
+prerequisites:
+  - "Standard developer credentials and network access"
+  - "Knowledge of production IP ranges or hostnames"
+  - "Network testing tools installed"
+
+steps:
+  - id: "step1"
+    phase: "enumeration"
+    action: "Identify production resources and their public endpoints"
+    commands:
+      - "az vm list --query "[?contains(resourceGroup, 'prod') || contains(resourceGroup, 'prd')].{Name:name, ResourceGroup:resourceGroup, PublicIP:publicIps, PrivateIP:privateIps, OS:storageProfile.osDisk.osType, NSG:networkProfile.networkInterfaces[0].id}" -o table"
+      - "az sql server list --query "[?contains(resourceGroup, 'prod') || contains(resourceGroup, 'prd')].{Name:name, ResourceGroup:resourceGroup, FQDN:fullyQualifiedDomainName, PublicNetworkAccess:publicNetworkAccess}" -o table"
+    expected_output: "Production VMs and SQL servers with their network configurations"
+    detection: "N/A - resource enumeration"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Test direct SSH/RDP connectivity to production VMs"
+    commands:
+      - "# Test RDP to production VM"
+      - "nc -zv {prod_vm_ip} 3389"
+      - "# Test SSH to production VM"
+      - "nc -zv {prod_vm_ip} 22"
+      - "# Test WinRM"
+      - "nc -zv {prod_vm_ip} 5985"
+      - "nc -zv {prod_vm_ip} 5986"
+    expected_output: "Connection refused/timeout if properly protected; success indicates direct access vulnerability"
+    detection: "Port scan and connection attempts in NSG flow logs"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Test direct database connectivity from developer workstation"
+    commands:
+      - "# Test SQL Server connectivity"
+      - "nc -zv {prod_sql_fqdn} 1433"
+      - "# Test PostgreSQL"
+      - "nc -zv {prod_postgres_fqdn} 5432"
+      - "# Test MySQL"
+      - "nc -zv {prod_mysql_fqdn} 3306"
+    expected_output: "Connection refused/timeout if properly protected; success indicates direct DB access vulnerability"
+    detection: "Database connection attempts in SQL audit logs and NSG flow logs"
+
+  - id: "step4"
+    phase: "verification"
+    action: "Verify Azure Bastion or jump host is configured"
+    commands:
+      - "az network bastion list --query "[?contains(resourceGroup, 'prod') || contains(resourceGroup, 'prd') || contains(resourceGroup, 'shared')].{Name:name, ResourceGroup:resourceGroup, VNet:ipConfigurations[0].subnet.id}" -o table"
+      - "# Check if VMs have only private IPs"
+      - "az vm list --query "[?contains(resourceGroup, 'prod')].{Name:name, PublicIP:publicIps, PrivateIP:privateIps}" -o table"
+    expected_output: "Bastion host configuration and VM public/private IP status"
+    detection: "N/A - configuration audit"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Attempt access via bastion/jump host from developer account"
+    commands:
+      - "# Test if developer can access Azure Bastion"
+      - "az network bastion ssh --name {bastion_name} --resource-group {bastion_rg} --target-resource-id {prod_vm_id} --auth-type password --username {dev_username}"
+      - "# Check if developer has RBAC to use Bastion"
+      - "az role assignment list --scope {prod_vm_id} --assignee {dev_object_id} --query '[].roleDefinitionName' -o tsv"
+    expected_output: "Whether developer can authenticate via Bastion and has VM access"
+    detection: "Bastion connection attempts in Azure Activity Logs"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Generate production access control report"
+    commands:
+      - "ProductionVMsWithPublicIP: 0; ProductionVMsAccessibleDirectly: 0; ProductionDBsAccessibleDirectly: 0; BastionConfigured: true; DeveloperBastionAccess: false; PassRate: 100%"
+    expected_output: "Production access control effectiveness metrics"
+    detection: "N/A - audit reporting"
+
+compliance_controls:
+  - standard: "SOC 2"
+    control: "CC6.6"
+    description: "System boundaries - production network isolation"
+  - standard: "SOC 2"
+    control: "CC6.1"
+    description: "Logical access controls - production access governance"
+  - standard: "NIST 800-53"
+    control: "SC-7"
+    description: "Boundary Protection"
+
+detection:
+  network_indicators:
+    - "Port scan traffic targeting production IP ranges"
+    - "RDP/SSH connection attempts from developer subnets"
+  log_indicators:
+    - "NSG flow logs showing denied connections to production VMs"
+    - "Azure Bastion connection logs"
+    - "SQL audit logs showing failed connection attempts"
+  endpoint_indicators:
+    - "nmap/nc processes scanning production ranges"
+    - "mstsc or ssh clients targeting production IPs"
+
+remediation:
+  immediate:
+    - "Remove public IPs from all production VMs"
+    - "Block direct RDP/SSH in production NSGs"
+    - "Require Azure Bastion or jump host for all production access"
+  long_term:
+    - "Implement zero-trust network access with identity-based per-VM authorization"
+    - "Deploy Just-In-Time (JIT) VM access for time-limited production access"
+    - "Require MFA for all bastion/jump host connections"
+    - "Implement session recording for all production access"
+    - "Use Azure Private Link for all database connectivity"
+
+variables:
+  prod_vm_ip: "[PRODUCTION_VM_IP]"
+  prod_sql_fqdn: "[PRODUCTION_SQL_FQDN]"
+  bastion_name: "[AZURE_BASTION_NAME]"
+  dev_username: "[DEVELOPER_USERNAME]"
+
+assessment_questions:
+  - "Can developers access production VMs directly without bastion/jump host?"
+  - "Are production databases accessible from developer workstations?"
+  - "Is Azure Bastion or equivalent deployed for all production access?"
+  - "Is MFA required for production access via bastion?"
+
+references:
+  - url: "https://docs.microsoft.com/en-us/azure/bastion/bastion-overview"
+    title: "Azure Bastion Overview"
+  - url: "https://docs.microsoft.com/en-us/azure/security-center/security-center-just-in-time"
+    title: "Azure Just-In-Time VM Access"

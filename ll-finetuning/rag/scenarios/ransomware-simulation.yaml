@@ -1,0 +1,100 @@
+# Category: Ransomware
+name: "Ransomware Simulation – File Encryption and Notice"
+id: "ransomware-simulation-001"
+category: "ransomware"
+subcategory: "simulation"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Simulate a ransomware attack by encrypting files in a target environment
+  (with proper authorization) to test detection, response, and backup
+  recovery. This scenario uses open‑source tools to mimic ransomware behavior
+  without causing real damage.
+
+learning_objectives:
+  - Understand ransomware encryption and ransom note delivery
+  - Use encryption tools (OpenSSL, Python) to simulate encryption
+  - Deploy a simulation in a controlled environment
+  - Evaluate detection capabilities and recovery procedures
+
+tools:
+  - Python (pyAesCrypt, cryptography)
+  - OpenSSL
+  - Kali Linux (for testing)
+  - EDR tools (CrowdStrike, SentinelOne) to monitor
+
+prerequisites:
+  - Authorized test environment with backup systems
+  - Simulated file shares and documents
+
+steps:
+  - id: "step1"
+    phase: "setup"
+    action: "Create a ransomware simulation script"
+    commands:
+      - "# Python script to encrypt files with AES"
+      - "from cryptography.fernet import Fernet"
+      - "key = Fernet.generate_key(); f = Fernet(key)"
+      - "# Encrypt all .txt files in /test/"
+      - "# Append .locked extension"
+      - "# Drop ransom note (README.txt)"
+    expected_output: "Encrypted files and ransom note"
+    detection: "EDR may alert on file encryption activity"
+
+  - id: "step2"
+    phase: "execution"
+    action: "Run simulation on test machine"
+    commands:
+      - "# Execute script"
+      - "python ransomware_sim.py"
+    expected_output: "Files encrypted; note appears"
+    detection: "Alerts from security tools"
+
+  - id: "step3"
+    phase: "recovery"
+    action: "Restore from backup and analyze"
+    commands:
+      - "# Restore files from backup"
+      - "# Review security logs for detection"
+    expected_output: "Recovery successful; lessons learned"
+    detection: "N/A"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1486"
+    description: "Data Encrypted for Impact"
+  - standard: "NIST SP 800-53"
+    control: "CP-10"
+    description: "Information System Recovery"
+
+detection:
+  network_indicators:
+    - "File server high I/O"
+  log_indicators:
+    - "Event 4663 (file access) with many writes"
+  endpoint_indicators:
+    - "Python process with high CPU"
+
+remediation:
+  immediate:
+    - "Isolate infected machine from network"
+    - "Restore from backups"
+  long_term:
+    - "Implement immutable backups"
+    - "Use endpoint detection and response (EDR)"
+
+variables:
+  test_dir: "/tmp/test_files"
+  encryption_key: "generated"
+
+assessment_questions:
+  - "What are common ransom note names?"
+  - "How does ransomware typically avoid detection?"
+  - "What is the most effective defense against ransomware?"
+
+references:
+  - url: "https://www.cisa.gov/ransomware"
+    title: "CISA Ransomware Guide"
+  - url: "https://attack.mitre.org/techniques/T1486/"
+    title: "MITRE ATT&CK – T1486"

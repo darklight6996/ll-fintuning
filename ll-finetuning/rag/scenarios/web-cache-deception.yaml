@@ -1,0 +1,94 @@
+# Category: Web Security - Cache
+name: "Web Cache Deception – Cache Poisoning and Sensitive Data Exposure"
+id: "web-cache-deception-001"
+category: "offensive_security"
+subcategory: "web_application"
+difficulty: "intermediate"
+estimated_time: "50 minutes"
+
+description: |
+  Exploit web cache deception by convincing a caching server to cache a
+  sensitive page (e.g., /profile) that should not be cached, and then
+  serving it to other users. This is done by adding a cache-busting
+  parameter that is included in the cache key.
+
+learning_objectives:
+  - Understand how web caches work and cache keys
+  - Identify endpoints that are cached
+  - Craft a request that causes the cache to store a sensitive page
+  - Access the cached page from another browser
+
+tools:
+  - Burp Suite
+  - curl
+  - Python (requests)
+  - Cache testing tools
+
+prerequisites:
+  - Web application behind a caching proxy (Cloudflare, Varnish)
+  - Cache key includes query string but not all headers
+
+steps:
+  - id: "step1"
+    phase: "test"
+    action: "Send request with a random parameter"
+    commands:
+      - "curl https://example.com/profile?cb=12345"
+      - "# Check response headers for cache hits/misses"
+    expected_output: "Cache status (HIT/MISS)"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploit"
+    action: "Request sensitive page with a parameter that is not part of cache key"
+    commands:
+      - "# If cache key ignores certain parameters, the page is cached"
+      - "curl https://example.com/profile?key=12345"
+    expected_output: "Cache stores the response"
+    detection: "None"
+
+  - id: "step3"
+    phase: "steal"
+    action: "Access the cached page from another IP/browser"
+    commands:
+      - "curl https://example.com/profile?key=12345"
+    expected_output: "Sensitive data returned (cached for all)"
+    detection: "Access logs show same URL from different IPs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1557"
+    description: "Adversary-in-the-Middle (via cache)"
+  - standard: "OWASP"
+    control: "A05:2021"
+    description: "Security Misconfiguration"
+
+detection:
+  network_indicators:
+    - "Cache hits on dynamic pages"
+  log_indicators:
+    - "Cache servers showing unexpected cache behavior"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Set Cache-Control: private for sensitive pages"
+    - "Include authentication tokens in cache key"
+  long_term:
+    - "Use cookie-based cache keys for authenticated users"
+    - "Avoid caching user-specific data"
+
+variables:
+  target_url: "https://example.com/profile"
+
+assessment_questions:
+  - "What is the difference between cache poisoning and cache deception?"
+  - "How can you determine if a parameter is part of the cache key?"
+  - "Why is it dangerous to cache user-specific content?"
+
+references:
+  - url: "https://portswigger.net/web-security/web-cache-deception"
+    title: "PortSwigger Web Cache Deception"
+  - url: "https://www.owasp.org/index.php/Web_Cache_Deception"
+    title: "OWASP Web Cache Deception"

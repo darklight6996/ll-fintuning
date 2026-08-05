@@ -1,0 +1,92 @@
+# Category: Offensive Security - API
+name: "GraphQL Batching and Aliases – Bypassing Rate Limits"
+id: "api-graphql-batching-001"
+category: "offensive_security"
+subcategory: "api_graphql"
+difficulty: "intermediate"
+estimated_time: "45 minutes"
+
+description: |
+  Exploit GraphQL's batching and aliasing features to send many queries in
+  a single HTTP request, effectively bypassing rate‑limiting protections.
+  This can be used for brute‑forcing, resource exhaustion, and information
+  extraction.
+
+learning_objectives:
+  - Understand GraphQL batch requests and aliases
+  - Craft a single request with multiple identical queries
+  - Bypass rate limits that count HTTP requests
+  - Use aliases to distinguish responses
+
+tools:
+  - curl / Postman
+  - Python (requests)
+  - Burp Suite
+
+prerequisites:
+  - GraphQL endpoint with weak rate limiting
+
+steps:
+  - id: "step1"
+    phase: "craft"
+    action: "Create a batch query with aliases"
+    commands:
+      - '# Payload: query { alias1: user(id:1){name} alias2: user(id:2){name} ... }'
+      - "# Send as single POST"
+    expected_output: "All responses in one JSON object"
+    detection: "Single request contains large query, may be flagged"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Use batch to brute‑force user IDs"
+    commands:
+      - "# Generate 100 aliases for IDs 1..100"
+    expected_output: "All users' names in one response"
+    detection: "Rate limiter may not fire because it's one request"
+
+  - id: "step3"
+    phase: "impact"
+    action: "Exhaust server resources with deep nesting"
+    commands:
+      - "# Use nested fields to cause heavy computation"
+      - "query { user(id:1){ posts { comments { author { ... } } } } }"
+    expected_output: "High CPU usage, possible DoS"
+    detection: "Server performance degradation; alert on large query depth"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1499"
+    description: "Endpoint Denial of Service"
+  - standard: "OWASP"
+    control: "A04:2021"
+    description: "Insecure Design"
+
+detection:
+  network_indicators:
+    - "Large GraphQL query size"
+  log_indicators:
+    - "Queries with many aliases"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Implement query complexity analysis and depth limits"
+    - "Count the number of fields/aliases and throttle accordingly"
+  long_term:
+    - "Use persistent queries and whitelisting"
+    - "Apply API gateway rate limiting based on query cost"
+
+variables:
+  endpoint: "https://api.example.com/graphql"
+
+assessment_questions:
+  - "How does GraphQL batching differ from REST batching?"
+  - "Why is alias usage a problem for rate limiting?"
+  - "How can you assign a cost to a GraphQL query?"
+
+references:
+  - url: "https://graphql.org/learn/queries/#aliases"
+    title: "GraphQL Aliases"
+  - url: "https://www.apollographql.com/docs/apollo-server/performance/caching/"
+    title: "Apollo Caching and Security"

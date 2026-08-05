@@ -1,0 +1,93 @@
+# Category: Lateral Movement
+name: "SMB Relay Attack – NTLM Relay for Lateral Movement"
+id: "lateral-smb-relay-001"
+category: "lateral_movement"
+subcategory: "smb"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Use an SMB relay attack to intercept NTLM authentication and relay it to
+  another target, gaining access to that target with the victim's privileges.
+  This is possible when SMB signing is disabled.
+
+learning_objectives:
+  - Understand NTLM authentication relay
+  - Use Responder or ntlmrelayx to capture and relay
+  - Gain access to a target machine (e.g., via SMB, LDAP)
+  - Execute commands or dump hashes
+
+tools:
+  - Responder
+  - ntlmrelayx (Impacket)
+  - CrackMapExec
+  - Metasploit (smb_relay)
+
+prerequisites:
+  - SMB signing disabled on target
+  - Network access to capture NTLM traffic
+  - A victim machine that connects to attacker's service
+
+steps:
+  - id: "step1"
+    phase: "setup"
+    action: "Start Responder to capture NTLM hashes"
+    commands:
+      - "responder -I eth0 -w -r -F -P"
+    expected_output: "Responder listening, capturing hashes"
+    detection: "Network IDS may detect WPAD poisoning"
+
+  - id: "step2"
+    phase: "relay"
+    action: "Run ntlmrelayx to relay to target"
+    commands:
+      - "ntlmrelayx -t smb://<TARGET_IP> -i -smb2support"
+    expected_output: "When victim connects, relay to target"
+    detection: "Target logs show authentication from victim's IP"
+
+  - id: "step3"
+    phase: "access"
+    action: "Use relayed session to execute commands"
+    commands:
+      - "# Use smbexec or wmiexec"
+    expected_output: "Command execution on target"
+    detection: "Event logs on target"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1557.001"
+    description: "Adversary-in-the-Middle: LLMNR/NBT-NS Poisoning"
+  - standard: "CIS Windows Benchmarks"
+    control: "2.2.2"
+    description: "Enable SMB signing"
+
+detection:
+  network_indicators:
+    - "LLMNR/NBT-NS requests"
+  log_indicators:
+    - "Target logs with authentication from unexpected IP"
+  endpoint_indicators:
+    - "Responder, ntlmrelayx"
+
+remediation:
+  immediate:
+    - "Enable SMB signing on all clients and servers"
+    - "Disable LLMNR and NetBIOS over TCP/IP"
+  long_term:
+    - "Use Kerberos authentication where possible"
+    - "Implement Network Access Control"
+
+variables:
+  target_ip: "192.168.1.10"
+  interface: "eth0"
+
+assessment_questions:
+  - "How does the SMB relay attack work?"
+  - "What role does SMB signing play in prevention?"
+  - "What is the difference between relaying to SMB vs. LDAP?"
+
+references:
+  - url: "https://www.offensive-security.com/metasploit-unleashed/smb-relay-attack/"
+    title: "Metasploit SMB Relay"
+  - url: "https://github.com/SecureAuthCorp/impacket"
+    title: "Impacket ntlmrelayx"

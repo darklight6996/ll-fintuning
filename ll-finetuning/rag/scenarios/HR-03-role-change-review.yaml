@@ -1,0 +1,145 @@
+name: "Role Change Access Review"
+id: "HR-03"
+category: "HR & Identity Lifecycle"
+subcategory: "Process Verification"
+difficulty: "intermediate"
+estimated_time: "40"
+
+tags:
+  - hr
+  - identity-lifecycle
+  - role-change
+  - access-drift
+  - access-review
+  - rbac
+  - azure-ad
+  - group-membership
+  - directory-roles
+  - soc2
+  - cc6.3
+  - cc6.1
+  - compliance
+  - process-audit
+
+description: |
+  Verify that when employees change roles or departments, their access rights
+  are adjusted to match their new role and old access is removed.
+  Maps to SOC 2 CC6.3 (Access Removal).
+
+learning_objectives:
+  - Identify employees who changed roles in audit period
+  - Compare pre-role-change and post-role-change access
+  - Find access from old role that was not removed
+  - Verify role change approval workflow was followed
+  - Document access drift for remediation
+
+tools:
+  - "HRIS system"
+  - "Identity management platform"
+  - "ITSM ticketing system"
+  - "Access certification platform"
+  - "Excel / PowerBI"
+
+prerequisites:
+  - "Read access to HRIS, identity platform, and ITSM"
+  - "Historical access data or snapshots"
+  - "Role-based access templates"
+
+steps:
+  - id: "step1"
+    phase: "enumeration"
+    action: "Identify employees with role changes in audit period"
+    commands:
+      - "SELECT employee_id, first_name, last_name, email, old_department, new_department, old_job_title, new_job_title, change_date, approved_by FROM role_changes WHERE change_date >= DATE_SUB(NOW(), INTERVAL 12 MONTH)"
+    expected_output: "List of employees who changed roles with old/new job details"
+    detection: "N/A - audit data extraction"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Capture current access for role-changed employees"
+    commands:
+      - "Get-MgUser -UserId {employee_email} | Select-Object UserPrincipalName, @{N='DirectoryRoles';E={(Get-MgUserMemberOf -UserId $_.Id | Where-Object { $_.AdditionalProperties['@odata.type'] -eq '#microsoft.graph.directoryRole' }).DisplayName -join ','}}, @{N='GroupMemberships';E={(Get-MgUserMemberOf -UserId $_.Id | Where-Object { $_.AdditionalProperties['@odata.type'] -eq '#microsoft.graph.group' }).DisplayName -join ','}}"
+      - "# Export to CSV for comparison"
+    expected_output: "Current group memberships and directory roles for each role-changed employee"
+    detection: "N/A - audit enumeration"
+
+  - id: "step3"
+    phase: "verification"
+    action: "Compare current access to new role template"
+    commands:
+      - "# Identify access that doesn't match new role"
+      - "SELECT rc.employee_email, rc.new_job_title, rc.old_job_title, ag.current_groups, rt_new.standard_groups, rt_old.standard_groups FROM role_changes rc JOIN access_grants ag ON rc.employee_email = ag.email JOIN role_templates rt_new ON rc.new_job_title = rt_new.job_title JOIN role_templates rt_old ON rc.old_job_title = rt_old.job_title WHERE ag.current_groups NOT LIKE CONCAT('%', rt_new.standard_groups, '%')"
+    expected_output: "Employees with access that doesn't align with their current role"
+    detection: "N/A - audit comparison"
+
+  - id: "step4"
+    phase: "verification"
+    action: "Identify old role access that was not removed"
+    commands:
+      - "# Find groups/roles from old template still assigned"
+      - "SELECT rc.employee_email, rc.old_job_title, rc.new_job_title, ag.current_groups, rt_old.standard_groups FROM role_changes rc JOIN access_grants ag ON rc.employee_email = ag.email JOIN role_templates rt_old ON rc.old_job_title = rt_old.job_title WHERE ag.current_groups LIKE CONCAT('%', rt_old.standard_groups, '%') AND rc.old_job_title != rc.new_job_title"
+    expected_output: "Employees retaining access from their previous role"
+    detection: "N/A - audit verification"
+
+  - id: "step5"
+    phase: "verification"
+    action: "Verify role change approval and ticket documentation"
+    commands:
+      - "SELECT ticket_id, employee_email, old_role, new_role, approved_by, approval_date, access_updated_date FROM role_change_tickets WHERE employee_email IN ({role_changed_emails}) AND status = 'completed'"
+    expected_output: "Completed role change tickets with approval and access update dates"
+    detection: "N/A - audit verification"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Generate role change access drift report"
+    commands:
+      - "TotalRoleChanges: 30; ProperlyUpdated: 22; RetainedOldAccess: 6; GainedExcessAccess: 2; NoTicketFound: 0; PassRate: 73%"
+    expected_output: "Audit evidence with access drift metrics"
+    detection: "N/A - audit reporting"
+
+compliance_controls:
+  - standard: "SOC 2"
+    control: "CC6.3"
+    description: "Access removal - adjust access when roles change"
+  - standard: "SOC 2"
+    control: "CC6.1"
+    description: "Logical access controls - role-appropriate access"
+  - standard: "NIST 800-53"
+    control: "AC-2(3)"
+    description: "Account Management - disable inactive accounts"
+
+detection:
+  network_indicators:
+    - "N/A - process audit"
+  log_indicators:
+    - "Group membership changes not matching role change tickets"
+    - "Users with conflicting role assignments"
+  endpoint_indicators:
+    - "N/A - process audit"
+
+remediation:
+  immediate:
+    - "Remove old role access from all identified employees"
+    - "Add missing new role access"
+    - "Document all exceptions with business justification"
+  long_term:
+    - "Implement automated role-based access provisioning"
+    - "Deploy quarterly access certification for role-changed employees"
+    - "Integrate HRIS with identity platform for automatic role synchronization"
+    - "Require manager attestation for all role change access adjustments"
+
+variables:
+  employee_email: "[EMPLOYEE_EMAIL]"
+  old_job_title: "[OLD_JOB_TITLE]"
+  new_job_title: "[NEW_JOB_TITLE]"
+  change_date: "[ROLE_CHANGE_DATE]"
+
+assessment_questions:
+  - "What percentage of role changes had access properly updated?"
+  - "How many employees retain access from their previous role?"
+  - "Were all role changes documented with approval tickets?"
+  - "Is there an automated process for access adjustment on role change?"
+
+references:
+  - url: "https://www.aicpa.org/content/dam/aicpa/interestareas/frc/assuranceadvisoryservices/downloadabledocuments/trust-services-criteria.pdf"
+    title: "AICPA Trust Services Criteria"

@@ -1,0 +1,109 @@
+# Category: Intelligence Gathering
+name: "Google Dorking – Advanced Search Queries for Sensitive Data"
+id: "osint-google-dorks-001"
+category: "osint"
+subcategory: "search_engines"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Leverage Google's advanced search operators (dorks) to find sensitive
+  information inadvertently exposed on the web. This includes log files,
+  configuration files, exposed admin panels, database dumps, and personal
+  information. An attacker can use these to find vulnerabilities or
+  credentials.
+
+learning_objectives:
+  - Understand Google search operators (intitle, inurl, filetype, cache, site)
+  - Find exposed passwords, logs, and admin panels
+  - Discover vulnerable web applications (e.g., phpMyAdmin, open directories)
+  - Use Google Dorking in combination with automated tools (e.g., PENTEST)
+
+tools:
+  - Google Search (manual)
+  - Google Hacking Database (GHDB)
+  - dork-cli
+  - advanced google search scripts (Python)
+  - Search Engine for OSINT (SEOSINT)
+
+prerequisites:
+  - Basic understanding of search operators
+  - No advanced prerequisites
+
+steps:
+  - id: "step1"
+    phase: "discovery"
+    action: "Find exposed configuration files"
+    commands:
+      - "# Exposed .env files"
+      - 'intitle:"index of" .env'
+      - "# Exposed MySQL dump"
+      - 'filetype:sql "INSERT INTO `users`"'
+      - "# Exposed phpinfo() pages"
+      - 'intitle:"phpinfo()"'
+    expected_output: "URLs containing sensitive files"
+    detection: "None; Google may show Captcha if too many requests"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Find login panels and admin interfaces"
+    commands:
+      - "# Admin panels"
+      - 'inurl:admin intitle:login'
+      - "# WordPress admin"
+      - 'inurl:/wp-admin/'
+      - "# Open directories"
+      - 'intitle:"index of /" "parent directory"'
+    expected_output: "List of administrative interfaces for potential brute‑force"
+    detection: "None"
+
+  - id: "step3"
+    phase: "data_extraction"
+    action: "Extract personal information and credentials"
+    commands:
+      - "# Passwords in text files"
+      - 'filetype:txt "password"'
+      - "# Email lists"
+      - 'filetype:xls "email" "password"'
+      - "# Credit card numbers (masked)"
+      - 'inurl:credit card filetype:pdf'
+    expected_output: "Sensitive data from misconfigured websites"
+    detection: "N/A"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1598"
+    description: "Phishing for Information (search engine findings help)"
+  - standard: "GDPR"
+    control: "Article 32"
+    description: "Security of Processing (data leaks)"
+
+detection:
+  network_indicators:
+    - "Google Captcha triggers for automated queries"
+  log_indicators:
+    - "None (target may not know)"
+  endpoint_indicators:
+    - "Use of dorking scripts"
+
+remediation:
+  immediate:
+    - "Remove sensitive files from public directories"
+    - "Disable directory listing on web servers"
+  long_term:
+    - "Use robots.txt to prevent indexing of sensitive directories"
+    - "Regularly search for your own company data using dorks"
+
+variables:
+  target_domain: "example.com"
+
+assessment_questions:
+  - "What is the purpose of the 'cache:' operator in Google?"
+  - "How can an attacker use dorks to find default credentials?"
+  - "What are the limitations of Google Dorking?"
+
+references:
+  - url: "https://www.exploit-db.com/google-hacking-database"
+    title: "Google Hacking Database (GHDB)"
+  - url: "https://www.offensive-security.com/metasploit-unleashed/google-dorking/"
+    title: "Offensive Security – Google Dorking"

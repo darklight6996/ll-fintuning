@@ -1,0 +1,94 @@
+# Category: SQL Injection
+name: "Visible error-based SQL injection"
+id: "sql-injection-visible-error-001"
+category: "sql_injection"
+subcategory: "error_based"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This lab contains a SQL injection vulnerability where error messages are
+  displayed to the user. The attacker can use these error messages to extract
+  information about the database structure and data.
+
+learning_objectives:
+  - Understand error-based SQL injection
+  - Use error messages to extract data
+  - Extract data using error-based techniques
+
+tools:
+  - Burp Suite
+  - curl
+
+prerequisites:
+  - Basic understanding of SQL
+  - Access to the lab environment
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify the vulnerable parameter"
+    commands:
+      - "# Browse to the lab and intercept a request"
+      - "# Observe the parameter used in the SQL query"
+    expected_output: "The parameter is used in a SQL query"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Trigger error messages"
+    commands:
+      - "# Inject a payload that causes a syntax error"
+      - "parameter=value'"
+      - "# Observe the error message"
+    expected_output: "SQL error message displayed"
+    detection: "Web server logs may show errors"
+
+  - id: "step3"
+    phase: "data_extraction"
+    action: "Extract data using error messages"
+    commands:
+      - "# Use CONVERT or CAST to force errors"
+      - "parameter=value' AND 1=CONVERT(int, (SELECT username FROM users))--"
+      - "# Extract data character by character"
+    expected_output: "Data extracted from error messages"
+    detection: "Database logs may show many queries and errors"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "SQL keywords in URL parameters"
+  log_indicators:
+    - "Database error messages"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use parameterized queries"
+    - "Disable error messages in production"
+  long_term:
+    - "Implement input validation"
+    - "Use an ORM"
+
+variables:
+  lab_url: "https://lab-id.web-security-academy.net"
+  parameter: "parameter"
+
+assessment_questions:
+  - "What is error-based SQL injection?"
+  - "How can you use error messages to extract data?"
+  - "Why is it important to disable error messages in production?"
+
+references:
+  - url: "https://portswigger.net/web-security/sql-injection"
+    title: "PortSwigger SQL Injection"
+  - url: "https://owasp.org/www-community/attacks/SQL_Injection"
+    title: "OWASP SQL Injection"

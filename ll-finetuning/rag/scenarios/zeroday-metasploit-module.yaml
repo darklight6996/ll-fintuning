@@ -1,0 +1,96 @@
+# Category: Zero-Day Research
+name: "Writing a Metasploit Module for a Zero‑Day"
+id: "zeroday-metasploit-module-001"
+category: "zeroday_research"
+subcategory: "exploit_development"
+difficulty: "advanced"
+estimated_time: "90 minutes"
+
+description: |
+  Develop a custom Metasploit module for a newly discovered vulnerability,
+  allowing remote code execution. This scenario covers the structure of a
+  Metasploit exploit module, payload generation, and testing.
+
+learning_objectives:
+  - Understand Metasploit module architecture (Msf::Exploit)
+  - Write a module for a specific vulnerability
+  - Use payload generation and encoding
+  - Test the module against a vulnerable target
+
+tools:
+  - Metasploit Framework
+  - Ruby
+  - Python (for debugging)
+  - Victim system
+
+prerequisites:
+  - Knowledge of Ruby
+  - Vulnerable application (e.g., custom service)
+  - Metasploit installed
+
+steps:
+  - id: "step1"
+    phase: "module_dev"
+    action: "Create module skeleton"
+    commands:
+      - "# In modules/exploits/mycustom/myexploit.rb"
+      - "# Include required libraries"
+      - "# Define info, targets, exploit function"
+    expected_output: "Ruby file with basic structure"
+    detection: "None"
+
+  - id: "step2"
+    phase: "implementation"
+    action: "Implement exploit logic"
+    commands:
+      - "# Use Rex::Socket for networking"
+      - "# Build malicious payload (e.g., buffer overflow)"
+      - "# Send payload and handle response"
+    expected_output: "Functional exploit"
+    detection: "None"
+
+  - id: "step3"
+    phase: "testing"
+    action: "Test module against target"
+    commands:
+      - "# Load module in msfconsole"
+      - "msf6 > use exploit/mycustom/myexploit"
+      - "msf6 > set RHOST target"
+      - "msf6 > run"
+    expected_output: "Shell or meterpreter session"
+    detection: "Target logs show exploitation attempts"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1588"
+    description: "Obtain Capabilities"
+  - standard: "NIST SP 800-53"
+    control: "RA-5"
+
+detection:
+  network_indicators:
+    - "Unusual network traffic to target port"
+  log_indicators:
+    - "Application error logs"
+  endpoint_indicators:
+    - "Metasploit process"
+
+remediation:
+  immediate:
+    - "Patch the vulnerability"
+  long_term:
+    - "Implement exploit mitigation (ASLR, DEP, etc.)"
+
+variables:
+  target_ip: "10.0.0.50"
+
+assessment_questions:
+  - "What is the difference between an exploit module and a payload module?"
+  - "How does Metasploit handle platform‑specific payloads?"
+  - "What is the role of the `check` method in a module?"
+
+references:
+  - url: "https://www.offensive-security.com/metasploit-unleashed/"
+    title: "Metasploit Unleashed"
+  - url: "https://github.com/rapid7/metasploit-framework/wiki"
+    title: "Metasploit Wiki"

@@ -1,0 +1,184 @@
+name: "Azure Active Directory Enumeration & Recon"
+id: "AZ-01"
+category: "Cloud Security"
+subcategory: "Azure / Cloud Security"
+difficulty: "intermediate"
+estimated_time: "45"
+
+tags:
+  - azure
+  - azure-ad
+  - identity
+  - enumeration
+  - reconnaissance
+  - microsoft-graph
+  - bloodhound
+  - soc2
+  - cc6.1
+  - cc6.3
+  - cc7.1
+  - compliance
+  - rbac
+  - mfa
+  - privileged-access
+
+description: |
+  Enumerate Azure Active Directory tenants, users, groups, roles, and applications
+  to map the identity landscape and identify privilege escalation paths. Maps to
+  SOC 2 CC6.1 (Logical Access) and CC6.3 (RBAC).
+
+learning_objectives:
+  - Enumerate Azure AD users, groups, and service principals via Microsoft Graph API
+  - Identify privileged roles (Global Admin, Privileged Role Admin, etc.)
+  - Check MFA enrollment status on privileged accounts
+  - Map role assignments and transitive membership for privilege paths
+  - Export findings for audit evidence and BloodHound import
+
+tools:
+  - "Microsoft Graph PowerShell"
+  - "Azure CLI (az)"
+  - "RoadRecon"
+  - "BloodHound-AzureHound"
+  - "PowerShell"
+  - "Steampipe"
+
+prerequisites:
+  - "Valid Azure AD credentials (reader or higher)"
+  - "Microsoft.Graph PowerShell module installed"
+  - "Azure CLI installed and authenticated"
+  - "Network access to login.microsoftonline.com and graph.microsoft.com"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Authenticate to Azure AD tenant and verify permissions"
+    commands:
+      - "Connect-MgGraph -Scopes 'User.Read.All','Group.Read.All','Directory.Read.All','RoleManagement.Read.Directory'"
+      - "Get-MgContext | Select-Object Account, TenantId, Scopes"
+    expected_output: "Authenticated session with required read scopes confirmed"
+    detection: "Azure AD Sign-In logs showing Graph API authentication from new IP/location"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Enumerate all users and their properties"
+    commands:
+      - "Get-MgUser -All | Select-Object DisplayName, UserPrincipalName, Id, AccountEnabled, CreatedDateTime, LastPasswordChangeDateTime, PasswordPolicies | Export-Csv -Path 'aad_users.csv' -NoTypeInformation"
+      - "Get-MgUser -All | Where-Object { $_.AccountEnabled -eq $true -and $_.LastPasswordChangeDateTime -lt (Get-Date).AddDays(-90) } | Select-Object DisplayName, UserPrincipalName, LastPasswordChangeDateTime"
+    expected_output: "CSV file aad_users.csv with all user attributes; list of users with stale passwords"
+    detection: "Bulk user enumeration via Graph API; large number of User.Read calls"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Enumerate all groups and their memberships"
+    commands:
+      - "Get-MgGroup -All | Select-Object DisplayName, Id, GroupTypes, SecurityEnabled, MailEnabled, CreatedDateTime | Export-Csv -Path 'aad_groups.csv' -NoTypeInformation"
+      - "$groups = Get-MgGroup -All; foreach ($g in $groups) { Get-MgGroupMember -GroupId $g.Id | Select-Object @{N='GroupName';E={$g.DisplayName}}, @{N='MemberId';E={$_.Id}}, @{N='MemberType';E={$_.AdditionalProperties['@odata.type']}} | Export-Csv -Append -Path 'aad_group_members.csv' -NoTypeInformation }"
+    expected_output: "CSV files with all groups and nested/transitive memberships"
+    detection: "Bulk group enumeration; repeated GroupMember.Read calls"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "Enumerate directory roles and assignments"
+    commands:
+      - "Get-MgDirectoryRole -All | Select-Object DisplayName, Id, RoleTemplateId | Export-Csv -Path 'aad_roles.csv' -NoTypeInformation"
+      - "$roles = Get-MgDirectoryRole -All; foreach ($r in $roles) { Get-MgDirectoryRoleMember -DirectoryRoleId $r.Id | Select-Object @{N='RoleName';E={$r.DisplayName}}, @{N='MemberId';E={$_.Id}}, @{N='MemberType';E={$_.AdditionalProperties['@odata.type']}} | Export-Csv -Append -Path 'aad_role_members.csv' -NoTypeInformation }"
+    expected_output: "All directory roles and their assigned members including transitive assignments"
+    detection: "DirectoryRole.Read.All API calls; role enumeration patterns"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "Check MFA status on privileged accounts"
+    commands:
+      - "$privileged = Get-MgDirectoryRole -All | Where-Object { $_.DisplayName -in @('Global Administrator','Privileged Role Administrator','Security Administrator') }; $admins = @(); foreach ($r in $privileged) { $admins += (Get-MgDirectoryRoleMember -DirectoryRoleId $r.Id | ForEach-Object { Get-MgUser -UserId $_.Id }) }; $admins | Select-Object -Unique | ForEach-Object { $mfa = Get-MgUserAuthenticationMethod -UserId $_.Id; [PSCustomObject]@{User=$_.UserPrincipalName; MFA_Enrolled=($mfa.Count -gt 0); Methods=($mfa.AdditionalProperties['@odata.type'] -join ',')} } | Export-Csv -Path 'aad_priv_mfa.csv' -NoTypeInformation"
+    expected_output: "CSV showing which privileged accounts have MFA enrolled and which methods"
+    detection: "AuthenticationMethod.Read.All calls for multiple users"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "Enumerate service principals and app registrations"
+    commands:
+      - "Get-MgServicePrincipal -All | Select-Object DisplayName, AppId, Id, PublisherName, AccountEnabled, AppRoles, PasswordCredentials, KeyCredentials | Export-Csv -Path 'aad_service_principals.csv' -NoTypeInformation"
+      - "Get-MgServicePrincipal -All | Where-Object { $_.PasswordCredentials } | Select-Object DisplayName, AppId, @{N='SecretCount';E={$_.PasswordCredentials.Count}}, @{N='OldestSecret';E={($_.PasswordCredentials.StartDateTime | Sort-Object)[0]}}, @{N='NewestSecret';E={($_.PasswordCredentials.EndDateTime | Sort-Object -Descending)[0]}} | Export-Csv -Path 'aad_sp_secrets.csv' -NoTypeInformation"
+    expected_output: "All service principals with secret/certificate metadata and expiration dates"
+    detection: "ServicePrincipal.Read.All enumeration; secret credential reads"
+
+  - id: "step7"
+    phase: "enumeration"
+    action: "Export data for BloodHound analysis"
+    commands:
+      - "Invoke-AzureHound -o aad_bloodhound.zip"
+      - "# Alternative: roadrecon gather && roadrecon plugin bloodhound"
+    expected_output: "aad_bloodhound.zip containing nodes and edges for BloodHound ingestion"
+    detection: "AzureHound/RoadRecon user-agent strings; bulk directory reads"
+
+  - id: "step8"
+    phase: "post_exploitation"
+    action: "Generate audit evidence report"
+    commands:
+      - "$report = @{ TotalUsers=(Import-Csv aad_users.csv).Count; TotalGroups=(Import-Csv aad_groups.csv).Count; TotalServicePrincipals=(Import-Csv aad_service_principals.csv).Count; PrivilegedWithoutMFA=(Import-Csv aad_priv_mfa.csv | Where-Object { $_.MFA_Enrolled -eq 'False' }).Count; StalePasswords=(Import-Csv aad_users.csv | Where-Object { [datetime]$_.LastPasswordChangeDateTime -lt (Get-Date).AddDays(-90) }).Count }; $report | ConvertTo-Json | Out-File 'aad_audit_summary.json'"
+    expected_output: "aad_audit_summary.json with key metrics for SOC 2 evidence"
+    detection: "N/A - this is a reporting step"
+
+compliance_controls:
+  - standard: "SOC 2"
+    control: "CC6.1"
+    description: "Logical access controls - verify least privilege through role mapping"
+  - standard: "SOC 2"
+    control: "CC6.3"
+    description: "RBAC - validate role assignments and privileged access"
+  - standard: "SOC 2"
+    control: "CC7.1"
+    description: "Detection - identify unauthorized enumeration attempts"
+  - standard: "NIST 800-53"
+    control: "AC-2"
+    description: "Account Management - review user accounts and group memberships"
+  - standard: "CIS Azure"
+    control: "1.1"
+    description: "Ensure that multi-factor authentication is enabled for all privileged users"
+
+detection:
+  network_indicators:
+    - "HTTPS traffic to graph.microsoft.com/v1.0/users, /groups, /directoryRoles"
+    - "Large volume of API calls (>100/min) from single client IP"
+  log_indicators:
+    - "Azure AD Audit Logs: Directory.Read.All consent grants"
+    - "Sign-In Logs: Application ID 14d82eec-204b-4c2f-b7e8-296a70dab67e (Microsoft Graph PowerShell)"
+    - "AzureHound user-agent: AzureHound/1.x"
+  endpoint_indicators:
+    - "PowerShell process spawning with Connect-MgGraph"
+    - "CSV files created in working directory: aad_*.csv"
+
+remediation:
+  immediate:
+    - "Review and revoke unnecessary Graph API permissions granted to accounts"
+    - "Enable MFA on all privileged accounts that lack it"
+    - "Rotate stale passwords (>90 days) for privileged accounts"
+  long_term:
+    - "Implement PIM (Privileged Identity Management) for just-in-time access"
+    - "Deploy Conditional Access policies requiring MFA for all admin roles"
+    - "Establish quarterly access reviews for all directory roles"
+    - "Enable Azure AD Identity Protection for anomalous sign-in detection"
+
+variables:
+  tenant_id: "[TARGET_TENANT_ID]"
+  client_id: "[SERVICE_PRINCIPAL_CLIENT_ID]"
+  client_secret: "[SERVICE_PRINCIPAL_SECRET]"
+  output_path: "[OUTPUT_DIRECTORY]"
+  privileged_roles: "[COMMA_SEPARATED_ROLE_NAMES]"
+
+assessment_questions:
+  - "What percentage of privileged accounts have MFA enabled?"
+  - "Are there any service principals with secrets older than 1 year?"
+  - "Which users have not changed their password in the last 90 days?"
+  - "Are there any nested group memberships that create unintended privilege paths?"
+  - "How many external/guest users have access to directory roles?"
+
+references:
+  - url: "https://docs.microsoft.com/en-us/powershell/microsoftgraph/get-started"
+    title: "Microsoft Graph PowerShell SDK Documentation"
+  - url: "https://github.com/BloodHoundAD/AzureHound"
+    title: "AzureHound - BloodHound Azure Collector"
+  - url: "https://github.com/dirkjanm/ROADtools"
+    title: "ROADtools - Azure AD Security Assessment Framework"
+  - url: "https://docs.microsoft.com/en-us/azure/active-directory/roles/security-planning"
+    title: "Azure AD Security Planning Guide"

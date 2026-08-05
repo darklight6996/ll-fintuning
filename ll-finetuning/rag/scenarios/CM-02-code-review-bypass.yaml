@@ -1,0 +1,161 @@
+name: "Code Review Bypass Attempt"
+id: "CM-02"
+category: "Change Management & DevOps"
+subcategory: "Process + Technical"
+difficulty: "intermediate"
+estimated_time: "40"
+
+tags:
+  - change-management
+  - devops
+  - github
+  - gitlab
+  - branch-protection
+  - code-review
+  - pull-request
+  - force-push
+  - admin-bypass
+  - codeowners
+  - signed-commits
+  - soc2
+  - cc8.1
+  - compliance
+  - process-audit
+
+description: |
+  Verify that pull request approvals are enforced in GitHub/GitLab
+  and cannot be bypassed. Validates SOC 2 CC8.1 (Change Management).
+
+learning_objectives:
+  - Test branch protection rules in GitHub/GitLab
+  - Attempt to push directly to protected branches
+  - Verify required reviewer count and CODEOWNERS enforcement
+  - Check for admin bypass capabilities
+  - Validate signed commit requirements
+
+tools:
+  - "Git CLI"
+  - "GitHub CLI (gh)"
+  - "GitLab API"
+  - "PowerShell / Bash"
+
+prerequisites:
+  - "Repository access with standard developer permissions"
+  - "Git installed locally"
+  - "Understanding of branch protection rules"
+
+steps:
+  - id: "step1"
+    phase: "enumeration"
+    action: "Check branch protection rules on protected branches"
+    commands:
+      - "gh api repos/{owner}/{repo}/branches/main/protection | jq '{required_status_checks, enforce_admins, required_pull_request_reviews, restrictions, required_signatures}'"
+      - "# GitLab equivalent"
+      - "curl -H 'PRIVATE-TOKEN: {gitlab_token}' 'https://gitlab.com/api/v4/projects/{project_id}/protected_branches/main' | jq '{name, push_access_levels, merge_access_levels, allow_force_push, code_owner_approval_required}'"
+    expected_output: "Branch protection configuration with required reviews, status checks, and admin enforcement"
+    detection: "N/A - configuration audit"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Attempt direct push to protected branch"
+    commands:
+      - "git clone https://github.com/{owner}/{repo}.git"
+      - "cd {repo}"
+      - "git checkout main"
+      - "echo 'test' >> README.md"
+      - "git add README.md"
+      - "git commit -m 'test direct push'"
+      - "git push origin main"
+    expected_output: "Push rejected by remote if branch protection is enforced; success indicates bypass vulnerability"
+    detection: "Git push attempts to protected branches in audit logs"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Attempt force push to protected branch"
+    commands:
+      - "git push --force origin main"
+    expected_output: "Force push rejected if protection enabled; success indicates vulnerability"
+    detection: "Force push attempts in repository audit logs"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Test PR approval bypass with single reviewer"
+    commands:
+      - "# Create PR and attempt self-approval"
+      - "git checkout -b test-branch"
+      - "echo 'test' >> README.md"
+      - "git add README.md"
+      - "git commit -m 'test PR'"
+      - "git push origin test-branch"
+      - "gh pr create --title 'Test PR' --body 'Testing approval requirements' --base main --head test-branch"
+      - "gh pr review {pr_number} --approve"
+      - "gh pr merge {pr_number} --merge"
+    expected_output: "PR merge blocked if self-approval not allowed or insufficient reviewers; success indicates bypass"
+    detection: "PR creation, review, and merge attempts in repository audit logs"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Test admin bypass of branch protection"
+    commands:
+      - "# Check if admin can override branch protection"
+      - "gh api repos/{owner}/{repo}/branches/main/protection/enforce_admins | jq '{enabled}'"
+      - "# If admin, attempt to use admin privileges to push"
+      - "# In GitHub web UI, check for 'Merge without waiting for requirements' checkbox"
+    expected_output: "Whether admin enforcement is enabled or admins can bypass protection"
+    detection: "N/A - configuration check"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Generate code review control assessment"
+    commands:
+      - "BranchProtectionEnabled: true; DirectPushBlocked: true; ForcePushBlocked: true; SelfApprovalBlocked: false; MinReviewersRequired: 1; AdminBypassEnabled: true; CODEOWNERS_Enforced: false; SignedCommitsRequired: false; PassRate: 50%"
+    expected_output: "Code review control effectiveness metrics"
+    detection: "N/A - audit reporting"
+
+compliance_controls:
+  - standard: "SOC 2"
+    control: "CC8.1"
+    description: "Change Management - code changes reviewed and approved"
+  - standard: "NIST 800-53"
+    control: "CM-4"
+    description: "Security Impact Analysis"
+
+detection:
+  network_indicators:
+    - "Git push operations to protected branches from developer IPs"
+  log_indicators:
+    - "GitHub/GitLab audit logs showing bypassed branch protection"
+    - "PR merges with insufficient reviewers"
+    - "Force push events on protected branches"
+  endpoint_indicators:
+    - "Git CLI operations targeting protected branches"
+
+remediation:
+  immediate:
+    - "Require minimum 2 reviewers for all production branches"
+    - "Block self-approval on PRs"
+    - "Enable 'Include administrators' in branch protection"
+    - "Require CODEOWNERS review for sensitive files"
+  long_term:
+    - "Require signed commits on all protected branches"
+    - "Implement status checks (CI/CD pipeline must pass)"
+    - "Deploy branch protection rules organization-wide via GitHub/GitLab policies"
+    - "Require merge queues for high-traffic repositories"
+    - "Implement GitOps with mandatory approval workflows"
+
+variables:
+  owner: "[REPO_OWNER]"
+  repo: "[REPO_NAME]"
+  project_id: "[GITLAB_PROJECT_ID]"
+
+assessment_questions:
+  - "Can developers push directly to main/master branch?"
+  - "Are minimum 2 reviewers required for all production PRs?"
+  - "Can admins bypass branch protection rules?"
+  - "Are signed commits required for protected branches?"
+
+references:
+  - url: "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches"
+    title: "GitHub Protected Branches"
+  - url: "https://docs.gitlab.com/ee/user/project/protected_branches.html"
+    title: "GitLab Protected Branches"

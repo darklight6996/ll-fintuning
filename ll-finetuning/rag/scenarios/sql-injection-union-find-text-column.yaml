@@ -1,0 +1,91 @@
+# Category: SQL Injection
+name: "SQL injection UNION attack, finding a column containing text"
+id: "sql-injection-union-find-text-column-001"
+category: "sql_injection"
+subcategory: "union_attack"
+difficulty: "practitioner"
+estimated_time: "30 minutes"
+
+description: |
+  This lab contains a SQL injection vulnerability in the product category filter.
+  The attacker needs to find a column that can hold text data (e.g., string)
+  by using a UNION attack with a string literal.
+
+learning_objectives:
+  - Understand data types in SQL
+  - Use UNION attacks to determine column data types
+  - Find a column that can hold text
+
+tools:
+  - Burp Suite
+  - curl
+
+prerequisites:
+  - Basic understanding of SQL
+  - Access to the lab environment
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify the vulnerable parameter"
+    commands:
+      - "# Browse to the lab and select a category"
+      - "# Intercept the request in Burp Suite"
+    expected_output: "The category parameter is used in a SQL query"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Determine the number of columns"
+    commands:
+      - "# Use ORDER BY or UNION SELECT NULL to find column count"
+    expected_output: "Number of columns identified"
+    detection: "Database error messages"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Find a column that can hold text"
+    commands:
+      - "# Use UNION SELECT with string literals"
+      - "category=Gifts' UNION SELECT 'abc', NULL, NULL--"
+      - "# Test each column position"
+      - "category=Gifts' UNION SELECT NULL, 'abc', NULL--"
+    expected_output: "A column that can hold text is identified"
+    detection: "Database error messages"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "SQL keywords in URL parameters"
+  log_indicators:
+    - "Database error messages"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use parameterized queries"
+  long_term:
+    - "Implement input validation"
+
+variables:
+  lab_url: "https://lab-id.web-security-academy.net"
+  category_param: "category"
+
+assessment_questions:
+  - "Why do you need to find a column that can hold text?"
+  - "What happens if you try to insert text into a numeric column?"
+  - "How can you determine the data type of a column?"
+
+references:
+  - url: "https://portswigger.net/web-security/sql-injection"
+    title: "PortSwigger SQL Injection"
+  - url: "https://owasp.org/www-community/attacks/SQL_Injection"
+    title: "OWASP SQL Injection"

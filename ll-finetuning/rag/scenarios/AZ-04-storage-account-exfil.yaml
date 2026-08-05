@@ -1,0 +1,184 @@
+name: "Storage Account Data Exfiltration (Blob)"
+id: "AZ-04"
+category: "Cloud Security"
+subcategory: "Azure / Cloud Security"
+difficulty: "intermediate"
+estimated_time: "40"
+
+tags:
+  - azure
+  - storage-account
+  - blob-storage
+  - data-exfiltration
+  - public-access
+  - sas-token
+  - s3
+  - azure-blob
+  - network-security
+  - tls
+  - soc2
+  - cc6.6
+  - cc7.1
+  - compliance
+  - cloud-storage
+
+description: |
+  Assess Azure Storage Accounts for public access misconfigurations, weak SAS tokens,
+  and blob container permissions that could allow unauthorized data exfiltration.
+  Maps to SOC 2 CC7.1 (System Operations) and CC6.6 (System Boundaries).
+
+learning_objectives:
+  - Enumerate storage accounts and their public access settings
+  - Identify blob containers with public read or list access
+  - Discover expired or long-lived Shared Access Signature (SAS) tokens
+  - Test for anonymous blob enumeration and download capabilities
+  - Verify network restrictions (firewall/VNet integration)
+
+tools:
+  - "Azure CLI"
+  - "Azure PowerShell (Az module)"
+  - "BlobHunter"
+  - "PowerShell"
+  - "Steampipe"
+
+prerequisites:
+  - "Azure subscription with Storage Account Reader or Contributor access"
+  - "Azure CLI or Az PowerShell module installed"
+  - "Network access to *.blob.core.windows.net endpoints"
+
+steps:
+  - id: "step1"
+    phase: "enumeration"
+    action: "List all storage accounts and their public access configurations"
+    commands:
+      - "az storage account list --query '[].{Name:name, ResourceGroup:resourceGroup, PublicAccess:allowBlobPublicAccess, HTTPS:enableHttpsTrafficOnly, NetworkRule:networkRuleSet.defaultAction, TLS:minimumTlsVersion}' -o table"
+      - "Get-AzStorageAccount | Select-Object StorageAccountName, ResourceGroupName, @{N='PublicAccessEnabled';E={$_.AllowBlobPublicAccess}}, @{N='HttpsOnly';E={$_.EnableHttpsTrafficOnly}}, @{N='MinTLS';E={$_.MinimumTlsVersion}}, @{N='NetworkRule';E={$_.NetworkRuleSet.DefaultAction}} | Export-Csv -Path 'storage_accounts.csv' -NoTypeInformation"
+    expected_output: "Table/CSV of all storage accounts with public access, TLS, and network settings"
+    detection: "Storage Account list operations in Azure Activity Logs"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Enumerate blob containers and their access levels"
+    commands:
+      - "# For each storage account, list containers and access levels"
+      - "$accounts = Get-AzStorageAccount; foreach ($acc in $accounts) { $ctx = $acc.Context; Get-AzStorageContainer -Context $ctx | Select-Object @{N='StorageAccount';E={$acc.StorageAccountName}}, Name, PublicAccess, LastModified } | Export-Csv -Append -Path 'blob_containers.csv' -NoTypeInformation }"
+      - "# Using Azure CLI"
+      - "for acc in $(az storage account list --query '[].name' -o tsv); do az storage container list --account-name $acc --query '[].{Name:name, PublicAccess:properties.publicAccess}' -o table; done"
+    expected_output: "List of all blob containers with their public access levels (Blob, Container, or None)"
+    detection: "Container list operations; repeated storage account enumeration"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Test anonymous access to publicly exposed containers"
+    commands:
+      - "# Test listing blobs in a public container"
+      - "curl -s 'https://{storage_account}.blob.core.windows.net/{container_name}?restype=container&comp=list' | grep -o '<Name>[^<]*</Name>' | sed 's/<Name>//;s/<\/Name>//'"
+      - "# Test downloading a blob anonymously"
+      - "curl -s 'https://{storage_account}.blob.core.windows.net/{container_name}/{blob_name}' -o test_download.bin && file test_download.bin"
+    expected_output: "List of blob names from public container or successful anonymous blob download"
+    detection: "Anonymous requests to blob storage from unexpected IPs; high volume of LIST operations"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "Search for SAS tokens in source code, logs, and configuration"
+    commands:
+      - "# Search for SAS tokens in common locations"
+      - "grep -r 'sv=.*sig=' /var/log /tmp /opt 2>/dev/null | head -20"
+      - "# Search in environment variables and config files"
+      - "env | grep -i 'sas|blob|storage'"
+      - "find / -name '*.config' -o -name '*.json' -o -name '*.yaml' 2>/dev/null | xargs grep -l 'sv=.*sig=' 2>/dev/null"
+    expected_output: "Discovered SAS tokens with their permissions and expiry dates"
+    detection: "File system scanning for credential patterns; grep operations on sensitive paths"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Validate SAS token permissions and test data access"
+    commands:
+      - "# Parse SAS token components"
+      - "# sv=service version, ss=signed services, srt=signed resource types, sp=signed permissions, se=expiry, sig=signature"
+      - "curl -s 'https://{storage_account}.blob.core.windows.net/{container_name}?{sas_token}&restype=container&comp=list'"
+      - "# If SAS has write permissions, attempt upload"
+      - "curl -X PUT -H 'x-ms-blob-type: BlockBlob' -d 'test_data' 'https://{storage_account}.blob.core.windows.net/{container_name}/test_upload.txt?{sas_token}'"
+    expected_output: "Successful listing or upload using SAS token, confirming token validity and permissions"
+    detection: "SAS-authenticated operations from unusual sources; write operations to production containers"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "Check network restrictions and private endpoint configurations"
+    commands:
+      - "az storage account network-rule list --account-name {storage_account} --query '{IPRules:ipRules, VNetRules:virtualNetworkRules, Bypass:bypass}' -o json"
+      - "Get-AzStorageAccountNetworkRuleSet -ResourceGroupName {resource_group} -AccountName {storage_account} | Select-Object DefaultAction, IpRules, VirtualNetworkRules"
+    expected_output: "Network rule configuration showing allowed IPs, VNets, and bypass settings"
+    detection: "Network rule enumeration in Azure Activity Logs"
+
+  - id: "step7"
+    phase: "post_exploitation"
+    action: "Generate data exposure risk report"
+    commands:
+      - "$report = @{ TotalStorageAccounts=(Import-Csv storage_accounts.csv).Count; PublicAccessEnabled=(Import-Csv storage_accounts.csv | Where-Object { $_.PublicAccess -eq 'True' }).Count; PublicContainers=(Import-Csv blob_containers.csv | Where-Object { $_.PublicAccess -ne '' }).Count; AccountsWithoutHttpsOnly=(Import-Csv storage_accounts.csv | Where-Object { $_.HTTPS -eq 'False' }).Count; AccountsWithTLS11=(Import-Csv storage_accounts.csv | Where-Object { $_.TLS -eq 'TLS1_1' }).Count }; $report | ConvertTo-Json | Out-File 'storage_risk_report.json'"
+    expected_output: "storage_risk_report.json quantifying exposure risks"
+    detection: "N/A - reporting step"
+
+compliance_controls:
+  - standard: "SOC 2"
+    control: "CC7.1"
+    description: "System operations - verify data access controls on storage"
+  - standard: "SOC 2"
+    control: "CC6.6"
+    description: "System boundaries - validate network restrictions on storage"
+  - standard: "NIST 800-53"
+    control: "SC-7"
+    description: "Boundary Protection - storage account network restrictions"
+  - standard: "CIS Azure"
+    control: "3.7"
+    description: "Ensure default network access rule for Storage Accounts is set to deny"
+
+detection:
+  network_indicators:
+    - "HTTP requests to *.blob.core.windows.net without authentication headers"
+    - "SAS token usage from unexpected IP ranges"
+    - "Bulk LIST/GET operations from single source IP"
+  log_indicators:
+    - "Storage Analytics logs: Anonymous requests to blob containers"
+    - "Azure Activity Logs: Storage account configuration reads"
+    - "Storage logs showing GetBlob operations with SAS authentication"
+  endpoint_indicators:
+    - "Azure CLI or PowerShell Az module enumerating storage accounts"
+    - "curl making anonymous requests to blob endpoints"
+
+remediation:
+  immediate:
+    - "Disable public blob access on all storage accounts (AllowBlobPublicAccess = false)"
+    - "Revoke and regenerate all long-lived or leaked SAS tokens"
+    - "Set container access levels to 'Private' where public access is not required"
+    - "Enable HTTPS-only traffic on all storage accounts"
+    - "Upgrade minimum TLS version to 1.2"
+  long_term:
+    - "Implement Azure Private Link/Private Endpoints for all storage access"
+    - "Deploy Azure Policy to enforce private access and HTTPS-only"
+    - "Use Azure Key Vault for SAS token storage and rotation"
+    - "Enable soft delete and versioning on all blob containers"
+    - "Implement network rules restricting storage to specific VNets/subnets"
+    - "Conduct quarterly access reviews of storage account IAM assignments"
+
+variables:
+  storage_account: "[TARGET_STORAGE_ACCOUNT]"
+  container_name: "[TARGET_CONTAINER_NAME]"
+  blob_name: "[TARGET_BLOB_NAME]"
+  sas_token: "[SAS_TOKEN]"
+  resource_group: "[RESOURCE_GROUP_NAME]"
+
+assessment_questions:
+  - "How many storage accounts allow public blob access?"
+  - "Are there blob containers with 'Container' or 'Blob' public access level?"
+  - "What is the maximum expiry time for SAS tokens in use?"
+  - "Are storage accounts restricted to specific VNets or have open network rules?"
+  - "Is HTTPS-only traffic enforced on all storage accounts?"
+
+references:
+  - url: "https://docs.microsoft.com/en-us/azure/storage/blobs/anonymous-read-access-configure"
+    title: "Configure Anonymous Public Read Access for Blob Containers"
+  - url: "https://docs.microsoft.com/en-us/azure/storage/common/storage-sas-overview"
+    title: "Grant Limited Access with Shared Access Signatures"
+  - url: "https://github.com/cyberark/BlobHunter"
+    title: "BlobHunter - Azure Storage Public Access Scanner"

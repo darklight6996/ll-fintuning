@@ -1,0 +1,92 @@
+# Category: Cloud Security - Infrastructure as Code
+name: "CloudFormation Template Injection – IAM Role Abuse"
+id: "cloud-cloudformation-injection-001"
+category: "cloud_security"
+subcategory: "iac"
+difficulty: "advanced"
+estimated_time: "70 minutes"
+
+description: |
+  Exploit CloudFormation templates that use user-supplied parameters to
+  inject malicious resources (e.g., IAM roles or EC2 instances) to gain
+  control over the AWS environment. This can happen when parameters are
+  used in resources without proper validation.
+
+learning_objectives:
+  - Understand CloudFormation template structure
+  - Identify parameter injection points (e.g., in Resource names)
+  - Craft a parameter value that creates an admin IAM role
+  - Trigger template deployment to escalate privileges
+
+tools:
+  - AWS CLI
+  - CloudFormation console
+  - Python (boto3)
+
+prerequisites:
+  - Access to create or update a CloudFormation stack
+  - Template uses parameters in resource definitions
+
+steps:
+  - id: "step1"
+    phase: "analysis"
+    action: "Examine template for parameter usage"
+    commands:
+      - "# Look for Resources that use Ref or Fn::Sub with parameters"
+    expected_output: "Vulnerable resource (e.g., IAM Role name derived from parameter)"
+    detection: "None"
+
+  - id: "step2"
+    phase: "inject"
+    action: "Provide malicious parameter value"
+    commands:
+      - "# Example: parameter 'RoleName' = 'AdminRole' + ';' + extra statements"
+      - "# Or inject a new resource entirely (if template allows)"
+    expected_output: "Stack creates an admin IAM role"
+    detection: "CloudTrail logs show role creation"
+
+  - id: "step3"
+    phase: "exploit"
+    action: "Assume the created role"
+    commands:
+      - "aws sts assume-role --role-arn arn:aws:iam::123:role/AdminRole --role-session-name attack"
+    expected_output: "Admin credentials"
+    detection: "CloudTrail"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1098"
+    description: "Account Manipulation"
+  - standard: "CIS AWS Foundations"
+    control: "1.16"
+
+detection:
+  network_indicators:
+    - "CloudFormation stack creation with unusual parameters"
+  log_indicators:
+    - "CloudTrail CreateStack events"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Validate and sanitize all parameters; use allowed patterns"
+    - "Use IAM roles for CloudFormation with least privilege"
+  long_term:
+    - "Implement stack policies to prevent updates to critical resources"
+    - "Use AWS Config to monitor for changes"
+
+variables:
+  template_url: "https://s3.amazonaws.com/example/template.yaml"
+  malicious_param: "AdminRole' Resource: NewResource"
+
+assessment_questions:
+  - "How can an attacker abuse parameters in CloudFormation?"
+  - "What is a stack policy and how does it help?"
+  - "Why should you avoid using user-supplied parameters in resource names?"
+
+references:
+  - url: "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/security-best-practices.html"
+    title: "CloudFormation Security"
+  - url: "https://www.owasp.org/index.php/Injection_Attacks"
+    title: "OWASP Injection"

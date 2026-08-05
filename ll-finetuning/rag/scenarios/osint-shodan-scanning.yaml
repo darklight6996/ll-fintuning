@@ -1,0 +1,106 @@
+# Category: Intelligence Gathering
+name: "Shodan Scanning – Exposed Infrastructure and IoT Discovery"
+id: "osint-shodan-001"
+category: "osint"
+subcategory: "iot_infrastructure"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Use Shodan (the IoT search engine) to discover internet‑facing devices,
+  open ports, banners, and vulnerabilities associated with a target
+  organization or IP range. Shodan indexes service banners from FTP, SSH,
+  HTTP, and industrial protocols (Modbus, BACnet, etc.).
+
+learning_objectives:
+  - Understand Shodan's data collection and search syntax
+  - Search for specific organizations using `org:`, `hostname:`, `net:`
+  - Identify exposed services (e.g., RDP, SSH, MongoDB)
+  - Find default credentials or vulnerable devices
+
+tools:
+  - Shodan CLI
+  - Shodan web interface
+  - Python (shodan library)
+  - Masscan (for local scans)
+
+prerequisites:
+  - Shodan API key (free tier available)
+  - Target organization name or IP range
+
+steps:
+  - id: "step1"
+    phase: "recon_org"
+    action: "Search Shodan for target organization"
+    commands:
+      - "# Using CLI"
+      - "shodan search 'org:Example Corp'"
+      - "# Or search by domain"
+      - "shodan search 'hostname:example.com'"
+      - "# Filter by port (e.g., RDP)"
+      - "shodan search 'org:Example Corp port:3389'"
+    expected_output: "List of IPs, open ports, and banners belonging to the org"
+    detection: "Shodan logs your queries (API key tied to you); but target is unaware"
+
+  - id: "step2"
+    phase: "analysis"
+    action: "Identify vulnerable services"
+    commands:
+      - "# Find MongoDB open without auth"
+      - "shodan search 'product:mongodb port:27017 -authentication'"
+      - "# Find industrial control systems"
+      - "shodan search 'port:502'  # Modbus"
+      - "# Check for weak TLS versions"
+      - "shodan search 'ssl:Self-Signed'"
+    expected_output: "Vulnerable devices and services"
+    detection: "None"
+
+  - id: "step3"
+    phase: "exploitation_planning"
+    action: "Map exposed services to attack vectors"
+    commands:
+      - "# Export IPs for further scanning"
+      - "shodan download example_data 'org:Example Corp'"
+      - "# Use Shodan reports"
+      - "shodan parse --fields ip_str,port,org example_data.json.gz"
+    expected_output: "Prioritized list of high‑value targets (e.g., SSH with weak ciphers)"
+    detection: "N/A"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1592"
+    description: "Gather Victim Host Information"
+  - standard: "NIST SP 800-53"
+    control: "SI-2"
+    description: "Flaw Remediation (identifying vulnerable hosts)"
+
+detection:
+  network_indicators:
+    - "N/A (Shodan crawls the internet continuously)"
+  log_indicators:
+    - "Your Shodan API usage may be tracked"
+  endpoint_indicators:
+    - "shodan CLI commands"
+
+remediation:
+  immediate:
+    - "Close unnecessary public ports"
+    - "Change default passwords and enable authentication"
+  long_term:
+    - "Use a vulnerability scanner to periodically check exposed services"
+    - "Monitor Shodan for your own assets (Shodan Monitoring)"
+
+variables:
+  target_org: "Example Corp"
+  target_domain: "example.com"
+
+assessment_questions:
+  - "What type of data does Shodan collect that is not available in a standard web search?"
+  - "How can an organization remove a device from Shodan?"
+  - "What is the difference between Shodan and Censys?"
+
+references:
+  - url: "https://www.shodan.io/"
+    title: "Shodan"
+  - url: "https://help.shodan.io/"
+    title: "Shodan API Documentation"

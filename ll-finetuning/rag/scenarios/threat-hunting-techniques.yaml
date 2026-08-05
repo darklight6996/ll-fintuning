@@ -1,0 +1,209 @@
+# Category: Blue Team - SOC Operations - Threat Hunting
+name: "Proactive Threat Hunting Techniques"
+id: "blue-threat-hunt-001"
+category: "blue_team"
+subcategory: "threat_hunting"
+difficulty: "advanced"
+estimated_time: "120 minutes"
+
+description: |
+  Conduct proactive threat hunting across endpoint, network, and log data to
+  identify attacker activity that evaded automated detection. Covers hypothesis-
+  driven hunting aligned with MITRE ATT&CK and the TaHiTI hunting methodology.
+
+learning_objectives:
+  - Develop threat hunting hypotheses from MITRE ATT&CK techniques
+  - Hunt for living-off-the-land (LOLBin) abuse and lateral movement
+  - Use Splunk, Elastic, and Velociraptor for hunting queries
+  - Document hunt findings and convert to detection rules
+
+tools:
+  - splunk
+  - elastic_siem
+  - velociraptor
+  - kibana
+  - sigma_cli
+  - python3
+
+prerequisites:
+  - SIEM access with at least 30 days of log data
+  - EDR telemetry across endpoint estate
+  - MITRE ATT&CK framework familiarity
+  - Baseline understanding of normal environment behavior
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Hypothesis 1 — Hunt for PowerShell download cradles (T1059.001)"
+    commands:
+      - "# Splunk query — suspicious PowerShell with download indicators"
+      - "index=windows EventCode=4688 NewProcessName=*powershell* | where match(CommandLine, '(?i)(downloadstring|downloadfile|webclient|invoke-webrequest|iwr|curl|wget|bitstransfer|start-bitstransfer)') | table _time, host, NewProcessName, CommandLine, ParentProcessName | sort -_time"
+      - "# Elastic KQL equivalent"
+      - "event.code: 4688 AND process.name: powershell.exe AND process.command_line: (*DownloadString* OR *DownloadFile* OR *WebClient* OR *Invoke-WebRequest*)"
+      - "# Look for encoded commands"
+      - "index=windows EventCode=4688 NewProcessName=*powershell* CommandLine=*-enc* OR CommandLine=*-EncodedCommand* | table _time, host, CommandLine | sort -_time"
+      - "# Decode base64 encoded PowerShell inline"
+      - "python3 -c \"import base64,sys; cmd=sys.argv[1]; print(base64.b64decode(cmd).decode('utf-16-le'))\" '[encoded_command]'"
+    expected_output: "PowerShell download cradle events with decoded commands for analysis"
+    detection: "N/A — hunter IS detection in this context"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Hypothesis 2 — Hunt for LOLBin abuse (T1218)"
+    commands:
+      - "# Hunt for certutil download abuse"
+      - "index=windows EventCode=4688 NewProcessName=*certutil* CommandLine=*urlcache* OR CommandLine=*split* OR CommandLine=*decode* | table _time, host, CommandLine | sort -_time"
+      - "# Hunt for mshta executing remote scripts"
+      - "index=windows EventCode=4688 NewProcessName=*mshta* CommandLine=*http* | table _time, host, CommandLine"
+      - "# Hunt for regsvr32 with remote COM objects (Squiblydoo)"
+      - "index=windows EventCode=4688 NewProcessName=*regsvr32* CommandLine=*/s* CommandLine=*/u* CommandLine=*http* | table _time, host, CommandLine"
+      - "# Hunt for rundll32 executing non-DLL files"
+      - "index=windows EventCode=4688 NewProcessName=*rundll32* | where NOT match(CommandLine, '(?i)\\.dll') | table _time, host, CommandLine"
+      - "# Hunt for wmic remote execution"
+      - "index=windows EventCode=4688 NewProcessName=*wmic* CommandLine=*process* CommandLine=*call* CommandLine=*create* | table _time, host, CommandLine, ComputerName"
+      - "# Elastic — all LOLBin categories"
+      - "process.name: (certutil.exe OR mshta.exe OR regsvr32.exe OR rundll32.exe OR wmic.exe OR cmstp.exe OR msiexec.exe) AND process.command_line: (*http* OR *ftp* OR *\\\\*)"
+    expected_output: "LOLBin abuse events grouped by binary with associated command lines"
+    detection: "N/A — threat hunting query results"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Hypothesis 3 — Hunt for lateral movement via PsExec/WMI/WinRM"
+    commands:
+      - "# Hunt for PsExec service creation (T1021.002)"
+      - "index=windows EventCode=7045 ServiceName=PSEXESVC OR ServiceFileName=*psexec* | table _time, host, ServiceName, ServiceFileName, AccountName"
+      - "# WMI lateral movement (T1021.006)"
+      - "index=windows EventCode=4688 NewProcessName=*WmiPrvSE* ParentProcessName=*svchost* | table _time, host, CommandLine"
+      - "index=windows source=WMI-Activity EventCode=5857 | table _time, host, Message"
+      - "# WinRM lateral movement (T1021.006)"
+      - "index=windows EventCode=4624 LogonType=3 AuthenticationPackageName=Kerberos | stats count by _time span=1h, TargetUserName, IpAddress | where count > 5"
+      - "# SMB admin share access (lateral movement indicator)"
+      - "index=windows EventCode=5140 ShareName=*ADMIN$* OR ShareName=*C$* | stats count by _time span=1h, IpAddress, TargetUserName | where count > 3 | sort -count"
+      - "# Hunt for new local admin accounts created"
+      - "index=windows EventCode=4720 | join type=inner host [search index=windows EventCode=4732 GroupName=Administrators | fields host, MemberName] | table _time, host, NewTargetUserName"
+    expected_output: "Lateral movement events with source/destination hosts and user accounts"
+    detection: "N/A — threat hunting results"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "Hypothesis 4 — Hunt for credential access (T1003)"
+    commands:
+      - "# Hunt for LSASS access via Sysmon EventID 10"
+      - "index=windows source=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=10 TargetImage=*lsass.exe | where NOT match(SourceImage, '(?i)C:\\\\Windows\\\\System32|C:\\\\Windows\\\\SysWOW64|C:\\\\Program Files') | table _time, host, SourceImage, TargetImage, GrantedAccess"
+      - "# Hunt for SAM database access"
+      - "index=windows EventCode=4656 ObjectName=*SAM* OR EventCode=4663 ObjectName=*SAM* | table _time, host, SubjectUserName, ObjectName, AccessMask"
+      - "# Hunt for credential file access"
+      - "index=windows EventCode=4663 ObjectName=*\\\\Credentials\\\\* OR ObjectName=*\\\\Vault\\\\* | table _time, host, SubjectUserName, ObjectName"
+      - "# Hunt for ntds.dit access"
+      - "index=windows EventCode=4663 ObjectName=*ntds.dit* | table _time, host, SubjectUserName, ObjectName"
+      - "# Hunt for Volume Shadow Copy abuse (T1003.003)"
+      - "index=windows EventCode=4688 CommandLine=*vssadmin* CommandLine=*shadow* | table _time, host, CommandLine"
+      - "index=windows EventCode=4688 CommandLine=*wmic* CommandLine=*shadowcopy* | table _time, host, CommandLine"
+    expected_output: "Credential access events from LSASS, SAM, NTDS, and shadow copies"
+    detection: "N/A — threat hunting results"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "Hypothesis 5 — Hunt for persistence mechanisms (T1053, T1547)"
+    commands:
+      - "# Hunt for new scheduled tasks"
+      - "index=windows EventCode=4698 | table _time, host, TaskName, TaskContent, SubjectUserName | sort -_time"
+      - "# Hunt for suspicious Run key modifications"
+      - "index=windows source=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=13 TargetObject=*CurrentVersion\\\\Run* | where NOT match(Details, '(?i)chrome|firefox|teams|onedrive|dropbox|zoom') | table _time, host, TargetObject, Details"
+      - "# Hunt for new services created"
+      - "index=windows EventCode=7045 | where NOT match(ServiceFileName, '(?i)C:\\\\Windows|C:\\\\Program Files') | table _time, host, ServiceName, ServiceFileName, ServiceType, StartType"
+      - "# Hunt for WMI subscription persistence (T1546.003)"
+      - "index=windows EventCode=5861 | table _time, host, Message"
+      - "index=windows source=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=20 OR EventCode=21 | table _time, host, EventDescription, Name, Query, Consumer"
+      - "# Hunt for startup folder modifications"
+      - "index=windows source=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=11 TargetFilename=*Start*Menu*Startup* | table _time, host, TargetFilename, Image"
+    expected_output: "Persistence artifacts: scheduled tasks, Run keys, services, WMI subscriptions"
+    detection: "N/A — threat hunting results"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "Velociraptor VQL hunting across endpoint estate"
+    commands:
+      - "# Deploy Velociraptor for live endpoint hunting"
+      - "# VQL — hunt for LOLBin processes"
+      - "SELECT Pid, Ppid, Name, CommandLine, CreateTime FROM processes() WHERE Name IN ('certutil.exe','mshta.exe','regsvr32.exe','wmic.exe','cmstp.exe') AND CommandLine =~ 'http'"
+      - "# VQL — hunt for suspicious network connections"
+      - "SELECT Pid, Name, Laddr, Raddr, Status FROM netstat() WHERE Raddr.Port NOT IN (80,443,53,22,25) AND Status = 'ESTABLISHED' AND NOT Raddr.IP =~ '^(10\\\\.|172\\\\.(1[6-9]|2[0-9]|3[01])\\\\.|192\\.168\\\\.)'"
+      - "# VQL — hunt for recently modified executables in temp"
+      - "SELECT FullPath, Size, Mtime, Atime FROM glob(globs=['C:/Users/*/AppData/Roaming/*.exe','C:/Users/*/AppData/Local/Temp/*.exe','C:/ProgramData/*.exe']) WHERE Mtime > now() - 86400"
+      - "# VQL — scheduled task content"
+      - "SELECT Name, Command, Arguments, Enabled FROM schtasks() WHERE Command =~ '(powershell|cmd|wscript|cscript|mshta)' AND NOT Name =~ '(Microsoft|Windows|Google|Adobe)'"
+      - "# VQL — run keys"
+      - "LET keys <= ('HKEY_LOCAL_MACHINE/Software/Microsoft/Windows/CurrentVersion/Run', 'HKEY_CURRENT_USER/Software/Microsoft/Windows/CurrentVersion/Run')\nSELECT Key, Name, Data FROM reg_query(globs=keys)"
+    expected_output: "Live endpoint hunting results across all monitored hosts"
+    detection: "N/A — Velociraptor agent queries"
+
+  - id: "step7"
+    phase: "post_exploitation"
+    action: "Convert hunt findings to Sigma detection rules"
+    commands:
+      - "# Document hunt findings and convert to reusable rules"
+      - "cat > /tmp/hunt_finding_lolbin.yml << 'EOF'\ntitle: CertUtil URL Cache Download\nid: $(python3 -c 'import uuid; print(uuid.uuid4())')\nstatus: experimental\ndescription: Detects certutil being used to download files via urlcache - common LOLBin abuse\nauthor: Threat Hunt Team\ndate: $(date +%Y/%m/%d)\ntags:\n    - attack.defense_evasion\n    - attack.t1218\n    - attack.command_and_control\n    - attack.t1105\nlogsource:\n    category: process_creation\n    product: windows\ndetection:\n    selection:\n        Image|endswith: '\\\\certutil.exe'\n        CommandLine|contains|all:\n            - 'urlcache'\n            - '-split'\n    condition: selection\nfalsepositives:\n    - Legitimate certificate management operations\nlevel: high\nEOF"
+      - "# Validate Sigma rule"
+      - "sigma check /tmp/hunt_finding_lolbin.yml"
+      - "# Convert to SIEM query"
+      - "sigma convert -t splunk /tmp/hunt_finding_lolbin.yml"
+      - "# Document hunt summary"
+      - "python3 << 'EOF'\nhunt_summary = {\n    'hunt_id': 'TH-2024-001',\n    'hypothesis': 'Attacker using LOLBins for download and execution',\n    'mitre_technique': 'T1218',\n    'data_sources': ['Windows Security Events', 'Sysmon', 'EDR'],\n    'hunt_period': '30 days',\n    'findings': [],\n    'true_positives': 0,\n    'false_positives': 0,\n    'new_detections_created': 1,\n    'outcome': 'No active threat found — detection rule created for future'\n}\nimport json\nprint(json.dumps(hunt_summary, indent=2))\nEOF"
+    expected_output: "Formalized detection rule from hunt finding and hunt closure documentation"
+    detection: "N/A — rule creation and documentation"
+
+compliance_controls:
+  - standard: "NIST 800-53 Rev5"
+    control: "SI-4"
+    description: "System monitoring — proactive threat detection"
+  - standard: "CIS Controls v8"
+    control: "8.11"
+    description: "Conduct audit log reviews"
+  - standard: "SOC2 CC7.1"
+    control: "CC7.1"
+    description: "Detection and monitoring of threats"
+  - standard: "PCI DSS v4.0"
+    control: "10.4.1"
+    description: "Review logs for all system components at least once daily"
+
+detection:
+  network_indicators:
+    - "N/A — threat hunting IS the detection activity"
+  log_indicators:
+    - "Hunt findings documented as new Sigma rules for ongoing detection"
+  endpoint_indicators:
+    - "Velociraptor artifact collection visible in agent telemetry"
+
+remediation:
+  immediate:
+    - "Any confirmed true positives trigger full incident response process"
+    - "Immediately block confirmed IOCs at network and endpoint controls"
+  long_term:
+    - "Convert all hunt findings to detection rules"
+    - "Schedule recurring hunts on identified technique categories"
+    - "Track MITRE ATT&CK technique coverage through hunt program"
+    - "Publish hunt playbooks for team knowledge sharing"
+
+variables:
+  siem_platform: "splunk"
+  hunt_period_days: "30"
+  environment: "production"
+  encoded_command: "BASE64_ENCODED_PS_COMMAND"
+
+assessment_questions:
+  - "What is the TaHiTI threat hunting methodology?"
+  - "How do you prioritize which MITRE ATT&CK techniques to hunt for?"
+  - "What is the difference between hypothesis-driven and IOC-driven threat hunting?"
+  - "How do you convert a successful hunt finding into a persistent detection rule?"
+  - "What data sources are most valuable for hunting lateral movement activity?"
+
+references:
+  - url: "https://www.threathunting.net/files/hunt-evil-practical-guide-threat-hunting.pdf"
+    title: "A Practical Guide to Threat Hunting"
+  - url: "https://github.com/ThreatHuntingProject/ThreatHunting"
+    title: "ThreatHunting Project"
+  - url: "https://attack.mitre.org/"
+    title: "MITRE ATT&CK Framework"
+  - url: "https://github.com/Velocidex/velociraptor"
+    title: "Velociraptor - Endpoint Visibility"

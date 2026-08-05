@@ -1,0 +1,92 @@
+# Category: Emerging Tech - AI
+name: "Edge AI Model Stealing – Extracting Neural Network Parameters"
+id: "ai-model-stealing-001"
+category: "emerging_tech"
+subcategory: "ai_ml"
+difficulty: "advanced"
+estimated_time: "90 minutes"
+
+description: |
+  Use side‑channel or API‑based querying to approximate a machine learning
+  model's parameters, effectively stealing the intellectual property. This
+  is relevant for edge devices or cloud APIs that provide prediction services.
+
+learning_objectives:
+  - Understand model stealing (model extraction) attacks
+  - Use query access to train a surrogate model
+  - Apply techniques like black‑box extraction
+  - Evaluate the fidelity of stolen model
+
+tools:
+  - Python (TensorFlow, PyTorch)
+  - Requests (for API)
+  - Open source models (for testing)
+
+prerequisites:
+  - Target model accessible via API (e.g., prediction endpoint)
+  - Knowledge of model architecture (or generic)
+
+steps:
+  - id: "step1"
+    phase: "data_collection"
+    action: "Query the target API with many inputs"
+    commands:
+      - "# Generate random inputs"
+      - "# Collect predictions"
+    expected_output: "Input‑output pairs"
+    detection: "API logs show many requests; could be rate‑limited"
+
+  - id: "step2"
+    phase: "training"
+    action: "Train a surrogate model on the collected data"
+    commands:
+      - "# Use similar architecture (e.g., CNN for images)"
+      - "model.fit(X, y)"
+    expected_output: "Surrogate model with high accuracy"
+    detection: "None"
+
+  - id: "step3"
+    phase: "evaluation"
+    action: "Compare surrogate model performance to target"
+    commands:
+      - "# Test on held‑out data"
+    expected_output: "Fidelity score (high means successful theft)"
+    detection: "N/A"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1588"
+    description: "Obtain Capabilities (model)"
+  - standard: "GDPR"
+    control: "Article 32"
+    description: "Security of Processing (if model contains personal data)"
+
+detection:
+  network_indicators:
+    - "Many API calls to prediction endpoint"
+  log_indicators:
+    - "High query volume from single IP"
+  endpoint_indicators:
+    - "Training scripts"
+
+remediation:
+  immediate:
+    - "Implement rate limiting and query quotas"
+    - "Add noise to predictions (differential privacy)"
+  long_term:
+    - "Use watermarking to detect stolen models"
+    - "Monitor for high‑volume API usage"
+
+variables:
+  api_endpoint: "https://api.example.com/predict"
+
+assessment_questions:
+  - "What is the difference between model extraction and model inversion?"
+  - "How can differential privacy protect against model stealing?"
+  - "Why might an attacker want to steal an edge AI model?"
+
+references:
+  - url: "https://arxiv.org/abs/1609.02943"
+    title: "Model Stealing Attacks (Paper)"
+  - url: "https://www.usenix.org/conference/usenixsecurity20/presentation/tramer"
+    title: "USENIX Model Stealing"

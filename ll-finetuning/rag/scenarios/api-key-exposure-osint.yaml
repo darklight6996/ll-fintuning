@@ -1,0 +1,93 @@
+# Category: OSINT - API Keys
+name: "API Key Exposure OSINT – Finding Keys in Code and Pastes"
+id: "osint-apikey-exposure-001"
+category: "osint"
+subcategory: "secrets"
+difficulty: "intermediate"
+estimated_time: "45 minutes"
+
+description: |
+  Use OSINT techniques to find exposed API keys (Google, AWS, GitHub, etc.)
+  in public code repositories, paste sites, and configuration files. This
+  can lead to unauthorized access to cloud resources.
+
+learning_objectives:
+  - Understand common API key formats (Google, AWS, Stripe)
+  - Use regex to search for keys in GitHub
+  - Monitor paste sites for key dumps
+  - Validate found keys (without actually using them if unauthorized)
+
+tools:
+  - GitHub search (with regex)
+  - grep
+  - truffleHog (GitHub scanning)
+  - Python (requests)
+
+prerequisites:
+  - Basic regex knowledge
+
+steps:
+  - id: "step1"
+    phase: "search"
+    action: "Use GitHub search with patterns"
+    commands:
+      - "# Google API key: AIza[0-9A-Za-z\\-_]{35}"
+      - "# AWS key: AKIA[0-9A-Z]{16}"
+      - "# Use GitHub search: "
+      - 'AIza[0-9A-Za-z\\-_]{35}'
+    expected_output: "Repositories and files containing keys"
+    detection: "GitHub may rate‑limit"
+
+  - id: "step2"
+    phase: "automate"
+    action: "Run truffleHog on a target org"
+    commands:
+      - "trufflehog github --org=exampleorg"
+    expected_output: "All exposed secrets found"
+    detection: "None"
+
+  - id: "step3"
+    phase: "validation"
+    action: "Test if key is valid (optional, with caution)"
+    commands:
+      - "# For Google: use API to test"
+    expected_output: "Confirmation of valid key"
+    detection: "API provider logs your test"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1552.001"
+    description: "Credentials in Files"
+  - standard: "NIST SP 800-53"
+    control: "IA-5"
+    description: "Authenticator Management"
+
+detection:
+  network_indicators:
+    - "API provider may see test calls"
+  log_indicators:
+    - "None"
+  endpoint_indicators:
+    - "truffleHog"
+
+remediation:
+  immediate:
+    - "Rotate any exposed keys immediately"
+    - "Remove keys from public repos"
+  long_term:
+    - "Use environment variables or vaults"
+    - "Enable key rotation policies"
+
+variables:
+  target_org: "exampleorg"
+
+assessment_questions:
+  - "What are common formats for AWS, Google, and Stripe API keys?"
+  - "How can you prevent API keys from being committed?"
+  - "What is the difference between a client‑side and server‑side API key?"
+
+references:
+  - url: "https://github.com/trufflesecurity/trufflehog"
+    title: "truffleHog"
+  - url: "https://www.regular-expressions.info/"
+    title: "Regex Reference"

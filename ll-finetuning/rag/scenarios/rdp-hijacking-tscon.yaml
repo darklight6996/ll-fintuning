@@ -1,0 +1,91 @@
+# Category: Lateral Movement
+name: "RDP Hijacking – tscon.exe Session Takeover"
+id: "lateral-rdp-hijack-001"
+category: "lateral_movement"
+subcategory: "rdp"
+difficulty: "intermediate"
+estimated_time: "45 minutes"
+
+description: |
+  Hijack an existing RDP session using `tscon.exe` to switch to another user's
+  session without their password. This requires SYSTEM privileges and can be
+  used to move laterally to a higher-privileged user.
+
+learning_objectives:
+  - Understand Windows Terminal Services sessions
+  - Use `query session` to list active sessions
+  - Use `tscon` to connect to another session
+  - Bypass need for credentials
+
+tools:
+  - tscon.exe (built-in)
+  - PowerShell
+  - Windows Task Manager
+  - Sysinternals (PsExec)
+
+prerequisites:
+  - SYSTEM or Administrator privileges on the target machine
+  - Another user has an active RDP session
+
+steps:
+  - id: "step1"
+    phase: "enum"
+    action: "List active sessions"
+    commands:
+      - "query session"
+    expected_output: "List of session IDs and usernames"
+    detection: "None"
+
+  - id: "step2"
+    phase: "hijack"
+    action: "Attach to target session"
+    commands:
+      - "# Using tscon"
+      - "tscon <SESSION_ID> /dest:console"
+      - "# This switches to that session on the console"
+    expected_output: "Screen switches to target user's desktop"
+    detection: "Security logs may show session switch events"
+
+  - id: "step3"
+    phase: "post"
+    action: "Perform actions as target user"
+    expected_output: "Access to target user's data"
+    detection: "User may notice session hijacked"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1563"
+    description: "Remote Service Session Hijacking"
+  - standard: "NIST SP 800-53"
+    control: "AC-3"
+    description: "Access Enforcement"
+
+detection:
+  network_indicators:
+    - "None"
+  log_indicators:
+    - "Event 4778 (session reconnected) with unusual source"
+  endpoint_indicators:
+    - "tscon usage"
+
+remediation:
+  immediate:
+    - "Limit who can use tscon (restrict permissions)"
+    - "Enable RDP session timeout and lock screens"
+  long_term:
+    - "Use RDP Gateway with strong authentication"
+    - "Monitor for session switches"
+
+variables:
+  session_id: "2"
+
+assessment_questions:
+  - "What privilege level is required to use tscon to hijack another session?"
+  - "How can you prevent RDP session hijacking?"
+  - "What is the difference between console and RDP-Tcp sessions?"
+
+references:
+  - url: "https://attack.mitre.org/techniques/T1563/"
+    title: "MITRE T1563"
+  - url: "https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/tscon"
+    title: "tscon documentation"

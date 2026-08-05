@@ -1,0 +1,103 @@
+# Category: Network Security
+name: "DNS Cache Poisoning – Spoofing and MITM"
+id: "network-dns-poisoning-001"
+category: "network_security"
+subcategory: "dns"
+difficulty: "advanced"
+estimated_time: "90 minutes"
+
+description: |
+  Exploit DNS cache poisoning (e.g., Kaminsky attack) to inject malicious
+  records into a recursive DNS server's cache. This redirects users from
+  legitimate domains to attacker‑controlled IPs, enabling phishing, MITM,
+  and credential theft.
+
+learning_objectives:
+  - Understand DNS resolution and caching
+  - Recognize the Kaminsky attack (forged responses)
+  - Poison DNS cache using spoofed responses
+  - Intercept traffic with a rogue DNS server
+
+tools:
+  - dnsmasq
+  - bettercap
+  - scapy (Python)
+  - dnsspoof (dsniff)
+  - custom scripts for Kaminsky
+
+prerequisites:
+  - Man‑in‑the‑middle position or ability to spoof UDP packets
+  - Vulnerable DNS resolver (predictable transaction IDs)
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify DNS resolver and its behavior"
+    commands:
+      - "# Query resolver to check TID predictability"
+      - "# Use `dig` to see query ID in response"
+      - "dig @<RESOLVER> example.com +dnssec"
+    expected_output: "DNS resolver IP and observed transaction ID pattern"
+    detection: "No immediate detection"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Send forged responses to poison cache"
+    commands:
+      - "# Using Kaminsky attack: flood with queries for non‑existent subdomain (e.g., random123.example.com)"
+      - "# Then send many spoofed responses with the answer to example.com (attacker IP)"
+      - "# Use tools like `dnschef` or `scapy`"
+      - "python poison.py --target resolver --domain example.com --spoof 1.2.3.4"
+    expected_output: "Subsequent queries for example.com resolve to attacker IP"
+    detection: "Unexpected TXID collisions; many identical queries"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Set up phishing server to capture credentials"
+    commands:
+      - "# Start a web server that clones the legitimate site"
+      - "sudo python3 -m http.server 80"
+      - "# Use Apache or Nginx with reverse proxy to log POST data"
+    expected_output: "Users' credentials sent to attacker server"
+    detection: "Phishing website access logs; SSL certificate warnings"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1557"
+    description: "Adversary-in-the-Middle"
+  - standard: "CIS DNS Benchmarks"
+    control: "2.1"
+    description: "Use DNSSEC to prevent cache poisoning"
+
+detection:
+  network_indicators:
+    - "Large number of DNS queries to random subdomains"
+    - "Spoofed DNS responses (source IP mismatch)"
+  log_indicators:
+    - "Resolver logs with failed validation (TTL anomalies)"
+  endpoint_indicators:
+    - "Tools like dnsspoof or bettercap running"
+
+remediation:
+  immediate:
+    - "Enable DNSSEC validation on recursive resolvers"
+    - "Randomize source ports and transaction IDs (modern resolvers do this)"
+  long_term:
+    - "Use DNS over TLS (DoT) or DNS over HTTPS (DoH)"
+    - "Implement response rate limiting (RRL)"
+
+variables:
+  resolver_ip: "8.8.8.8"
+  target_domain: "example.com"
+  attacker_ip: "1.2.3.4"
+
+assessment_questions:
+  - "How does the Kaminsky attack bypass the 16‑bit transaction ID space?"
+  - "What is the role of DNSSEC in preventing cache poisoning?"
+  - "Why does source port randomization help mitigate poisoning?"
+
+references:
+  - url: "https://www.kb.cert.org/vuls/id/800113"
+    title: "Kaminsky DNS Vulnerability"
+  - url: "https://www.ietf.org/rfc/rfc4033.txt"
+    title: "DNSSEC Introduction"

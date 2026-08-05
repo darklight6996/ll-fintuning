@@ -1,0 +1,92 @@
+# Category: Cloud Security - Infrastructure as Code
+name: "Terraform IAM Misconfiguration – Overly Permissive Roles"
+id: "cloud-terraform-iam-001"
+category: "cloud_security"
+subcategory: "iac"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Review Terraform configurations for IAM misconfigurations, such as granting
+  wildcard actions or allowing public access. An attacker with read access to
+  the Terraform state or plan can identify these weaknesses and exploit them
+  to escalate privileges.
+
+learning_objectives:
+  - Understand Terraform HCL and resource definitions
+  - Search for `aws_iam_policy` with `"Effect": "Allow"` and `"Action": "*"`
+  - Identify overly broad `Principal` in S3 bucket policies
+  - Exploit these misconfigurations to gain access
+
+tools:
+  - Terraform
+  - tflint / tfsec (static analysis)
+  - AWS CLI
+
+prerequisites:
+  - Access to Terraform configuration files
+  - AWS account (or simulated)
+
+steps:
+  - id: "step1"
+    phase: "review"
+    action: "Scan Terraform code for over-permissive policies"
+    commands:
+      - "# Using tfsec"
+      - "tfsec ."
+      - "# Manual check for aws_iam_policy_document with wildcards"
+    expected_output: "List of high-risk IAM policies"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploit"
+    action: "Assume the over-permissive role"
+    commands:
+      - "# If a role has 'sts:AssumeRole' with overly broad trust policy"
+      - "aws sts assume-role --role-arn arn:aws:iam::123456789012:role/overly-permissive --role-session-name attacker"
+    expected_output: "Temporary credentials"
+    detection: "CloudTrail logs show AssumeRole"
+
+  - id: "step3"
+    phase: "post"
+    action: "Use credentials to access sensitive resources"
+    expected_output: "Access to S3, EC2, etc."
+    detection: "CloudTrail logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1098"
+    description: "Account Manipulation"
+  - standard: "CIS AWS Foundations"
+    control: "1.16"
+    description: "Ensure IAM policies are not overly permissive"
+
+detection:
+  network_indicators:
+    - "CloudTrail unusual API calls"
+  log_indicators:
+    - "AssumeRole from unexpected principal"
+  endpoint_indicators:
+    - "tfsec"
+
+remediation:
+  immediate:
+    - "Apply least privilege principle; use condition keys"
+    - "Use Terraform Sentinel to enforce policies"
+  long_term:
+    - "Regularly audit IAM with AWS IAM Access Analyzer"
+    - "Implement CI/CD pipeline with security scanning"
+
+variables:
+  policy_arn: "arn:aws:iam::123456789012:policy/too-permissive"
+
+assessment_questions:
+  - "Why is 'Action': '*' dangerous in IAM policies?"
+  - "How can you limit actions in Terraform?"
+  - "What is the purpose of `aws_iam_policy_document`?"
+
+references:
+  - url: "https://www.terraform.io/docs/language/index.html"
+    title: "Terraform Documentation"
+  - url: "https://github.com/aquasecurity/tfsec"
+    title: "tfsec"

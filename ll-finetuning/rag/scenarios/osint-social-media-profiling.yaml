@@ -1,0 +1,102 @@
+# Category: Intelligence Gathering
+name: "Social Media Profiling – Building a Target Identity"
+id: "osint-social-profile-001"
+category: "osint"
+subcategory: "social_media"
+difficulty: "beginner"
+estimated_time: "60 minutes"
+
+description: |
+  Aggregate information from multiple social media platforms to build a
+  comprehensive profile of a target individual. This includes Twitter,
+  LinkedIn, Facebook, Instagram, and GitHub. Data points include location,
+  employer, interests, relationships, and online habits.
+
+learning_objectives:
+  - Understand social media footprint and cross‑platform correlation
+  - Use Sherlock to find usernames across platforms
+  - Extract metadata from public profiles (photos, posts, check‑ins)
+  - Create a timeline of the target's activities
+
+tools:
+  - Sherlock (sherlock-project)
+  - Maigret (social profile search)
+  - Recon-ng (social media modules)
+  - TheHarvester (for LinkedIn)
+
+prerequisites:
+  - Target's username or full name
+  - Public profiles must be accessible (not locked)
+
+steps:
+  - id: "step1"
+    phase: "username discovery"
+    action: "Use Sherlock to find accounts across platforms"
+    commands:
+      - "# Search for a username"
+      - "sherlock target_username"
+      - "# If no username, try common aliases from email or name"
+    expected_output: "List of platforms where the username exists"
+    detection: "Social media APIs may log requests; rate limiting applies"
+
+  - id: "step2"
+    phase: "profile extraction"
+    action: "Scrape and analyze profiles"
+    commands:
+      - "# Use Recon-ng to pull LinkedIn data"
+      - "recon-ng"
+      - "marketplace install linkedin_contact"
+      - "# Or manually browse for location, job history"
+      - "# Use Maigret for deep username search"
+      - "maigret target_username --full"
+    expected_output: "Detailed profile: employer, skills, recent posts, location"
+    detection: "None (publicly available data)"
+
+  - id: "step3"
+    phase: "analysis"
+    action: "Correlate data to identify patterns"
+    commands:
+      - "# Compare timestamps across platforms to find active times"
+      - "# Identify possible passwords from pet names, birthdays"
+      - "# Find connections (friends/followers) for social engineering"
+    expected_output: "Social graph and timeline of target"
+    detection: "N/A"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1585"
+    description: "Establish Accounts"
+  - standard: "GDPR"
+    control: "Article 4"
+    description: "Personal Data"
+
+detection:
+  network_indicators:
+    - "API calls to multiple social media platforms from same IP"
+  log_indicators:
+    - "Platform rate‑limit warnings"
+  endpoint_indicators:
+    - "Sherlock or Maigret processes"
+
+remediation:
+  immediate:
+    - "Adjust privacy settings to limit public visibility"
+    - "Remove sensitive information from public profiles"
+  long_term:
+    - "Use different usernames across platforms to prevent cross‑linking"
+    - "Conduct periodic self‑OSINT audits"
+
+variables:
+  target_username: "jdoe"
+  target_fullname: "John Doe"
+
+assessment_questions:
+  - "What information from social media is most valuable for password guessing?"
+  - "How can a target prevent OSINT profiling?"
+  - "What are the limitations of automated tools like Sherlock?"
+
+references:
+  - url: "https://github.com/sherlock-project/sherlock"
+    title: "Sherlock GitHub"
+  - url: "https://github.com/soxoj/maigret"
+    title: "Maigret GitHub"

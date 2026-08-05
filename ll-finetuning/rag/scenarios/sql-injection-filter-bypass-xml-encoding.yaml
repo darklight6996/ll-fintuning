@@ -1,0 +1,94 @@
+# Category: SQL Injection
+name: "SQL injection with filter bypass via XML encoding"
+id: "sql-injection-filter-bypass-xml-001"
+category: "sql_injection"
+subcategory: "filter_bypass"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This lab contains a SQL injection vulnerability in a XML-based input.
+  The application uses a XML parser that allows encoding of special characters,
+  which can be used to bypass input filters. The attacker can use XML entities
+  to encode SQL keywords and bypass WAF or application-level filters.
+
+learning_objectives:
+  - Understand XML encoding and entity expansion
+  - Use XML entities to encode SQL keywords
+  - Bypass input filters using XML encoding
+
+tools:
+  - Burp Suite
+  - curl
+
+prerequisites:
+  - Basic understanding of XML
+  - Access to the lab environment
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify the XML-based input"
+    commands:
+      - "# Browse to the lab and intercept a request"
+      - "# Observe the XML payload"
+    expected_output: "XML data is submitted to the application"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Test for SQL injection in XML input"
+    commands:
+      - "# Use XML entities to encode SQL keywords"
+      - "# Example: <element>&#83;&#81;&#76;</element>"
+      - "# Or use CDATA sections to bypass filters"
+    expected_output: "SQL injection executed successfully"
+    detection: "Web server logs may show unusual XML payloads"
+
+  - id: "step3"
+    phase: "data_extraction"
+    action: "Extract data using XML-encoded SQL"
+    commands:
+      - "# Use XML entities to encode SQL keywords"
+      - "# Example: <element>&#85;&#78;&#73;&#79;&#78; SELECT ...</element>"
+    expected_output: "Sensitive data extracted"
+    detection: "Database logs may show unusual queries"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "XML payloads with encoded characters"
+  log_indicators:
+    - "Database error messages"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use parameterized queries"
+    - "Validate and sanitize XML input"
+  long_term:
+    - "Implement input validation"
+    - "Use an ORM"
+
+variables:
+  lab_url: "https://lab-id.web-security-academy.net"
+  xml_payload: "<element>&#83;&#81;&#76;</element>"
+
+assessment_questions:
+  - "What is XML encoding and how can it be used to bypass filters?"
+  - "What is the difference between CDATA and entity encoding?"
+  - "How can you prevent XML-based SQL injection?"
+
+references:
+  - url: "https://portswigger.net/web-security/sql-injection"
+    title: "PortSwigger SQL Injection"
+  - url: "https://owasp.org/www-community/attacks/SQL_Injection"
+    title: "OWASP SQL Injection"

