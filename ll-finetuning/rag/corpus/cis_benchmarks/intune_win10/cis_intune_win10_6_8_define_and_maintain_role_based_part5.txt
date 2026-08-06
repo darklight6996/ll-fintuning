@@ -1,0 +1,124 @@
+6.8: Define and Maintain Role-Based Access Control (and related controls)
+
+Overview
+This policy setting determines whether users can increase the base priority class of a 
+process. (It is not a privileged operation to increase relative priority within a priority 
+class.) This user right is not required by administrative tools that are supplied with the 
+operating system but might be required by software development tools. 
+The recommended state for this setting is: *S-1-5-32-544 and *S-1-5-90-0 
+(Administrators, Window Manager\Window Manager Group).
+
+This policy setting allows users to dynamically load a new device driver on a system. An 
+attacker could potentially use this capability to install malicious code that appears to be 
+a device driver. This user right is required for users to add local printers or printer 
+drivers in Windows Vista. 
+The recommended state for this setting is: *S-1-5-32-544 (Administrators). 
+Note: This user right is considered a "sensitive privilege" for the purposes of auditing.
+
+This policy setting allows a process to keep data in physical memory, which prevents 
+the system from paging the data to virtual memory on disk. If this user right is assigned, 
+significant degradation of system performance can occur. 
+The recommended state for this setting is: No One.
+
+This policy setting determines which users can change the auditing options for files and 
+directories and clear the Security log. 
+The recommended state for this setting is: *S-1-5-32-544 (Administrators). 
+Note: This user right is considered a "sensitive privilege" for the purposes of auditing.
+
+This policy setting allows users to manage the system's volume or disk configuration, 
+which could allow a user to delete a volume and cause data loss as well as a denial-ofservice condition. 
+The recommended state for this setting is: *S-1-5-32-544 (Administrators). 
+Note: A workstation with Microsoft SQL Server installed will require a special exception 
+to this recommendation for the account that runs the SQL Server service to be granted 
+this user right.
+
+Why This Matters
+A user who is assigned this user right could increase the scheduling priority of a 
+process to Real-Time, which would leave little processing time for all other processes 
+and could lead to a DoS condition.
+
+Device drivers run as highly privileged code. A user who has the Load and unload 
+device drivers user right could unintentionally install malicious code that masquerades 
+as a device driver. Administrators should exercise greater care and install only drivers 
+with verified digital signatures.
+
+Users with the Lock pages in memory user right could assign physical memory to 
+several processes, which could leave little or no RAM for other processes and result in 
+a DoS condition.
+
+The ability to manage the Security event log is a powerful user right and it should be 
+closely guarded. Anyone with this user right can clear the Security log to erase 
+important evidence of unauthorized activity.
+
+A user who is assigned the Perform volume maintenance tasks user right could 
+delete a volume, which could result in the loss of data or a DoS condition.
+
+Audit Steps
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Increase scheduling 
+priority
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Load and unload 
+device drivers
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Lock pages in memory
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Manage auditing and 
+security log
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Perform volume 
+maintenance tasks
+
+Remediation
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 and *S-1-5-90-0 (Administrators, Window 
+Manager\Window Manager Group). 
+User Rights\Increase scheduling priority 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 (Administrators). 
+User Rights\Load Unload Device Drivers 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to (<![CDATA[]]>) which equals No One. 
+User Rights\Lock Memory 
+Note: Using (<![CDATA[]]>) to represent a blank value or No One is recommended 
+by Microsoft. However, there is a known issue where an error occurs in Endpoint 
+Manger (Intune) but does not affect the policy setting from being applied to the system 
+properly.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 (Administrators). 
+User Rights\Manage auditing and security log 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 (Administrators). 
+User Rights\Manage Volume 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen. 
+\
+
+Key Takeaways
+- A user who is assigned this user right could increase the scheduling priority of a  process to Real-Time, which would leave little processing time for all other processes  and could lead to a DoS condition.
+- Device drivers run as highly privileged code.
+- A user who has the Load and unload  device drivers user right could unintentionally install malicious code that masquerades  as a device driver.

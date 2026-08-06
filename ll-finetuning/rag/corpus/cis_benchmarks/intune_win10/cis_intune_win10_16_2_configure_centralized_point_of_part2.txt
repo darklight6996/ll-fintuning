@@ -1,0 +1,39 @@
+16.2: Configure Centralized Point of Authentication
+
+Overview
+This security setting determines the period of time (in days) that a password must be 
+used before the user can change it. You can set a value between 1 and 998 days, or 
+you can allow changes immediately by setting the number of days to 0. 
+The recommended state for this setting is: 1 or more day(s)).
+
+Why This Matters
+Users may have favorite passwords that they like to use because they are easy to 
+remember and they believe that their password choice is secure from compromise. 
+Unfortunately, passwords are compromised and if an attacker is targeting a specific 
+individual's user account, with foreknowledge of data about that user, reuse of old 
+passwords can cause a security breach. To address password reuse a combination of 
+security settings is required. Using this policy setting with the Enforce password history 
+setting prevents the easy reuse of old passwords. For example, if you configure the 
+Enforce password history setting to ensure that users cannot reuse any of their last 12 
+passwords, they could change their password 13 times in a few minutes and reuse the 
+password they started with, unless you also configure the Minimum password age 
+setting to a number that is greater than 0. You must configure this policy setting to a 
+number that is greater than 0 for the Enforce password history setting to be effective.
+
+Audit Steps
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\DeviceLock:MinimumPasswo rdAge_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\DeviceL
+ock:MinimumPasswordAge
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 1 (or more day(s)): 
+Device Lock\Minimum Password Age
+
+Key Takeaways
+- Users may have favorite passwords that they like to use because they are easy to  remember and they believe that their password choice is secure from compromise.
+- Unfortunately, passwords are compromised and if an attacker is targeting a specific  individual's user account, with foreknowledge of data about that user, reuse of old  passwords can cause a security breach.
+- To address password reuse a combination of  security settings is required.

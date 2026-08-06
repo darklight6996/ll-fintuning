@@ -1,0 +1,44 @@
+Cloud Run is a managed compute platform that executes stateless containers in a serverless environment. From a security perspective, Cloud Run abstracts away the underlying infrastructure, including the host operating system and runtime environment, but it does not eliminate security responsibilities. The platform enforces a strong isolation boundary between containers using gVisor, a user-space kernel that intercepts system calls and prevents container breakout. This makes Cloud Run suitable for running untrusted code or multi-tenant workloads where strict isolation is required.
+
+**Key Components of Cloud Run Security**
+
+- **Identity and Access Management (IAM):** Cloud Run integrates with Cloud IAM to control who can create, update, invoke, and manage services. The `run.invoker` role grants permission to call a service endpoint, while `run.developer` and `run.admin` roles control deployment and configuration. Service accounts attached to Cloud Run services determine the permissions the container has when accessing other Google Cloud resources. Use least-privilege service accounts for each service, and avoid using the default compute engine service account.
+
+- **Network Security:** Cloud Run services can be configured to accept traffic from the internet, from internal VPC networks, or only from specific IP ranges. For internal-only services, use VPC Serverless Connector or Direct VPC egress to route traffic through your VPC without exposing a public endpoint. Ingress controls are set at the service level and can be combined with Cloud Armor for WAF-style protection. Cloud Run does not support custom firewall rules; all network security is managed through these ingress settings and VPC integration.
+
+- **Container Security:** The container image is the primary attack surface. Use Google Artifact Registry with vulnerability scanning enabled to detect known CVEs in base images and dependencies. Run containers as a non-root user by specifying a `USER` directive in the Dockerfile. Cloud Run enforces a read-only root filesystem by default; any writes to the filesystem are ephemeral and lost when the container instance is recycled. Avoid storing secrets in environment variables; use Secret Manager and mount secrets as volumes or pass them via environment variables at runtime.
+
+- **Authentication and Authorization:** Cloud Run supports IAM-based authentication for HTTP requests. When `--no-allow-unauthenticated` is set, every request must include a valid OAuth2 token or OpenID Connect token. This is the recommended setting for production services. For user-facing applications, use Identity-Aware Proxy (IAP) in front of Cloud Run to enforce identity-based access. For service-to-service calls, use workload identity federation or short-lived tokens from the metadata server.
+
+- **Data Protection:** Cloud Run does not provide persistent storage. Any data written to the local filesystem is lost when the container instance is scaled down. For stateful data, use Cloud Storage, Cloud SQL, or Firestore, and encrypt data at rest using CMEK (customer-managed encryption keys). All traffic between Cloud Run and these services should be over private IPs or encrypted connections. Enable VPC Service Controls to prevent data exfiltration from your VPC to external endpoints.
+
+- **Logging and Monitoring:** Cloud Run automatically sends request logs, container logs, and metrics to Cloud Logging and Cloud Monitoring. Enable audit logs for data access and admin activity. Use log-based metrics to detect anomalous behavior, such as repeated 403 errors or unusual request patterns. Configure alerts for high error rates, unauthorized access attempts, and resource exhaustion.
+
+**Real-World Application**
+
+A common use case is deploying a microservice that processes sensitive user data, such as a payment processing service. The service is deployed with the following security configuration:
+
+- IAM: A dedicated service account with permissions only to write to a specific Cloud Storage bucket and read from Secret Manager.
+- Ingress: Set to internal-only, with a VPC Serverless Connector to route traffic through a private VPC subnet.
+- Authentication: `--no-allow-unauthenticated` enforced. The calling service uses a workload identity pool to obtain short-lived tokens.
+- Container: Built from a minimal base image (distroless), scanned for vulnerabilities, and run as a non-root user.
+- Secrets: Database credentials and API keys stored in Secret Manager, mounted as volumes.
+- Monitoring: Audit logs enabled, with alerts for any attempt to access the service without valid authentication.
+
+This configuration ensures that even if the container is compromised, the attacker cannot access other Google Cloud resources, cannot write to the filesystem, and cannot exfiltrate data to the internet because egress is restricted to the VPC.
+
+**Security Relevance**
+
+Cloud Run’s security model is fundamentally different from IaaS platforms like Compute Engine. Because you do not manage the host OS, patching, or network firewalls, the attack surface is smaller, but the security engineer must focus on:
+
+- **Container image hygiene:** Vulnerabilities in the image are the most common entry point.
+- **IAM misconfiguration:** Overly permissive service accounts or public endpoints are the leading cause of data breaches.
+- **Network egress control:** Without VPC Service Controls or a VPC connector, a compromised container can make outbound requests to any internet host.
+- **Secret management:** Hardcoded secrets or environment variables are easily exposed through logs or debugging endpoints.
+
+Cloud Run is not inherently more or less secure than other compute options; it shifts the security burden from infrastructure management to application and configuration security. For workloads that can be containerized and are stateless, Cloud Run provides strong isolation and a reduced attack surface, but only if the security controls listed above are correctly implemented.
+
+**Key Takeaways**
+1. Enforce `--no-allow-unauthenticated` on all production Cloud Run services and use least-privilege service accounts to limit blast radius.
+2. Use gVisor’s isolation as a defense-in-depth layer, but do not rely on it alone—scan container images for vulnerabilities and run as a non-root user.
+3. Control network egress with VPC connectors and VPC Service Controls to prevent data exfiltration from a compromised container.

@@ -1,0 +1,51 @@
+**Definition**
+
+Micro-segmentation is a network security technique that divides a data center or cloud environment into logically isolated security zones, down to the individual workload level. Unlike traditional perimeter-based segmentation, which relies on VLANs and firewalls at the network edge, micro-segmentation enforces granular access controls between workloads, regardless of their physical or virtual location. It operates on the principle of least privilege, allowing only explicitly authorized traffic between specific application tiers, containers, or virtual machines. This approach is foundational to a zero-trust architecture because it eliminates implicit trust based on network adjacency or IP address.
+
+**Key Components**
+
+Micro-segmentation is implemented through a combination of policy definition, enforcement points, and visibility tools. The core components are:
+
+- **Policy Engine:** A centralized controller that defines and distributes security policies. Policies are based on workload identity (e.g., tags, labels, or service accounts) rather than IP addresses. This allows policies to remain static even as workloads migrate or scale.
+- **Enforcement Points:** Software agents or hypervisor-level firewalls that inspect and filter traffic at the workload network interface. Common enforcement mechanisms include:
+    - Host-based firewalls (e.g., iptables, Windows Firewall with advanced security)
+    - Virtual switch ACLs (e.g., VMware NSX distributed firewall)
+    - Container network policies (e.g., Kubernetes NetworkPolicy)
+    - Cloud-native security groups (e.g., AWS Security Groups, Azure NSGs)
+- **Identity and Context:** The ability to associate workloads with metadata such as application name, environment (prod/staging/dev), compliance tier, or data sensitivity. This context drives policy decisions.
+- **Telemetry and Logging:** Continuous monitoring of all east-west traffic flows. This data is used to validate policy effectiveness, detect anomalies, and refine segmentation rules. Tools like flow logs, packet captures, and NetFlow are essential.
+- **Automated Policy Generation:** Many platforms offer "learn mode" where they observe baseline traffic patterns and automatically propose segmentation policies. This reduces manual effort and the risk of misconfiguration.
+
+**Real-World Application**
+
+A typical use case is securing a multi-tier web application in a hybrid cloud environment. Consider an application with a web frontend, an application server, and a database backend. Without micro-segmentation, all three tiers might reside on the same subnet, allowing lateral movement if one tier is compromised.
+
+With micro-segmentation, the security engineer defines the following policies:
+
+- **Web tier to App tier:** Allow TCP/8080 from web workloads tagged `app:web` to app workloads tagged `app:app`.
+- **App tier to DB tier:** Allow TCP/3306 from app workloads tagged `app:app` to database workloads tagged `app:db`.
+- **All other traffic:** Deny.
+
+These policies are enforced at the workload level. If an attacker compromises the web server, they cannot directly access the database because the policy only permits traffic from the app tier. The attacker would need to first pivot to the app tier, which is also isolated.
+
+Another common application is in containerized environments. Kubernetes NetworkPolicy objects allow engineers to define ingress and egress rules for pods. For example, a frontend pod can be restricted to only accept traffic from an ingress controller, and a backend pod can be restricted to only accept traffic from the frontend pod. This prevents a compromised container from scanning or attacking other services in the cluster.
+
+In cloud environments, micro-segmentation is often implemented using security groups and network ACLs. However, these are typically stateless or stateful at the subnet level. True micro-segmentation requires per-instance security groups or third-party solutions that integrate with cloud APIs to enforce identity-based policies.
+
+**Security Relevance**
+
+Micro-segmentation directly addresses the risk of lateral movement, which is a primary attack vector in modern breaches. Once an attacker gains initial access—often through phishing, vulnerable web applications, or compromised credentials—they typically move laterally to find high-value targets like databases, domain controllers, or secrets stores. Traditional perimeter defenses are ineffective against this because they assume the internal network is trusted.
+
+By enforcing least-privilege communication between every workload, micro-segmentation reduces the blast radius of a compromise. An attacker in one segment cannot easily reach other segments without explicit policy exceptions. This is critical for compliance frameworks such as PCI DSS, HIPAA, and SOC 2, which require strict access controls and data isolation.
+
+Micro-segmentation also simplifies compliance audits. Instead of manually mapping firewall rules to application flows, engineers can demonstrate that policies are based on workload identity and are automatically enforced. This reduces the risk of rule sprawl and misconfigurations that plague traditional firewall rulebases.
+
+Additionally, micro-segmentation supports dynamic environments. In a zero-trust model, workloads are ephemeral—containers spin up and down, VMs migrate, and cloud instances auto-scale. IP-based policies break in these environments. Identity-based micro-segmentation policies remain valid regardless of IP changes, ensuring consistent security posture.
+
+Finally, micro-segmentation provides visibility into east-west traffic that was previously opaque. Security teams can identify shadow IT, unauthorized communication paths, and anomalous behavior that might indicate a breach. This visibility is a prerequisite for effective threat hunting and incident response.
+
+**Key Takeaways**
+
+- Micro-segmentation enforces least-privilege access between individual workloads using identity-based policies, eliminating the implicit trust of traditional network segmentation.
+- Real-world implementation requires a centralized policy engine, workload-level enforcement points, and continuous telemetry to validate and refine rules.
+- The primary security benefit is containment of lateral movement, reducing blast radius and simplifying compliance with regulatory frameworks.

@@ -1,0 +1,86 @@
+3.4: Deploy Automated Operating System Patch (and related controls)
+
+Overview
+Remote host allows delegation of non-exportable credentials. When using credential 
+delegation, devices provide an exportable version of credentials to the remote host. This 
+exposes users to the risk of credential theft from attackers on the remote host. The 
+Restricted Admin Mode and Windows Defender Remote Credential Guard features are 
+two options to help protect against this risk. 
+The recommended state for this setting is: Enabled. 
+Note: More detailed information on Windows Defender Remote Credential Guard and 
+how it compares to Restricted Admin Mode can be found at this link: Protect Remote 
+Desktop credentials with Windows Defender Remote Credential Guard (Windows 10) | 
+Microsoft Docs
+
+This policy setting determines when Preview Build or Feature Updates are received. 
+Defer Updates This enables devices to defer taking the next Feature Update available 
+to your channel for up to 14 days for all the pre-release channels and up to 365 days for 
+the Semi-Annual Channel. Or, if the device is updating from the Semi-Annual Channel, 
+a version for the device to move to and/or stay on until the policy is updated or the 
+device reaches end of service can be specified. Note: If you set both policies, the 
+version specified will take precedence and the deferrals will not be in effect. Please see 
+the Windows Release Information page for OS version information. 
+Pause Updates To prevent Feature Updates from being received on their scheduled 
+time, you can temporarily pause Feature Updates. The pause will remain in effect for 35 
+days from the specified start date or until the field is cleared (Quality Updates will still be 
+offered). 
+Note: If the "Allow Diagnostic Data" (formerly "Allow Telemetry") policy is set to 0, this 
+policy will have no effect. 
+Note #2: Starting with Windows 10 R1607, Microsoft introduced a new Windows 
+Update (WU) client behavior called Dual Scan, with an eye to cloud-based update 
+management. In some cases, this Dual Scan feature can interfere with Windows 
+Updates from Windows Server Update Services (WSUS) and/or manual WU updates. If 
+you are using WSUS in your environment, you may need to set the above setting to Not 
+Configured or configure the setting Do not allow update deferral policies to cause 
+scans against Windows Update (added in the Windows 10 Release 1709 Administrative 
+Templates) in order to prevent the Dual Scan feature from interfering. More information 
+on Dual Scan is available at these links: 
+• 
+Demystifying “Dual Scan” – WSUS Product Team Blog 
+• 
+Improving Dual Scan on 1607 – WSUS Product Team Blog 
+Note #3: Prior to Windows 10 R1703, values above 180 days are not recognized by the 
+OS. Starting with Windows 10 R1703, the maximum number of days you can defer is 
+365 days.
+
+Why This Matters
+Restricted Admin Mode was designed to help protect administrator accounts by 
+ensuring that reusable credentials are not stored in memory on remote devices that 
+could potentially be compromised. Windows Defender Remote Credential Guard helps 
+you protect your credentials over a Remote Desktop connection by redirecting Kerberos 
+requests back to the device that is requesting the connection. Both features should be 
+enabled and supported, as they reduce the chance of credential theft.
+
+In a production environment, it is preferred to only use software and features that are 
+publicly available, after they have gone through rigorous testing in beta.
+
+Audit Steps
+For Deploy Automated Operating System Patch:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation:AllowProtected
+Creds
+
+For Deploy Automated Operating System Patch:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 180 or more. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Update:DeferFeatureUpdat esPeriodInDays
+
+Remediation
+For Deploy Automated Operating System Patch:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Credentials Delegation\Remote host allows 
+delegation of non-exportable credentials
+
+For Deploy Automated Operating System Patch:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 180 or more days. 
+Windows Update for Business\Defer Feature Updates Period in Days
+
+Key Takeaways
+- Restricted Admin Mode was designed to help protect administrator accounts by  ensuring that reusable credentials are not stored in memory on remote devices that  could potentially be compromised.
+- Windows Defender Remote Credential Guard helps  you protect your credentials over a Remote Desktop connection by redirecting Kerberos  requests back to the device that is requesting the connection.
+- Both features should be  enabled and supported, as they reduce the chance of credential theft.

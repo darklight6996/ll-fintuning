@@ -1,0 +1,48 @@
+JSON Web Tokens (JWT) are a compact, URL-safe token format defined by RFC 7519 for transmitting claims between parties. In API security, JWTs are commonly used for stateless authentication and authorization. The token is self-contained, meaning all necessary information about the user and their permissions is embedded within the token itself, eliminating the need for server-side session storage.
+
+**Key Components**
+
+A JWT consists of three Base64url-encoded segments separated by dots: header, payload, and signature.
+
+- **Header**: Contains the token type (typically "JWT") and the signing algorithm (e.g., HS256, RS256). The algorithm is critical because it dictates how the signature is verified. Common algorithms include HMAC with SHA-256 (HS256) for symmetric signing and RSA with SHA-256 (RS256) for asymmetric signing. The header may also include a "kid" (key ID) to indicate which key was used for signing, enabling key rotation.
+
+- **Payload**: Contains claims, which are statements about an entity (typically the user) and additional metadata. Claims are categorized as registered (standardized, e.g., "iss" for issuer, "exp" for expiration, "sub" for subject), public (custom but collision-resistant), or private (custom claims agreed upon by parties). The payload is Base64url-encoded, not encrypted, so sensitive data must never be placed here unless the token is also encrypted (JWE).
+
+- **Signature**: Created by taking the encoded header and payload, concatenating them with a dot, and signing the result using the algorithm specified in the header and a secret or private key. For HMAC, the server uses a shared secret. For RSA or ECDSA, the server uses a private key, and the verifier uses the corresponding public key. The signature ensures the token has not been tampered with and, for asymmetric algorithms, provides non-repudiation.
+
+**Real-World Application**
+
+JWTs are widely used in single sign-on (SSO) systems, OAuth 2.0 flows, and microservice architectures. A typical flow:
+
+1. A user authenticates via a login endpoint, providing credentials.
+2. The authentication server validates credentials and issues a JWT access token, often with a short expiration (e.g., 15 minutes) and a refresh token with a longer lifespan.
+3. The client stores the access token (commonly in memory or an HTTP-only cookie) and includes it in the Authorization header of API requests as "Bearer <token>".
+4. The API gateway or resource server validates the token on each request by checking the signature, expiration, issuer, and audience claims. No database lookup is required for the token itself, enabling horizontal scaling.
+5. When the access token expires, the client uses the refresh token to obtain a new access token without re-authenticating.
+
+In microservice environments, JWTs are often used to propagate identity and permissions across service boundaries. Each service can validate the token independently using the public key, reducing coupling and central dependency.
+
+**Security Relevance**
+
+JWTs introduce specific attack surfaces that must be mitigated:
+
+- **Algorithm Confusion**: An attacker can change the algorithm in the header from RS256 to HS256. If the server's verification logic does not enforce a specific algorithm, it may use the public key as the HMAC secret, allowing the attacker to forge tokens. Mitigation: Always validate the algorithm against a whitelist and reject tokens with unexpected algorithms.
+
+- **Weak or Exposed Secrets**: For HMAC-signed tokens, the secret must be cryptographically strong (e.g., 256-bit random value) and stored securely (e.g., in a secrets manager, not in source code). Leaked secrets allow arbitrary token forgery.
+
+- **Expiration and Revocation**: JWTs are stateless, so revoking a token before its expiration is difficult. Short expiration times (minutes, not hours) reduce the window of risk. For immediate revocation, maintain a blacklist of token IDs (jti claim) or use a token versioning scheme that invalidates all tokens for a user when their permissions change.
+
+- **Payload Tampering**: The payload is only base64-encoded, not encrypted. Never store sensitive data (e.g., passwords, PII) in the payload. If confidentiality is required, use JWE (JSON Web Encryption) to encrypt the payload.
+
+- **None Algorithm Attack**: Some JWT libraries historically accepted the "none" algorithm, which means no signature. Attackers can set the algorithm to "none" and remove the signature segment. Mitigation: Reject tokens with algorithm "none" and ensure the library is configured to require a signature.
+
+- **Key Management**: For asymmetric algorithms, protect the private key with strict access controls. Rotate keys regularly and use the "kid" header to support multiple keys. Public keys should be distributed via a secure endpoint (e.g., JWKS URI) served over HTTPS.
+
+- **Cross-Site Request Forgery (CSRF)**: If JWTs are stored in cookies, they are vulnerable to CSRF unless the cookie is set with SameSite=Strict or Lax, and the API uses additional CSRF tokens. Storing tokens in the Authorization header (not cookies) avoids this issue entirely.
+
+- **Token Injection**: Validate all claims, especially "iss" and "aud", to ensure the token was issued by a trusted authority and is intended for your service. An attacker might reuse a token from another service.
+
+**Key Takeaways**
+1. Always validate the JWT signature using a whitelisted algorithm and a securely managed key; never trust the algorithm in the header without verification.
+2. Keep token lifetimes short (minutes) and implement a revocation mechanism (e.g., token blacklist or versioning) because stateless tokens cannot be invalidated after issuance.
+3. Never store sensitive data in the JWT payload; it is only base64-encoded, not encrypted. Use JWE if confidentiality is required.

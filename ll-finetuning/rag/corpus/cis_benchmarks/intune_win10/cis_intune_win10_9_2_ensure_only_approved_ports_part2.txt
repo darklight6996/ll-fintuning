@@ -1,0 +1,145 @@
+9.2: Ensure Only Approved Ports, Protocols and Services (and related controls)
+
+Overview
+This policy setting specifies whether Search Companion should automatically download 
+content updates during local and Internet searches. 
+The recommended state for this setting is: Enabled.
+
+This policy setting specifies whether the "Order Prints Online" task is available from 
+Picture Tasks in Windows folders. 
+The Order Prints Online Wizard is used to download a list of providers and allow users 
+to order prints online. 
+The recommended state for this setting is: Enabled.
+
+This policy setting specifies whether the tasks Publish this file to the Web, Publish this 
+folder to the Web, and Publish the selected items to the Web are available from File and 
+Folder Tasks in Windows folders. The Web Publishing wizard is used to download a list 
+of providers and allow users to publish content to the Web. 
+The recommended state for this setting is: Enabled.
+
+This policy setting specifies whether the Windows Customer Experience Improvement 
+Program can collect anonymous information about how Windows is used. 
+Microsoft uses information collected through the Windows Customer Experience 
+Improvement Program to improve features that are most used and to detect flaws so 
+that they can be corrected more quickly. Enabling this setting will reduce the amount of 
+data Microsoft is able to gather for this purpose. The recommended state for this setting 
+is: Enabled.
+
+This policy setting specifies whether Windows Messenger can collect anonymous 
+information about how the Windows Messenger software and service is used. 
+Microsoft uses information collected through the Windows Customer Experience 
+Improvement Program to detect software flaws so that they can be corrected more 
+quickly, enabling this setting will reduce the amount of data Microsoft is able to gather 
+for this purpose. The recommended state for this setting is: Enabled.
+
+This policy setting controls whether or not errors are reported to Microsoft. 
+Error Reporting is used to report information about a system or application that has 
+failed or has stopped responding and is used to improve the quality of the product. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+There is a small risk that users will unknowingly reveal sensitive information because of 
+the topics they are searching for. This risk is very low because even if this setting is 
+enabled users still must submit search queries to the desired search engine in order to 
+perform searches.
+
+In an enterprise managed environment we want to lower the risk of a user unknowingly 
+exposing sensitive data.
+
+Users may publish confidential or sensitive information to a public service outside of the 
+control of the organization.
+
+Large enterprise managed environments may not want to have information collected by 
+Microsoft from managed client computers.
+
+Large enterprise managed environments may not want to have information collected by 
+Microsoft from managed client computers.
+
+If a Windows Error occurs in a secure, enterprise managed environment, the error 
+should be reported directly to IT staff for troubleshooting and remediation. There is no 
+benefit to the corporation to report these errors directly to Microsoft, and there is some 
+risk of unknowingly exposing sensitive data as part of the error.
+
+Audit Steps
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\SearchCompanion:DisableContentFileUpdates
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer:NoOnlinePrin tsWizard
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer:NoPublishing
+Wizard
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 2. 
+HKLM\SOFTWARE\Policies\Microsoft\Messenger\Client:CEIP
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\SQMClient\Windows:CEIPEnable
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry locations with a 
+REG_DWORD value of 1 (Disabled) and 0 (DoReport). 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting:Disabled 
+HKLM\SOFTWARE\Policies\Microsoft\PCHealth\ErrorReporting:DoReport
+
+Remediation
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Internet Communication Management\Internet 
+Communication settings\Turn off Search Companion content file updates
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Internet Communication Management\Internet 
+Communication settings\Turn off the "Order Prints" picture task
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Internet Communication Management\Internet 
+Communication settings\Turn off the "Publish to Web" task for files and 
+folders
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Internet Communication Management\Internet 
+Communication settings\Turn off the Windows Messenger Customer Experience 
+Improvement Program
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Internet Communication Management\Internet 
+Communication settings\Turn off Windows Customer Experience Improvement 
+Program
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Internet Communication Management\Internet 
+Communication settings\Turn off Windows Error Reporting
+
+Key Takeaways
+- There is a small risk that users will unknowingly reveal sensitive information because of  the topics they are searching for.
+- This risk is very low because even if this setting is  enabled users still must submit search queries to the desired search engine in order to  perform searches.
+- In an enterprise managed environment we want to lower the risk of a user unknowingly  exposing sensitive data.

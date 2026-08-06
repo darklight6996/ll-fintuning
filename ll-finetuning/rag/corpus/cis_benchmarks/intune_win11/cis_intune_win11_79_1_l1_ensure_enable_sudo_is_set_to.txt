@@ -1,0 +1,27 @@
+79.1: (L1) Ensure 'Enable Sudo' is set to 'Sudo is disabled'
+
+Overview
+This policy setting configures the use of the sudo.exe command line tool. The sudo 
+feature in Windows allows users to run elevated commands (as an administrator) 
+directly from an unelevated console session. 
+The recommended state for this setting is: Sudo is disabled.
+
+Why This Matters
+Sudo for Windows could be exploited for escalation of privilege and spoofing attacks by 
+a malicious actor. For example, in October 2024, CVE-2024-43571 (spoofing 
+vulnerability) was created by Microsoft.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\Sudo:Enabled
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Sudo is disabled. 
+Sudo\Enable Sudo
+
+Key Takeaways
+- Sudo for Windows could be exploited for escalation of privilege and spoofing attacks by  a malicious actor.
+- For example, in October 2024, CVE-2024-43571 (spoofing  vulnerability) was created by Microsoft.

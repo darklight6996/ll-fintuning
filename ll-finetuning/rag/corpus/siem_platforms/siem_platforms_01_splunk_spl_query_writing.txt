@@ -1,0 +1,88 @@
+SPL (Search Processing Language) is the query language used within Splunk to interact with machine-generated data. For a security engineer, SPL is the primary tool for threat hunting, incident investigation, compliance reporting, and monitoring system health. It allows you to filter, transform, correlate, and visualize data from any source ingested into Splunk, including logs from firewalls, endpoints, servers, and cloud services.
+
+**Key Components of an SPL Query**
+
+An SPL query is composed of a pipeline of commands, separated by the pipe character (`|`). Data flows from left to right, with each command taking the results of the previous command as input.
+
+- **Search Term (Initial Filter):** The first part of any query is the search term. This is not a command but a filter that restricts the dataset to relevant events. It can be a simple keyword (e.g., `error`), a field-value pair (e.g., `source="firewall.log"`), or a combination using Boolean operators (AND, OR, NOT). Always start with the most restrictive search term to reduce the dataset early.
+- **Commands:** These are the verbs of SPL. Common commands include:
+    - `stats`: Performs statistical aggregations (count, sum, avg, values, list). Essential for summarizing data.
+    - `table`: Displays results in a tabular format with specified fields.
+    - `search`: Applies a secondary filter to the results of a previous command.
+    - `eval`: Creates new fields or modifies existing ones using expressions (e.g., `eval risk_score = severity * 10`).
+    - `rex`: Extracts fields from raw event data using regular expressions.
+    - `lookup`: Enriches events with data from external CSV files or KV stores.
+    - `transaction`: Groups related events into a single transaction based on common fields or time proximity.
+    - `dedup`: Removes duplicate events based on specified fields.
+    - `timechart`: Creates a time-based chart of statistical data.
+    - `where`: Filters results based on a condition (similar to SQL WHERE).
+- **Field Names:** Fields are key-value pairs extracted from raw data. You reference them directly (e.g., `src_ip`, `dest_port`, `user`). Fields can be extracted automatically by Splunk (default fields like `_time`, `host`, `source`, `sourcetype`) or manually via field extractions.
+- **Functions:** Used within commands like `stats`, `eval`, and `timechart`. Examples: `count()`, `sum(bytes)`, `avg(response_time)`, `values(user)`, `earliest(_time)`, `latest(_time)`.
+- **Subsearches:** A query enclosed in square brackets `[...]` that runs first, and its results are passed as an argument to the outer query. Use sparingly due to performance impact. Example: `[search index=authentication action=failure | stats count by user | where count > 5 | fields user]` to find users with more than 5 failures, then search for all events from those users.
+- **Time Range:** Every SPL query operates within a defined time range. This is set in the Splunk UI or via the `earliest` and `latest` modifiers in the search string (e.g., `earliest=-7d latest=now`).
+
+**Real-World Application: Investigating a Brute Force Attack**
+
+Scenario: A security alert indicates a potential brute force attack against an SSH service. You need to confirm the attack, identify the source IPs, and determine which accounts were targeted.
+
+1.  **Initial Broad Search:** Start with a wide time range (e.g., last 24 hours) and a specific sourcetype.
+    ```
+    index=main sourcetype=linux_secure "Failed password"
+    ```
+    This returns all failed SSH password events.
+
+2.  **Aggregate by Source IP:** Use `stats` to count failures per source IP.
+    ```
+    index=main sourcetype=linux_secure "Failed password"
+    | stats count by src_ip
+    | sort - count
+    ```
+    This shows the IPs with the highest failure counts. A high count (e.g., >50 in an hour) is suspicious.
+
+3.  **Filter for Attackers:** Use `where` to isolate IPs exceeding a threshold.
+    ```
+    index=main sourcetype=linux_secure "Failed password"
+    | stats count by src_ip
+    | where count > 50
+    ```
+    This list contains the likely attacker IPs.
+
+4.  **Identify Targeted Accounts:** For those IPs, find which usernames were attempted.
+    ```
+    index=main sourcetype=linux_secure "Failed password"
+    | stats count by src_ip, user
+    | where count > 50
+    | sort src_ip, - count
+    ```
+    This shows the specific accounts targeted by each IP.
+
+5.  **Check for Successful Logins:** Correlate with successful logins from the same IPs to see if the attack succeeded.
+    ```
+    index=main sourcetype=linux_secure "Accepted password"
+    | stats values(user) as successful_users by src_ip
+    | where src_ip IN [search index=main sourcetype=linux_secure "Failed password" | stats count by src_ip | where count > 50 | fields src_ip]
+    ```
+    This subsearch finds attacker IPs, then the outer search checks if any of those IPs had a successful login. If yes, immediate containment is required.
+
+6.  **Create a Time Chart:** Visualize the attack pattern.
+    ```
+    index=main sourcetype=linux_secure "Failed password"
+    | timechart span=5m count by src_ip
+    ```
+    This shows the attack rate over time, useful for identifying automated tools.
+
+**Security Relevance**
+
+SPL is not just a query language; it is the core of Splunk's security analytics capabilities. Its relevance to a security engineer includes:
+
+- **Threat Hunting:** Proactively searching for indicators of compromise (IOCs) like known malicious IPs, file hashes, or registry keys. SPL allows you to pivot from a single IOC to a full investigation.
+- **Incident Response:** Rapidly isolating affected systems, identifying the scope of a breach, and tracing attacker actions across multiple data sources (firewall, endpoint, DNS, authentication).
+- **Compliance Reporting:** Generating reports for standards like PCI DSS, HIPAA, or SOX. For example, `| stats count by user, action` can produce a log of all privileged user actions.
+- **Detection Engineering:** Creating correlation searches that trigger alerts. A search like `index=windows EventCode=4688 CommandLine="*mimikatz*"` can be saved as an alert for credential dumping attempts.
+- **Data Integrity Verification:** Using SPL to check for gaps in log ingestion (e.g., `| timechart count by host` to see if a host stops sending logs).
+- **Performance Tuning:** Understanding which searches are expensive by using the `job` inspector and optimizing SPL (e.g., using `fields` to limit output, avoiding subsearches when possible, and using `tstats` for accelerated data models).
+
+**Key Takeaways**
+1.  **Start with the most restrictive search term** to minimize the dataset processed by subsequent commands, improving query performance and reducing load on the Splunk environment.
+2.  **Master the `stats`, `eval`, and `timechart` commands** as they form the foundation for 90% of security investigations, from aggregation to field manipulation to time-series analysis.
+3.  **Always validate your results** by running a base search first, then progressively adding commands. Use `| table _raw` to inspect raw event data when results seem incorrect.

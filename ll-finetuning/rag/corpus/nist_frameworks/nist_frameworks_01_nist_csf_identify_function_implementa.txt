@@ -1,0 +1,68 @@
+**Definition**
+
+The Identify function is the foundational category within the NIST Cybersecurity Framework (CSF) 2.0. It encompasses the organizational processes and activities required to develop a comprehensive understanding of cybersecurity risk to systems, assets, data, and capabilities. Without a mature Identify function, all subsequent Protect, Detect, Respond, and Recover activities operate without context or prioritization. The Identify function answers the critical questions: What do we have? What is its value? What are the threats? What are our legal and regulatory obligations? Implementation of this function is not a one-time project but a continuous, iterative process that must be embedded into governance, risk management, and asset management workflows.
+
+**Key Components**
+
+The Identify function is broken down into six categories (formerly five in CSF 1.1, expanded in CSF 2.0). Each category contains specific subcategories that define the implementation requirements.
+
+- **Asset Management (ID.AM):** This is the inventory and classification of all hardware, software, data, and external information systems. Implementation requires:
+    - Maintaining an authoritative, up-to-date inventory of physical and logical assets.
+    - Assigning ownership and classification (e.g., public, internal, confidential, restricted) to each asset.
+    - Documenting data flows, especially for sensitive data crossing network boundaries.
+    - Cataloging third-party dependencies and their access levels.
+
+- **Risk Assessment (ID.RA):** This involves identifying and analyzing threats, vulnerabilities, and the likelihood of adverse events. Implementation requires:
+    - Conducting threat modeling using frameworks like STRIDE or MITRE ATT&CK.
+    - Performing regular vulnerability scans and penetration tests.
+    - Quantifying risk using a consistent methodology (e.g., FAIR, CVSS, or qualitative scales).
+    - Documenting risk registers that map threats to specific assets and business processes.
+
+- **Risk Management Strategy (ID.RM):** This defines the organization’s risk appetite and tolerance. Implementation requires:
+    - Establishing a formal risk management policy approved by executive leadership.
+    - Defining clear thresholds for risk acceptance, mitigation, transfer, and avoidance.
+    - Integrating cybersecurity risk into enterprise risk management (ERM) processes.
+
+- **Supply Chain Risk Management (ID.SC):** This addresses risks from third-party vendors, suppliers, and service providers. Implementation requires:
+    - Maintaining a vendor inventory with criticality ratings.
+    - Conducting due diligence assessments before onboarding.
+    - Contractually requiring security controls and incident notification.
+    - Continuously monitoring vendor security posture (e.g., via SOC 2 reports, penetration test results).
+
+- **Governance (ID.GV):** This ensures cybersecurity is integrated into organizational governance structures. Implementation requires:
+    - Establishing a clear cybersecurity policy framework (policies, standards, procedures, guidelines).
+    - Defining roles and responsibilities for cybersecurity across the organization.
+    - Ensuring board-level oversight and regular reporting on cybersecurity risk.
+    - Aligning cybersecurity strategy with business objectives.
+
+- **Improvement (ID.IM):** This focuses on continuous improvement of the Identify function itself. Implementation requires:
+    - Conducting periodic reviews of asset inventories and risk assessments.
+    - Updating policies and procedures based on lessons learned from incidents or audits.
+    - Tracking and reporting on key performance indicators (KPIs) for Identify activities (e.g., percentage of assets inventoried, risk assessment completion rate).
+
+**Real-World Application**
+
+Consider a mid-sized financial services firm implementing the Identify function from scratch.
+
+1.  **Asset Management:** The security team deploys an agent-based asset discovery tool across all endpoints and servers. They integrate it with their CMDB to automatically populate hardware and software inventories. Each asset is tagged with a data classification label (e.g., “PCI-DSS in-scope,” “PII,” “Internal”). They also map data flows for their core transaction processing system, documenting every API endpoint, database connection, and third-party integration.
+
+2.  **Risk Assessment:** Using the asset inventory, the team conducts a threat model for the transaction system. They identify that a SQL injection vulnerability in a legacy API could expose customer PII. They run a CVSS 3.1 calculation, scoring the vulnerability at 8.2 (High). This is entered into the risk register with a documented mitigation plan: apply a WAF rule immediately and schedule a code rewrite within 60 days.
+
+3.  **Supply Chain Risk Management:** The firm identifies 15 critical vendors, including their cloud hosting provider and a payment gateway. They send each vendor a security questionnaire based on the Shared Assessments SIG. The cloud provider’s SOC 2 Type II report is reviewed; a finding regarding inadequate access logging is flagged. The firm requires the vendor to remediate within 90 days and adds a contractual clause for quarterly security reviews.
+
+4.  **Governance:** The CISO presents a quarterly risk dashboard to the board, showing the top five risks, their current risk scores, and the status of mitigation activities. The board formally approves the risk appetite statement, which defines that no critical vulnerability (CVSS 9.0+) may remain unmitigated for more than 30 days.
+
+**Security Relevance**
+
+The Identify function is the prerequisite for all other cybersecurity activities. Without it, security teams cannot prioritize patching, allocate budget effectively, or demonstrate compliance to auditors. From a security engineering perspective, a weak Identify function leads directly to:
+
+- **Blind spots:** Unknown assets are unmanaged assets. They cannot be patched, monitored, or decommissioned. Attackers routinely discover and exploit such shadow IT.
+- **Misaligned defenses:** Without risk assessment, security controls are applied uniformly, wasting resources on low-value assets while leaving critical systems under-protected.
+- **Compliance failures:** Regulations like GDPR, PCI-DSS, HIPAA, and SOX all require demonstrable asset inventories, risk assessments, and governance. Failure to implement Identify properly results in audit findings, fines, and legal liability.
+- **Inability to respond effectively:** During an incident, the response team must know which assets are affected, their data classification, and their business criticality. This information comes directly from the Identify function.
+
+**Key Takeaways**
+
+1.  The Identify function is the prerequisite for all other NIST CSF activities; without accurate asset inventories and risk assessments, Protect, Detect, Respond, and Recover efforts are unfocused and ineffective.
+2.  Implementation requires continuous, automated processes for asset discovery, risk quantification, and vendor monitoring—manual, periodic efforts are insufficient for modern attack surfaces.
+3.  Governance and risk management strategy must be formally documented, approved by executive leadership, and integrated into enterprise risk management to ensure cybersecurity decisions are aligned with business objectives.

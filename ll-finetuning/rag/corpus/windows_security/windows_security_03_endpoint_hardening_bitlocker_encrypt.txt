@@ -1,0 +1,51 @@
+BitLocker encryption configuration is the process of enabling, deploying, and managing full-disk encryption on Windows endpoints using the BitLocker Drive Encryption feature. It is a critical component of endpoint hardening, designed to protect data at rest by rendering the storage drive inaccessible without the correct authentication key. For a security engineer, BitLocker configuration involves not just toggling a setting, but a deliberate alignment with organizational key management, recovery procedures, and compliance frameworks.
+
+**Key Components of BitLocker Configuration**
+
+- **System Requirements and Pre-requisites**: BitLocker requires a compatible Trusted Platform Module (TPM) version 1.2 or 2.0 on the motherboard. For systems without TPM, BitLocker can operate using a startup key stored on a USB drive, but this is less common in enterprise deployments due to usability concerns. The system drive must be formatted as NTFS and have at least two partitions: a system partition (active, typically 100-500 MB) and an OS partition. The system partition must not be encrypted.
+
+- **Encryption Modes and Algorithms**: BitLocker supports two encryption algorithms: AES-128 and AES-256, with the option of using either Cipher Block Chaining (CBC) or XTS mode. XTS mode is recommended for new deployments as it provides better protection against ciphertext manipulation attacks. The default in Windows 10 and 11 is AES-128 with XTS. For compliance with standards like FIPS 140-2, AES-256 may be required, but this must be balanced against performance overhead on older hardware.
+
+- **Key Protectors**: BitLocker uses key protectors to secure the encryption key. The most common protectors are:
+  - **TPM**: Binds the key to the specific hardware. Without the TPM, the drive cannot be decrypted.
+  - **TPM + PIN**: Adds a user-entered PIN at boot, mitigating risks if the device is stolen while powered off.
+  - **TPM + Startup Key**: Requires a USB key in addition to TPM.
+  - **Recovery Password**: A 48-digit numerical key used for emergency access. This must be escrowed to Active Directory or Azure AD.
+  - **Password or Smart Card**: Used for data volumes (fixed or removable), not the OS drive.
+
+- **Group Policy Settings**: Centralized configuration is achieved through Group Policy Objects (GPOs) under Computer Configuration > Administrative Templates > Windows Components > BitLocker Drive Encryption. Critical settings include:
+  - **Choose drive encryption method and cipher strength**: Set to XTS-AES 256 for OS drives.
+  - **Require additional authentication at startup**: Configure TPM + PIN for high-security environments.
+  - **Store BitLocker recovery information in Active Directory**: Mandatory for enterprise recovery.
+  - **Allow devices compliant with Enhanced Storage**: Controls support for encrypted drives like eDrives.
+
+- **Recovery Key Escrow**: Every BitLocker deployment must have a recovery mechanism. The recovery password should be automatically backed up to Active Directory (on-premises) or Azure AD (cloud-joined). This ensures that if a user forgets their PIN or the TPM fails, the drive can be unlocked without data loss. Without escrow, a locked drive may require a full wipe.
+
+**Real-World Application**
+
+Deploying BitLocker at scale requires careful planning. A typical enterprise rollout follows these steps:
+
+1. **Pre-deployment Audit**: Verify that all target endpoints have TPM 2.0 enabled in firmware. Use tools like `Get-Tpm` in PowerShell to check status. Identify devices that lack TPM and plan for USB startup keys or disable BitLocker on those systems.
+
+2. **Group Policy Configuration**: Create a dedicated GPO for BitLocker settings. Enable the policy "Require additional authentication at startup" and set it to "Allow TPM" or "Require TPM and PIN" based on risk appetite. Configure recovery password escrow to Active Directory. Set encryption method to XTS-AES 256.
+
+3. **Silent Deployment via MDM or SCCM**: Use Microsoft Intune or System Center Configuration Manager (SCCM) to push BitLocker enablement. For example, in Intune, create a device configuration profile for "Endpoint Protection" and enable BitLocker. The encryption process runs in the background and does not require user intervention.
+
+4. **Monitoring and Compliance**: After deployment, monitor encryption status using Microsoft Defender for Endpoint or a SIEM. Generate reports on unencrypted devices. Use PowerShell cmdlets like `Get-BitLockerVolume` to verify encryption state and key protectors.
+
+5. **Handling Exceptions**: Some devices, such as kiosks or lab machines, may require automatic boot without user input. For these, use TPM-only protectors. Document these exceptions in a change management system.
+
+**Security Relevance**
+
+BitLocker encryption directly addresses the threat of physical data theft. If an attacker gains physical access to a powered-off device, they cannot read the drive contents without the TPM or recovery key. This is a fundamental control for compliance with regulations like GDPR, HIPAA, and PCI DSS, which require encryption of sensitive data at rest.
+
+However, BitLocker is not a silver bullet. It does not protect data while the device is powered on and unlocked. An attacker with remote access to an active session can still exfiltrate data. Therefore, BitLocker must be combined with other endpoint hardening measures: strong authentication (Windows Hello, PIN), application control (AppLocker), and endpoint detection and response (EDR).
+
+A common misconfiguration is failing to escrow recovery keys. If a TPM fails and no recovery key is in AD, the drive is permanently locked. Another risk is using weak PINs (e.g., "1234") for TPM+PIN protectors. Enforce PIN complexity via Group Policy (minimum 6 digits, no repeated characters).
+
+From an operational perspective, BitLocker can cause performance degradation on older HDDs, but on modern SSDs with hardware encryption support, the impact is negligible. Always test on a representative sample of hardware before full rollout.
+
+**Key Takeaways**
+- BitLocker configuration must include TPM validation, proper cipher selection (XTS-AES 256), and mandatory recovery key escrow to Active Directory or Azure AD.
+- Group Policy is the primary tool for enforcing consistent BitLocker settings across an enterprise, including PIN requirements and encryption method.
+- BitLocker protects data at rest but does not mitigate threats from active sessions; it must be part of a layered endpoint hardening strategy.

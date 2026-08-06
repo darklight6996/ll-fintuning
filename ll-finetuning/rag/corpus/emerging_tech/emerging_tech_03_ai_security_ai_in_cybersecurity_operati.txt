@@ -1,0 +1,50 @@
+**Definition**
+
+Artificial Intelligence in cybersecurity operations refers to the deployment of machine learning (ML) models, natural language processing (NLP), and automated decision-making systems to detect, analyze, and respond to cyber threats. Unlike traditional rule-based security tools, AI systems learn from historical data and adapt to novel attack patterns without requiring explicit signature updates. In operational contexts, AI is used to augment human analysts by processing telemetry at machine speed, reducing mean time to detect (MTTD) and mean time to respond (MTTR). The core distinction is that AI does not replace human judgment but scales the analyst’s ability to triage alerts, correlate events, and prioritize incidents.
+
+**Key Components**
+
+AI in security operations relies on several interdependent components:
+
+- **Data Ingestion and Normalization**: Security information and event management (SIEM) platforms feed raw logs, network flows, endpoint telemetry, and cloud API logs into a data lake. AI models require clean, normalized data to avoid bias and false positives. Common formats include JSON, syslog, and ECS (Elastic Common Schema).
+
+- **Feature Engineering and Selection**: Raw data is transformed into features—numeric representations of behavior. Examples include time-based features (e.g., login frequency), entropy of domain names, or process tree depth. Feature selection reduces dimensionality and improves model performance.
+
+- **Model Types**:
+  - *Supervised Learning*: Used for classification tasks like malware detection or phishing URL identification. Requires labeled datasets (e.g., known malicious vs. benign samples).
+  - *Unsupervised Learning*: Clustering algorithms (e.g., K-means, DBSCAN) detect anomalies without pre-labeled data. Useful for zero-day attack discovery.
+  - *Reinforcement Learning*: Applied in automated response systems where an agent learns optimal actions (e.g., blocking an IP) based on reward signals from incident outcomes.
+
+- **Inference Pipeline**: Models are deployed as microservices or embedded in SIEM platforms. Inference must occur in near real-time—typically sub-second for network traffic, seconds for endpoint alerts. Batch inference is acceptable for threat hunting but not for blocking.
+
+- **Feedback Loop**: Analyst actions (e.g., marking an alert as false positive or true positive) are fed back into the model retraining cycle. Without this loop, model drift degrades accuracy over weeks.
+
+**Real-World Application**
+
+A concrete example is the use of AI for user and entity behavior analytics (UEBA) in a large enterprise environment. The system ingests authentication logs, VPN connections, and data access events from 50,000 endpoints. An unsupervised model builds a baseline for each user: typical login times, geolocations, and accessed resources.
+
+When a compromised account begins exfiltrating data at 3 AM from an unusual IP range, the model calculates an anomaly score. The score exceeds a threshold, triggering an automated response: the account is locked, and a high-fidelity alert is sent to the SOC. The analyst reviews the alert, confirms the incident, and the feedback is used to adjust the model’s sensitivity for similar patterns.
+
+Another application is AI-driven phishing detection. NLP models analyze email headers, body text, and embedded URLs. They detect subtle indicators like mismatched sender domains, urgency language, or obfuscated links. In one deployment, a transformer-based model reduced false positives by 40% compared to a signature-based filter, while catching 95% of targeted spear-phishing attempts.
+
+AI is also used in endpoint detection and response (EDR) for process behavior analysis. A model trained on millions of process execution trees can flag a PowerShell script that spawns a network connection to a known command-and-control (C2) server, even if the script itself is obfuscated and not previously seen.
+
+**Security Relevance**
+
+From a security engineering perspective, AI introduces both capabilities and risks that must be managed.
+
+- **Adversarial Attacks on Models**: Attackers can craft inputs that evade detection. For example, adding benign noise to a malware binary can cause a classifier to mislabel it as safe. Defenses include adversarial training (injecting adversarial examples during training) and ensemble methods that require multiple models to agree.
+
+- **Data Poisoning**: If an attacker can inject malicious samples into the training data, the model may learn to ignore real threats. This is particularly dangerous in unsupervised learning where ground truth is absent. Mitigations include strict data validation, anomaly detection on training data, and periodic model audits.
+
+- **Model Drift**: Over time, the environment changes—new software, user behavior shifts, or attacker tactics evolve. A model that was 99% accurate at deployment may degrade to 70% within months. Continuous monitoring of model performance metrics (precision, recall, false positive rate) is essential. Automated retraining pipelines should trigger when drift exceeds a threshold.
+
+- **Explainability and Auditability**: Security teams must understand why a model flagged an alert. Black-box models (e.g., deep neural networks) are harder to audit than interpretable models (e.g., decision trees or logistic regression). For compliance with frameworks like NIST or ISO 27001, organizations should require explainability tools (e.g., SHAP, LIME) for any AI used in critical decision paths.
+
+- **Operational Overhead**: AI systems require dedicated infrastructure for training and inference. GPU clusters for deep learning are expensive. Additionally, maintaining labeled datasets for supervised learning demands continuous analyst effort. Without proper resource allocation, AI can become a liability rather than a force multiplier.
+
+**Key Takeaways**
+
+- AI in security operations is a force multiplier for detection and response, but it requires rigorous data hygiene, continuous retraining, and explicit feedback loops to maintain accuracy.
+- Adversarial robustness, data poisoning, and model drift are concrete threats that must be addressed with engineering controls, not just policy.
+- Explainability and auditability are non-negotiable for compliance and incident investigation; prefer interpretable models or use explainability frameworks for black-box systems.

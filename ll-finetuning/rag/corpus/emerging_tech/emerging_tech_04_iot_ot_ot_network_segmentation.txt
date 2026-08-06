@@ -1,0 +1,48 @@
+OT network segmentation is the practice of dividing an operational technology (OT) network into distinct, isolated zones to control traffic flow and limit the blast radius of security incidents. Unlike IT networks, where segmentation often prioritizes data confidentiality and user access control, OT segmentation prioritizes availability, safety, and the integrity of industrial processes. A flat OT network—where all controllers, HMIs, engineering workstations, and field devices share a single broadcast domain—is a critical vulnerability. Segmentation enforces the principle of least privilege at the network layer, ensuring that only necessary communications occur between specific devices and systems.
+
+**Key Components**
+
+Effective OT segmentation relies on several architectural and operational components:
+
+- **Security Zones and Conduits (IEC 62443 Model):** The foundational framework. A security zone is a grouping of assets that share common security requirements (e.g., a zone for all PLCs in a production cell). A conduit is a logical or physical path for communication between zones (e.g., a firewall rule set or a VPN tunnel). Every cross-zone communication must pass through a conduit, which enforces access control and inspection.
+
+- **Purdue Model Alignment:** The Purdue Enterprise Reference Architecture (PERA) provides a hierarchical model (Levels 0-5) for OT networks. Segmentation typically enforces strict boundaries between:
+    - **Level 0-2 (Process, Basic Control, Supervisory):** The OT "inner core." Devices here (sensors, actuators, PLCs, SCADA servers) must be isolated from higher levels. Traffic between Level 2 and Level 3 (Site Operations) is tightly controlled.
+    - **Level 3 (Site Operations):** Includes domain controllers, patch management servers, and historian databases that serve the OT environment. This zone is the primary interface point for IT-OT integration.
+    - **Level 3.5 (DMZ):** A mandatory buffer zone between Level 3 and Level 4 (Enterprise IT). No direct traffic should pass from IT to OT or vice versa. All data exchange (e.g., historian replication, file transfers) must terminate in the DMZ.
+    - **Level 4-5 (Enterprise IT):** Business systems, ERP, and external connectivity. Access to OT from these levels is strictly mediated through the DMZ.
+
+- **Industrial Firewalls and Next-Generation Firewalls (NGFWs):** Standard IT firewalls often lack support for industrial protocols (e.g., Modbus TCP, DNP3, PROFINET). OT-specific firewalls or NGFWs with deep packet inspection (DPI) for these protocols are required. They can enforce rules based on function codes, register addresses, or specific command types, not just IP addresses and ports. For example, a rule can allow a specific HMI to write to a specific PLC register but block all other write commands.
+
+- **Unidirectional Gateways (Data Diodes):** For the highest security environments (e.g., critical infrastructure, nuclear), data diodes enforce physical one-way data flow. Data can only travel from the OT network to the IT network (or DMZ). This eliminates any possibility of remote exploitation originating from IT or the internet. They are used for historian replication, alarm forwarding, and monitoring without any return path.
+
+- **Jump Boxes / Bastion Hosts:** A hardened, centrally managed workstation within the OT zone (often Level 3) that is the sole point of interactive access for engineers and administrators. All remote access (from IT or external VPNs) must first authenticate to the jump box. The jump box then initiates connections to Level 2 or Level 1 devices. This eliminates direct RDP or SSH from uncontrolled networks to critical controllers.
+
+- **Network Access Control (NAC) for OT:** While challenging due to device diversity and legacy hardware, NAC can enforce segmentation at the switch port level. It can detect when an unauthorized device (e.g., a rogue laptop) is plugged into an OT switch and either block the port or place the device into a quarantine VLAN with no access to production zones.
+
+**Real-World Application**
+
+Consider a manufacturing plant with a single flat network. A contractor connects a laptop to an unused switch port to troubleshoot a packaging line. The laptop is infected with ransomware. Because there is no segmentation, the ransomware spreads laterally to the PLC controlling the packaging line, then to the SCADA server, and finally to the plant historian, which replicates data to the corporate network. The entire plant is shut down.
+
+After segmentation, the network is restructured as follows:
+- **Zone 1 (Packaging Line):** PLCs, HMIs, and drives for the packaging line are in their own VLAN. Firewall rules permit only the packaging line SCADA server (in Zone 2) to communicate with these devices using Modbus TCP.
+- **Zone 2 (Supervisory):** The SCADA server, engineering workstation, and a local historian reside here. This zone can initiate outbound connections to Zone 1 but cannot accept unsolicited inbound connections from IT.
+- **DMZ:** A separate historian and a file transfer server sit here. The OT historian pushes data to the DMZ historian via a unidirectional gateway. The IT network can pull data from the DMZ historian but cannot initiate connections to Zone 2 or Zone 1.
+- **Remote Access:** All vendor or engineer remote access terminates at a jump box in Zone 2. The jump box requires multi-factor authentication and logs all sessions. From the jump box, the engineer can RDP to the engineering workstation, but not directly to the PLCs.
+
+In this segmented environment, if the contractor’s laptop is infected, it is on an isolated VLAN for guest devices with no access to any OT zone. Even if a device in Zone 2 is compromised, the unidirectional gateway prevents the malware from reaching the DMZ or IT. The blast radius is contained to a single zone.
+
+**Security Relevance**
+
+The primary security relevance of OT segmentation is **containment and availability preservation**. In IT, a breach often means data theft; in OT, a breach can mean physical damage, safety hazards, or production stoppage costing millions per hour. Segmentation directly mitigates the following threats:
+
+- **Lateral Movement:** The most common attack vector in OT incidents (e.g., Triton, Industroyer, NotPetya). Segmentation forces attackers to pivot through multiple controlled chokepoints, increasing detection opportunities and slowing the attack.
+- **Ransomware Propagation:** Flat networks allow ransomware to encrypt file shares and controllers simultaneously. Segmentation limits encryption to a single zone, preserving critical control functions in other zones.
+- **Uncontrolled IT-OT Traffic:** Direct connections from enterprise networks to controllers bypass all OT-specific security controls. The DMZ and data diodes enforce a strict, auditable boundary.
+- **Protocol Abuse:** Without DPI, an attacker can send a malicious Modbus write command to a PLC from any device on the same subnet. Segmentation combined with protocol-aware firewalls blocks unauthorized commands even if the source IP is allowed.
+- **Compliance:** Frameworks like NIST SP 800-82, IEC 62443, and NERC CIP require network segmentation as a foundational control. Auditors will flag flat OT networks as a critical deficiency.
+
+**Key Takeaways**
+- OT segmentation must be based on the Purdue model and IEC 62443 zones/conduits, not IT-centric VLANs, to preserve industrial protocol functionality and availability.
+- Unidirectional gateways and protocol-aware firewalls are essential for enforcing strict boundaries between OT and IT, and between OT zones, where standard IT firewalls are insufficient.
+- The primary security benefit of segmentation is containment of lateral movement, directly protecting process availability and safety from ransomware and targeted attacks.

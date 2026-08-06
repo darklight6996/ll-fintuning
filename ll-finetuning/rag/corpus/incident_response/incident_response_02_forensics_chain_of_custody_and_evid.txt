@@ -1,0 +1,56 @@
+Chain of custody (CoC) is the documented, unbroken chronological trail that accounts for the sequence of custody, control, transfer, analysis, and disposition of physical or electronic evidence. In digital forensics, CoC ensures that evidence presented in legal or disciplinary proceedings is authentic, has not been tampered with, and is admissible under rules of evidence such as the Federal Rules of Evidence (FRE) 901 or the Daubert standard. Without a valid CoC, any forensic findings are effectively useless in court.
+
+**Key Components of a Chain of Custody**
+
+A proper CoC record must capture every interaction with evidence from initial seizure to final disposition. The following components are mandatory for any defensible CoC:
+
+- **Unique Identifier**: Every piece of evidence must receive a unique case number and item number (e.g., CASE-2025-001-ITEM-03). This identifier must be affixed to the evidence container and referenced in all documentation.
+- **Description of Evidence**: A precise, non-interpretive description of the item. For digital evidence, this includes device make, model, serial number, storage capacity, and any visible physical damage. Do not include subjective assessments like "suspicious laptop."
+- **Collection Details**: Date, time (in UTC or with time zone), location, and the name of the person who collected the evidence. The method of collection (e.g., live acquisition, forensic bit-for-bit imaging, write-blocker used) must be recorded.
+- **Chain of Custody Log**: A table or form that lists every transfer event. Each row must contain:
+  - Date and time of transfer
+  - Name and signature of the person releasing the evidence
+  - Name and signature of the person receiving the evidence
+  - Purpose of transfer (e.g., "Imaging," "Analysis," "Storage")
+  - Condition of evidence upon transfer (e.g., "Sealed anti-static bag, no visible damage")
+- **Seal Integrity**: Evidence containers must be sealed with tamper-evident tape, and the seal number must be recorded. Any break in the seal must be documented and explained.
+- **Storage Conditions**: The location and security level of the evidence locker or digital vault. For digital evidence, this includes the hash value (SHA-256) of the acquired image at each transfer point to verify integrity.
+- **Disposition**: Final outcome of the evidence—returned to owner, destroyed, or retained for archival. The authorizing party and date must be recorded.
+
+**Real-World Application: A Forensic Acquisition Workflow**
+
+Consider a scenario where a security engineer responds to a suspected data exfiltration incident involving a corporate laptop. The following steps demonstrate CoC in practice:
+
+1. **Initial Seizure**: The engineer photographs the laptop in situ, noting its state (powered on, screen locked). The laptop is powered off by holding the power button (not a normal shutdown, which could alter evidence). The engineer places the laptop in a Faraday bag to prevent remote wipe or network connections. The bag is sealed with tamper-evident tape, and the seal number (e.g., SEAL-48291) is recorded in the CoC log.
+
+2. **Transport to Forensic Lab**: The engineer signs the evidence out of the scene, and the receiving forensic analyst signs it in. Both signatures and timestamps are recorded. The bag is inspected for seal integrity before opening.
+
+3. **Imaging**: The analyst removes the hard drive using a write-blocker and creates a forensic image (e.g., using FTK Imager or dd). The SHA-256 hash of the source drive and the image file are computed and recorded. The original drive is resealed in a new bag with a new seal number. The image file is stored on a write-once media (e.g., a forensic DVD-R) or in a secure network share with access logging.
+
+4. **Analysis**: The analyst works exclusively from the forensic image. Each time the image is mounted or accessed, the event is logged. If the image is transferred to another analyst, a new CoC entry is created.
+
+5. **Return to Evidence Locker**: After analysis, the original drive and the image media are placed in a locked, access-controlled evidence locker. The locker log shows who accessed it and when.
+
+**Security Relevance for the Engineer**
+
+Chain of custody is not merely administrative overhead; it is a critical security control that protects both the integrity of the investigation and the organization from legal liability. Key security implications include:
+
+- **Admissibility in Legal Proceedings**: In civil litigation, regulatory investigations (e.g., SEC, GDPR enforcement), or criminal cases, a broken CoC can result in evidence being excluded. This can lead to case dismissal or adverse inferences against the organization.
+- **Internal Disciplinary Actions**: Even without court involvement, HR or compliance teams rely on CoC to ensure that evidence used to terminate or sanction an employee is untainted. A flawed CoC can lead to wrongful termination lawsuits.
+- **Incident Response Credibility**: External auditors, insurers, and partners will scrutinize CoC documentation. A well-maintained CoC demonstrates that the organization follows industry best practices (e.g., NIST SP 800-86, ISO 27037) and can be trusted to handle sensitive data.
+- **Prevention of Evidence Tampering**: The CoC process inherently enforces physical and logical access controls. Each transfer requires a signature, which deters unauthorized access and provides an audit trail if tampering is suspected.
+- **Data Integrity Verification**: Recording hash values at each transfer point allows engineers to detect any bit-level changes to the evidence. If a hash mismatch occurs, the investigation can immediately identify which transfer introduced the alteration.
+
+**Common Pitfalls to Avoid**
+
+- **Incomplete Timestamps**: Always use synchronized clocks (NTP) and record time in UTC. Ambiguous timestamps (e.g., "morning of 3/5") are indefensible.
+- **Missing Signatures**: Every transfer must have both a release and a receive signature. A single missing signature can break the chain.
+- **Improper Sealing**: Using standard tape instead of tamper-evident tape, or failing to record seal numbers, makes it impossible to prove the evidence was not accessed.
+- **Working on Original Media**: Never perform analysis directly on the original drive. Always create a forensic image and work from that. The original must remain sealed.
+- **Ignoring Digital CoC**: For cloud or network evidence, the CoC must include access logs, API request IDs, and screenshots of the evidence at the time of collection. Digital evidence is more fragile than physical media.
+
+**Key Takeaways**
+
+1. Chain of custody is a non-negotiable legal and technical requirement; every transfer of evidence must be documented with unique identifiers, timestamps, signatures, and hash values to ensure admissibility and integrity.
+2. Always work from forensic images, not original media, and seal original evidence with tamper-evident tape, recording seal numbers and hash values at every transfer point.
+3. Incomplete or ambiguous CoC documentation (missing signatures, unrecorded timestamps, broken seals) will render evidence inadmissible and expose the organization to legal and regulatory risk.

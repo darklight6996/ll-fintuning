@@ -1,0 +1,30 @@
+4.11.27: Microsoft Account
+
+Overview
+This setting determines whether applications and services on the device can utilize new 
+consumer Microsoft account authentication via the Windows OnlineID and 
+WebAccountManager APIs. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+Organizations that want to effectively implement identity management policies and 
+maintain firm control of what accounts are used on their computers will probably want to 
+block Microsoft accounts. Organizations may also need to block Microsoft accounts in 
+order to meet the requirements of compliance standards that apply to their information 
+systems.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\MicrosoftAccount:DisableUserAuth
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Microsoft accounts\Block all 
+consumer Microsoft account user authentication
+
+Key Takeaways
+- Organizations that want to effectively implement identity management policies and  maintain firm control of what accounts are used on their computers will probably want to  block Microsoft accounts.
+- Organizations may also need to block Microsoft accounts in  order to meet the requirements of compliance standards that apply to their information  systems.

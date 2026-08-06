@@ -1,0 +1,111 @@
+4.3: Ensure the Use of Dedicated Administrative Accounts (and related controls)
+
+Overview
+Microsoft Entra ID has native and extended identity functionality allowing you to invite 
+people from outside your organization to be guest users in your cloud account and sign 
+in with their own work, school, or social identities.
+
+Restrict access to group web interface in the Access Panel portal.
+
+Why This Matters
+Guest users are typically added outside your employee on-boarding/off-boarding 
+process and could potentially be overlooked indefinitely. To prevent this, guest users 
+should be reviewed on a regular basis. During this audit, guest users should also be 
+determined to not have administrative privileges.
+
+Self-service group management enables users to create and manage security groups or 
+Office 365 groups in Microsoft Entra ID. Unless a business requires this day-to-day 
+delegation for some users, self-service group management should be disabled. Any 
+user can access the Access Panel, where they can reset their passwords, view their 
+information, etc. By default, users are also allowed to access the Group feature, which 
+shows groups, members, related resources (SharePoint URL, Group email address, 
+Yammer URL, and Teams URL). By setting this feature to 'Yes', users will no longer 
+have access to the web interface, but still have access to the data using the API. This is 
+useful to prevent non-technical users from enumerating groups-related information, but 
+technical users will still be able to access this information using APIs.
+
+Audit Steps
+For Ensure the Use of Dedicated Administrative Accounts:
+Audit from Azure Portal 
+1. From Azure Home select the Portal Menu 
+2. Select Microsoft Entra ID 
+3. Under Manage, select Users 
+4. Click on Add filter 
+5. Select User type 
+6. Select Guest from the Value dropdown 
+7. Click Apply 
+8. Audit the listed guest users 
+Audit from Azure CLI 
+az ad user list --query "[?userType=='Guest']" 
+Ensure all users listed are still required and not inactive. 
+
+Audit from Azure PowerShell 
+Get-AzureADUser |Where-Object {$_.UserType -like "Guest"} |Select-Object 
+DisplayName, UserPrincipalName, UserType -Unique 
+
+ Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: e9ac8f8e-ce22-4355-8f04-99b911d6be52 - Name: 'Guest accounts 
+with read permissions on Azure resources should be removed' 
+• 
+Policy ID: 94e1c2ac-cbbe-4cac-a2b5-389c812dee87 - Name: 'Guest accounts 
+with write permissions on Azure resources should be removed' 
+• 
+Policy ID: 339353f6-2387-4a45-abe4-7f529d121046 - Name: 'Guest accounts 
+with owner permissions on Azure resources should be removed'
+
+For Ensure the Use of Dedicated Administrative Accounts:
+Audit from Azure Portal 
+1. From Azure Home select the Portal Menu 
+2. Select Microsoft Entra ID 
+3. Under Manage, select Groups 
+4. Under Settings, select General 
+5. Under Self Service Group Management, ensure that Restrict user 
+ability to access groups features in My Groups is set to Yes
+
+Remediation
+For Ensure the Use of Dedicated Administrative Accounts:
+Remediate from Azure Portal 
+1. From Azure Home select the Portal Menu 
+2. Select Microsoft Entra ID 
+3. Under Manage, select Users 
+4. Click on Add filter 
+5. Select User type 
+6. Select Guest from the Value dropdown 
+7. Click Apply 
+8. Check the box next to all Guest users that are no longer required or are inactive 
+9. Click Delete 
+10. Click OK 
+Remediate from Azure CLI 
+Before deleting the user, set it to inactive using the ID from the Audit Procedure to 
+determine if there are any dependent systems. 
+az ad user update --id <exampleaccountid@domain.com> --account-enabled 
+{false} 
+After determining that there are no dependent systems, delete the user. 
+Remove-AzureADUser -ObjectId <exampleaccountid@domain.com> 
+Remediate from Azure PowerShell 
+Before deleting the user, set it to inactive using the ID from the Audit Procedure to 
+determine if there are any dependent systems. 
+Set-AzureADUser -ObjectId "<exampleaccountid@domain.com>" -AccountEnabled 
+false 
+After determining that there are no dependent systems, delete the user. 
+PS C:\>Remove-AzureADUser -ObjectId exampleaccountid@domain.com
+
+For Ensure the Use of Dedicated Administrative Accounts:
+Remediate from Azure Portal 
+1. From Azure Home select the Portal Menu 
+2. Select Microsoft Entra ID 
+3. Under Manage, select Groups 
+4. Under Settings, select General 
+5. Under Self Service Group Management, set Restrict user ability to 
+access groups features in My Groups to Yes 
+6. Click Save
+
+Key Takeaways
+- Guest users are typically added outside your employee on-boarding/off-boarding  process and could potentially be overlooked indefinitely.
+- To prevent this, guest users  should be reviewed on a regular basis.
+- During this audit, guest users should also be  determined to not have administrative privileges.

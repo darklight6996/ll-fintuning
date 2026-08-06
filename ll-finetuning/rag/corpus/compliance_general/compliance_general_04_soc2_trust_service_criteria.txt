@@ -1,0 +1,63 @@
+Trust Service Criteria (TSC) form the core evaluation framework for a SOC 2 audit. They are the specific control requirements defined by the American Institute of CPAs (AICPA) against which a service organization’s systems and controls are measured. A SOC 2 report attests to whether a service organization’s controls meet one or more of these criteria. Understanding the TSC is essential for any security engineer tasked with designing, implementing, or validating controls for a SOC 2 engagement.
+
+**Definition**
+
+The Trust Service Criteria are a set of principles and associated criteria used to evaluate the design and operating effectiveness of controls at a service organization. They are published by the AICPA in the *Trust Services Criteria* guide. The criteria are not a checklist of specific technical controls; rather, they are high-level requirements that must be met through a combination of policies, procedures, and technical safeguards. Each criterion is a statement of what must be achieved, leaving the specific implementation up to the organization.
+
+**Key Components**
+
+The TSC are organized into five main categories, often referred to as the "Trust Services Categories." A SOC 2 engagement can cover one or more of these categories. The five categories are:
+
+- **Security (Common Criteria):** This is the foundational category and is always included in every SOC 2 report. It addresses the protection of the system against unauthorized access, use, or modification. The criteria under Security are labeled "Common Criteria" (CC) because they apply to all other categories. Key CC criteria include:
+    - **CC1.0: Control Environment:** The organization’s commitment to integrity and ethical values, board oversight, and organizational structure.
+    - **CC2.0: Communication and Information:** Communication of control responsibilities, information security policies, and incident reporting procedures.
+    - **CC3.0: Risk Assessment:** Identification and analysis of risks to achieving the organization’s objectives, including fraud risks.
+    - **CC4.0: Monitoring Activities:** Ongoing and separate evaluations of the effectiveness of internal controls.
+    - **CC5.0: Control Activities:** Policies and procedures that help ensure management directives are carried out (e.g., access controls, change management, logical security).
+    - **CC6.0: Logical and Physical Access Controls:** Controls over logical access to systems, data, and physical access to facilities.
+    - **CC7.0: System Operations:** Controls over system operations, including monitoring, incident response, and capacity management.
+    - **CC8.0: Change Management:** Controls over changes to the system, including software development, configuration changes, and patches.
+    - **CC9.0: Risk Mitigation:** Controls to mitigate specific risks, such as vendor management, data retention, and encryption.
+
+- **Availability (A):** This category addresses the accessibility of the system, data, and services as committed by contract or service level agreement. Criteria focus on:
+    - **A1.1:** The organization maintains, monitors, and tests its system to ensure availability.
+    - **A1.2:** The organization has a disaster recovery and business continuity plan.
+
+- **Processing Integrity (PI):** This category ensures that system processing is complete, valid, accurate, timely, and authorized. Criteria include:
+    - **PI1.1:** The organization defines and documents processing procedures.
+    - **PI1.2:** The organization implements controls to ensure processing is complete and accurate.
+    - **PI1.3:** The organization implements controls to detect and correct processing errors.
+
+- **Confidentiality (C):** This category addresses the protection of confidential information as defined by the organization’s commitments. Criteria include:
+    - **C1.1:** The organization identifies and classifies confidential information.
+    - **C1.2:** The organization implements controls to protect confidential information from unauthorized access, use, or disclosure.
+
+- **Privacy (P):** This category addresses the collection, use, retention, disclosure, and disposal of personal information in accordance with the organization’s privacy notice and applicable regulations. Criteria are extensive and cover:
+    - **P1.0-P8.0:** Notice, choice, consent, collection, use, retention, disclosure, access, and quality of personal information.
+
+**Real-World Application**
+
+For a security engineer, applying the TSC means mapping technical controls to specific criteria. For example:
+
+- **CC6.1 (Logical Access):** You must implement controls that prevent and detect unauthorized logical access. This translates to enforcing multi-factor authentication (MFA) for all administrative access, using role-based access control (RBAC) with least privilege, and logging all authentication attempts.
+- **CC7.2 (System Monitoring):** You must monitor system components for anomalies. This means deploying a Security Information and Event Management (SIEM) system, setting up alerts for failed login attempts, and establishing a baseline for normal network traffic.
+- **CC8.1 (Change Management):** You must authorize, design, develop, test, implement, and document changes. This requires a formal change management process, a staging environment for testing, and code review procedures.
+- **A1.2 (Disaster Recovery):** You must have a documented and tested disaster recovery plan. This involves defining Recovery Time Objectives (RTOs) and Recovery Point Objectives (RPOs), performing regular backups, and conducting tabletop exercises or full failover tests.
+
+The SOC 2 auditor will not dictate which specific tools or configurations to use. They will evaluate whether your implemented controls, when tested, meet the intent of the criteria. For instance, if you claim to have MFA for administrative access, the auditor will request evidence (e.g., screenshots of MFA configuration, logs showing MFA enforcement) and may perform a walkthrough to verify the control is operating as designed.
+
+**Security Relevance**
+
+The TSC are directly relevant to security engineering because they provide a structured, auditable framework for building and verifying a security program. They force a shift from ad-hoc security measures to a systematic, risk-based approach. Key security implications include:
+
+- **Defense in Depth:** The criteria require controls at multiple layers (physical, logical, procedural). For example, CC6.0 (Logical and Physical Access) requires both network segmentation (logical) and badge access (physical).
+- **Continuous Monitoring:** CC4.0 (Monitoring Activities) mandates ongoing evaluation, not just a point-in-time assessment. This drives the need for automated monitoring, alerting, and regular control testing.
+- **Incident Response:** CC7.3 (Incident Response) requires a defined process for detecting, responding to, and recovering from security incidents. This aligns directly with NIST SP 800-61 or similar frameworks.
+- **Vendor Risk Management:** CC9.2 (Vendor and Business Partner Risk) requires assessing and monitoring third-party risks. This is critical for organizations that rely on cloud providers or other external services.
+- **Data Protection:** The Confidentiality and Privacy categories (C and P) directly map to data classification, encryption (at rest and in transit), and data lifecycle management controls.
+
+**Key Takeaways**
+
+1.  **The TSC are control objectives, not implementation guides.** You must design and implement specific technical and procedural controls that demonstrably meet each applicable criterion. The auditor will test for effectiveness, not just existence.
+2.  **The Common Criteria (CC) are mandatory for any SOC 2 report.** Focus on building a robust security program that addresses all CC criteria, as they form the foundation for all other categories.
+3.  **Mapping your existing security controls to the TSC is a prerequisite for a successful audit.** Use a control mapping matrix to identify gaps and ensure every criterion is addressed by at least one control. This proactive mapping saves significant time during the audit.

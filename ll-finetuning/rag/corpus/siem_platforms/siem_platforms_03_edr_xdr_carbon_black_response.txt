@@ -1,0 +1,38 @@
+**Definition**
+
+Carbon Black Response is an endpoint detection and response (EDR) platform acquired by VMware (now part of Broadcom). It provides continuous recording of endpoint activity, real-time threat detection, and the ability to perform live response actions on compromised systems. Unlike traditional antivirus, Carbon Black Response does not rely on signatures alone; it uses behavioral analysis, process monitoring, and a sensor-based architecture to capture and store telemetry for forensic investigation. The platform is designed for security operations center (SOC) analysts and incident responders who need to hunt for threats, contain breaches, and remediate endpoints at scale.
+
+**Key Components**
+
+- **Sensor**: A lightweight kernel-mode driver installed on each endpoint (Windows, macOS, Linux). The sensor records all process executions, file modifications, registry changes, network connections, and module loads. It sends this data to the server in near real-time and can buffer events locally if connectivity is lost.
+- **Server (CBServer)**: The central management and data storage appliance. It ingests sensor data, indexes it for search, and provides the web-based console for querying, alerting, and response actions. The server can be deployed on-premises or as a cloud-hosted instance.
+- **Console**: The web interface used for investigation. It supports search queries using a proprietary syntax (e.g., `process_name:cmd.exe`), watchlists for automated alerting, and live response sessions. The console also provides dashboards for sensor health and threat activity.
+- **Watchlists**: User-defined rules that trigger alerts based on specific indicators of compromise (IOCs) or behavioral patterns. Examples include detecting execution of known malicious hashes, suspicious PowerShell commands, or unusual outbound connections.
+- **Live Response**: A feature that allows analysts to remotely execute commands, collect files, kill processes, or quarantine endpoints without requiring pre-deployed scripts. All actions are logged for audit purposes.
+- **API**: A RESTful API for automation and integration with SIEMs, SOAR platforms, and ticketing systems. Common use cases include pulling alerts, enriching incidents with endpoint data, and triggering containment actions.
+
+**Real-World Application**
+
+A typical incident response workflow using Carbon Black Response proceeds as follows:
+
+1. **Alert Triage**: An alert fires from a watchlist—for example, a process named `mimikatz.exe` executed on a domain controller. The analyst opens the alert in the console and reviews the process tree, command-line arguments, and parent process. They see that `mimikatz.exe` was launched from a Word document via a macro.
+2. **Investigation**: The analyst queries the sensor for all events related to the affected endpoint over the past 24 hours. They search for lateral movement indicators, such as `net use` commands or service creation events. They also check network connections to identify any C2 infrastructure. The search results are displayed in a timeline view, allowing the analyst to reconstruct the attack chain.
+3. **Containment**: Using Live Response, the analyst kills the malicious process, quarantines the endpoint (blocking all network traffic except to the Carbon Black server), and collects a memory dump and relevant files for further analysis. The quarantine action is logged and can be reversed once the endpoint is cleaned.
+4. **Remediation**: The analyst pushes a script via Live Response to remove persistence mechanisms (e.g., scheduled tasks, registry run keys). They then verify the endpoint is clean by running a hash-based scan against known-good baselines.
+5. **Post-Incident**: The analyst exports the investigation data as a JSON report for inclusion in the incident report. They also create a new watchlist to detect similar macro-based attacks in the future.
+
+**Security Relevance**
+
+Carbon Black Response addresses several critical security requirements for enterprise environments:
+
+- **Visibility**: The sensor captures data at the kernel level, making it difficult for malware to evade detection by hooking user-mode APIs. This provides a reliable record of all endpoint activity, even if the attacker attempts to delete logs.
+- **Detection of Fileless Malware**: Because the platform monitors process behavior and memory, it can detect attacks that never write a file to disk, such as PowerShell-based payloads or code injection into legitimate processes.
+- **Forensic Integrity**: All events are timestamped and cryptographically signed by the sensor. This ensures the data is admissible in legal proceedings and cannot be tampered with after collection.
+- **Reduction of Dwell Time**: Continuous recording allows analysts to query historical data going back weeks or months. This enables retrospective hunting for indicators that were not known at the time of the initial compromise.
+- **Compliance Support**: The platform’s logging and audit trails help meet regulatory requirements such as PCI DSS, HIPAA, and GDPR, which mandate monitoring of endpoint activity and incident response capabilities.
+
+**Key Takeaways**
+
+- Carbon Black Response provides kernel-level endpoint visibility and behavioral detection, making it effective against both file-based and fileless threats.
+- Live Response enables remote containment and remediation without requiring pre-deployed scripts or physical access to the endpoint.
+- The platform’s historical data retention and query capabilities allow for retrospective threat hunting and forensic analysis weeks after an incident.

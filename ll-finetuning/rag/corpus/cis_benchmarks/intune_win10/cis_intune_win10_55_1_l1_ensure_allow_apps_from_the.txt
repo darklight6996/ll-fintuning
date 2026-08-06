@@ -1,0 +1,24 @@
+55.1: (L1) Ensure 'Allow apps from the Microsoft app store to auto
+
+Overview
+This setting enables or disables the automatic download and installation of Microsoft 
+Store app updates. 
+The recommended state for this setting is: Allowed.
+
+Why This Matters
+Keeping your system properly patched can help protect against 0 day vulnerabilities.
+
+Audit Steps
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\ApplicationManagement:Al lowAppStoreAutoUpdate_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 1. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Applica tionManagement:AllowAppStoreAutoUpdate
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Allowed: 
+Microsoft App Store\Allow apps from the Microsoft app store to auto update
+
+Key Takeaways
+- Keeping your system properly patched can help protect against 0 day vulnerabilities.

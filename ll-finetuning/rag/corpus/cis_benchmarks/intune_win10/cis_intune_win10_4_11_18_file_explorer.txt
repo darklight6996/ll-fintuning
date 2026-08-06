@@ -1,0 +1,32 @@
+4.11.18: File Explorer
+
+Overview
+This policy setting allows you to manage the behavior of Windows Defender 
+SmartScreen. Windows Defender SmartScreen helps keep PCs safer by warning users 
+before running unrecognized programs downloaded from the Internet. Some information 
+is sent to Microsoft about files and programs run on PCs with this feature enabled. 
+The recommended state for this setting is: Enabled: Warn and prevent bypass.
+
+Why This Matters
+Windows Defender SmartScreen helps keep PCs safer by warning users before running 
+unrecognized programs downloaded from the Internet. However, due to the fact that 
+some information is sent to Microsoft about files and programs run on PCs some 
+organizations may prefer to disable it.
+
+Audit Steps
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\ADMX_WindowsExplorer:Ena bleSmartScreen_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 
+<enabled/><data id="EnableSmartScreenDropdown" value="Block" />. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\ADMX_Wi ndowsExplorer:EnableSmartScreen
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: Warn and prevent bypass. 
+Administrative Templates\Windows Components\File Explorer\Configure Windows 
+Defender SmartScreen
+
+Key Takeaways
+- Windows Defender SmartScreen helps keep PCs safer by warning users before running  unrecognized programs downloaded from the Internet.
+- However, due to the fact that  some information is sent to Microsoft about files and programs run on PCs some  organizations may prefer to disable it.

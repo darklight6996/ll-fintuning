@@ -1,0 +1,25 @@
+34.1: (L1) Ensure 'Allow Cortana' is set to 'Block'
+
+Overview
+This policy setting specifies whether Cortana is allowed on the device. 
+The recommended state for this setting is: Block.
+
+Why This Matters
+If Cortana is enabled, sensitive information could be contained in search history and 
+sent out to Microsoft.
+
+Audit Steps
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Experience:AllowCortana_
+WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Experie nce:AllowCortana
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block: 
+Experience\Allow Cortana
+
+Key Takeaways
+- If Cortana is enabled, sensitive information could be contained in search history and  sent out to Microsoft.

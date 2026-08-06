@@ -1,0 +1,67 @@
+**Definition**
+
+T1546 Event Triggered Execution is a MITRE ATT&CK technique that describes adversaries establishing persistence or escalating privileges by configuring system mechanisms to execute malicious code when a specific event occurs. Unlike scheduled tasks or service installations, event-triggered execution relies on hooks into normal operating system operations—such as user logon, process creation, or file access—to activate the payload. This technique is part of the Execution and Persistence tactics because the trigger both launches the code and ensures it runs repeatedly under defined conditions. The core advantage for an attacker is that the execution appears organic, blending into legitimate system activity and evading simple baseline checks.
+
+**Key Components**
+
+The technique encompasses several sub-techniques, each leveraging a different Windows mechanism. The most relevant for security engineers are:
+
+- **T1546.001 – Change Default File Association**: Modifies the registry key `HKEY_CLASSES_ROOT\ProgID\shell\open\command` for a file extension (e.g., .txt, .pdf). When a user opens a file of that type, the attacker’s binary executes instead of the legitimate application. This is often used with .txt or .scr extensions to trigger on user double-click.
+
+- **T1546.002 – Screensaver**: Sets the registry value `HKEY_CURRENT_USER\Control Panel\Desktop\SCRNSAVE.EXE` to a malicious executable. The screensaver activates after the configured idle time (default 15 minutes), providing a delayed execution trigger that can evade immediate detection.
+
+- **T1546.003 – Windows Management Instrumentation (WMI) Event Subscription**: Creates a permanent WMI event filter and consumer. The filter watches for a specific event (e.g., process start, logon, system startup) and the consumer executes a script or binary. This is highly stealthy because WMI runs as a system service and the subscription persists across reboots.
+
+- **T1546.004 – Unix Shell Configuration Modification**: On Linux/macOS, modifies shell initialization files such as `.bashrc`, `.bash_profile`, or `.zshrc`. When the user opens a terminal, the malicious command runs. This is trivial to implement but also easily spotted by endpoint detection and response (EDR) tools that monitor shell history.
+
+- **T1546.005 – Trap**: On Unix-like systems, uses the `trap` command in shell scripts to execute code when a signal (e.g., EXIT, ERR, DEBUG) is received. This is often used in cron jobs or system scripts to maintain persistence after a script completes.
+
+- **T1546.006 – LC_LOAD_DYLIB Addition**: On macOS, adds a dynamic library to the `DYLD_INSERT_LIBRARIES` environment variable or modifies a binary’s load commands. When the affected application launches, the library is injected, allowing code execution in the context of that process.
+
+- **T1546.007 – Netsh Helper DLL**: Registers a malicious DLL as a helper for the `netsh` utility via `netsh add helper`. When netsh is invoked (often by administrators or automated scripts), the DLL loads and executes.
+
+- **T1546.008 – Accessibility Features**: Replaces system binaries for accessibility tools (e.g., `sethc.exe`, `utilman.exe`, `osk.exe`) with a malicious executable. Triggering the accessibility shortcut (e.g., pressing Shift five times) launches the attacker’s code with SYSTEM privileges, even from the login screen.
+
+- **T1546.009 – AppCert DLLs**: Registers a DLL under `HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\AppCertDlls`. Every process that calls `CreateProcess` loads this DLL, providing broad execution coverage.
+
+- **T1546.010 – AppInit DLLs**: Similar to AppCert, but loads the DLL into every process that loads `User32.dll`. This is deprecated in modern Windows but still functional for legacy compatibility.
+
+- **T1546.011 – Application Shimming**: Uses the Windows Application Compatibility Shim database (`.sdb` files) to redirect API calls or inject code. Shims are applied at process launch and can target specific executables, versions, or file paths.
+
+- **T1546.012 – Image File Execution Options (IFEO)**: Sets a debugger key under `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options`. When the targeted executable runs, the debugger (attacker’s binary) executes first.
+
+- **T1546.013 – PowerShell Profile**: Modifies `$PROFILE` (typically `Microsoft.PowerShell_profile.ps1`). Every PowerShell session automatically runs this script, making it a persistent execution vector for any user who launches PowerShell.
+
+- **T1546.014 – Emond**: On macOS, uses the Event Monitor daemon (`/System/Library/CoreServices/Emond.app/Contents/MacOS/emond`) to trigger actions based on log events. Attackers can create custom rules in `/etc/emond.d/rules/` to execute scripts.
+
+- **T1546.015 – Component Object Model Hijacking**: Modifies CLSID registry entries to point a COM object to a malicious DLL or executable. When an application instantiates that COM object (e.g., Internet Explorer loading a browser helper object), the attacker’s code runs.
+
+**Real-World Application**
+
+In practice, adversaries combine event-triggered execution with initial access vectors to establish long-term persistence. For example, a phishing campaign delivering an Office macro may drop a WMI event subscription that triggers on user logon. The WMI filter watches for `Win32_ProcessStartTrace` where `ProcessName` = `explorer.exe`, and the consumer runs a PowerShell one-liner that downloads a C2 beacon. This avoids writing a file to disk and survives reboots without a scheduled task.
+
+Another common scenario involves accessibility feature abuse. An attacker who gains local admin privileges can replace `sethc.exe` with `cmd.exe`. At the login screen, pressing Shift five times opens a SYSTEM-level command prompt, allowing the attacker to bypass authentication or add a backdoor user. This technique is frequently observed in ransomware deployments where the attacker needs to disable security tools before encryption.
+
+On macOS, adversaries targeting enterprise environments often use `LC_LOAD_DYLIB` injection into common applications like Safari or Slack. The injected library hooks `NSSavePanel` to capture credentials when the user saves a file. This is particularly effective because the library is loaded in the application’s memory space, bypassing user-space security tools that monitor only system processes.
+
+**Security Relevance**
+
+Event-triggered execution is a high-priority detection target because it bypasses traditional startup folder and service monitoring. Key detection strategies include:
+
+- **Registry auditing**: Enable auditing for `HKEY_CLASSES_ROOT`, `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options`, and `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager`. Monitor for writes to these keys by non-system processes.
+
+- **WMI subscription monitoring**: Use `Get-WmiObject -Namespace root\subscription -Class __EventFilter` and `__FilterToConsumerBinding` to enumerate active subscriptions. Alert on any subscription created by a user or non-Microsoft process.
+
+- **File integrity monitoring**: Track changes to `sethc.exe`, `utilman.exe`, `osk.exe`, and shell initialization files (`.bashrc`, `.zshrc`). Any modification outside of a Windows Update or package manager should trigger an alert.
+
+- **Process injection detection**: EDR tools should flag processes that load unexpected DLLs (e.g., a text editor loading a network-related DLL) or that have unusual parent-child relationships (e.g., `sethc.exe` spawning `cmd.exe`).
+
+- **PowerShell profile auditing**: Monitor `$PROFILE` for modifications. Attackers often append a single line to download and execute a payload, so compare the file hash against a known-good baseline.
+
+- **Shim database scanning**: Use `sdbinst.exe` to query installed shims. Any shim that redirects to a non-Microsoft binary or that targets security tools (e.g., antivirus, EDR) is suspicious.
+
+**Key Takeaways**
+
+1. Event-triggered execution achieves persistence by hooking into normal OS operations (logon, file open, process start) rather than using scheduled tasks or services, making it harder to detect with traditional startup monitoring.
+2. The most critical sub-techniques to monitor are WMI event subscriptions, accessibility feature abuse, and Image File Execution Options, as these provide SYSTEM-level execution and survive reboots without writing traditional persistence artifacts.
+3. Effective detection requires a combination of registry auditing, WMI subscription enumeration, file integrity monitoring, and process behavior analysis—no single control covers all sub-techniques.

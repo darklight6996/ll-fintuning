@@ -1,0 +1,62 @@
+12.5: Configure Monitoring Systems to Record Network (and related controls)
+
+Overview
+This policy setting determines which behaviors are allowed by servers for applications 
+using the NTLM Security Support Provider (SSP). The SSP Interface (SSPI) is used by 
+applications that need authentication services. The setting does not modify how the 
+authentication sequence works but instead require certain behaviors in applications that 
+use the SSPI. 
+The recommended state for this setting is: Require NTLM and 128-bit encryption. 
+Note: These values are dependent on the Network security: LAN Manager 
+Authentication Level security setting value.
+
+This policy setting allows the auditing of incoming NTLM traffic. Events for this setting 
+are recorded in the operational event log (e.g. Applications and Services 
+Log\Microsoft\Windows\NTLM). 
+The recommended state for this setting is: Enable auditing for all accounts.
+
+Why This Matters
+You can enable all of the options for this policy setting to help protect network traffic that 
+uses the NTLM Security Support Provider (NTLM SSP) from being exposed or 
+tampered with by an attacker who has gained access to the same network. That is, 
+these options help protect against man-in-the-middle attacks.
+
+Auditing and monitoring NTLM traffic can assist in identifying systems using this 
+outdated authentication protocol, so they can be remediated to using a more secure 
+protocol, such as Kerberos. The log information gathered can also assist in forensic 
+investigations after a malicious attack. 
+NTLM and NTLMv2 authentication is vulnerable to various attacks, including SMB relay, 
+man-in-the-middle, and brute force attacks. Reducing and eliminating NTLM 
+authentication in an environment reduces the risk of an attacker gaining access to 
+systems on the network.
+
+Audit Steps
+For Configure Monitoring Systems to Record Network:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 537395200. 
+HKLM\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0:NTLMMinServerSec
+
+For Configure Monitoring Systems to Record Network:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 2. 
+HKLM\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0:AuditReceivingNTLMTraffic
+
+Remediation
+For Configure Monitoring Systems to Record Network:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Require NTLM and 128-bit encryption: 
+Local Policies Security Options\Network security: Minimum session security 
+for NTLM SSP based (including secure RPC) servers
+
+For Configure Monitoring Systems to Record Network:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enable auditing for all accounts: 
+Local Policies Security Options\Network security: Restrict NTLM: Audit 
+Incoming NTLM Traffic
+
+Key Takeaways
+- You can enable all of the options for this policy setting to help protect network traffic that  uses the NTLM Security Support Provider (NTLM SSP) from being exposed or  tampered with by an attacker who has gained access to the same network.
+- That is,  these options help protect against man-in-the-middle attacks.
+- Auditing and monitoring NTLM traffic can assist in identifying systems using this  outdated authentication protocol, so they can be remediated to using a more secure  protocol, such as Kerberos.

@@ -1,0 +1,46 @@
+Identity verification is the process of proving that a user or device is who or what it claims to be before granting access to resources. In a zero trust architecture (ZTA), identity verification is not a one-time event at the network perimeter; it is a continuous, context-aware evaluation performed at every access request. The core principle is "never trust, always verify," meaning no entity is inherently trusted based on network location or prior authentication. Identity verification in ZTA shifts the security boundary from the network to the identity itself, making it the primary control plane for access decisions.
+
+**Key Components of Identity Verification in Zero Trust**
+
+Effective identity verification in ZTA relies on several interdependent components that work together to establish and maintain trust.
+
+- **Strong Authentication Mechanisms:** Passwords alone are insufficient. Multi-factor authentication (MFA) is mandatory, combining at least two of the following: something you know (password, PIN), something you have (smartphone, hardware token, certificate), and something you are (biometric). For high-risk actions, step-up authentication may require additional factors. Certificate-based authentication using client certificates or smart cards provides a stronger, non-replayable proof of identity.
+
+- **Identity and Access Management (IAM) Integration:** A centralized IAM system (e.g., Azure AD, Okta, Ping) serves as the authoritative source for user identities, attributes, group memberships, and roles. This system must support standards like SAML, OAuth 2.0, and OpenID Connect (OIDC) to federate identity across applications and services. The IAM system must also enforce lifecycle management—provisioning, deprovisioning, and attribute updates—to ensure stale accounts are not used for access.
+
+- **Device Identity and Health Verification:** User identity alone is insufficient. The device must also be verified. This involves issuing a device certificate or using a hardware-bound device identifier (e.g., TPM attestation). The device's security posture—OS patch level, antivirus status, disk encryption, and compliance with security policies—must be checked at each access request. This is often done via a device management platform (MDM/UEM) that reports posture to the policy engine.
+
+- **Continuous Authentication and Risk Scoring:** Identity verification is not a single event. The system must continuously monitor user behavior and context during a session. Signals include: geolocation, time of access, device used, network characteristics, and behavioral biometrics (keystroke dynamics, mouse movements). A risk engine assigns a score based on these signals. If risk exceeds a threshold, the session can be terminated, or step-up authentication can be triggered. This prevents session hijacking and credential theft from being exploited.
+
+- **Policy Enforcement Point (PEP) and Policy Decision Point (PDP):** The PEP (e.g., a gateway, reverse proxy, or agent) intercepts every access request and forwards it to the PDP. The PDP evaluates the request against the identity, device posture, risk score, and resource sensitivity. It then returns an allow/deny/require-step-up decision. This decoupling ensures that verification logic is centralized and consistent.
+
+**Real-World Application: Implementing Identity Verification in a Zero Trust Network**
+
+Consider a scenario where a remote employee needs to access a sensitive internal application (e.g., a financial database) from a personal laptop.
+
+1.  **Initial Access Request:** The employee opens a browser and navigates to the application's URL. The request is intercepted by a reverse proxy (PEP) that sits in front of the application.
+
+2.  **Identity Verification:** The PEP redirects the user to the IAM system for authentication. The user provides a username and password (first factor). The IAM system then sends a push notification to the user's registered mobile device (second factor). The user approves the push, and the IAM system issues a short-lived OIDC token.
+
+3.  **Device Verification:** The PEP also checks the device identity. The personal laptop has a device certificate issued by the company's MDM. The PEP validates this certificate and queries the MDM for the device's current posture. The MDM reports that the laptop's OS is up-to-date, but disk encryption is not enabled. The PEP flags this as a risk.
+
+4.  **Policy Decision:** The PDP receives the user identity (valid, MFA-completed), the device identity (valid but non-compliant), and the resource sensitivity (high). The policy states: "High-sensitivity resources require a compliant device." The PDP denies access and returns a message: "Access denied. Your device does not meet security requirements. Please enable disk encryption and try again."
+
+5.  **Alternative Path:** If the device were compliant, the PDP would allow access. However, the PDP would also assign a risk score based on the user's location (e.g., a known home IP vs. a new country) and time (e.g., 3 AM). If the risk score is elevated, the PDP might allow access but restrict actions (e.g., read-only, no downloads) or require a step-up authentication (e.g., a biometric scan).
+
+6.  **Continuous Monitoring:** During the session, the PEP continues to monitor the user's behavior. If the user suddenly attempts to download a large volume of data or accesses the application from a different IP address, the risk score increases. The PEP can then terminate the session or force re-authentication.
+
+**Security Relevance**
+
+Identity verification is the linchpin of zero trust security. Without robust verification, all other ZTA controls (micro-segmentation, least privilege, encryption) are undermined. The primary threats it mitigates are:
+
+- **Credential Theft and Replay:** MFA and short-lived tokens make stolen passwords useless without the second factor.
+- **Session Hijacking:** Continuous authentication and risk scoring detect anomalous behavior after initial login, preventing attackers from using stolen session tokens.
+- **Insider Threats:** Verification of device posture and behavioral baselines can detect compromised or malicious insiders attempting to access resources they should not.
+- **Lateral Movement:** By verifying identity at every access request, an attacker who compromises one system cannot automatically access others. Each resource requires its own verification.
+- **Non-Human Identity Abuse:** Service accounts, APIs, and bots must also be verified using client certificates, API keys, or OAuth client credentials. This prevents automated attacks from using stolen static credentials.
+
+**Key Takeaways**
+- Identity verification in zero trust is continuous, context-aware, and multi-factor, not a single login event; it must include both user and device identity.
+- A centralized IAM system integrated with a risk engine and policy decision point is required to enforce consistent, dynamic access decisions.
+- Real-world implementation requires strict device posture checks and behavioral monitoring to prevent session hijacking and lateral movement.

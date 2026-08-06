@@ -1,0 +1,51 @@
+IPsec (Internet Protocol Security) is a suite of protocols used to secure IP communications by authenticating and encrypting each IP packet in a data stream. Unlike SSL/TLS which operates at the transport layer, IPsec operates at the network layer (Layer 3), making it transparent to applications and capable of securing all IP traffic between two endpoints. For a security engineer, IPsec VPN configuration is the primary method for establishing site-to-site and remote-access VPNs that require strong, standards-based encryption and authentication.
+
+**Key Components of IPsec VPN Configuration**
+
+An IPsec VPN consists of two main phases, defined by the Internet Key Exchange (IKE) protocol, and several critical configuration parameters.
+
+- **IKE Phase 1 (Main Mode or Aggressive Mode):** Establishes a secure, authenticated channel between peers. This phase negotiates the IKE Security Association (SA) and uses Diffie-Hellman (DH) key exchange to generate a shared secret. Configuration includes:
+    - **IKE Version:** IKEv1 or IKEv2. IKEv2 is preferred for its resilience to network changes, built-in NAT traversal, and reduced number of messages.
+    - **Encryption Algorithm:** AES-256-GCM is the current standard. Avoid DES, 3DES, and AES-CBC without integrity protection.
+    - **Integrity Algorithm:** SHA-256 or higher. SHA-1 is deprecated.
+    - **DH Group:** Group 14 (2048-bit) or higher. Group 1 and 2 are insecure.
+    - **Authentication Method:** Pre-shared keys (PSK) or digital certificates. Certificates are strongly recommended for non-lab environments due to stronger identity verification and scalability.
+    - **Lifetime:** Typically 86400 seconds (24 hours). Shorter lifetimes increase security but add overhead.
+
+- **IKE Phase 2 (Quick Mode):** Negotiates the IPsec SA for actual data encryption. This phase is dependent on the secure channel established in Phase 1. Configuration includes:
+    - **IPsec Protocol:** ESP (Encapsulating Security Payload) is mandatory. AH (Authentication Header) is rarely used and does not provide encryption.
+    - **Encryption Algorithm:** AES-256-GCM (combined mode) or AES-256-CBC with a separate integrity algorithm.
+    - **Integrity Algorithm:** HMAC-SHA256.
+    - **Perfect Forward Secrecy (PFS):** Enabled with DH Group 14 or higher. PFS ensures that if a long-term private key is compromised, past session keys remain secure.
+    - **Lifetime:** 3600 seconds (1 hour) or 100-500 MB of traffic, whichever comes first.
+    - **Traffic Selectors:** The specific subnets (source and destination) that will be encrypted. Misconfigured selectors are a common cause of VPN failure.
+
+- **Additional Parameters:**
+    - **NAT Traversal (NAT-T):** Required when one or both peers are behind a NAT device. It encapsulates ESP packets in UDP (port 4500) to avoid NAT issues.
+    - **Dead Peer Detection (DPD):** A keepalive mechanism to detect when a remote peer becomes unreachable, triggering a rekey or tunnel teardown.
+    - **Mode:** Tunnel mode (encrypts the entire original IP packet) or Transport mode (encrypts only the payload). Tunnel mode is standard for VPNs.
+
+**Real-World Application: Site-to-Site IPsec VPN**
+
+Consider a scenario where a company has a main office (10.0.0.0/24) and a branch office (192.168.1.0/24). Both use firewalls from different vendors (e.g., Palo Alto and Fortinet). The configuration must be interoperable.
+
+1.  **Define IKE Phase 1 Policy:** On both firewalls, set IKEv2, AES-256-GCM, SHA-256, DH Group 14, and certificate-based authentication. Use a public key infrastructure (PKI) to issue certificates to each firewall.
+2.  **Define IKE Phase 2 Policy:** Set ESP with AES-256-GCM, enable PFS with DH Group 14, and set a lifetime of 3600 seconds.
+3.  **Configure Traffic Selectors:** On the main office firewall, the local subnet is 10.0.0.0/24 and the remote subnet is 192.168.1.0/24. On the branch firewall, these are reversed.
+4.  **Apply to Interface:** Bind the IPsec tunnel to the external-facing interface (e.g., ethernet1/1) and ensure the firewall rules permit UDP ports 500 (IKE) and 4500 (NAT-T) from the peer’s public IP.
+5.  **Test and Monitor:** Use `ping` across the tunnel, then verify with `show vpn ipsec sa` to confirm packet encryption and decryption counts. Check logs for IKE phase failures, which often indicate mismatched parameters.
+
+**Security Relevance for Compliance**
+
+IPsec VPN configuration directly impacts an organization’s security posture and compliance with frameworks like NIST SP 800-77, PCI DSS, and HIPAA.
+
+- **Data-in-Transit Protection:** IPsec provides confidentiality (encryption), integrity (anti-tampering), and authentication (peer verification). This is a mandatory requirement for any regulated data crossing an untrusted network like the internet.
+- **Strong Cryptography Mandates:** Compliance standards require the use of FIPS 140-2 validated algorithms. Configuring AES-256, SHA-256, and DH Group 14 or higher satisfies these mandates. Weak algorithms (DES, MD5, DH Group 1) will fail audits.
+- **Perfect Forward Secrecy:** Enabling PFS is a security best practice and is often required by compliance auditors. Without PFS, a compromised long-term key can decrypt all past sessions.
+- **Certificate vs. PSK:** PSKs are static and shared, making them a single point of failure. If a PSK is leaked, an attacker can impersonate a peer. Digital certificates, combined with a PKI, provide non-repudiation and allow for individual certificate revocation. For compliance, certificates are strongly preferred.
+- **Logging and Monitoring:** All IPsec SA establishment and teardown events should be logged to a SIEM. Failed authentication attempts or unexpected rekeys can indicate an active attack. Ensure logs include peer IP, IKE version, and negotiated algorithms.
+
+**Key Takeaways**
+- IPsec VPN configuration requires strict adherence to IKE Phase 1 and Phase 2 parameters; mismatched algorithms, DH groups, or traffic selectors are the most common causes of tunnel failure.
+- For production and compliance environments, always use IKEv2, AES-256-GCM, SHA-256, DH Group 14 or higher, enable PFS, and prefer digital certificates over pre-shared keys.
+- IPsec provides network-layer encryption that is transparent to applications, making it the correct choice for site-to-site VPNs where all traffic between subnets must be secured, but it requires careful configuration of NAT-T and DPD to function reliably across modern networks.

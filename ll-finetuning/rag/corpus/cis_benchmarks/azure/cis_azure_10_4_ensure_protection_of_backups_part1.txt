@@ -1,0 +1,137 @@
+10.4: Ensure Protection of Backups (and related controls)
+
+Overview
+Ensure that SMB file shares are configured to use the latest supported SMB protocol 
+version. Keeping the SMB protocol updated helps mitigate risks associated with older 
+SMB versions, which may contain vulnerabilities and lack essential security controls.
+
+Enabling blob versioning allows for the automatic retention of previous versions of 
+objects. With blob versioning enabled, earlier versions of a blob are accessible for data 
+recovery in the event of modifications or deletions.
+
+Why This Matters
+Using the latest supported SMB protocol version enhances the security of SMB file 
+shares by preventing the exploitation of known vulnerabilities in outdated SMB versions.
+
+Blob versioning safeguards data integrity and enables recovery by retaining previous 
+versions of stored objects, facilitating quick restoration from accidental deletion, 
+modification, or malicious activity.
+
+Audit Steps
+For Ensure Protection of Backups:
+Audit from Azure Portal 
+1. Go to Storage accounts. 
+2. Click the name of a storage account. 
+3. Under Data storage, click File shares. 
+4. Under File share settings, click the link next to Security. 
+5. Under SMB protocol versions, ensure that SMB3.1.1 is the only checked 
+protocol version. 
+6. Repeat steps 1-5 for each storage account. 
+Audit from Azure CLI 
+Run the following command to list storage accounts: 
+az storage account list 
+For each storage account, run the following command: 
+az storage account file-service-properties show --resource-group <resourcegroup> --account-name <storage-account> 
+Ensure that under protocolSettings > smb, versions is set to SMB3.1.1; only. 
+
+Audit from PowerShell 
+Run the following command to list storage accounts: 
+Get-AzStorageAccount 
+Run the following command to get the file service properties for a storage account in a 
+resource group with a given name: 
+$storageaccountfileservice = Get-AzStorageFileServiceProperty -
+ResourceGroupName <resource-group> -AccountName <storage-account> 
+Run the following command to get the SMB protocol version setting: 
+$storageaccountfileservice.ProtocolSettings.Smb.Versions 
+Ensure that the command returns SMB3.1.1 only. 
+Repeat for each storage account.
+
+For Ensure Protection of Backups:
+Audit from Azure Portal 
+1. Go to Storage accounts. 
+2. Click the name of a storage account with blob storage. 
+3. In the Overview page, on the Properties tab, under Blob service, ensure 
+Versioning is set to Enabled. 
+4. Repeat steps 1-3 for each storage account with blob storage. 
+Audit from Azure CLI 
+Run the following command to list storage accounts: 
+az storage account list 
+Run the following command to determine if a storage account has containers: 
+az storage container list --account-name <storage-account> 
+For each storage account with containers, ensure that the output of the below command 
+contains "isVersioningEnabled": true: 
+az storage account blob-service-properties show --account-name <storageaccount> 
+
+ Audit from PowerShell 
+Run the following command to list storage accounts: 
+Get-AzStorageAccount 
+Run the following command to create an Azure Storage context for a storage account: 
+$context = New-AzStorageContext -StorageAccountName <storage-account> 
+Run the following command to list containers for the storage account: 
+Get-AzStorageContainer -Context $context 
+If the storage account has containers, run the following command to get the blob service 
+properties of the storage account: 
+$account = Get-AzStorageBlobServiceProperty -ResourceGroupName <resourcegroup> -AccountName <storage-account> 
+Run the following command to get the blob versioning setting for the storage account: 
+$account.IsVersioningEnabled 
+Ensure that the command returns True. 
+Repeat for each storage account. 
+
+Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: c36a325b-ae04-4863-ad4f-19c6678f8e08 - Name: 'Configure your 
+Storage account to enable blob versioning'
+
+Remediation
+For Ensure Protection of Backups:
+Remediate from Azure Portal 
+1. Go to Storage accounts. 
+2. Click the name of a storage account. 
+3. Under Data storage, click File shares. 
+4. Under File share settings, click the link next to Security. 
+5. If Profile is set to Maximum compatibility, click the drop-down menu and 
+select Maximum security or Custom. 
+6. If selecting Custom, under SMB protocol versions, uncheck the boxes next to 
+SMB 2.1 and SMB 3.0. 
+7. Click Save. 
+8. Repeat steps 1-7 for each storage account requiring remediation. 
+Remediate from Azure CLI 
+For each storage account requiring remediation, run the following command to set the 
+SMB protocol version: 
+az storage account file-service-properties update --resource-group <resourcegroup> --account-name <storage-account> --versions SMB3.1.1 
+Remediate from PowerShell 
+For each storage account requiring remediation, run the following command to set the 
+SMB protocol version: 
+Update-AzStorageFileServiceProperty -ResourceGroupName <resource-group> -
+StorageAccountName <storage-account> -SmbProtocolVersion SMB3.1.1
+
+For Ensure Protection of Backups:
+Remediate from Azure Portal 
+1. Go to Storage accounts. 
+2. Click the name of a storage account with blob storage. 
+3. In the Overview page, on the Properties tab, under Blob service, click 
+Disabled next to Versioning. 
+4. Under Tracking, check the box next to Enable versioning for blobs. 
+5. Select the radio button next to Keep all versions or Delete versions after 
+(in days). 
+6. If selecting to delete versions, enter a number of in the box after which to delete 
+blob versions. 
+7. Click Save. 
+8. Repeat steps 1-7 for each storage account with blob storage. 
+Remediate from Azure CLI 
+For each storage account requiring remediation, run the following command to enable 
+blob versioning: 
+az storage account blob-service-properties update --account-name <storageaccount> --enable-versioning true 
+Remediate from PowerShell 
+For each storage account requiring remediation, run the following command to enable 
+blob versioning: 
+Update-AzStorageBlobServiceProperty -ResourceGroupName <resource-group> -
+StorageAccountName <storage-account> -IsVersioningEnabled $true
+
+Key Takeaways
+- Using the latest supported SMB protocol version enhances the security of SMB file  shares by preventing the exploitation of known vulnerabilities in outdated SMB versions.
+- Blob versioning safeguards data integrity and enables recovery by retaining previous  versions of stored objects, facilitating quick restoration from accidental deletion,  modification, or malicious activity.

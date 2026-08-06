@@ -1,0 +1,55 @@
+A Domain Controller (DC) is the authoritative server in an Active Directory (AD) environment that authenticates users, stores credential data, and enforces security policies. Because a DC holds the keys to the entire domain—including password hashes, Kerberos ticket-granting tickets, and group policy objects—it is the single most critical asset to protect. Compromise of a DC grants an attacker full control over the AD forest, enabling lateral movement, persistence, and data exfiltration. Protection must therefore be layered, assuming that network boundaries will be breached.
+
+**Key Components of Domain Controller Protection**
+
+**1. Physical and Logical Isolation**
+- Deploy DCs in dedicated, restricted-access server rooms or secure virtualized environments.
+- Use separate, hardened network segments (e.g., a dedicated management VLAN) with strict firewall rules that only allow necessary AD traffic (TCP/UDP 389, 636, 3268, 3269, 88, 464, 135, 445, and 49152-65535 for RPC).
+- Disable all unnecessary services, roles, and features on the DC OS. Do not run application servers, file shares, or web services on a DC.
+- Implement role-based access control (RBAC) so that only authorized administrators can log on interactively to a DC. Use dedicated admin workstations that are themselves hardened and never used for internet browsing or email.
+
+**2. Operating System and Patch Hardening**
+- Apply security updates within 24-48 hours of release for critical vulnerabilities (e.g., Zerologon, NoPac). Use a patch management system that can prioritize DCs.
+- Enable Windows Defender Credential Guard on DCs to protect Kerberos and NTLM secrets from pass-the-hash attacks.
+- Disable NTLMv1 and enforce NTLMv2 with session security. Where possible, move to Kerberos-only authentication.
+- Configure Windows Firewall with advanced security to block inbound connections from non-domain-joined systems and restrict RDP to specific admin jump boxes.
+- Enable and enforce BitLocker on all DC volumes to protect against physical theft.
+
+**3. Secure Configuration of Active Directory Services**
+- Use Group Policy to enforce strict password policies (e.g., 14+ character minimum, no password expiration for service accounts, use of LAPS for local admin passwords).
+- Disable the built-in Administrator account after creating a separate, named admin account with the same privileges.
+- Enable and audit Kerberos armoring (FAST) to prevent Kerberos ticket tampering.
+- Implement Protected Users security group to disable NTLM, DES, RC4, and credential delegation for highly privileged accounts.
+- Configure SMB signing and encryption on all DC file shares to prevent relay attacks.
+
+**4. Monitoring and Detection**
+- Enable advanced audit policies for account logon events (4624, 4625, 4634), directory service changes (5136, 5137, 5141), and Kerberos service ticket operations (4768, 4769).
+- Forward all DC security logs to a centralized SIEM with correlation rules for anomalous behavior, such as:
+  - Multiple failed logins followed by a successful login (password spraying).
+  - Kerberos TGT requests for non-existent users (Kerberoasting reconnaissance).
+  - Service principal name (SPN) enumeration attempts.
+  - Unusual replication requests (DCSync attack detection).
+- Deploy a dedicated AD security solution (e.g., Microsoft Defender for Identity, Tenable.ad) that uses machine learning to detect golden ticket attacks, skeleton key malware, and privilege escalation.
+
+**5. Backup and Recovery**
+- Perform regular, verified backups of at least two DCs per domain using System State backup or a trusted third-party tool.
+- Store backups offline or in an immutable, air-gapped location to protect against ransomware.
+- Document and test a DC recovery procedure that includes restoring from backup, resetting the KRBTGT account password twice, and rebuilding trust relationships.
+
+**Real-World Application**
+
+Consider a mid-sized enterprise with 5,000 users and 20 DCs across three geographic sites. The security team implements the following:
+
+- All DCs run Windows Server 2022 with Credential Guard enabled and NTLM disabled except for legacy application compatibility (which is isolated to a separate AD forest).
+- A dedicated management subnet (10.0.100.0/24) hosts two jump boxes that are the only systems allowed to RDP to DCs. All admin accounts are in the Protected Users group.
+- The SIEM receives 50,000 events per second from DCs. A custom rule flags any event ID 4662 (directory service access) for the Domain Admins group from a non-admin workstation. This triggers an automated response that disables the source account and alerts the SOC.
+- Backups are taken every 4 hours and stored in a separate AWS S3 bucket with object lock enabled. Quarterly tabletop exercises simulate a DC ransomware attack, verifying that recovery takes under 4 hours.
+
+**Security Relevance**
+
+Domain controller protection is not optional; it is the foundation of AD security. Attackers routinely target DCs because compromising one provides a force multiplier. Without proper isolation, patching, and monitoring, a single vulnerability (e.g., CVE-2020-1472) can lead to total domain compromise within minutes. The rise of ransomware groups that specifically target AD (e.g., Ryuk, Conti) makes DC protection a top priority for any security program. Furthermore, regulatory frameworks such as NIST 800-53, PCI DSS, and ISO 27001 explicitly require controls for directory services, including access control, audit logging, and backup integrity.
+
+**Key Takeaways**
+- Domain controllers must be physically and logically isolated, with strict access controls and no extraneous services.
+- Implement layered defenses: patch aggressively, disable legacy protocols, enable Credential Guard, and enforce Protected Users group membership.
+- Continuous monitoring for DCSync, Kerberoasting, and privilege escalation attempts is essential; pair this with immutable, tested backups to ensure recoverability after a compromise.

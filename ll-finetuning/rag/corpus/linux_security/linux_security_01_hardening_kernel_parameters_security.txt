@@ -1,0 +1,82 @@
+Kernel parameters control the behavior of the Linux kernel at runtime. They are exposed through the `/proc/sys/` virtual filesystem and can be modified using the `sysctl` command or by writing directly to files under `/proc/sys/`. From a security perspective, kernel parameters define how the kernel handles memory, networking, process isolation, and access controls. Misconfigured parameters can weaken system defenses, while properly hardened parameters reduce the attack surface and enforce security boundaries.
+
+**Key Components of Kernel Parameter Security**
+
+Kernel parameters are organized into categories under `/proc/sys/`. The most security-relevant categories are:
+
+- **kernel/** – Controls core kernel behavior, including ptrace restrictions, core dump handling, and kernel pointer exposure.
+- **net/ipv4/** and **net/ipv6/** – Governs network stack hardening, including IP forwarding, source routing, and TCP SYN cookie protection.
+- **vm/** – Manages memory and swap behavior, including overcommit handling and dirty page writeback.
+- **fs/** – Controls filesystem-level protections, such as protected symlinks and hardlinks.
+- **user/** – Defines user namespace limits and restrictions.
+
+The most critical security parameters include:
+
+- **kernel.kptr_restrict** – Controls exposure of kernel addresses in `/proc/` and other interfaces. Set to 2 to prevent unprivileged users from reading kernel pointers.
+- **kernel.dmesg_restrict** – When set to 1, restricts access to kernel log buffer to users with `CAP_SYSLOG`.
+- **kernel.perf_event_paranoid** – Limits use of performance monitoring events. Set to 2 or higher to prevent unprivileged users from accessing sensitive CPU data.
+- **kernel.yama.ptrace_scope** – Restricts ptrace system calls. Set to 1 to allow only parent processes to trace their children; set to 2 or 3 for stricter controls.
+- **net.ipv4.conf.all.rp_filter** – Enables reverse path filtering to prevent IP spoofing. Set to 1 for strict mode.
+- **net.ipv4.tcp_syncookies** – Enables SYN cookies to mitigate SYN flood attacks. Set to 1.
+- **net.ipv4.conf.all.accept_source_route** – Disables source routing to prevent packet redirection attacks. Set to 0.
+- **net.ipv4.conf.all.log_martians** – Logs packets with impossible source addresses. Set to 1 for auditing.
+- **vm.mmap_min_addr** – Prevents unprivileged users from mapping memory at low addresses, mitigating NULL pointer dereference exploits. Set to 65536.
+- **fs.protected_hardlinks** and **fs.protected_symlinks** – Prevents race condition attacks via hardlink and symlink creation. Set to 1.
+
+**Real-World Application**
+
+Hardening kernel parameters is a standard step in server and container security baselines. The Center for Internet Security (CIS) benchmarks for Linux include specific sysctl settings for each distribution. For example, the CIS Benchmark for Ubuntu 22.04 mandates setting `kernel.kptr_restrict = 2`, `kernel.dmesg_restrict = 1`, and `net.ipv4.conf.all.rp_filter = 1`.
+
+In containerized environments, kernel parameter hardening is especially important because containers share the host kernel. A misconfigured parameter in the host can affect all containers. For instance, setting `kernel.keys.maxkeys` too low can cause keyring failures in containers, while leaving `kernel.unprivileged_userns_clone = 1` can allow unprivileged user namespace creation, which may be exploited for privilege escalation.
+
+To apply kernel parameters persistently, create configuration files in `/etc/sysctl.d/` or `/etc/sysctl.conf`. Example file `/etc/sysctl.d/99-security.conf`:
+
+```
+kernel.kptr_restrict = 2
+kernel.dmesg_restrict = 1
+kernel.perf_event_paranoid = 2
+kernel.yama.ptrace_scope = 1
+net.ipv4.conf.all.rp_filter = 1
+net.ipv4.tcp_syncookies = 1
+net.ipv4.conf.all.accept_source_route = 0
+net.ipv4.conf.all.log_martians = 1
+vm.mmap_min_addr = 65536
+fs.protected_hardlinks = 1
+fs.protected_symlinks = 1
+```
+
+Apply with `sysctl --system`. Verify with `sysctl -a | grep <parameter>`.
+
+In production, use configuration management tools like Ansible or Puppet to enforce these settings across fleets. For example, an Ansible task:
+
+```yaml
+- name: Apply kernel security parameters
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop:
+    - { key: kernel.kptr_restrict, value: '2' }
+    - { key: kernel.dmesg_restrict, value: '1' }
+```
+
+**Security Relevance**
+
+Kernel parameters directly impact the effectiveness of exploit mitigations. For example, `kernel.kptr_restrict = 2` prevents unprivileged users from reading kernel addresses, which are often required for KASLR bypass exploits. Without this, an attacker who gains local access can map kernel memory layout and craft targeted attacks.
+
+`kernel.dmesg_restrict = 1` prevents leakage of kernel memory contents through dmesg, which can contain sensitive data like encryption keys or memory addresses. This is a common information disclosure vector.
+
+`kernel.yama.ptrace_scope = 1` prevents unauthorized process tracing, blocking attacks that inject code into running processes via ptrace. This is critical for multi-tenant environments.
+
+Network parameters like `rp_filter` and `accept_source_route` prevent IP spoofing and routing-based attacks. Without `rp_filter`, an attacker can send packets with forged source IPs, enabling DDoS amplification or session hijacking.
+
+`vm.mmap_min_addr` blocks a class of NULL pointer dereference exploits. If an attacker can map memory at address 0, they can exploit kernel bugs that dereference NULL pointers.
+
+`fs.protected_hardlinks` and `fs.protected_symlinks` prevent TOCTOU (time-of-check time-of-use) race conditions in world-writable directories. Without these, an attacker can create a hardlink to a sensitive file and then modify it through the link.
+
+**Key Takeaways**
+
+- Kernel parameters control critical security mitigations including address space layout randomization, process isolation, and network spoofing prevention; misconfiguration directly weakens these defenses.
+- Apply hardened sysctl settings from CIS benchmarks or internal baselines using configuration management tools to ensure consistency across all systems.
+- Regularly audit kernel parameter values with `sysctl -a` and compare against a known-good baseline to detect drift or unauthorized changes.

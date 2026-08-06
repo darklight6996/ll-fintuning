@@ -1,0 +1,27 @@
+13.3: Monitor and Block Unauthorized Network Traffic
+
+Overview
+This policy setting specifies whether the Windows Registration Wizard connects to 
+Microsoft.com for online registration. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+Users in an enterprise managed environment should not be registering their own copies 
+of Windows, providing their own PII in the process.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\Registration Wizard 
+Control:NoRegistration
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Internet Communication Management\Internet 
+Communication settings\Turn off Registration if URL connection is referring 
+to Microsoft.com
+
+Key Takeaways
+- Users in an enterprise managed environment should not be registering their own copies  of Windows, providing their own PII in the process.

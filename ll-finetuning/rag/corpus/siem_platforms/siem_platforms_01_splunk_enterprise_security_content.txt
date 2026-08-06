@@ -1,0 +1,50 @@
+Enterprise Security (ES) is Splunk’s premium security information and event management (SIEM) solution, designed to provide real-time visibility, advanced threat detection, and incident investigation capabilities for large-scale enterprise environments. It extends the core Splunk platform with pre-built security content, correlation logic, and dashboards tailored for security operations centers (SOCs). ES ingests and normalizes data from diverse sources—network devices, endpoints, cloud services, identity providers, and applications—to create a unified security data model. Its architecture relies on Splunk’s search processing language (SPL) and a modular framework of data models, correlation searches, and notable events to reduce alert fatigue and accelerate mean time to detect (MTTD) and respond (MTTR).
+
+**Key Components**
+
+- **Data Models (CIM Compliance):** ES uses the Common Information Model (CIM) to normalize data across domains like Authentication, Network Traffic, Endpoint, and Web. This standardization ensures that correlation searches and dashboards work consistently regardless of data source. Engineers must map custom data sources to CIM fields to maintain detection accuracy.
+
+- **Correlation Searches:** These are pre-built SPL queries that run on a schedule or in real time to detect specific attack patterns, anomalies, or compliance violations. Examples include “Multiple Failed Logins Followed by Successful Login” (brute force) or “DNS Query for Known Malicious Domain.” Each correlation search generates a notable event when triggered.
+
+- **Notable Events:** The primary alerting mechanism. Each notable event includes a title, severity, owner, status, and drill-down fields. ES provides a triage interface where analysts can assign, comment, and escalate events. Customizable incident review dashboards allow filtering by source, tactic (MITRE ATT&CK), or time window.
+
+- **Threat Intelligence Framework:** ES integrates with threat intelligence feeds (e.g., STIX/TAXII, custom CSV lists) to enrich events with indicators of compromise (IOCs) like IPs, domains, hashes, and URLs. The framework supports both local and remote feeds, and correlation searches can reference these IOCs automatically.
+
+- **Risk-Based Alerting (RBA):** A newer component that assigns risk scores to entities (users, hosts, IPs) based on observed behaviors. Instead of alerting on every low-severity event, RBA aggregates risk over time and only generates a notable event when a threshold is exceeded. This reduces noise and surfaces high-fidelity threats.
+
+- **Adaptive Response Framework (ARF):** Enables automated actions triggered by notable events. Actions can include blocking an IP via firewall API, isolating an endpoint via EDR, or updating a ticket in a ticketing system. ARF uses modular “response actions” that can be chained in playbooks.
+
+- **Dashboard and Visualization:** ES ships with over 100 pre-built dashboards covering security domains (e.g., “Security Posture,” “Endpoint Analysis,” “Network Traffic Analysis”). These dashboards use Splunk’s visualization engine and can be customized with drill-downs, time pickers, and token-based filtering.
+
+**Real-World Application**
+
+A typical deployment involves the following workflow:
+
+1. **Data Onboarding:** Security engineers configure universal forwarders or heavy forwarders to send logs from firewalls (e.g., Palo Alto, Fortinet), endpoints (e.g., Windows Event Log, Sysmon), cloud platforms (AWS CloudTrail, Azure AD), and identity providers (Okta, Active Directory). Data is parsed and timestamped, then indexed into specific sourcetypes.
+
+2. **Baseline and Tuning:** After ingestion, engineers review correlation searches for false positives. For example, a “Multiple Failed Logins” search may need threshold adjustments (e.g., 10 failures in 5 minutes vs. 50 in 1 hour) based on normal user behavior. They also exclude known service accounts or internal scanners.
+
+3. **Threat Detection in Practice:** A correlation search detects a process launching from a temporary directory (e.g., %TEMP%) with a network connection. This triggers a notable event with medium severity. The analyst opens the event, sees the parent process (e.g., Microsoft Word) and the destination IP. Using the threat intelligence lookup, the IP is flagged as a known C2 server. The analyst escalates to high severity and initiates an ARF playbook that isolates the endpoint via the EDR API.
+
+4. **Incident Investigation:** The analyst uses the “Endpoint” data model to pivot: they search for other processes launched by the same parent, check for lateral movement via network connections, and review the user’s authentication timeline. The risk score for the user increases due to the confirmed compromise.
+
+5. **Reporting and Compliance:** ES dashboards generate weekly reports for management showing mean time to detect, number of notable events by severity, and top attack techniques (mapped to MITRE ATT&CK). These reports satisfy compliance requirements like PCI DSS (logging and monitoring) and SOC 2 (incident response).
+
+**Security Relevance**
+
+ES directly addresses several critical security challenges:
+
+- **Alert Fatigue:** By using RBA and correlation search tuning, ES reduces the volume of low-fidelity alerts. Engineers can focus on events with high risk scores or those matching known attack patterns.
+
+- **Detection Gaps:** Pre-built content covers common attack vectors (phishing, lateral movement, privilege escalation) and is regularly updated by Splunk’s security research team. Custom correlation searches fill gaps for organization-specific threats (e.g., proprietary application logs).
+
+- **Investigation Efficiency:** The CIM and data models enable rapid pivoting across data sources. An analyst can start from a network alert and immediately view the associated endpoint and user context without rewriting SPL.
+
+- **Automation and Orchestration:** ARF reduces manual response time. For example, blocking a malicious IP at the firewall can happen within seconds of detection, limiting the blast radius of an attack.
+
+- **Compliance and Audit:** ES provides out-of-the-box support for frameworks like MITRE ATT&CK, NIST, and ISO 27001. Dashboards can be configured to show control effectiveness (e.g., percentage of failed logins that triggered alerts).
+
+**Key Takeaways**
+- Splunk Enterprise Security relies on the Common Information Model (CIM) to normalize data across sources, enabling consistent correlation searches and dashboards that reduce false positives and accelerate investigations.
+- Risk-Based Alerting (RBA) and the Adaptive Response Framework (ARF) are critical for reducing alert fatigue and automating containment actions, making ES suitable for high-volume enterprise SOCs.
+- Effective deployment requires tuning correlation searches to the environment’s baseline, integrating threat intelligence feeds, and mapping alerts to MITRE ATT&CK for actionable threat intelligence.

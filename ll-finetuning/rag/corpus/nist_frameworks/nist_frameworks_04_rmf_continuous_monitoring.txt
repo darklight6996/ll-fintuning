@@ -1,0 +1,37 @@
+Continuous monitoring is the process of maintaining ongoing awareness of information security, vulnerabilities, and threats to support organizational risk management decisions. Within the Risk Management Framework (RMF), continuous monitoring is the sixth and final step (Step 6) but is not a one-time activity. It is a persistent, cyclical process that ensures security controls remain effective over time as systems, threats, and operational environments change. Unlike point-in-time assessments, continuous monitoring provides near-real-time visibility into the security posture of an information system, enabling rapid detection and response to deviations from the baseline.
+
+**Key Components**
+
+A robust continuous monitoring program is built on several interdependent components. Each component must be implemented with clear technical specifications and automation where possible.
+
+- **Automated Control Assessments**: Security controls must be tested at a frequency defined by the system’s risk categorization (e.g., FIPS 199 impact level). Automated tools (e.g., SCAP-validated scanners, configuration compliance checkers) replace manual checklists. They generate machine-readable results (e.g., XCCDF, OVAL) that feed directly into a centralized repository.
+- **Continuous Vulnerability Scanning**: This is distinct from periodic penetration tests. Scans should run on a schedule (daily for high-impact systems, weekly for moderate) and after any significant change. The output must be correlated with a threat feed to prioritize remediation based on exploitability, not just CVSS score.
+- **Security Information and Event Management (SIEM) Integration**: Logs from all critical system components (network devices, servers, databases, applications) must be aggregated in a SIEM. Correlation rules should map to the control families in NIST SP 800-53 (e.g., AU-6 for audit review, IR-4 for incident handling). Alerts must have defined thresholds to avoid alert fatigue.
+- **Configuration Management Database (CMDB) and Asset Inventory**: You cannot monitor what you do not know exists. The CMDB must be authoritative and updated automatically via discovery tools. Every asset must be tagged with its system boundary, owner, and impact level. Changes to the CMDB should trigger a reassessment of relevant controls.
+- **Plan of Action and Milestones (POA&M) Tracking**: All identified weaknesses, whether from scans, assessments, or incidents, must be logged in a POA&M. Each entry requires a risk severity, a remediation date, and a responsible party. The monitoring system must track POA&M aging and escalate overdue items.
+- **Change Management Integration**: Continuous monitoring is ineffective if changes bypass it. Every change request must be linked to the affected assets and controls. The monitoring system should automatically re-run relevant control assessments after a change is deployed.
+
+**Real-World Application**
+
+Consider a Department of Defense (DoD) system operating at Impact Level 4 (IL4) under the DoD RMF (formerly DIACAP, now aligned with NIST RMF). The continuous monitoring implementation would look like this:
+
+- **Daily**: Automated vulnerability scans run against all IL4 assets. Results are pushed to a SIEM. Any critical vulnerability (CVSS >= 9.0) triggers an automated ticket in the ticketing system and an alert to the ISSO (Information System Security Officer). The ISSO has 72 hours to remediate or create a POA&M.
+- **Weekly**: Configuration compliance scans (e.g., DISA STIG checks) run. Non-compliant settings are flagged. If a setting deviates from the approved baseline, the change management system is queried to see if an approved change exists. If not, a non-compliance incident is opened.
+- **Monthly**: The ISSO reviews the POA&M report. Items past their due date are escalated to the Authorizing Official (AO). The AO uses a dashboard showing the overall risk score, which is calculated from the number of open vulnerabilities, their severity, and the time since discovery.
+- **Quarterly**: A full control assessment is performed, but the continuous monitoring data from the previous three months is used to reduce the scope of manual testing. Controls that have been consistently compliant and have no open POA&Ms are tested only by sampling.
+- **Annually**: The system’s security authorization package is updated. The continuous monitoring data serves as the primary evidence for the security controls. The AO reviews the trend data (e.g., “time to remediate” metrics) to determine if the system’s risk posture is improving or degrading.
+
+**Security Relevance**
+
+Continuous monitoring directly addresses the operational security gap that exists between formal authorization events. A system can be fully compliant at the moment of authorization but become vulnerable within hours due to a new exploit or a misconfiguration. Continuous monitoring provides the following security benefits:
+
+- **Reduced Dwell Time**: By detecting anomalous activity or new vulnerabilities in near-real-time, the window between compromise and discovery shrinks from months (typical of point-in-time assessments) to days or hours.
+- **Risk-Based Decision Making**: Continuous monitoring generates quantitative data (e.g., number of unpatched critical vulnerabilities, mean time to detect, mean time to respond). This data allows the AO to make informed decisions about accepting, transferring, or mitigating risk, rather than relying on a static snapshot.
+- **Compliance as a Byproduct**: When continuous monitoring is properly implemented, compliance with frameworks like NIST SP 800-53, FedRAMP, or CMMC becomes a natural output of the operational process, not a separate audit exercise. Evidence is collected continuously, not retroactively.
+- **Change Detection**: The most common cause of security incidents is unauthorized or unvetted change. Continuous monitoring systems that compare current state to a known-good baseline can detect drift immediately, whether from a malicious actor, a misconfigured patch, or a hardware failure.
+
+**Key Takeaways**
+
+1. Continuous monitoring is not a tool or a scan; it is a program that integrates automated assessments, SIEM correlation, change management, and POA&M tracking into a single, risk-informed feedback loop.
+2. The frequency and depth of monitoring must be directly proportional to the system’s FIPS 199 impact level and the organization’s risk appetite; high-impact systems require daily scans and automated alerting, while low-impact systems may suffice with weekly checks.
+3. The ultimate goal of continuous monitoring is to provide the Authorizing Official with actionable, real-time risk data so that security decisions are based on current operational reality, not a static authorization package.

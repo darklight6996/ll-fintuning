@@ -1,0 +1,51 @@
+Bicep is a domain-specific language (DSL) for deploying Azure infrastructure as code (IaC). It provides a declarative syntax that compiles to Azure Resource Manager (ARM) templates. Unlike raw JSON ARM templates, Bicep offers a cleaner, more modular, and type-safe authoring experience. For a DevSecOps pipeline, Bicep serves as the infrastructure definition layer, enabling security controls to be codified, versioned, and validated before deployment.
+
+**Key Components**
+
+- **Declarative Syntax**: Bicep files define the desired state of Azure resources. You specify what you want, not the sequence of operations to achieve it. This reduces drift and simplifies auditing. Security engineers can review a single file to understand the entire resource configuration.
+
+- **Modules**: Bicep supports modularization. You can create reusable, parameterized modules for common patterns like virtual networks, key vaults, or role assignments. Each module can enforce security baselines (e.g., mandatory encryption, network isolation) that are automatically applied every time the module is used.
+
+- **Parameters and Variables**: Parameters allow you to inject environment-specific values (e.g., environment name, allowed IP ranges) without modifying the core template. Variables simplify complex expressions. For security, you can use parameters to enforce that certain values (like a minimum TLS version) are always provided.
+
+- **Resource Declarations**: Each resource is declared with its type, API version, properties, and dependencies. Bicep enforces that all required properties are set, reducing the chance of misconfiguration. For example, a storage account declaration must include `allowBlobPublicAccess: false` to meet a security baseline.
+
+- **Scopes and Deployment Targets**: Bicep can target resource groups, subscriptions, or management groups. This allows you to deploy security controls (e.g., Azure Policy assignments, role-based access control) at scale across an entire organization.
+
+- **Linter and Static Analysis**: The Bicep linter (`bicep build --stdout`) checks for syntax errors, missing properties, and best practices. It can flag insecure configurations, such as public network access enabled on a SQL server, before the template is ever deployed.
+
+- **Decompilation**: You can decompile existing ARM templates into Bicep. This is useful for migrating legacy deployments into a codified, auditable format.
+
+**Real-World Application**
+
+Consider a scenario where a team deploys a three-tier application: a front-end web app, an API layer, and a database. Using Bicep, a security engineer can enforce the following:
+
+- **Network Security**: Define a virtual network with subnets for each tier. Use network security groups (NSGs) to restrict inbound traffic. The web tier subnet only allows HTTPS from the internet. The API tier subnet only accepts traffic from the web tier subnet. The database subnet only accepts traffic from the API tier subnet on port 1433. This is codified in a Bicep module for network segmentation.
+
+- **Data Encryption**: The database module requires `transparentDataEncryption` to be enabled and `minimalTlsVersion` to be set to `1.2`. The storage account module enforces `encryption.keySource` to be `Microsoft.Keyvault` and references a key vault key.
+
+- **Identity and Access Management**: A module for managed identities assigns the `Contributor` role only to the web app identity on the API tier subnet, and the `SQL DB Contributor` role to the API identity on the database. No human users are granted direct access.
+
+- **Policy as Code**: The Bicep file includes a `Microsoft.Authorization/policyAssignments` resource that assigns a built-in policy to audit for unencrypted SQL databases. This ensures that any future manual change is flagged.
+
+- **Pipeline Integration**: In a CI/CD pipeline (e.g., Azure DevOps or GitHub Actions), the Bicep file is compiled to an ARM template. The pipeline runs `Checkov` or `PSRule` against the compiled template to scan for misconfigurations (e.g., public blob access, missing diagnostic logs). Only if the scan passes does the pipeline proceed to deployment. After deployment, the pipeline runs a drift detection step to compare the deployed state against the Bicep definition.
+
+**Security Relevance**
+
+- **Shift Left**: Bicep enables security validation during development, not after deployment. The linter catches basic issues immediately. Static analysis tools can be integrated into pull request checks, preventing insecure configurations from reaching production.
+
+- **Immutable Infrastructure**: Because Bicep is declarative, deployments are repeatable and idempotent. If a resource is manually altered, the next deployment will revert it to the defined state. This prevents configuration drift, a common source of security vulnerabilities.
+
+- **Audit Trail**: Every change to the infrastructure is captured in the version control history. You can trace exactly when a security control was added, modified, or removed, and by whom. This is critical for compliance frameworks like SOC 2, PCI DSS, or FedRAMP.
+
+- **Least Privilege by Default**: Bicep modules can enforce that no resource has overly permissive access. For example, a module for Azure SQL can reject any deployment that does not set `publicNetworkAccess` to `Disabled`. This reduces the attack surface.
+
+- **Policy Enforcement**: Bicep can deploy Azure Policy definitions and assignments. This means you can codify your compliance requirements (e.g., "all storage accounts must have encryption at rest") and enforce them across all subscriptions.
+
+- **Reduced Human Error**: The JSON syntax of raw ARM templates is error-prone. A missing comma or a misplaced bracket can lead to a misconfigured resource. Bicep’s cleaner syntax and type checking reduce these errors, which are often the root cause of security incidents.
+
+**Key Takeaways**
+
+- Bicep enforces security baselines through modular, reusable components that automatically apply encryption, network isolation, and access controls, reducing the risk of misconfiguration.
+- Integrating Bicep with static analysis tools in a CI/CD pipeline shifts security validation left, catching vulnerabilities before deployment and providing a full audit trail of infrastructure changes.
+- Bicep’s declarative nature and policy-as-code capabilities ensure that deployed infrastructure remains compliant with organizational security standards, preventing configuration drift.

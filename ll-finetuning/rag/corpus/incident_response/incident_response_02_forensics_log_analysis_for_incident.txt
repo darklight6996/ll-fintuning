@@ -1,0 +1,60 @@
+Log analysis for incident investigation is the systematic process of examining log data from various sources to reconstruct events, identify malicious activity, determine the scope and impact of a security incident, and support remediation and legal proceedings. Unlike real-time monitoring, which focuses on alerting, incident investigation log analysis is retrospective, deep-dive, and often manual or semi-automated. The goal is to establish a timeline of attacker actions, validate hypotheses, and produce evidence that withstands scrutiny.
+
+**Key Components**
+
+Effective log analysis for incident investigation relies on several foundational components:
+
+- **Centralized Log Aggregation**: Logs must be collected from all relevant sources—endpoints (Windows Event Log, Sysmon, auditd), network devices (firewalls, proxies, DNS servers), cloud services (AWS CloudTrail, Azure Activity Log, GCP Audit Logs), and applications (web server logs, database audit logs). A SIEM or a dedicated log management platform (e.g., Splunk, Elastic Stack, Chronicle) ingests, normalizes, and indexes these logs for fast querying.
+
+- **Normalization and Parsing**: Raw logs are often in different formats. Normalization maps fields (e.g., timestamp, source IP, user, event ID) to a common schema. Parsing extracts structured data from unstructured fields like HTTP user agents or command-line arguments. Without normalization, correlation across sources is impractical.
+
+- **Retention and Integrity**: Logs must be retained for a period that covers the typical dwell time of attackers (often 90 days to 1 year, per regulatory requirements). Integrity is ensured via cryptographic hashing (e.g., SHA-256) and write-once storage (e.g., immutable S3 buckets or append-only syslog servers). Tampered logs invalidate the investigation.
+
+- **Time Synchronization**: All log sources must use NTP to maintain synchronized clocks. A drift of even seconds can break timeline reconstruction. The use of UTC is standard to avoid timezone ambiguity.
+
+- **Query and Search Capabilities**: Investigators need to search across terabytes of logs with sub-second latency. Key capabilities include:
+  - **Fielded search** (e.g., `source_ip=10.0.0.5`)
+  - **Regular expression** matching for patterns (e.g., suspicious PowerShell commands)
+  - **Statistical aggregation** (e.g., count of failed logins per user)
+  - **Pivot and drill-down** from one event to related events (e.g., from a network connection to the process that initiated it)
+
+- **Correlation Rules and Threat Intelligence**: While not always used during the initial investigation, pre-built correlation rules can surface related events (e.g., a brute-force attack followed by a successful login from a new IP). Threat intelligence feeds (IPs, domains, hashes) help enrich logs and identify known bad indicators.
+
+**Real-World Application**
+
+Consider a typical incident: a ransomware deployment. The investigation would proceed as follows:
+
+1. **Initial Triage**: The SIEM alerts on a high volume of file encryption events from an endpoint. The investigator queries the endpoint’s Sysmon logs for `EventID 11` (FileCreate) and `EventID 1` (ProcessCreate) around the alert time. They identify the parent process (e.g., `rundll32.exe` launched from a macro) and the child process (the ransomware binary).
+
+2. **Lateral Movement Reconstruction**: The investigator pivots to network logs. They search the firewall logs for connections from the compromised endpoint to other internal IPs on ports 445 (SMB) or 3389 (RDP). They find SMB connections to a file server. They then query the file server’s Windows Security logs for `EventID 4624` (logon) from the compromised endpoint’s account, confirming lateral movement.
+
+3. **Initial Access Determination**: The investigator examines web proxy logs for the compromised user’s activity in the hours before the ransomware. They find a download of a malicious document from a phishing site. They correlate this with the email gateway logs showing the original phishing email and the user clicking the link.
+
+4. **Timeline Construction**: All events are timestamped and ordered. The timeline shows:
+   - 09:00: Phishing email delivered
+   - 09:05: User clicks link, downloads document
+   - 09:06: Macro executes, spawns PowerShell
+   - 09:10: Cobalt Strike beacon established (detected via DNS logs querying a known malicious domain)
+   - 09:30: Lateral movement to file server
+   - 10:00: Ransomware execution begins
+
+5. **Evidence Preservation**: The investigator exports relevant log entries with their original timestamps and hashes. They document every query and result. This evidence is used for containment (blocking IPs, disabling accounts) and for potential legal action.
+
+**Security Relevance**
+
+Log analysis is the primary method for answering the five critical questions in incident response: What happened? When did it happen? Who did it? How did they do it? What was affected? Without logs, an organization is blind to attacker activity beyond what is caught by automated alerts.
+
+- **Detection of Stealthy Attacks**: Many advanced attacks (e.g., living-off-the-land binaries, credential theft) do not trigger signature-based alerts. Log analysis reveals anomalous patterns—unusual PowerShell execution, service account logins at odd hours, or data exfiltration via DNS tunneling—that would otherwise go unnoticed.
+
+- **Validation of Automated Alerts**: SIEM alerts can produce false positives. Log analysis allows an investigator to manually verify the alert by examining the raw events, reducing noise and ensuring resources are focused on genuine incidents.
+
+- **Scope and Impact Assessment**: By correlating logs across systems, investigators determine the full extent of the compromise. This prevents partial remediation where the attacker retains access through an unexamined vector.
+
+- **Legal and Compliance Requirements**: Regulations such as PCI DSS, HIPAA, and GDPR mandate log retention and analysis capabilities. In the event of a breach, regulators will request evidence of log review. Incomplete or missing logs can result in fines and legal liability.
+
+- **Root Cause Analysis**: Understanding the root cause (e.g., unpatched software, weak credentials, misconfigured firewall) allows the organization to implement permanent fixes, not just temporary containment.
+
+**Key Takeaways**
+- Log analysis for incident investigation requires centralized, normalized, and integrity-protected logs from all relevant sources, with synchronized timestamps to enable accurate timeline reconstruction.
+- Real-world investigations follow a structured process: triage, lateral movement reconstruction, initial access determination, timeline construction, and evidence preservation.
+- Without thorough log analysis, organizations cannot determine the full scope of an incident, validate automated alerts, or meet compliance and legal requirements for breach response.

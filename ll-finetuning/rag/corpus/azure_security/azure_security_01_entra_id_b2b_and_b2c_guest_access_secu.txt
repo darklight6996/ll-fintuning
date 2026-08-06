@@ -1,0 +1,53 @@
+**Definition**
+
+Guest access in Microsoft Entra ID (formerly Azure AD) refers to the ability for external users—those without a corporate account in your tenant—to authenticate and access resources such as applications, SharePoint sites, Teams, and APIs. The security posture of this access differs fundamentally between B2B (business-to-business) and B2C (business-to-consumer) scenarios. B2B guest access is designed for collaboration with partner organizations, where external users are typically employees of another company who authenticate using their own corporate identity. B2C guest access is designed for customer-facing applications, where external users are individual consumers who authenticate using social identities (e.g., Google, Facebook, Microsoft Account) or local accounts created in the Entra ID tenant. The security controls, trust models, and compliance requirements for each are distinct and must be configured separately.
+
+**Key Components**
+
+**B2B Guest Access Security Components**
+
+- **Cross-tenant access settings**: Define inbound and outbound trust policies per external tenant. You can block or allow specific tenants, enforce MFA from the external tenant, and require compliant devices (via device-based conditional access). These settings are granular and can be applied at the user, group, or application level.
+- **External collaboration settings**: Control who can invite guests (e.g., all users, only admins, or specific roles). You can also restrict the domains allowed for guest invitations (allowlist or blocklist).
+- **Conditional Access for external users**: Policies can be scoped to “Guest or external users” and include requirements such as MFA, device compliance (via device trust from the home tenant), and sign-in risk. Note that device compliance for B2B guests requires the external tenant to support device-based conditional access.
+- **Entitlement management**: Govern guest access through access packages that require approval, periodic review, and automatic expiration. This is critical for least-privilege and lifecycle management.
+- **Identity governance**: Access reviews for guest users, automated user cleanup (e.g., remove guests inactive for 90 days), and separation of duties for guest provisioning.
+
+**B2C Guest Access Security Components**
+
+- **User flows**: Define the authentication experience, including allowed identity providers (social, local, SAML/WS-Fed). Security controls include CAPTCHA, session management, and token lifetime policies.
+- **Custom policies (Identity Experience Framework)**: For advanced scenarios, you can build custom authentication journeys that include step-up authentication, risk scoring, and integration with external identity verification services.
+- **Conditional Access for B2C**: Policies can be applied to B2C user flows, but the scope is limited. You can enforce MFA, block sign-ins from specific locations, and require terms of use acceptance. Device compliance policies are not applicable because B2C users are consumers, not employees.
+- **Token security**: Configure token signing, encryption, and validation. B2C supports JWT tokens with custom claims, but you must manage token replay protection and ensure proper audience and issuer validation in your applications.
+- **API connectors**: Integrate with external identity verification, fraud detection, or custom authorization services during sign-up or sign-in flows.
+
+**Real-World Application**
+
+**B2B Scenario: Partner Collaboration with Compliance Requirements**
+
+A financial services company needs to grant external auditors access to a compliance application. The auditors are employees of a partner firm that uses Microsoft Entra ID. The security engineer configures cross-tenant access settings to trust the partner’s MFA and device compliance claims. Conditional Access policies require the auditors to authenticate from a compliant device (managed by the partner) and enforce session timeout after 4 hours. Entitlement management creates an access package for the compliance app with quarterly access reviews. The partner’s users are automatically removed after 90 days of inactivity. This ensures that the external users are authenticated by their own organization’s security controls, and the hosting tenant retains governance over resource access.
+
+**B2C Scenario: Customer Portal with Social Login**
+
+A retail company builds a customer portal using Entra ID B2C. Customers can sign in with Google, Facebook, or a local account. The security engineer configures user flows to require MFA for any sign-in from a high-risk country (using Conditional Access). API connectors are used to check the customer’s email against a blocklist during sign-up. Token lifetimes are set to 60 minutes for access tokens and 24 hours for refresh tokens. The application validates the token’s `iss` and `aud` claims and rejects tokens with mismatched values. The company does not store customer credentials; all authentication is delegated to the identity providers. This reduces the attack surface for credential theft while providing a seamless customer experience.
+
+**Security Relevance**
+
+**B2B Guest Access Security Risks and Mitigations**
+
+- **Over-provisioning**: Guests may retain access longer than needed. Mitigate with entitlement management, access reviews, and automatic expiration.
+- **Trust delegation**: You rely on the external tenant’s security posture. Mitigate by requiring MFA and device compliance from the home tenant, and by using cross-tenant access settings to block tenants with weak security.
+- **Data exfiltration**: Guests can download or share sensitive data. Mitigate with conditional access policies that block downloads from unmanaged devices, and use sensitivity labels with Microsoft Purview Information Protection.
+- **Shadow invitations**: Users may invite external parties without approval. Mitigate by restricting who can invite guests and requiring admin approval for new external domains.
+
+**B2C Guest Access Security Risks and Mitigations**
+
+- **Account takeover**: Social identity providers can be compromised. Mitigate with MFA, sign-in risk policies, and step-up authentication for sensitive operations.
+- **Fraudulent sign-ups**: Bots or malicious actors can create fake accounts. Mitigate with CAPTCHA, email verification, and API connectors that check against threat intelligence feeds.
+- **Token theft**: Stolen tokens can be replayed. Mitigate with short token lifetimes, token binding (if supported), and proper token validation in the application.
+- **Credential stuffing**: Local accounts are vulnerable to brute force. Mitigate with account lockout policies, IP-based blocking, and requiring strong passwords.
+
+**Key Takeaways**
+
+1. B2B guest access security relies on cross-tenant trust and governance; always enforce MFA and device compliance from the external tenant, and use entitlement management to automate lifecycle.
+2. B2C guest access security depends on strong authentication flows and token validation; use Conditional Access for risk-based MFA, API connectors for fraud detection, and short token lifetimes.
+3. Both models require strict token validation in your applications—always verify the issuer, audience, and signature—and never treat external identities as inherently trusted.

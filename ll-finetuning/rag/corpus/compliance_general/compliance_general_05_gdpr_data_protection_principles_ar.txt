@@ -1,0 +1,72 @@
+Article 5 of the GDPR establishes the seven core data protection principles that govern the lawful processing of personal data. These principles are not aspirational; they are legally binding requirements that form the foundation of every compliance program and security control. Any processing activity that violates these principles is automatically non-compliant, regardless of other safeguards in place.
+
+**Definition**
+
+Article 5 defines the principles relating to processing of personal data. It mandates that controllers are responsible for, and must be able to demonstrate compliance with, each principle. The seven principles are: lawfulness, fairness, and transparency; purpose limitation; data minimization; accuracy; storage limitation; integrity and confidentiality (security); and accountability. These principles apply to all processing of personal data, from collection through deletion.
+
+**Key Components**
+
+1.  **Lawfulness, Fairness, and Transparency**
+    - Processing must have a valid legal basis under Article 6 (e.g., consent, contract, legal obligation, vital interests, public task, legitimate interests).
+    - Fairness requires that processing does not deceive or harm data subjects. For example, using dark patterns to obtain consent violates fairness.
+    - Transparency mandates clear, accessible privacy notices that explain what data is collected, why, how long it is retained, and with whom it is shared. The notice must be provided at the time of collection.
+
+2.  **Purpose Limitation**
+    - Data must be collected for specified, explicit, and legitimate purposes.
+    - Further processing for incompatible purposes is prohibited unless the controller obtains consent or has a legal basis for the new purpose.
+    - Compatibility assessment considers the relationship between the original and new purpose, context of collection, nature of data, consequences for data subjects, and existence of appropriate safeguards.
+
+3.  **Data Minimization**
+    - Only data that is adequate, relevant, and limited to what is necessary for the purpose may be processed.
+    - This directly impacts system design: do not collect full names if an ID number suffices; do not store IP addresses if aggregated location data is sufficient.
+    - Implement default settings that collect the minimum data required.
+
+4.  **Accuracy**
+    - Personal data must be accurate and, where necessary, kept up to date.
+    - Controllers must implement processes to correct or erase inaccurate data without delay.
+    - This includes automated validation rules, periodic data quality audits, and mechanisms for data subjects to request corrections.
+
+5.  **Storage Limitation**
+    - Data must be kept in a form that permits identification of data subjects for no longer than necessary.
+    - Define retention schedules based on legal, regulatory, and business requirements. Automate deletion or anonymization when retention periods expire.
+    - Archival or backup systems must also comply; data in backups must be deleted or anonymized within the same retention period.
+
+6.  **Integrity and Confidentiality (Security)**
+    - Processing must ensure appropriate security of personal data, including protection against unauthorized or unlawful processing and against accidental loss, destruction, or damage.
+    - This is the principle most directly relevant to security engineers. It requires implementing technical and organizational measures such as encryption, access controls, intrusion detection, and incident response plans.
+    - The level of security must be appropriate to the risk, considering the nature, scope, context, and purposes of processing.
+
+7.  **Accountability**
+    - The controller is responsible for complying with all principles and must be able to demonstrate compliance.
+    - This requires maintaining records of processing activities, conducting Data Protection Impact Assessments (DPIAs) for high-risk processing, appointing a Data Protection Officer (DPO) where required, and implementing data protection by design and by default.
+
+**Real-World Application**
+
+Consider a cloud-based HR platform that processes employee data for payroll, performance reviews, and benefits administration.
+
+- **Lawfulness, fairness, transparency**: The platform must have a legal basis (e.g., contract performance for payroll) and provide a privacy notice to employees explaining each processing purpose.
+- **Purpose limitation**: Employee data collected for payroll cannot be repurposed for marketing without consent.
+- **Data minimization**: The platform should not collect medical history unless required for benefits administration.
+- **Accuracy**: The system must allow employees to update their address and bank details, and the HR team must verify changes.
+- **Storage limitation**: Payroll records must be deleted after the statutory retention period (e.g., 6 years in many jurisdictions). Backup tapes must be rotated and purged accordingly.
+- **Integrity and confidentiality**: All data must be encrypted at rest and in transit. Access controls must enforce least privilege. Logs must be monitored for unauthorized access.
+- **Accountability**: The platform must maintain a Record of Processing Activities (ROPA) and conduct a DPIA before implementing a new performance scoring algorithm.
+
+**Security Relevance**
+
+For security engineers, Article 5 directly informs the design and operation of security controls:
+
+- **Integrity and confidentiality (security)** is the principle that mandates encryption, access controls, and monitoring. It is the legal basis for requiring security measures.
+- **Data minimization** reduces the attack surface. Less data stored means less data to protect and less exposure in a breach.
+- **Storage limitation** forces automated data lifecycle management. Without it, legacy data accumulates, increasing risk and compliance burden.
+- **Accountability** requires logging and auditing. Security teams must ensure logs capture who accessed what data, when, and for what purpose. These logs are evidence of compliance.
+- **Accuracy** intersects with security when data corruption or unauthorized modification occurs. Integrity controls (e.g., checksums, versioning) help maintain accuracy.
+- **Purpose limitation** prevents security tools from using data for unintended purposes, such as using employee location data for surveillance without a valid basis.
+
+A breach that exposes data collected in violation of data minimization or purpose limitation compounds liability. The ICO and other regulators routinely issue fines for failure to implement appropriate security measures (integrity and confidentiality) as well as for processing data beyond its original purpose.
+
+**Key Takeaways**
+
+1.  Article 5’s seven principles are legally binding; every security control must be traceable to at least one principle, with integrity and confidentiality being the most directly security-relevant.
+2.  Data minimization and storage limitation directly reduce breach impact and compliance risk; automate deletion and anonymization to enforce these principles.
+3.  Accountability requires demonstrable compliance through documented policies, access logs, and regular audits—security engineers must ensure logging and monitoring systems capture the data needed to prove adherence.

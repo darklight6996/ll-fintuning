@@ -1,0 +1,111 @@
+14.4: Encrypt All Sensitive Information in Transit (and related controls)
+
+Overview
+To ensure centralized identity and access management, users and groups from 
+Microsoft Entra ID should be synchronized with Azure Databricks. This is achieved 
+through SCIM provisioning, which automates the creation, update, and deactivation of 
+users and groups in Databricks based on Entra ID assignments. Enabling this 
+integration ensures that access controls in Databricks remain consistent with corporate 
+identity governance policies, reducing the risk of orphaned accounts, stale permissions, 
+and unauthorized access.
+
+Blobs in Azure storage accounts may contain sensitive or personal data, such as ePHI 
+or financial information. Data that is erroneously modified or deleted by an application or 
+a user can lead to data loss or unavailability. 
+It is recommended that soft delete be enabled on Azure storage accounts with blob 
+storage to allow for the preservation and recovery of data when blobs or blob snapshots 
+are deleted.
+
+Why This Matters
+Syncing users and groups from Microsoft Entra ID centralizes access control, enforces 
+the least privilege principle by automatically revoking unnecessary access, reduces 
+administrative overhead by eliminating manual user management, and ensures 
+auditability and compliance with industry regulations.
+
+Blobs can be deleted incorrectly. An attacker or malicious user may do this deliberately 
+in order to cause disruption. Deleting an Azure storage blob results in immediate data 
+loss. Enabling this configuration for Azure storage accounts ensures that even if blobs 
+are deleted from the storage account, the blobs are recoverable for a specific period of 
+time, which is defined in the "Retention policies," ranging from 7 to 365 days.
+
+Audit Steps
+For Encrypt All Sensitive Information in Transit:
+Audit from Azure Portal 
+Verify SCIM provisioning is enabled: 
+1. Go to Microsoft Entra ID. 
+2. Under Manage, click Enterprise applications. 
+3. Click the name of the Azure Databricks SCIM application. 
+4. Under Provisioning, confirm that SCIM provisioning is enabled and running. 
+Check user sync status in Azure Portal: 
+5. Under Provisioning Logs, verify the last successful sync and any failed 
+entries. 
+Check user sync status in Databricks: 
+6. Go to Admin Console > Identity and Access Management. 
+7. Confirm that Users and Groups match those assigned in Microsoft Entra ID. 
+Ensure role-based access control (RBAC) mapping is correct: 
+8. Verify that users are assigned appropriate Databricks roles (e.g. Admin, User, 
+Contributor). 
+9. Confirm that groups are mapped to workspace access roles.
+
+For Encrypt All Sensitive Information in Transit:
+Audit from Azure Portal 
+1. Go to Storage Accounts. 
+2. For each Storage Account with blob storage, under Data management, go to 
+Data protection. 
+3. Ensure that Enable soft delete for blobs is checked. 
+4. Ensure that the retention period is a sufficient length for your organization. 
+Audit from Azure CLI 
+Run the following command to list storage accounts: 
+az storage account list 
+Run the following command to determine if a storage account has containers: 
+az storage container list --account-name <storage-account> 
+ For each storage account with containers, ensure that the output of the below command 
+contains "enabled": true and days is not null: 
+az storage blob service-properties delete-policy show --account-name 
+<storage-account>
+
+Remediation
+For Encrypt All Sensitive Information in Transit:
+Remediate from Azure Portal 
+Enable provisioning in Azure Portal: 
+1. Go to Microsoft Entra ID. 
+2. Under Manage, click Enterprise applications. 
+3. Click the name of the Azure Databricks SCIM application. 
+4. Under Provisioning, select Automatic and enter the SCIM endpoint and API 
+token from Databricks. 
+Enable provisioning in Databricks: 
+5. Navigate to Admin Console > Identity and Access Management. 
+6. Enable SCIM provisioning and generate an API token. 
+Configure role assignments: 
+7. Ensure groups from Entra ID are mapped to appropriate Databricks roles. 
+8. Restrict administrative privileges to designated security groups. 
+Regularly monitor sync logs: 
+9. Periodically review sync logs in Microsoft Entra ID and Databricks Admin 
+Console. 
+10. Configure Azure Monitor alerts for provisioning failures. 
+Disable manual user creation in Databricks: 
+11. Ensure that all user management is controlled via SCIM sync from Entra ID. 
+12. Disable personal access token usage for authentication. 
+Remediate from Azure CLI 
+Enable SCIM User and Group Provisioning in Azure Databricks: 
+az ad app update --id <databricks-app-id> --set 
+provisioning.provisioningMode=Automatic
+
+For Encrypt All Sensitive Information in Transit:
+Remediate from Azure Portal 
+1. Go to Storage Accounts. 
+2. For each Storage Account with blob storage, under Data management, go to 
+Data protection. 
+3. Check the box next to Enable soft delete for blobs. 
+4. Set the retention period to a sufficient length for your organization. 
+5. Click Save. 
+Remediate from Azure CLI 
+For each storage account requiring remediation, run the following command to enable 
+soft delete for blobs: 
+az storage blob service-properties delete-policy update --days-retained 
+<retention-days> --account-name <storage-account> --enable true
+
+Key Takeaways
+- Syncing users and groups from Microsoft Entra ID centralizes access control, enforces  the least privilege principle by automatically revoking unnecessary access, reduces  administrative overhead by eliminating manual user management, and ensures  auditability and compliance with industry regulations.
+- Blobs can be deleted incorrectly.
+- An attacker or malicious user may do this deliberately  in order to cause disruption.

@@ -1,0 +1,160 @@
+9.4: Apply Host-based Firewalls or Port Filtering (and related controls)
+
+Overview
+Use this option to specify the path and name of the file in which Windows Firewall will 
+write its log information. 
+The recommended state for this setting is: 
+%SystemRoot%\System32\logfiles\firewall\privatefw.log.
+
+Use this option to specify the size limit of the file in which Windows Firewall will write its 
+log information. 
+The recommended state for this setting is: 16,384 KB or greater.
+
+Select True (recommended) to have Windows Firewall with Advanced Security use the 
+settings for this profile to filter network traffic. If you select False, Windows Firewall with 
+Advanced Security will not use any of the firewall rules or connection security rules for 
+this profile. 
+The recommended state for this setting is: True (recommended).
+
+This setting controls whether local administrators are allowed to create connection 
+security rules that apply together with connection security rules configured by Group 
+Policy. 
+The recommended state for this setting is: False.
+
+Use this option to log when Windows Firewall with Advanced Security allows an 
+inbound connection. The log records why and when the connection was formed. Look 
+for entries with the word ALLOW in the action column of the log. 
+The recommended state for this setting is: Enable Logging Of Successful 
+Connections.
+
+Use this option to specify the path and name of the file in which Windows Firewall will 
+write its log information. 
+The recommended state for this setting is: 
+%SystemRoot%\System32\logfiles\firewall\publicfw.log.
+
+Use this option to specify the size limit of the file in which Windows Firewall will write its 
+log information. 
+The recommended state for this setting is: 16,384 KB or greater.
+
+Why This Matters
+If Windows Firewall events are not recorded it may be difficult or impossible for 
+Administrators to analyze system issues or unauthorized activities of malicious users. 
+Microsoft stores all firewall events as one file on the system (pfirewall.log). To 
+improve logging, separate each firewall profile (domain, private, public) into its own 
+distinct log file (domainfw.log, privatefw.log, publicfw.log) for better organization 
+and identification of specific issues within each profile.
+
+If events are not recorded it may be difficult or impossible to determine the root cause of 
+system problems or the unauthorized activities of malicious users.
+
+If the firewall is turned off all traffic will be able to access the system and an attacker 
+may be more easily able to remotely exploit a weakness in a network service.
+
+Users with administrative privileges might create firewall rules that expose the system to 
+remote attack.
+
+If events are not recorded it may be difficult or impossible to determine the root cause of 
+system problems or the unauthorized activities of malicious users.
+
+If Windows Firewall events are not recorded it may be difficult or impossible for 
+Administrators to analyze system issues or unauthorized activities of malicious users. 
+Microsoft stores all firewall events as one file on the system (pfirewall.log). To 
+improve logging, separate each firewall profile (domain, private, public) into its own 
+distinct log file (domainfw.log, privatefw.log, publicfw.log) for better organization 
+and identification of specific issues within each profile.
+
+If events are not recorded it may be difficult or impossible to determine the root cause of 
+system problems or the unauthorized activities of malicious users.
+
+Audit Steps
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a REG_SZ 
+value of %SystemRoot%\System32\logfiles\firewall\privatefw.log. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\StandardProfile\Logging:LogFilePath
+
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 16384. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\StandardProfile\Logging:LogFileSize
+
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\PublicProfile:EnableFirewall
+
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\PublicProfile:AllowLocalIPsecPolicyMerge
+
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\PublicProfile\Logging:LogSuccessfulConnections
+
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a REG_SZ 
+value of %SystemRoot%\System32\logfiles\firewall\publicfw.log. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\PublicProfile\Logging:LogFilePath
+
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 16384. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\PublicProfile\Logging:LogFileSize
+
+Remediation
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 
+%SystemRoot%\System32\logfiles\firewall\privatefw.log: 
+Firewall\Enable Private Network Firewall: Log File Path
+
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 16,384 KB or greater: 
+Firewall\Enable Private Network Firewall: Log Max File Size (KB)
+
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to True (recommended): 
+Firewall\Enable Public Network Firewall
+
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to False: 
+Firewall\Enable Public Network Firewall: Allow Local Ipsec Policy Merge
+
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enable Logging Of Successful Connections. 
+Firewall\Enable Public Network Firewall: Enable Log success connections
+
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 
+%SystemRoot%\System32\logfiles\firewall\publicfw.log: 
+Firewall\Enable Public Network Firewall: Log File Path
+
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 16,384 KB or greater: 
+Firewall\Enable Public Network Firewall: Log Max File Size (KB)
+
+Key Takeaways
+- If Windows Firewall events are not recorded it may be difficult or impossible for  Administrators to analyze system issues or unauthorized activities of malicious users.
+- Microsoft stores all firewall events as one file on the system (pfirewall.
+- To  improve logging, separate each firewall profile (domain, private, public) into its own  distinct log file (domainfw.

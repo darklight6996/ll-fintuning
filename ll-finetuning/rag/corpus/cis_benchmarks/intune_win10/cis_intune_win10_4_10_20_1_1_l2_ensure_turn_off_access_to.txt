@@ -1,0 +1,30 @@
+4.10.20.1: .1 (L2) Ensure 'Turn off access to the Store' is set to
+
+Overview
+This policy setting specifies whether to use the Store service for finding an application to 
+open a file with an unhandled file type or protocol association. When a user opens a file 
+type or protocol that is not associated with any applications on the computer, the user is 
+given the choice to select a local application or use the Store service to find an 
+application. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+The Store service is a retail outlet built into Windows, primarily for consumer use. In an 
+enterprise managed environment the IT department should be managing the installation 
+of all applications to reduce the risk of the installation of vulnerable software.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer:NoUseStoreOpenWith
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Internet Communication Management\Internet 
+Communication settings\Turn off access to the Store
+
+Key Takeaways
+- The Store service is a retail outlet built into Windows, primarily for consumer use.
+- In an  enterprise managed environment the IT department should be managing the installation  of all applications to reduce the risk of the installation of vulnerable software.

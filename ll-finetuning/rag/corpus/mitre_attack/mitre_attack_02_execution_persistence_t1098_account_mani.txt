@@ -1,0 +1,48 @@
+**Definition**
+
+T1098 Account Manipulation is a MITRE ATT&CK technique under the Execution and Persistence tactics. It refers to the adversarial act of modifying, creating, or disabling user accounts or their attributes to maintain access, escalate privileges, or evade detection. Unlike simple credential theft, T1098 focuses on altering account properties—such as group memberships, permissions, authentication policies, or password hashes—to achieve persistent or elevated access. This technique is commonly observed in post-exploitation phases, where an attacker has already gained initial access and seeks to solidify their foothold.
+
+**Key Components**
+
+The technique encompasses several sub-techniques and actions, each with distinct operational implications:
+
+- **Account Creation**: Attackers create new local or domain accounts with specific privileges. For example, adding a user to the Domain Admins group via `net user /add` or `New-ADUser` in PowerShell. This provides a backdoor that persists even if the original compromise vector is patched.
+- **Account Modification**: Altering existing account attributes, such as enabling a disabled account, changing passwords, or modifying group memberships. Common commands include `net localgroup administrators [username] /add` or `Add-ADGroupMember`. Attackers may also modify account flags like `userAccountControl` to bypass password expiration or lockout policies.
+- **Credential Manipulation**: Directly altering credential stores, such as resetting a password hash via `ntdsutil` or modifying SAM registry keys. This can allow an attacker to authenticate as a legitimate user without triggering password change alerts.
+- **Service Account Manipulation**: Targeting service accounts (e.g., MSSQL, IIS) by changing their passwords or granting them interactive logon rights. Since service accounts often have elevated permissions, this can lead to lateral movement.
+- **Token Manipulation**: Modifying access tokens or session attributes, such as enabling a disabled token or extending token lifetime. This is less common but appears in advanced persistent threats (APTs) using tools like Mimikatz or custom scripts.
+
+**Real-World Application**
+
+T1098 is frequently observed in ransomware campaigns, nation-state intrusions, and insider threats. Below are concrete examples:
+
+- **Ransomware Persistence**: In a 2023 incident involving BlackCat/ALPHV, attackers created a local admin account named "support" on multiple domain controllers. They used `net user support Password123! /add` and `net localgroup administrators support /add`. This account was later used to deploy ransomware across the network, bypassing MFA because it was a local account.
+- **APT29 (Cozy Bear)**: During the 2020 SolarWinds compromise, attackers modified the `userAccountControl` attribute of a compromised service account to set `DONT_EXPIRE_PASSWORD`. This prevented forced password rotation, allowing persistent access for months. They also added the account to the `Enterprise Admins` group via `Add-ADGroupMember`.
+- **Insider Threat**: A disgruntled sysadmin at a financial firm used `Set-ADUser -Identity jdoe -Enabled $true` to reactivate a terminated employee’s account. They then changed the password via `Set-ADAccountPassword` and used it to exfiltrate customer data. The account had been disabled for six months, so no alerts triggered.
+- **Cloud Environments**: In Azure AD, attackers may create a new user with Global Administrator privileges using `New-AzureADUser` and `Add-AzureADDirectoryRoleMember`. This bypasses conditional access policies that only apply to existing users.
+
+**Security Relevance**
+
+For security engineers, T1098 is critical because it directly undermines identity-based defenses. Detection and mitigation require a multi-layered approach:
+
+- **Detection**:
+  - Monitor Event ID 4720 (user account created) and 4732 (member added to security-enabled global group) on domain controllers.
+  - Alert on Event ID 4738 (user account changed) with specific attribute changes like `userAccountControl` or `sAMAccountName`.
+  - Use UEBA to flag anomalous account creation, such as a new account created outside business hours or from a non-admin workstation.
+  - In cloud environments, monitor Azure AD audit logs for `Add member to role` or `Update user` operations.
+- **Mitigation**:
+  - Enforce strict account lifecycle policies: disable accounts immediately upon termination, and require approval for new account creation.
+  - Implement Privileged Access Workstations (PAWs) for admin tasks, reducing the attack surface for account manipulation.
+  - Use Group Policy to restrict who can add accounts to sensitive groups (e.g., via `Restricted Groups`).
+  - Enable password rotation for service accounts via managed service accounts (gMSA) or automated tools.
+  - Deploy endpoint detection and response (EDR) to block known tools like `net.exe` or `PowerShell` when used by non-admin users.
+- **Hunting**:
+  - Query for accounts created with passwords that match common patterns (e.g., "Password123", "Admin2024").
+  - Look for accounts added to multiple groups in a short time window, indicating automated manipulation.
+  - Correlate account creation with other TTPs like T1078 (Valid Accounts) or T1090 (Proxy).
+
+**Key Takeaways**
+
+- T1098 Account Manipulation is a persistent threat that enables attackers to create, modify, or disable accounts for long-term access, often bypassing traditional authentication controls.
+- Detection relies on monitoring specific Windows Event IDs (4720, 4732, 4738) and cloud audit logs, combined with behavioral analytics to spot anomalous account changes.
+- Mitigation requires strict account lifecycle policies, privileged access management, and automated password rotation for service accounts to reduce the attack surface.

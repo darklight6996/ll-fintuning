@@ -1,0 +1,108 @@
+KQL queries for SigninLogs and AuditLogs are the primary method for interrogating Microsoft Entra ID (formerly Azure AD) authentication and administrative activity within Microsoft Sentinel. These two tables form the backbone of identity-based threat detection, user behavior analytics, and compliance auditing. Understanding their schema and how to query them efficiently is a core competency for any security engineer operating a Sentinel workspace.
+
+**Definition**
+
+The `SigninLogs` table contains records of every interactive and non-interactive user sign-in attempt to Microsoft Entra ID and its connected services (Office 365, Azure Resource Manager, etc.). Each row represents a single authentication event, including success, failure, and intermediate states like MFA challenge or conditional access evaluation.
+
+The `AuditLogs` table captures all changes made to the Entra ID tenant itself. This includes administrative actions such as user creation, role assignment, group membership changes, application registration modifications, and directory setting updates. It does not log sign-in events; it logs who did what to the directory configuration.
+
+**Key Components of the Schema**
+
+**SigninLogs** critical fields:
+- `TimeGenerated`: Timestamp of the sign-in attempt.
+- `UserPrincipalName`: The user who attempted to sign in.
+- `AppDisplayName`: The application targeted (e.g., "Office 365 Exchange Online").
+- `IPAddress`: Source IP of the request.
+- `ResultType`: "0" for success, "50057" for user disabled, "50126" for invalid password, etc.
+- `ResultDescription`: Human-readable reason for failure.
+- `Status`: Contains `errorCode` and `failureReason`.
+- `Location`: City, state, country derived from IP.
+- `RiskLevelDuringSignIn` and `RiskLevelAggregated`: Risk assessment from Microsoft (low, medium, high, none).
+- `RiskEventTypes_V2`: Array of risk detections (e.g., "unfamiliarFeatures", "anonymizedIPAddress").
+- `ConditionalAccessPolicies`: JSON array of policies applied and their results.
+- `AuthenticationRequirement`: "singleFactorAuthentication" or "multiFactorAuthentication".
+- `DeviceDetail`: Operating system, browser, and device compliance info.
+- `CorrelationId`: Useful for joining with other logs.
+
+**AuditLogs** critical fields:
+- `TimeGenerated`: Timestamp of the activity.
+- `OperationName`: The action performed (e.g., "Add user", "Update user", "Add member to role").
+- `Result`: "success" or "failure".
+- `ResultReason`: Details on failure.
+- `InitiatedBy`: Contains `user` (UPN of actor) or `app` (service principal ID).
+- `TargetResources`: Array of objects affected. Each has `id`, `displayName`, `type`, and `modifiedProperties` (list of old/new values).
+- `ActivityDateTime`: Same as TimeGenerated.
+- `Category`: Broad grouping like "UserManagement", "GroupManagement", "ApplicationManagement".
+
+**Real-World Application**
+
+**1. Brute Force Detection (SigninLogs)**
+Identify password spray or brute force attacks by aggregating failed sign-ins per IP or user within a short window.
+```kusto
+SigninLogs
+| where TimeGenerated > ago(1h)
+| where ResultType == "50126"  // Invalid password
+| summarize FailedAttempts = count() by IPAddress, UserPrincipalName
+| where FailedAttempts > 10
+| project IPAddress, UserPrincipalName, FailedAttempts
+```
+This query surfaces accounts or IPs generating excessive invalid password errors, a classic indicator of credential stuffing.
+
+**2. MFA Bypass or Token Replay (SigninLogs)**
+Detect sign-ins that succeeded despite high user risk or from an anonymized IP after a recent password reset.
+```kusto
+SigninLogs
+| where TimeGenerated > ago(4h)
+| where RiskLevelDuringSignIn == "high"
+| where ResultType == "0"
+| where AuthenticationRequirement == "singleFactorAuthentication"
+| project TimeGenerated, UserPrincipalName, IPAddress, AppDisplayName, RiskEventTypes_V2
+```
+This flags successful single-factor sign-ins from high-risk sessions, potentially indicating token theft or bypassed MFA.
+
+**3. Privileged Role Assignment (AuditLogs)**
+Monitor for sensitive role assignments, especially to non-privileged accounts.
+```kusto
+AuditLogs
+| where TimeGenerated > ago(24h)
+| where OperationName == "Add member to role"
+| where Result == "success"
+| mv-expand TargetResources
+| extend RoleName = tostring(TargetResources.displayName)
+| where RoleName in ("Global Administrator", "Privileged Role Administrator", "Exchange Administrator")
+| project TimeGenerated, InitiatedBy.user.userPrincipalName, TargetResources.userPrincipalName, RoleName
+```
+This query provides a real-time feed of who added whom to highly privileged roles, essential for detecting privilege escalation.
+
+**4. Lateral Movement via Service Principal (AuditLogs + SigninLogs)**
+Correlate a service principal creation with subsequent sign-ins from unusual locations.
+```kusto
+let NewApp = AuditLogs
+| where TimeGenerated > ago(7d)
+| where OperationName == "Add service principal"
+| where Result == "success"
+| project AppId = TargetResources[0].id, CreatedBy = InitiatedBy.user.userPrincipalName, CreationTime = TimeGenerated;
+NewApp
+| join kind=inner (
+    SigninLogs
+    | where TimeGenerated > ago(7d)
+    | where AppDisplayName != "Microsoft Azure PowerShell"
+    | summarize FirstSignIn = min(TimeGenerated), Locations = make_set(Location) by AppId = AppId
+) on AppId
+| where FirstSignIn > CreationTime
+| extend TimeDelta = FirstSignIn - CreationTime
+| where TimeDelta < 1h
+| project CreatedBy, AppId, FirstSignIn, Locations, TimeDelta
+```
+This joins audit and sign-in data to find service principals that were created and then immediately used for authentication, a common pattern in backdoor deployment.
+
+**Security Relevance**
+
+SigninLogs and AuditLogs are the two most critical data sources for identity security in Sentinel. SigninLogs provide the raw signal for authentication anomalies—failed logins, risky sign-ins, token reuse, and lateral movement. AuditLogs provide the control plane signal—who changed permissions, created accounts, or modified conditional access policies. Together, they enable detection of the full kill chain: initial access (sign-in anomalies), privilege escalation (role assignment), and persistence (service principal creation).
+
+Without these queries, a security team is blind to the most common attack vectors targeting cloud identity. Every incident response playbook for identity compromise should start with a SigninLogs query to scope the blast radius and an AuditLogs query to identify persistence mechanisms. These tables also feed directly into UEBA (User and Entity Behavior Analytics) in Sentinel, which uses their historical data to baseline normal behavior and alert on deviations.
+
+**Key Takeaways**
+- SigninLogs track authentication events; AuditLogs track directory configuration changes—both are essential for identity threat detection and must be queried together for full visibility.
+- Use `ResultType` and `RiskLevelDuringSignIn` in SigninLogs to filter for malicious activity, and `OperationName` with `TargetResources` in AuditLogs to monitor privilege escalation and persistence.
+- Always join SigninLogs and AuditLogs on `AppId` or `UserPrincipalName` to correlate administrative actions with subsequent authentication behavior, revealing backdoors and lateral movement.

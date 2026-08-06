@@ -1,0 +1,51 @@
+Group Policy Objects (GPOs) are the primary mechanism for centrally managing and enforcing configuration settings for users and computers within an Active Directory (AD) environment. From a security perspective, GPOs are not merely administrative conveniences; they are a critical control plane for defining and maintaining the security posture of every domain-joined system. A misconfigured or poorly secured GPO can introduce systemic vulnerabilities, while a well-structured GPO hierarchy enforces baseline security policies across the entire organization.
+
+**Definition**
+
+A Group Policy Object is a virtual collection of policy settings. Each GPO is stored in two primary locations within a domain: the Group Policy Container (GPC) in Active Directory, which holds version information and status, and the Group Policy Template (GPT) on the domain controller’s SYSVOL share, which contains the actual policy files, scripts, and administrative templates. When a computer starts or a user logs on, the client-side extension (CSE) on the target machine processes the applicable GPOs in a defined order: Local, Site, Domain, and then Organizational Unit (OU). The last applied setting wins in the case of a conflict, unless enforcement or blocking is configured. Security relevance stems from the fact that GPOs can control password policies, account lockout thresholds, user rights assignments, software restriction policies, Windows Firewall rules, and hundreds of other security-sensitive registry-based settings.
+
+**Key Components**
+
+- **Security Filtering:** By default, a GPO applies to all authenticated users and computers in the linked scope. Security filtering refines this by modifying the GPO’s discretionary access control list (DACL). The “Apply Group Policy” permission is the critical access control entry (ACE). To apply a GPO to a specific group, remove the default “Authenticated Users” ACE and add the target security group with both “Read” and “Apply Group Policy” allowed. This is a common source of misconfiguration; if the “Read” permission is missing, the GPO is silently ignored.
+
+- **WMI Filtering:** Windows Management Instrumentation (WMI) filters allow conditional application based on attributes such as operating system version, processor architecture, or installed software. WMI filters are evaluated on the client side and can introduce latency if complex queries are used. They are processed after security filtering but before the GPO is applied.
+
+- **Administrative Templates (ADMX):** These are registry-based policy settings stored as .admx and .adml files. They control a vast array of security-relevant configurations, including BitLocker encryption settings, Windows Defender Antivirus policies, and User Account Control (UAC) behavior. Central Store ADMX files on SYSVOL ensure consistent policy definitions across all domain controllers.
+
+- **Security Settings Extension:** This component within the Group Policy Management Console (GPMC) manages the Security Templates (.inf files) that define local policies, event audit settings, user rights assignments, and registry ACLs. The “Security Settings” node is where you configure password policies (e.g., minimum length, complexity requirements) and account lockout policies.
+
+- **Group Policy Preferences (GPP):** GPPs extend the capabilities of standard GPOs by allowing configuration of drive maps, scheduled tasks, and registry values. From a security standpoint, GPPs are a known risk vector. Historically, GPPs could store passwords in the SYSVOL share using a reversible, known encryption method (AES-256 but with a publicly known key). Microsoft released a security update (KB2962486) to prevent new GPP passwords from being stored in plaintext, but existing entries remain vulnerable. Any GPP item with a configured password should be audited and replaced with Group Policy Administrative Templates or a secure secrets management solution.
+
+**Real-World Application**
+
+A typical security baseline implementation for a Windows 10/11 environment might involve the following GPO structure:
+
+- **Domain-Level GPO:** Enforces password policy (14-character minimum, 60-day maximum age, complexity enabled), account lockout (5 attempts, 15-minute lockout duration), and Kerberos policy (maximum lifetime for service ticket: 600 minutes).
+
+- **Workstation OU GPO:** Applies to all domain-joined workstations. Configures Windows Firewall to block inbound connections by default, enables Windows Defender Real-time Protection, sets User Account Control to always notify, disables LLMNR and NetBIOS over TCP/IP (to mitigate relay attacks), and enables PowerShell script block logging.
+
+- **Server OU GPO:** Applies to all domain-joined servers. Restricts local administrator group membership via Restricted Groups, enables Credential Guard, disables NTLMv1, and configures advanced audit policy (e.g., Logon/Logoff, Account Management, and Object Access).
+
+- **Privileged Access Workstation (PAW) OU GPO:** A highly restrictive GPO linked to a dedicated OU containing administrative workstations. This GPO blocks all USB storage devices, disables Windows Script Host, enforces AppLocker to allow only signed Microsoft executables, and removes the “Run as different user” option to prevent credential caching.
+
+In each case, security filtering is applied to limit the GPO to the appropriate computer or user groups. WMI filters are used to differentiate between Windows 10 and Windows 11 builds if specific settings differ.
+
+**Security Relevance**
+
+The security of the GPO infrastructure itself is paramount. An attacker who gains write access to a GPO can deploy malicious scripts, disable security controls, or add a local administrator account to every machine in the scope. Key security considerations include:
+
+- **SYSVOL Permissions:** The SYSVOL share must have its NTFS permissions correctly configured. Authenticated Users should have Read and Execute access only. Domain Admins and the SYSTEM account require Full Control. Any deviation can allow unauthorized modification of GPO templates.
+
+- **Delegation of GPO Management:** Use the Group Policy Management Console to delegate “Edit settings” and “Read” permissions to specific security groups (e.g., “Desktop Support – GPO Editors”). Never grant “Write” access to the SYSVOL share directly. Audit changes using the AD DS event logs (Event ID 5136 for GPO modification).
+
+- **Backup and Recovery:** Regularly export GPOs to a secure backup location using the Backup-GPO PowerShell cmdlet. Maintain a version history. In the event of a malicious GPO change, a rapid restore is critical.
+
+- **Stale and Orphaned GPOs:** Unlinked GPOs still consume AD space and can be targeted by attackers. Periodically audit for GPOs with no links and delete them. Also, check for GPOs that reference missing security groups or WMI filters.
+
+- **GPO Processing Order and Enforcement:** Use the “Enforced” setting sparingly. Overuse can break the intended inheritance model and create conflicts that are difficult to troubleshoot. Conversely, “Block Inheritance” on an OU should be documented and justified, as it can bypass critical security baselines.
+
+**Key Takeaways**
+
+1.  **GPOs are a primary attack surface:** An attacker with write access to a single GPO can compromise every system within its scope. Strictly control delegation, audit GPO modifications, and secure SYSVOL permissions.
+2.  **Security filtering is not a security boundary:** It controls application scope, but a user with “Read” access to a GPO can still view its settings, potentially revealing sensitive configuration details. Do not rely on security filtering to hide secrets.
+3.  **Audit and remove GPPs with stored passwords:** Group Policy Preferences that store passwords are a known vulnerability. Replace them with secure alternatives such as Group Policy Administrative Templates, LAPS, or a dedicated secrets management solution.

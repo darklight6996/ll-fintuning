@@ -1,0 +1,76 @@
+13.6: Encrypt the Hard Drive of All Mobile Devices. (and related controls)
+
+Overview
+This policy setting allows you to control how BitLocker-protected operating system 
+drives are recovered in the absence of the required startup key information. This policy 
+setting is applied when you turn on BitLocker. 
+Select "Omit recovery options from the BitLocker setup wizard" to prevent users from 
+specifying recovery options when they enable BitLocker on a drive. This means that you 
+will not be able to specify which recovery option to use when you enable BitLocker, 
+instead BitLocker recovery options for the drive are determined by the policy setting. 
+The recommended state for this setting is: Enabled: True.
+
+This policy setting allows you to control how BitLocker-protected operating system 
+drives are recovered in the absence of the required startup key information. This policy 
+setting is applied when you turn on BitLocker. 
+In "Save BitLocker recovery information to Active Directory Domain Services", choose 
+which BitLocker recovery information to store in AD DS for operating system drives. If 
+you select "Backup recovery password and key package", both the BitLocker recovery 
+password and key package are stored in AD DS. Storing the key package supports 
+recovering data from a drive that has been physically corrupted. If you select "Backup 
+recovery password only", only the recovery password is stored in AD DS. 
+The recommended state for this setting is: Enabled: True.
+
+Why This Matters
+Should a user lose their primary means for accessing an encrypted OS volume, or 
+should the system not pass its boot time integrity checks, the system will go into 
+recovery mode. If the recovery key has not been backed up to Active Directory, the user 
+would need to have saved the recovery key to another location such as a USB flash 
+drive, or have printed the recovery password, and now have access to one of those in 
+order to recovery the system. If the user is unable to produce the recovery key, then the 
+user will be denied access to the encrypted volume and subsequently any data that is 
+stored there.
+
+Should a user lose their primary means for accessing an encrypted OS volume, or 
+should the system not pass its boot time integrity checks, the system will go into 
+recovery mode. If the recovery key has not been backed up to Active Directory, the user 
+would need to have saved the recovery key to another location such as a USB flash 
+drive, or have printed the recovery password, and now have access to one of those in 
+order to recovery the system. If the user is unable to produce the recovery key, then the 
+user will be denied access to the encrypted volume and subsequently any data that is 
+stored there.
+
+Audit Steps
+For Encrypt the Hard Drive of All Mobile Devices.:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\FVE:OSHideRecoveryPage
+
+For Encrypt the Hard Drive of All Mobile Devices.:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\FVE:OSActiveDirectoryBackup
+
+Remediation
+For Encrypt the Hard Drive of All Mobile Devices.:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: True. 
+Administrative Templates\Windows Components\BitLocker Drive 
+Encryption\Operating System Drives\Choose how BitLocker-protected operating 
+system drives can be recovered: Omit recovery options from the BitLocker 
+setup wizard
+
+For Encrypt the Hard Drive of All Mobile Devices.:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: True. 
+Administrative Templates\Windows Components\BitLocker Drive 
+Encryption\Operating System Drives\Choose how BitLocker-protected operating 
+system drives can be recovered: Do not enable BitLocker until recovery 
+information is stored to AD DS for operating system drives
+
+Key Takeaways
+- Should a user lose their primary means for accessing an encrypted OS volume, or  should the system not pass its boot time integrity checks, the system will go into  recovery mode.
+- If the recovery key has not been backed up to Active Directory, the user  would need to have saved the recovery key to another location such as a USB flash  drive, or have printed the recovery password, and now have access to one of those in  order to recovery the system.
+- If the user is unable to produce the recovery key, then the  user will be denied access to the encrypted volume and subsequently any data that is  stored there.

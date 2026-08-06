@@ -1,0 +1,57 @@
+**Definition**
+
+Containment strategies are the tactical actions taken during incident response to stop an active threat from spreading, limit damage to systems and data, and preserve evidence for analysis. Containment is the third phase of the NIST SP 800-61 incident response lifecycle, following preparation and detection/analysis. It is divided into two temporal categories: short-term containment, which focuses on immediate threat isolation, and long-term containment, which establishes temporary controls to maintain business operations while the root cause is fully remediated. The goal is not to eliminate the adversary immediately but to prevent lateral movement, data exfiltration, and further compromise.
+
+**Key Components**
+
+Short-term containment is executed within minutes to hours of detection. Its primary objective is to stop the bleeding. Common techniques include:
+
+- **Network segmentation**: Isolating affected VLANs, disabling switch ports, or applying access control lists (ACLs) to block communication with command-and-control (C2) infrastructure.
+- **Host isolation**: Disconnecting compromised endpoints from the network via agent-based commands (e.g., EDR quarantine) or physically unplugging cables.
+- **Credential revocation**: Invalidating compromised user or service accounts, resetting passwords, and terminating active sessions.
+- **Blocking indicators**: Adding IP addresses, domains, and file hashes to blocklists on firewalls, proxies, and endpoint protection platforms.
+- **Process termination**: Killing malicious processes and disabling scheduled tasks or services associated with the threat.
+
+Long-term containment is implemented after the immediate threat is contained but before full eradication and recovery. It may last hours to days and aims to restore limited functionality while maintaining security controls. Techniques include:
+
+- **Deploying virtual patching**: Using web application firewalls (WAF) or intrusion prevention systems (IPS) to block exploitation of unpatched vulnerabilities.
+- **Implementing application allowlisting**: Restricting execution to only approved binaries on critical systems.
+- **Creating network micro-perimeters**: Using software-defined networking (SDN) or firewall rules to enforce least-privilege access between systems.
+- **Redirecting traffic**: Rerouting user traffic through clean proxies or sandbox environments to inspect and filter malicious content.
+- **Establishing monitoring choke points**: Increasing logging and alerting on all traffic to and from contained systems to detect any residual adversary activity.
+
+**Real-World Application**
+
+Consider a ransomware outbreak detected in a corporate environment. The incident response team receives an alert from the EDR indicating that a workstation has executed a known ransomware binary and is attempting to encrypt network shares.
+
+**Short-term containment actions:**
+
+1. The EDR agent is used to immediately isolate the workstation from the network, preventing it from reaching file servers or domain controllers.
+2. The SOC analyst blocks the ransomware’s C2 domain on the perimeter firewall and updates the DNS sinkhole to prevent any other hosts from resolving it.
+3. The compromised user account is disabled, and all active Kerberos tickets are revoked.
+4. Network traffic logs are reviewed to identify any lateral movement attempts; any other hosts that communicated with the compromised workstation in the last 15 minutes are also isolated.
+
+**Long-term containment actions:**
+
+1. The incident commander determines that the file server containing critical business data cannot be taken offline. Instead, a read-only snapshot is created, and write access to the server is restricted to only authorized administrative accounts via a temporary firewall rule.
+2. A virtual patch is applied via the IPS to block the specific SMB vulnerability the ransomware exploited, even though the actual OS patch cannot be deployed immediately due to change control windows.
+3. All outbound traffic from the affected subnet is routed through a proxy that inspects for known ransomware indicators and blocks any encrypted file extensions from being transmitted.
+4. Enhanced logging is enabled on the domain controller to capture all authentication attempts from the contained subnet, and a SIEM rule is created to alert on any new process creation events matching the ransomware’s behavior.
+
+These actions allow the organization to keep critical business functions running while the forensics team analyzes the root cause and prepares for full eradication.
+
+**Security Relevance**
+
+Containment strategies directly reduce the blast radius of an incident. Without proper containment, a single compromised endpoint can lead to domain-wide compromise, data exfiltration, or full ransomware encryption within hours. Short-term containment buys time for analysis and prevents the adversary from achieving their objective. Long-term containment balances security with operational continuity, which is critical for organizations that cannot afford extended downtime.
+
+From a compliance perspective, containment is often a regulatory requirement. Frameworks such as PCI DSS (Requirement 12.10.1) and NIST CSF (RS.RP-1) mandate that organizations have documented containment procedures. Failure to contain an incident promptly can result in greater data loss, higher remediation costs, and increased regulatory penalties. Additionally, containment preserves forensic evidence. For example, isolating a host before the adversary can delete logs or overwrite artifacts ensures that investigators can reconstruct the attack chain.
+
+Containment also informs threat intelligence. By blocking C2 infrastructure and observing adversary responses, defenders can identify indicators of compromise (IOCs) and tactics, techniques, and procedures (TTPs) that can be shared with the broader security community. This proactive intelligence can prevent future incidents across the organization or industry.
+
+Finally, containment strategies must be tested regularly. Tabletop exercises and purple team simulations should include scenarios that require both short-term and long-term containment decisions. Teams should practice making rapid isolation calls under pressure and understand the trade-offs between containment and business disruption. A poorly executed containment—such as isolating a critical server without prior communication—can cause more damage than the original incident.
+
+**Key Takeaways**
+
+- Short-term containment stops immediate threat propagation through network isolation, credential revocation, and indicator blocking; long-term containment maintains operations with temporary controls like virtual patching and micro-segmentation.
+- Real-world containment requires balancing speed with accuracy—overly aggressive isolation can disrupt business, while delayed action increases risk of full compromise.
+- Documented and tested containment procedures are essential for regulatory compliance, evidence preservation, and generating actionable threat intelligence.

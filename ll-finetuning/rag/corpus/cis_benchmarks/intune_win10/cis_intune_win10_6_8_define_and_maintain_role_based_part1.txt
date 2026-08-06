@@ -1,0 +1,93 @@
+6.8: Define and Maintain Role-Based Access Control (and related controls)
+
+Overview
+This policy setting determines whether the account name of the last user to log on to the 
+client computers in your organization will be displayed in each computer's respective 
+Windows logon screen. Enable this policy setting to prevent intruders from collecting 
+account names visually from the screens of desktop or laptop computers in your 
+organization. 
+The recommended state for this setting is: Enabled. 
+Warning: If the Self Service Password Reset (SSPR) feature is used in Microsoft Entra 
+ID, an exception to this recommendation is needed as it's known to interfere with SSPR. 
+Warning #2: If the Windows passwordless experience feature is used, an exception to 
+this recommendation is needed as it prevents this feature from working.
+
+This policy setting determines which users can interactively log on to computers in your 
+environment. Logons that are initiated by pressing the CTRL+ALT+DEL key sequence 
+on the client computer keyboard require this user right. Users who attempt to log on 
+through Terminal Services / Remote Desktop Services or IIS also require this user right. 
+The recommended state for this setting is: *S-1-5-32-544, *S-1-5-32-545 
+(Administrators, Users). 
+Note: The Guest account is also assigned this user right by default. Although this 
+account is disabled by default, it's recommended that you configure this setting through 
+Group Policy. However, this user right should generally be restricted to the 
+Administrators and Users groups. Assign this user right to the Backup Operators 
+group if your organization requires that they have this capability.
+
+This policy setting allows users to circumvent file and directory permissions to back up 
+the system. This user right is enabled only when an application (such as NTBACKUP) 
+attempts to access a file or directory through the NTFS file system backup application 
+programming interface (API). Otherwise, the assigned file and directory permissions 
+apply. 
+The recommended state for this setting is: *S-1-5-32-544 (Administrators). 
+Note: This user right is considered a "sensitive privilege" for the purposes of auditing.
+
+Why This Matters
+An attacker with access to the console (for example, someone with physical access or 
+someone who is able to connect to the server through Remote Desktop Services) could 
+view the name of the last user who logged on to the server. The attacker could then try 
+to guess the password, use a dictionary, or use a brute-force attack to try and log on.
+
+Any account with the Allow log on locally user right can log on at the console of the 
+computer. If you do not restrict this user right to legitimate users who need to be able to 
+log on to the console of the computer, unauthorized users could download and run 
+malicious software to elevate their privileges.
+
+Users who are able to back up data from a computer could take the backup media to a 
+non-domain computer on which they have administrative privileges and restore the 
+data. They could take ownership of the files and view any unencrypted data that is 
+contained within the backup set.
+
+Audit Steps
+For Define and Maintain Role-Based Access Control:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System:DontDisplayLas tUserName
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Allow log on locally
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Back up files and 
+directories
+
+Remediation
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+Local Policies Security Options\Interactive logon: Don't display last signedin 
+Note: In older versions of Microsoft Windows, this setting was named Interactive logon: 
+Do not display last user name, but it was renamed starting with Windows 10 Release 
+1703.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544, *S-1-5-32-545 (Administrators, Users). 
+User Rights\Allow Local Log On 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 (Administrators). 
+User Rights\Backup Files And Directories 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+Key Takeaways
+- An attacker with access to the console (for example, someone with physical access or  someone who is able to connect to the server through Remote Desktop Services) could  view the name of the last user who logged on to the server.
+- The attacker could then try  to guess the password, use a dictionary, or use a brute-force attack to try and log on.
+- Any account with the Allow log on locally user right can log on at the console of the  computer.

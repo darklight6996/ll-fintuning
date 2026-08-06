@@ -1,0 +1,41 @@
+**Definition**
+
+Industrial Control Systems (ICS) refer to the hardware and software architectures used to monitor, control, and automate industrial processes. Unlike traditional IT systems, ICS prioritize availability and physical safety over confidentiality and integrity. The primary goal is to ensure continuous operation of critical infrastructure such as power grids, water treatment plants, chemical refineries, and manufacturing lines. ICS encompasses several subcategories, including Supervisory Control and Data Acquisition (SCADA) systems, Distributed Control Systems (DCS), and Programmable Logic Controllers (PLCs). These systems operate on specialized protocols (e.g., Modbus, DNP3, OPC UA) and often run on real-time operating systems (RTOS) or embedded firmware, making them fundamentally different from enterprise IT networks.
+
+**Key Components**
+
+Understanding ICS security requires familiarity with its core components and their roles:
+
+- **Programmable Logic Controllers (PLCs):** Ruggedized digital computers that execute control logic for machinery. They interface with sensors and actuators via I/O modules. PLCs are often the target of attacks because they directly manipulate physical processes.
+- **Remote Terminal Units (RTUs):** Microprocessor-controlled devices that monitor and control field equipment at remote sites. RTUs communicate with SCADA master stations over serial or wireless links.
+- **Human-Machine Interfaces (HMIs):** Graphical interfaces that allow operators to view process data and send commands. HMIs are a common entry point for attackers due to their exposure to user input and network connectivity.
+- **Supervisory Control and Data Acquisition (SCADA) Servers:** Centralized systems that collect data from RTUs and PLCs, provide logging, and enable remote control. They often run on Windows or Linux servers but must be hardened against latency and downtime.
+- **Engineering Workstations (EWS):** Used by engineers to program, configure, and update PLCs and RTUs. These workstations are high-value targets because they hold credentials and logic files.
+- **Field Devices:** Sensors (pressure, temperature, flow) and actuators (valves, motors, breakers) that interact directly with physical processes. Their integrity is critical; spoofed sensor readings can cause catastrophic failures.
+- **Communication Protocols:** ICS-specific protocols like Modbus TCP, DNP3, IEC 61850, and OPC UA. These protocols often lack built-in authentication, encryption, or integrity checks, making them vulnerable to replay, injection, and man-in-the-middle attacks.
+- **Historian:** A time-series database that logs process data for analysis and compliance. Historians are often connected to both OT and IT networks, creating a bridge for lateral movement.
+
+**Real-World Application**
+
+ICS security is not theoretical; it has direct consequences in critical infrastructure. Consider a water treatment facility:
+
+- **Attack Scenario:** An adversary gains access to the SCADA server via a phishing email targeting an operator. Using stolen credentials, the attacker modifies the HMI to display normal chlorine levels while actually disabling the chemical injection pump. The PLC continues to report false sensor data because the attacker also altered the logic in the RTU. Without proper integrity checks, the facility releases untreated water into the distribution system.
+- **Defense Implementation:** To mitigate this, the facility deploys network segmentation using firewalls and one-way data diodes between the corporate IT network and the OT network. All PLC-to-HMI traffic is authenticated using digital certificates (e.g., OPC UA with security policies). The engineering workstation is placed on a separate VLAN with strict access controls and multi-factor authentication. Additionally, a passive monitoring system (e.g., Nozomi, Dragos) analyzes protocol traffic for anomalies, such as unexpected write commands to PLC registers or out-of-sequence Modbus function codes.
+- **Compliance Context:** The facility must comply with NERC CIP (for power) or EPA guidelines (for water). This requires documented change management, patch cycles, and incident response plans specific to OT. For example, patching a PLC firmware may require a scheduled shutdown, which must be coordinated with production schedules to avoid service disruption.
+
+**Security Relevance**
+
+ICS security is distinct from IT security due to the following operational constraints:
+
+- **Availability First:** Rebooting a PLC during production can halt a chemical reaction, causing explosions or environmental release. Security controls must not introduce latency or unplanned downtime. This rules out aggressive patching, full-disk encryption on controllers, or frequent password rotations without careful planning.
+- **Legacy Systems:** Many ICS components have 10-20 year lifecycles. A PLC running Windows NT or a RTU with no firmware update capability is common. Security must rely on compensating controls (e.g., network segmentation, application whitelisting) rather than patching.
+- **Protocol Insecurity:** Modbus and DNP3 were designed for reliability, not security. They lack encryption and authentication. Attackers can inject false data or commands without detection. Mitigations include deep packet inspection (DPI) firewalls, protocol gateways that enforce stateful inspection, and cryptographic wrappers like DNP3 Secure Authentication.
+- **Physical Safety:** A compromised ICS can cause physical harm. The Stuxnet attack (2010) demonstrated that malware can manipulate centrifuges to self-destruct. Security engineers must integrate safety instrumented systems (SIS) that operate independently from the control system to provide a last-resort shutdown.
+- **Supply Chain Risk:** ICS components are often sourced from vendors with varying security maturity. Malicious firmware implants or backdoors in PLCs (e.g., the 2017 Triton attack on Schneider Electric Triconex SIS) are a real threat. Mitigations include hardware root of trust, firmware integrity verification via cryptographic hashes, and vendor security assessments.
+- **Air-Gap Erosion:** Historically, OT networks were air-gapped from the internet. Modern requirements for remote monitoring, predictive maintenance, and cloud-based analytics have eroded this gap. Each connection point (e.g., VPN, cellular modem, historian bridge) is a potential attack vector. Zero Trust principles (never trust, always verify) must be applied to all OT-to-IT communication.
+
+**Key Takeaways**
+
+1.  ICS security prioritizes availability and safety over confidentiality; controls must be designed to avoid disrupting physical processes, and compensating measures like network segmentation and protocol anomaly detection are essential for legacy systems.
+2.  The lack of built-in security in ICS protocols (Modbus, DNP3) requires active defense through deep packet inspection, cryptographic authentication, and strict access controls on engineering workstations and HMIs.
+3.  Real-world attacks (Stuxnet, Triton) demonstrate that ICS compromise can cause physical damage; integrating independent safety systems, enforcing supply chain integrity, and applying Zero Trust to all OT-IT connections are non-negotiable for critical infrastructure.

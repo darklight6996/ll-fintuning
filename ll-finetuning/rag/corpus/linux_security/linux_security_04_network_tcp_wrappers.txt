@@ -1,0 +1,62 @@
+TCP wrappers are a host-based network access control mechanism that intercepts incoming TCP connections and applies rule-based filtering before the connection is handed off to the target daemon. They operate at the application layer, sitting between the network socket and the actual service process. The implementation relies on two shared libraries—`libwrap.so` and `libwrap.a`—which are linked into daemons compiled with TCP wrappers support. When a connection request arrives, the wrapper checks the client’s address, hostname, and optionally the daemon name against a set of access control rules defined in two configuration files: `/etc/hosts.allow` and `/etc/hosts.deny`.
+
+**Key Components**
+
+- **`/etc/hosts.allow`**: Defines rules that explicitly permit connections. The format is `daemon_list : client_list [: shell_command]`. The daemon list can specify individual daemons (e.g., `sshd`, `vsftpd`) or use wildcards like `ALL`. The client list supports IP addresses, CIDR ranges, hostnames, domain names (prefixed with `.`), and wildcards (`ALL`, `LOCAL`, `KNOWN`, `UNKNOWN`, `PARANOID`). The optional shell command executes when a rule matches, enabling logging or dynamic response actions.
+
+- **`/etc/hosts.deny`**: Defines rules that explicitly deny connections. Same syntax as `hosts.allow`. If a connection matches a deny rule and no preceding allow rule applies, the connection is rejected. The default behavior, if neither file exists or both are empty, is to allow all connections.
+
+- **Wildcards and Patterns**:
+  - `ALL`: Matches every daemon or client.
+  - `LOCAL`: Matches hostnames without a dot (e.g., `localhost`).
+  - `KNOWN`: Matches clients whose hostname and address are resolvable and consistent.
+  - `UNKNOWN`: Matches clients whose hostname or address cannot be resolved.
+  - `PARANOID`: Matches clients whose hostname does not match the IP address (reverse DNS mismatch).
+  - `EXCEPT`: Used to exclude specific clients from a broader pattern (e.g., `ALL EXCEPT 192.168.1.0/24`).
+
+- **Access Control Flow**:
+  1. Incoming connection triggers the wrapper library.
+  2. The wrapper checks `hosts.allow` sequentially. If a rule matches, the connection is allowed immediately.
+  3. If no allow rule matches, the wrapper checks `hosts.deny`. If a rule matches, the connection is denied.
+  4. If neither file contains a matching rule, the connection is allowed by default.
+
+- **Logging**: TCP wrappers log all matched connections via `syslog` (typically `authpriv` facility). The log entry includes the daemon name, client address, and whether the connection was allowed or denied. This provides an audit trail for incident response.
+
+- **Shell Command Execution**: When a rule includes a shell command, the wrapper executes it via `/bin/sh`. This is often used to run custom scripts for logging, alerting, or dynamic blocking (e.g., adding an iptables rule). The command receives environment variables like `$RHOST` (remote hostname), `$RADDR` (remote IP), and `$DAEMON`.
+
+**Real-World Application**
+
+TCP wrappers are most effective in environments where legacy services (e.g., Telnet, FTP, rsh) are still in use and cannot be replaced with modern alternatives like SSH. They are also useful for adding a lightweight access control layer to services that lack built-in IP filtering. Common deployment scenarios include:
+
+- **Restricting SSH access to management subnets**: In `/etc/hosts.allow`, add `sshd : 10.0.0.0/8, 192.168.1.0/24`. In `/etc/hosts.deny`, add `sshd : ALL`. This ensures only internal IP ranges can initiate SSH connections.
+
+- **Blocking known malicious IPs**: In `/etc/hosts.deny`, add `ALL : 203.0.113.5, 198.51.100.20`. This blocks all services from those IPs, regardless of the daemon.
+
+- **Allowing local services only**: For a service like `portmap` (NFS), use `portmap : LOCAL` in `hosts.allow` and `portmap : ALL` in `hosts.deny`. This restricts NFS to localhost or local network hosts without dots in their hostname.
+
+- **Dynamic response with shell commands**: In `hosts.deny`, add `sshd : ALL : spawn /usr/local/bin/block_ip.sh $RADDR`. The script can add a firewall rule to block the IP for a set duration, providing an automated response to repeated failed attempts.
+
+- **Testing and debugging**: Use `tcpdchk` to validate the syntax of `hosts.allow` and `hosts.deny`. Use `tcpdmatch` to simulate a connection and see which rule would apply, e.g., `tcpdmatch sshd 192.168.1.50`.
+
+**Security Relevance**
+
+TCP wrappers provide a defense-in-depth layer at the host level, but they are not a replacement for a firewall. Their primary security value lies in:
+
+- **Granular control**: Rules can be based on hostname, IP, or domain, allowing precise access restrictions without modifying service configuration.
+- **Audit trail**: Every connection attempt is logged, enabling detection of scanning or brute-force attempts.
+- **Low overhead**: The wrapper library is lightweight and adds minimal latency to connection setup.
+- **Compatibility**: Works with any daemon compiled with libwrap support, including inetd-based services and standalone daemons like sshd, sendmail, and vsftpd.
+
+However, TCP wrappers have significant limitations:
+- **IPv6 support**: Traditional TCP wrappers do not support IPv6. Patches exist but are not universally adopted.
+- **Hostname-based rules are unreliable**: If DNS is compromised or reverse DNS fails, rules using hostnames or `KNOWN`/`UNKNOWN` wildcards can be bypassed or cause false positives.
+- **No stateful filtering**: Each connection is evaluated independently; there is no tracking of connection state or session context.
+- **Bypass risk**: Daemons not compiled with libwrap support ignore TCP wrappers entirely. Always verify with `ldd /path/to/daemon | grep libwrap`.
+- **Shell command injection**: If client-supplied data (e.g., hostname) is used unsanitized in shell commands, an attacker could inject commands. Always validate input or use `spawn` with caution.
+
+For modern environments, TCP wrappers are largely superseded by firewall rules (iptables/nftables), SELinux, or application-layer ACLs. Their use should be limited to legacy systems or as a supplementary control where firewall changes require change management approval.
+
+**Key Takeaways**
+- TCP wrappers provide host-based access control via `/etc/hosts.allow` and `/etc/hosts.deny`, with a first-match-wins evaluation order.
+- They are effective for legacy services and lightweight IP filtering but lack IPv6 support and stateful inspection.
+- Always verify daemon libwrap linkage with `ldd` and avoid relying on hostname-based rules in untrusted DNS environments.

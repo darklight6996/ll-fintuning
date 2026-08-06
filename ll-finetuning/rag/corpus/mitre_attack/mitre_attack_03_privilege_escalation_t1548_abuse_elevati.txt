@@ -1,0 +1,45 @@
+**Definition**
+
+T1548 Abuse Elevation Control Mechanism is a MITRE ATT&CK technique that describes how adversaries exploit legitimate operating system or application mechanisms designed to grant elevated privileges. Instead of exploiting a vulnerability, attackers manipulate these control mechanisms—such as setuid/setgid binaries, sudo, or authorization frameworks—to execute code with higher permissions than their current user context allows. This technique is distinct from vulnerability exploitation because it relies on misconfigurations, default settings, or design weaknesses in the privilege elevation infrastructure itself.
+
+**Key Components**
+
+The technique encompasses several sub-techniques, each targeting a specific elevation control mechanism:
+
+- **Sudo and Sudo Caching (T1548.001):** Attackers abuse the sudo command’s caching behavior. When a user runs sudo and enters a password, the system caches the credential for a configurable timeout (default 5 minutes on many Linux distributions). If an attacker gains access to a user session during this window, they can execute sudo commands without re-authentication. Additionally, misconfigured sudoers entries (e.g., allowing `sudo ALL` or permitting commands without a password) provide direct elevation paths.
+
+- **Setuid and Setgid (T1548.002):** Executable files with the setuid bit set run with the privileges of the file owner (typically root). Attackers identify setuid binaries that are vulnerable to command injection, path traversal, or unsafe environment variable handling. For example, a setuid binary that calls `system()` or `popen()` without sanitizing user input can be coerced into executing arbitrary commands as root.
+
+- **Authorization Bypass (T1548.003):** On macOS and Windows, authorization frameworks (e.g., AuthorizationExecuteWithPrivileges, UAC) can be bypassed if the calling process already has elevated rights or if the authorization database contains permissive rules. Attackers may also exploit race conditions in authorization checks (TOCTOU) to execute privileged operations after the check passes but before the operation completes.
+
+- **Bypassing User Account Control (UAC) (T1548.004):** On Windows, UAC prompts can be bypassed using techniques like DLL hijacking, process injection into auto-elevating COM interfaces (e.g., IFileOperation), or abusing signed binaries that auto-elevate (e.g., `fodhelper.exe`, `computerdefaults.exe`). These methods allow an attacker to execute code with administrative privileges without triggering a UAC prompt.
+
+**Real-World Application**
+
+Attackers commonly chain T1548 with initial access techniques to escalate privileges post-compromise. For example:
+
+- **Linux Environment:** After gaining a low-privilege shell via a web application vulnerability (e.g., SQL injection), an attacker runs `sudo -l` to list allowed commands. If the output shows `(ALL) NOPASSWD: /usr/bin/vim`, the attacker can launch vim as root and use its `:!` shell escape to execute arbitrary commands. Alternatively, they may search for setuid binaries using `find / -perm -4000` and test each for known vulnerabilities (e.g., CVE-2021-3156 in sudo, CVE-2017-1000367 in sudoedit).
+
+- **Windows Environment:** An attacker with a standard user account on a domain-joined machine uses a UAC bypass to launch a malicious payload as administrator. For instance, they drop a DLL into a writable directory that matches a search path for `fodhelper.exe`. When `fodhelper.exe` runs (auto-elevates), it loads the malicious DLL, granting the attacker elevated code execution without any UAC prompt. This is often used to disable security tools or install persistence mechanisms.
+
+- **macOS Environment:** An attacker exploits a setuid binary like `DiagnosticExtensions` or abuses the `AuthorizationExecuteWithPrivileges` API by calling it from a process that already has elevated rights (e.g., via a previous privilege escalation). They may also modify the `/etc/authorization` database to allow a specific binary to run without authorization checks.
+
+**Security Relevance**
+
+T1548 is a critical technique to monitor because it exploits legitimate functionality, making detection difficult. Traditional signature-based detection often fails because the actions (e.g., running sudo, executing a setuid binary) are normal administrative activities. Key detection and mitigation strategies include:
+
+- **Audit sudoers configurations:** Regularly review `/etc/sudoers` and `/etc/sudoers.d/` for overly permissive entries. Remove `NOPASSWD` directives and limit command paths to specific binaries with full paths. Use `sudo -l` to audit current permissions.
+
+- **Monitor setuid/setgid binaries:** Maintain a baseline of all setuid/setgid files on the system. Use file integrity monitoring (FIM) to alert on new setuid binaries or changes to existing ones. Disable unnecessary setuid capabilities (e.g., `chmod u-s /usr/bin/passwd` if not needed).
+
+- **Enforce UAC settings:** Set UAC to always notify (level 2) on Windows. Disable auto-elevation for signed binaries by modifying Group Policy (Computer Configuration > Windows Settings > Security Settings > Local Policies > Security Options > User Account Control: Only elevate executables that are signed and validated). Monitor for UAC bypass techniques via process creation events (Event ID 4688) with parent-child relationships indicating auto-elevation.
+
+- **Implement least privilege:** Run services and applications with the minimum necessary privileges. Avoid granting users sudo access unless absolutely required. Use role-based access control (RBAC) and privilege separation (e.g., containers, service accounts).
+
+- **Detect abuse patterns:** Correlate sudo usage with unusual command arguments or frequency. For example, a user running `sudo /bin/bash` multiple times in a short window is suspicious. On Windows, monitor for processes spawning from `fodhelper.exe`, `computerdefaults.exe`, or other auto-elevating binaries that are not typical for the user.
+
+**Key Takeaways**
+
+- T1548 exploits legitimate privilege elevation mechanisms (sudo, setuid, UAC) through misconfiguration or design flaws, not vulnerabilities.
+- Real-world attacks chain T1548 with initial access to gain administrative control, often using well-known bypasses like sudo caching or UAC auto-elevation.
+- Mitigation requires strict configuration auditing, least privilege enforcement, and behavioral monitoring for abnormal elevation patterns.

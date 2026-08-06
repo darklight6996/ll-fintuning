@@ -1,0 +1,116 @@
+5.1: Establish Secure Configurations (and related controls)
+
+Overview
+Internet Control Message Protocol (ICMP) redirects cause the IPv4 stack to plumb host 
+routes. These routes override the Open Shortest Path First (OSPF) generated routes. 
+The recommended state for this setting is: Disabled.
+
+This setting is used to enable or disable the Internet Router Discovery Protocol (IRDP), 
+which allows the system to detect and configure default gateway addresses 
+automatically as described in RFC 1256 on a per-interface basis. 
+The recommended state for this setting is: Disabled.
+
+This policy setting allows you to control whether anyone can interact with available 
+networks UI on the logon screen. 
+The recommended state for this setting is: Enabled.
+
+This policy setting determines whether users must press CTRL+ALT+DEL before they 
+log on. 
+The recommended state for this setting is: Disabled.
+
+This policy setting turns off the advertising ID, preventing apps from using the ID for 
+experiences across apps. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+This behavior is expected. The problem is that the 10 minute time-out period for the 
+ICMP redirect-plumbed routes temporarily creates a network situation in which traffic 
+will no longer be routed properly for the affected host. Ignoring such ICMP redirects will 
+limit the system's exposure to attacks that will impact its ability to participate on the 
+network.
+
+An attacker who has gained control of a computer on the same network segment could 
+configure a computer on the network to impersonate a router. Other computers with 
+IRDP enabled would then attempt to route their traffic through the already compromised 
+computer.
+
+An unauthorized user could disconnect the PC from the network or can connect the PC 
+to other available networks without signing into Windows.
+
+Microsoft developed this feature to make it easier for users with certain types of physical 
+impairments to log on to computers that run Windows. If users are not required to press 
+CTRL+ALT+DEL, they are susceptible to attacks that attempt to intercept their 
+passwords. If CTRL+ALT+DEL is required before logon, user passwords are 
+communicated by means of a trusted path. 
+An attacker could install a Trojan horse program that looks like the standard Windows 
+logon dialog box and capture the user's password. The attacker would then be able to 
+log on to the compromised account with whatever level of privilege that user has.
+
+Tracking user activity for advertising purposes, even anonymously, may be a privacy 
+concern. In an enterprise managed environment, applications should not need or 
+require tracking for targeted advertising.
+
+Audit Steps
+For Establish Secure Configurations:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters:EnableICMPRedirect
+
+For Establish Secure Configurations:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters:PerformRouterDiscover y
+
+For Establish Secure Configurations:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\System:DontDisplayNetworkSelectionUI
+
+For Establish Secure Configurations:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of `0. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System:DisableCAD
+
+For Establish Secure Configurations:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo:DisabledByGroupPolic y
+
+Remediation
+For Establish Secure Configurations:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\MSS (Legacy)\MSS: (EnableICMPRedirect) Allow ICMP 
+redirects to override OSPF generated routes
+
+For Establish Secure Configurations:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\MSS (Legacy)\MSS: (PerformRouterDiscovery) Allow 
+IRDP to detect and configure Default Gateway addresses (could lead to DoS)
+
+For Establish Secure Configurations:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Logon\Do not display network selection UI
+
+For Establish Secure Configurations:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled: 
+Local Policies Security Options\Interactive logon: Do not require 
+CTRL+ALT+DEL
+
+For Establish Secure Configurations:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+Privacy\Disable Advertising ID
+
+Key Takeaways
+- This behavior is expected.
+- The problem is that the 10 minute time-out period for the  ICMP redirect-plumbed routes temporarily creates a network situation in which traffic  will no longer be routed properly for the affected host.
+- Ignoring such ICMP redirects will  limit the system's exposure to attacks that will impact its ability to participate on the  network.

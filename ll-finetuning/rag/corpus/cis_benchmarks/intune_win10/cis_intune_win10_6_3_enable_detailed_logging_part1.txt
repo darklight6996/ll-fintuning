@@ -1,0 +1,186 @@
+6.3: Enable Detailed Logging (and related controls)
+
+Overview
+This subcategory reports when a user's account is locked out as a result of too many 
+failed logon attempts. Events for this subcategory include: 
+• 
+4625: An account failed to log on. 
+The recommended state for this setting is to include: Failure.
+
+This subcategory reports changes in authentication policy. Events for this subcategory 
+include: 
+• 
+4706: A new trust was created to a domain. 
+• 
+4707: A trust to a domain was removed. 
+• 
+4713: Kerberos policy was changed. 
+• 
+4716: Trusted domain information was modified. 
+• 
+4717: System security access was granted to an account. 
+• 
+4718: System security access was removed from an account. 
+• 
+4739: Domain Policy was changed. 
+• 
+4864: A namespace collision was detected. 
+• 
+4865: A trusted forest information entry was added. 
+• 
+4866: A trusted forest information entry was removed. 
+• 
+4867: A trusted forest information entry was modified. 
+The recommended state for this setting is to include: Success.
+
+This subcategory reports changes in authorization policy. Events for this subcategory 
+include: 
+• 
+4703: A user right was adjusted. 
+• 
+4704: A user right was assigned. 
+• 
+4705: A user right was removed. 
+• 
+4670: Permissions on an object were changed. 
+• 
+4911: Resource attributes of the object were changed. 
+• 
+4913: Central Access Policy on the object was changed. 
+The recommended state for this setting is to include: Success.
+
+This subcategory reports changes in audit policy including SACL changes. Events for 
+this subcategory include: 
+• 
+4715: The audit policy (SACL) on an object was changed. 
+• 
+4719: System audit policy was changed. 
+• 
+4902: The Per-user audit policy table was created. 
+• 
+4904: An attempt was made to register a security event source. 
+• 
+4905: An attempt was made to unregister a security event source. 
+• 
+4906: The CrashOnAuditFail value has changed. 
+• 
+4907: Auditing settings on object were changed. 
+• 
+4908: Special Groups Logon table modified. 
+• 
+4912: Per User Audit Policy was changed. 
+The recommended state for this setting is to include: Success.
+
+This policy setting allows you to audit attempts to access a shared folder. 
+The recommended state for this setting is: Success and Failure. 
+Note: There are no system access control lists (SACLs) for shared folders. If this policy 
+setting is enabled, access to all shared folders on the system is audited.
+
+This subcategory reports when a special logon is used. A special logon is a logon that 
+has administrator-equivalent privileges and can be used to elevate a process to a higher 
+level. Events for this subcategory include: 
+• 
+4964: Special groups have been assigned to a new logon. 
+The recommended state for this setting is to include: Success.
+
+Why This Matters
+Auditing these events may be useful when investigating a security incident.
+
+Auditing these events may be useful when investigating a security incident.
+
+Auditing these events may be useful when investigating a security incident.
+
+Auditing these events may be useful when investigating a security incident.
+
+In an enterprise managed environment, workstations should have limited file sharing 
+activity, as file servers would normally handle the overall burden of file sharing activities. 
+Any unusual file sharing activity on workstations may therefore be useful in an 
+investigation of potentially malicious activity.
+
+Auditing these events may be useful when investigating a security incident.
+
+Audit Steps
+For Enable Detailed Logging:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. 
+OR 
+To audit the system using auditpol.exe, perform the following and confirm it is set as 
+prescribed: 
+auditpol /get /subcategory:"{0cce9217-69ae-11d9-bed3-505054503030}"
+
+For Enable Detailed Logging:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. 
+OR 
+To audit the system using auditpol.exe, perform the following and confirm it is set as 
+prescribed: 
+auditpol /get /subcategory:"{0cce9230-69ae-11d9-bed3-505054503030}"
+
+For Enable Detailed Logging:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. 
+OR 
+To audit the system using auditpol.exe, perform the following and confirm it is set as 
+prescribed: 
+auditpol /get /subcategory:"{0cce9231-69ae-11d9-bed3-505054503030}"
+
+For Enable Detailed Logging:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. 
+OR 
+To audit the system using auditpol.exe, perform the following and confirm it is set as 
+prescribed: 
+auditpol /get /subcategory:"{0cce922f-69ae-11d9-bed3-505054503030}"
+
+For Enable Detailed Logging:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribe 
+. 
+OR 
+To audit the system using auditpol.exe, perform the following and confirm it is set as 
+prescribed: 
+auditpol /get /subcategory:"{0cce9224-69ae-11d9-bed3-505054503030}"
+
+For Enable Detailed Logging:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. 
+OR 
+To audit the system using auditpol.exe, perform the following and confirm it is set as 
+prescribed: 
+auditpol /get /subcategory:"{0cce921b-69ae-11d9-bed3-505054503030}"
+
+Remediation
+For Enable Detailed Logging:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Failure. 
+Auditing\Account Logon Logoff Audit Account Lockout
+
+For Enable Detailed Logging:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Success. 
+Auditing\Audit Authentication Policy Change
+
+For Enable Detailed Logging:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Success. 
+Auditing\Audit Authorization Policy Change
+
+For Enable Detailed Logging:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Success. 
+Auditing\Audit Changes to Audit Policy
+
+For Enable Detailed Logging:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Success and Failure. 
+Auditing\Audit File Share Access
+
+For Enable Detailed Logging:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Success. 
+Auditing\Audit Special Logon
+
+Key Takeaways
+- Auditing these events may be useful when investigating a security incident.
+- In an enterprise managed environment, workstations should have limited file sharing  activity, as file servers would normally handle the overall burden of file sharing activities.
+- Any unusual file sharing activity on workstations may therefore be useful in an  investigation of potentially malicious activity.

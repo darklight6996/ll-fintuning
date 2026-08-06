@@ -1,0 +1,59 @@
+14.3: Disable Workstation to Workstation Communication (and related controls)
+
+Overview
+This setting configures the server-side processing of the Server Message Block version 
+1 (SMBv1) protocol. 
+The recommended state for this setting is: Disabled.
+
+Windows includes support for Structured Exception Handling Overwrite Protection 
+(SEHOP). We recommend enabling this feature to improve the security profile of the 
+computer. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+Since September 2016, Microsoft has strongly encouraged that SMBv1 be disabled and 
+no longer used on modern networks, as it is a 30 year old design that is much more 
+vulnerable to attacks then much newer designs such as SMBv2 and SMBv3. 
+More information on this can be found at the following links: 
+Stop using SMB1 | Storage at Microsoft 
+Disable SMB v1 in Managed Environments with Group Policy – "Stay Safe" Cyber 
+Security Blog 
+Disabling SMBv1 through Group Policy – Microsoft Security Guidance blog
+
+This feature is designed to block exploits that use the Structured Exception Handler 
+(SEH) overwrite technique. This protection mechanism is provided at run-time. 
+Therefore, it helps protect applications regardless of whether they have been compiled 
+with the latest improvements, such as the /SAFESEH option.
+
+Audit Steps
+For Disable Workstation to Workstation Communication:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters:SMB1
+
+For Disable Workstation to Workstation Communication:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SYSTEM\CurrentControlSet\Control\Session 
+Manager\kernel:DisableExceptionChainValidation
+
+Remediation
+For Disable Workstation to Workstation Communication:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\MS Security Guide\Configure SMB v1 server
+
+For Disable Workstation to Workstation Communication:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\MS Security Guide\Enable Structured Exception 
+Handling Overwrite Protection (SEHOP) 
+More information is available at MSKB 956607: How to enable Structured Exception 
+Handling Overwrite Protection (SEHOP) in Windows operating systems
+
+Key Takeaways
+- Since September 2016, Microsoft has strongly encouraged that SMBv1 be disabled and  no longer used on modern networks, as it is a 30 year old design that is much more  vulnerable to attacks then much newer designs such as SMBv2 and SMBv3.
+- More information on this can be found at the following links:  Stop using SMB1 | Storage at Microsoft  Disable SMB v1 in Managed Environments with Group Policy – "Stay Safe" Cyber  Security Blog  Disabling SMBv1 through Group Policy – Microsoft Security Guidance blog This feature is designed to block exploits that use the Structured Exception Handler  (SEH) overwrite technique.
+- This protection mechanism is provided at run-time.

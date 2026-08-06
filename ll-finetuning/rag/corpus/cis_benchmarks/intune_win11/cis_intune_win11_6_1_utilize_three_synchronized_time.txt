@@ -1,0 +1,67 @@
+6.1: Utilize Three Synchronized Time Sources (and related controls)
+
+Overview
+This policy setting specifies whether the Windows NTP Server is enabled. Disabling this 
+setting prevents the system from acting as a NTP Server (time source) to service NTP 
+requests from other systems (NTP Clients). 
+The recommended state for this setting is: Disabled.
+
+This subcategory reports the results of validation tests on credentials submitted for a 
+user account logon request. These events occur on the computer that is authoritative for 
+the credentials. For domain accounts, the Domain Controller is authoritative, whereas 
+for local accounts, the local computer is authoritative. In domain environments, most of 
+the Account Logon events occur in the Security log of the Domain Controllers that are 
+authoritative for the domain accounts. However, these events can occur on other 
+computers in the organization when local accounts are used to log on. Events for this 
+subcategory include: 
+• 
+4774: An account was mapped for logon. 
+• 
+4775: An account could not be mapped for logon. 
+• 
+4776: The Domain Controller attempted to validate the credentials for an 
+account. 
+• 
+4777: The Domain Controller failed to validate the credentials for an account. 
+The recommended state for this setting is: Success and Failure.
+
+Why This Matters
+The configuration of proper time synchronization is critically important in an enterprise 
+managed environment both due to the sensitivity of Kerberos authentication timestamps 
+and also to ensure accurate security logging. This should be done through a known 
+NTP server. Member servers and workstations should not typically be time sources for 
+other clients.
+
+Auditing these events may be useful when investigating a security incident.
+
+Audit Steps
+For Utilize Three Synchronized Time Sources:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\W32Time\TimeProviders\NtpServer:Enabled
+
+For (L1) Ensure 'Account Logon Audit Credential Validation' is set:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. 
+OR 
+To audit the system using auditpol.exe, perform the following and confirm it is set as 
+prescribed: 
+auditpol /get /subcategory:"{0cce923f-69ae-11d9-bed3-505054503030}"
+
+Remediation
+For Utilize Three Synchronized Time Sources:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\System\Windows Time Service\Time Providers\Enable 
+Windows NTP Server
+
+For (L1) Ensure 'Account Logon Audit Credential Validation' is set:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Success and Failure. 
+Auditing\Account Logon Audit Credential Validation
+
+Key Takeaways
+- The configuration of proper time synchronization is critically important in an enterprise  managed environment both due to the sensitivity of Kerberos authentication timestamps  and also to ensure accurate security logging.
+- This should be done through a known  NTP server.
+- Member servers and workstations should not typically be time sources for  other clients.

@@ -1,0 +1,43 @@
+Network forensics is the practice of capturing, recording, and analyzing network traffic to investigate security incidents, identify malicious activity, and reconstruct events. Unlike host-based forensics, which examines data on a single endpoint, network forensics focuses on the data in transit across the wire, providing a timeline of communications between systems. This discipline is essential when an attacker has cleared logs on compromised hosts, as the network traffic often remains the only reliable record of the intrusion.
+
+**Key Components of Network Forensics and Packet Analysis**
+
+The foundation of network forensics is packet capture (PCAP). A PCAP file contains raw network packets, including headers and payloads, captured at a specific point in the network. The primary tool for this is tcpdump, a command-line utility that captures packets based on BPF (Berkeley Packet Filter) syntax. For example, `tcpdump -i eth0 -w capture.pcap` writes all traffic on interface eth0 to a file. For analysis, Wireshark is the de facto standard, offering deep inspection of hundreds of protocols, follow-stream capabilities for TCP and UDP, and statistical tools like IO graphs and protocol hierarchy.
+
+Key components include:
+
+- **Packet Headers**: Ethernet, IP, TCP/UDP, and application-layer headers. Each header contains fields such as source/destination MAC, IP addresses, ports, sequence numbers, and flags (e.g., SYN, ACK, RST). Anomalies in these fields—like a SYN flood with no ACK—indicate scanning or DoS attacks.
+- **Payload Data**: The actual content of the packet, which may contain application-layer data (HTTP requests, DNS queries, file transfers). Encryption (TLS/SSL) obscures payloads, but metadata like certificate handshakes and SNI (Server Name Indication) fields remain visible.
+- **Flow Data**: Summarized records of conversations, such as NetFlow or IPFIX. These provide source/destination IPs, ports, protocol, and byte counts without full packet payloads. Flow data is useful for long-term retention and trend analysis but lacks the granularity of PCAP.
+- **Session Reconstruction**: Reassembling TCP streams to view the full conversation, such as an HTTP request and response. Wireshark’s “Follow TCP Stream” feature reconstructs this, allowing an analyst to see exactly what data was exchanged, including files transferred via protocols like FTP or SMB.
+- **Timestamps and Latency**: Precise packet timestamps (often microsecond resolution) enable timeline reconstruction. Unusual latency patterns can indicate data exfiltration or command-and-control (C2) beaconing.
+
+**Real-World Application: Investigating a Data Exfiltration Incident**
+
+Consider a scenario where a security engineer receives an alert from a DLP (Data Loss Prevention) system indicating a large outbound data transfer from a finance server to an external IP. The host logs on the server have been deleted. The engineer initiates a network forensics investigation.
+
+1. **Capture and Isolate**: The engineer identifies the switch port or network tap closest to the finance server and begins capturing traffic using tcpdump with a filter for the server’s IP: `tcpdump -i any host 10.0.1.50 -w incident.pcap`. If the incident is ongoing, this captures live traffic. If historical, the engineer retrieves a PCAP from a network monitoring appliance (e.g., Security Onion, Moloch/Arkime).
+
+2. **Analyze with Wireshark**: The engineer opens the PCAP in Wireshark. Using the display filter `ip.addr == 10.0.1.50`, they isolate all traffic to/from the server. The IO graph shows a spike in outbound traffic at 02:00 UTC. The protocol hierarchy reveals a high volume of HTTPS traffic to a single IP (203.0.113.55).
+
+3. **Examine TLS Handshake**: Since the payload is encrypted, the engineer inspects the TLS handshake. The SNI field in the Client Hello reveals the domain `dropbox-api.example.com`. The certificate details show a self-signed certificate, which is suspicious for a legitimate cloud storage service. The engineer also notes the JA3 hash of the TLS client, which can be cross-referenced with threat intelligence to identify known malware.
+
+4. **Reconstruct the Session**: The engineer uses Wireshark’s “Follow TCP Stream” on the HTTPS connection. While the payload is encrypted, the stream shows the initial handshake and subsequent data transfer patterns. The engineer observes that the data is being sent in large, consistent chunks (e.g., 64 KB segments) every 5 seconds, which is characteristic of a file upload, not typical web browsing.
+
+5. **Correlate with Flow Data**: The engineer queries the NetFlow collector for the same time window. The flow records confirm the connection to 203.0.113.55 on port 443, with a total of 1.2 GB transferred over 30 minutes. This matches the DLP alert volume.
+
+6. **Timeline Reconstruction**: By examining packet timestamps, the engineer establishes a precise timeline: the first SYN packet at 02:00:01.234, the TLS handshake completed at 02:00:02.456, and the last data packet at 02:30:15.789. This timeline is critical for correlating with other logs (e.g., authentication logs from the domain controller) to identify the user account that initiated the transfer.
+
+**Security Relevance**
+
+Network forensics is indispensable for modern security operations. It provides:
+
+- **Detection of Evasion Techniques**: Attackers often use encryption, tunneling (e.g., DNS tunneling, HTTP over SSH), or protocol obfuscation to bypass host-based detection. Packet analysis reveals these anomalies, such as unusually large DNS queries or non-standard port usage.
+- **Attribution and Containment**: By identifying source IPs, MAC addresses, and user agents, network forensics helps attribute an attack to a specific device or user. This enables rapid containment, such as blocking the malicious IP at the firewall or isolating the compromised host.
+- **Compliance and Legal Hold**: Regulations like PCI DSS, HIPAA, and GDPR require monitoring and logging of network traffic. PCAP files serve as admissible evidence in legal proceedings, provided they are collected with proper chain of custody and timestamping.
+- **Threat Hunting**: Proactive analysis of network traffic can uncover indicators of compromise (IOCs) that signature-based tools miss. For example, a beaconing pattern (small, periodic packets to a C2 server) can be identified through statistical analysis of packet timing and sizes.
+
+**Key Takeaways**
+- Network forensics relies on full packet capture (PCAP) and tools like tcpdump and Wireshark to reconstruct events, even when host logs are compromised or deleted.
+- In real-world investigations, analyzing TLS metadata (SNI, JA3 hashes) and traffic patterns (timing, packet sizes) is often more actionable than encrypted payloads.
+- Network forensics is critical for detecting evasion techniques, enabling rapid containment, and meeting compliance requirements for evidence preservation.

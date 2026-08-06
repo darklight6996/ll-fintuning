@@ -1,0 +1,28 @@
+4.11.10.1: (L1) Ensure 'Enable App Installer Experimental
+
+Overview
+This policy setting controls whether users can enable experimental features in the 
+Windows Package Manager. 
+The recommended state for this setting is Disabled.
+
+Why This Matters
+Windows Package Manager is a command line tool can be used to discover, install, 
+upgrade, remove and configure applications, and it can be used as a distribution 
+channel for software packages containing tools and applications. Users should not have 
+access to experimental features.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\AppInstaller:EnableExperimentalFeatu res
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled: 
+Administrative Templates\Windows Components\Desktop App Installer\Enable App 
+Installer Experimental Features
+
+Key Takeaways
+- Windows Package Manager is a command line tool can be used to discover, install,  upgrade, remove and configure applications, and it can be used as a distribution  channel for software packages containing tools and applications.
+- Users should not have  access to experimental features.

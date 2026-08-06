@@ -1,0 +1,40 @@
+**Definition**
+
+The Detect function, as defined by the NIST Cybersecurity Framework (CSF), establishes the controls and processes necessary to identify cybersecurity events in a timely manner. Monitoring is the operational engine of this function. It is the continuous, systematic observation of systems, networks, and data to identify anomalies, indicators of compromise (IOCs), and potential security incidents. Without effective monitoring, the Detect function is theoretical; with it, an organization gains the visibility required to respond before significant damage occurs. Monitoring within the Detect function is not a single tool or log source; it is a coordinated, layered architecture of sensors, analytics, and human oversight.
+
+**Key Components**
+
+Effective monitoring under the Detect function relies on several interdependent components. These must be implemented with clear scope, defined thresholds, and documented procedures.
+
+- **Log Collection and Aggregation:** All relevant data sources must be identified and ingested. This includes operating system logs (Windows Event Log, syslog), network device logs (firewalls, routers, switches), application logs, cloud service logs (AWS CloudTrail, Azure Monitor), and endpoint detection and response (EDR) telemetry. A centralized log management platform (SIEM) is the standard for aggregation, normalization, and correlation. Without complete log coverage, blind spots exist.
+- **Alerting and Correlation Rules:** Raw logs are noise without context. Correlation rules define the conditions that constitute an event requiring investigation. Examples include: multiple failed logins from a single source within a short window, outbound traffic to a known malicious IP, or a file hash matching a threat intelligence feed. Rules must be tuned to minimize false positives while maintaining sensitivity to true threats. Thresholds should be based on baseline behavior, not arbitrary values.
+- **Threat Intelligence Integration:** Monitoring is reactive without external context. Threat intelligence feeds (commercial, open-source, ISACs) provide IOCs such as IP addresses, domains, URLs, and file hashes known to be associated with active threats. This data should be ingested into the SIEM and used to enrich alerts. Automated blocking at the network perimeter or endpoint can be triggered by high-confidence intelligence, but manual review is required for lower-confidence indicators.
+- **User and Entity Behavior Analytics (UEBA):** Signature-based detection is insufficient for novel or insider threats. UEBA establishes a baseline of normal behavior for users, devices, and applications. Deviations—such as a user accessing systems at unusual hours, downloading large volumes of data, or connecting from an atypical geographic location—generate alerts. This component is critical for detecting compromised credentials and malicious insiders.
+- **Continuous Monitoring and Coverage Validation:** Monitoring must be verified as operational. This includes automated health checks on log sources (is the agent sending data?), periodic testing of alert rules (do they fire when expected?), and regular review of coverage gaps (are new systems or applications being monitored?). A monitoring dashboard showing last log receipt times and alert volume is a minimum requirement.
+
+**Real-World Application**
+
+Consider a mid-sized financial services organization implementing the Detect function. They deploy a SIEM with the following architecture:
+- All Windows servers forward Event Logs (Security, System, Application) to a central collector.
+- Network firewalls send NetFlow data and syslog alerts for denied connections.
+- EDR agents on all endpoints send process creation, network connection, and file modification telemetry.
+- A threat intelligence feed is ingested, providing daily updates on known malicious domains and IPs.
+
+A correlation rule is created: "If a user account has more than 10 failed login attempts within 5 minutes, AND the source IP is external, generate a 'Brute Force Attempt' alert." This rule is tested quarterly by simulating a brute force attack from a controlled external IP. The SIEM also runs a UEBA model that flags when a finance employee accesses the HR database at 3 AM—an action outside their normal pattern.
+
+In practice, the security operations center (SOC) analyst receives an alert for the brute force attempt. They pivot to the SIEM to view the source IP, the targeted accounts, and any successful logins. The IP is cross-referenced with the threat intelligence feed and found to be associated with a known credential stuffing campaign. The analyst then initiates the Respond function: blocking the IP at the firewall, resetting passwords for targeted accounts, and escalating to incident response.
+
+**Security Relevance**
+
+The security relevance of monitoring within the Detect function is direct and measurable. Without it, an organization operates blind. Key security outcomes include:
+
+- **Reduced Dwell Time:** Continuous monitoring enables detection of intrusions in minutes or hours rather than weeks or months. The 2024 IBM Cost of a Data Breach report indicates that organizations with fully deployed security AI and automation (which relies on monitoring data) had an average breach lifecycle of 108 days versus 193 days for those without.
+- **Compliance Validation:** Regulatory frameworks (PCI DSS, HIPAA, SOX) mandate monitoring of specific systems and events. Proper monitoring provides audit trails and evidence of compliance. For example, PCI DSS Requirement 10 requires logging of all access to cardholder data, with logs retained for at least one year.
+- **Incident Response Enablement:** Monitoring data is the foundation of incident response. It provides the timeline, scope, and root cause analysis needed to contain and eradicate threats. Without logs, an incident response team is guessing.
+- **Threat Hunting Capability:** Proactive threat hunting relies on querying historical monitoring data for patterns that automated rules may miss. A hunter might search for PowerShell execution from non-admin workstations or DNS queries to domains with low reputation scores. This is impossible without a rich, searchable monitoring dataset.
+
+**Key Takeaways**
+
+1.  Monitoring under the Detect function requires a layered architecture of log collection, correlation rules, threat intelligence, and behavior analytics; any single component creates a blind spot.
+2.  Continuous validation of monitoring coverage and alert rule effectiveness is mandatory; an unmonitored system or a broken rule is equivalent to no detection at all.
+3.  Monitoring data is the primary enabler of reduced dwell time, compliance evidence, and effective incident response; investment in detection directly reduces breach impact.

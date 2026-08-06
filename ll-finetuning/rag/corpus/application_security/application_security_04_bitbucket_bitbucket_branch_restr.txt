@@ -1,0 +1,69 @@
+Bitbucket branch restrictions are a repository-level access control mechanism that enforces rules on who can push to, delete, or modify specific branches. Unlike general repository permissions, which grant broad read/write/admin access, branch restrictions operate at the branch reference level, allowing granular control over critical branches such as `main`, `develop`, or release branches. These restrictions are enforced server-side, meaning they apply regardless of the client tool used (Git CLI, Sourcetree, IDE plugins) and cannot be bypassed by local Git configuration.
+
+**Key Components**
+
+Branch restrictions in Bitbucket consist of several configurable parameters:
+
+- **Branch patterns**: Restrictions can target specific branch names (e.g., `main`) or use wildcard patterns (e.g., `release/*`, `hotfix/*`). Pattern matching follows Ant-style syntax, where `*` matches any sequence of characters except `/`, and `**` matches any sequence including `/`.
+
+- **Restriction types**:
+  - *Prevent deletion*: Blocks any user from deleting the branch via push or web interface.
+  - *Prevent rewriting history*: Blocks force pushes (`git push --force`), including `--force-with-lease`. This preserves commit history integrity.
+  - *Require changes to be pushed via a pull request*: Direct pushes to the branch are blocked; all changes must go through a pull request workflow.
+  - *Require at least one approval*: The pull request must receive at least one approval before merging.
+  - *Require no changes requested*: All "changes requested" reviews must be resolved before merge.
+  - *Require a minimum number of approvals*: Configurable count (e.g., 2 approvals for production branches).
+  - *Require code review from a specific group*: Mandates review from a defined group (e.g., "Security Reviewers").
+  - *Require successful build*: Blocks merge unless the latest commit passes CI/CD pipeline checks.
+  - *Require no unresolved tasks*: All task comments in the pull request must be resolved.
+
+- **Exempt users and groups**: Administrators can define exceptions—users or groups that bypass specific restrictions. Common exemptions include CI/CD service accounts (e.g., `jenkins-bot`) or release managers. Exemptions are granular; you can exempt a user from force-push restrictions while still requiring pull request approval.
+
+- **Merge checks**: Additional checks that run at merge time, such as verifying the pull request is up-to-date with the target branch (preventing merge skew) or checking that commit messages follow a regex pattern.
+
+**Real-World Application**
+
+Consider a typical deployment pipeline with three environments: development, staging, and production. Branch restrictions would be configured as follows:
+
+- **`develop` branch**: Prevent deletion. Require pull request with at least one approval and successful build. Allow force pushes only for the CI/CD bot to squash commits.
+
+- **`release/*` branches**: Prevent deletion and history rewriting. Require pull request with two approvals from designated release managers. Require successful build and no unresolved tasks.
+
+- **`main` branch**: Prevent deletion and history rewriting. Require pull request with three approvals, including at least one from a security team member. Require successful build, no unresolved tasks, and that the pull request is up-to-date with `main` (preventing merge skew).
+
+Implementation steps:
+1. Navigate to Repository Settings > Branch restrictions.
+2. Click "Add restriction" and enter the branch pattern (e.g., `main`).
+3. Select the restriction types: "Prevent deletion", "Prevent rewriting history", "Require pull request to merge".
+4. Under "Merge checks", enable "Require at least 3 approvals" and "Require approval from a specific group" (select "security-team").
+5. Add exempt users: your CI/CD service account (e.g., `bitbucket-pipelines+bot`) with only "Prevent rewriting history" exemption if needed.
+6. Repeat for other branch patterns.
+
+For a monorepo with multiple teams, use branch patterns like `team-a/*` and `team-b/*` to enforce team-specific review requirements without creating separate repositories.
+
+**Security Relevance**
+
+Branch restrictions directly address several critical security and compliance requirements:
+
+- **Supply chain integrity**: By preventing force pushes and requiring pull requests, you ensure every change to protected branches is reviewed and traceable. This mitigates risks from compromised developer accounts or insider threats.
+
+- **Audit trail**: Every merge creates a permanent record in the pull request history, including who approved, what CI checks passed, and when the merge occurred. This satisfies audit requirements for SOC 2, PCI DSS, and SOX.
+
+- **Separation of duties**: Requiring approvals from specific groups (e.g., security team) enforces the principle that no single individual can unilaterally deploy to production. This is a core control for change management in regulated environments.
+
+- **Preventing data exfiltration**: Blocking direct pushes to sensitive branches prevents an attacker from injecting malicious code or exfiltrating data via commit history manipulation.
+
+- **Compliance automation**: Merge checks like "require successful build" ensure that security scanning tools (SAST, DAST, dependency checkers) run on every proposed change before it reaches production.
+
+- **Least privilege**: Branch restrictions allow you to grant developers write access to the repository while still preventing them from modifying critical branches. This avoids the all-or-nothing problem of repository-level permissions.
+
+Common pitfalls to avoid:
+- Overly broad exemptions (e.g., exempting entire admin groups) that defeat the purpose of restrictions.
+- Using branch restrictions without corresponding CI/CD pipeline checks—restrictions only block pushes, they don't enforce code quality.
+- Forgetting to apply restrictions to new branches created via wildcard patterns (e.g., `release/*` must be added before the first release branch is created).
+- Not documenting exemption rationale—auditors will ask why specific users bypass restrictions.
+
+**Key Takeaways**
+1. Branch restrictions enforce server-side rules on specific branch patterns, preventing deletion, history rewriting, and direct pushes while requiring pull requests with configurable approval and CI checks.
+2. Real-world implementation requires mapping branch patterns to environment tiers (develop, release, main) and applying appropriate restriction types with minimal exemptions for service accounts only.
+3. Security relevance includes supply chain integrity, audit trail creation, separation of duties, and compliance automation—making branch restrictions a foundational control for any production Git repository.

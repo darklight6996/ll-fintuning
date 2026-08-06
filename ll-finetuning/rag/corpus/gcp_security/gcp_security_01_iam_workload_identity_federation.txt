@@ -1,0 +1,35 @@
+Workload identity federation is a mechanism that allows workloads running outside of a cloud provider’s native identity system to authenticate and obtain temporary credentials for accessing cloud resources, without storing or rotating long-lived service account keys. It replaces static secrets with a trust relationship based on tokens issued by an external identity provider (IdP). The core principle is that the workload presents a token from its own environment—such as a Kubernetes service account token, a GitHub Actions OIDC token, or an AWS IAM role session tag—and the cloud provider’s security token service (STS) validates that token against a pre-configured trust policy before issuing short-lived credentials.
+
+**Key Components**
+
+- **External Identity Provider (IdP):** The system that issues tokens for the workload. Common examples include Azure AD, AWS IAM, GitHub Actions, GitLab CI, Kubernetes clusters, or any OIDC-compliant provider. The IdP must support OpenID Connect (OIDC) or SAML 2.0 to be compatible with workload identity federation.
+- **Workload Identity Pool:** A logical grouping in the cloud provider (e.g., GCP Workload Identity Pool, AWS IAM OIDC Identity Provider, Azure Federated Identity Credential) that defines the trust relationship. It specifies which external IdPs are trusted and what token attributes (issuer, subject, audience) are required.
+- **Trust Policy / Attribute Mapping:** A set of rules that maps claims from the external token (e.g., `sub`, `aud`, `iss`) to cloud provider attributes (e.g., principal identifiers, role session names). This policy is evaluated at authentication time to determine if the token is valid and which cloud identity it maps to.
+- **Short-Lived Credentials:** The output of the federation exchange. Typically, these are temporary access keys, security tokens, or OAuth2 tokens with a limited lifetime (e.g., 1 hour). They are automatically rotated and cannot be used after expiration.
+- **Service Account / Role:** The cloud resource that the workload impersonates. In GCP, this is a service account; in AWS, an IAM role; in Azure, a managed identity or service principal. The workload never directly holds the key for this identity—it only receives temporary credentials after successful token exchange.
+
+**Real-World Application**
+
+Consider a CI/CD pipeline running in GitHub Actions that needs to deploy infrastructure to Google Cloud. Without workload identity federation, the pipeline would require a long-lived service account key stored as a GitHub secret. This key is a static secret that must be rotated manually, can be leaked through logs or misconfigured workflows, and grants persistent access if compromised.
+
+With workload identity federation, the GitHub Actions workflow requests an OIDC token from GitHub’s IdP. The token includes claims such as `repository`, `ref`, and `environment`. The workflow then calls the GCP Security Token Service (STS) with this token. GCP validates the token against a pre-configured Workload Identity Pool that trusts `token.actions.githubusercontent.com`. The trust policy maps the `repository` claim to a specific service account. If the token is valid and the repository matches the policy, GCP issues a short-lived access token for that service account. The pipeline uses this token to run `gcloud` commands or Terraform. The token expires after one hour, and no long-lived key ever exists.
+
+Another example: a Kubernetes pod running in an on-premises cluster needs to read objects from an AWS S3 bucket. The pod mounts a projected service account token from the Kubernetes API server. A sidecar or SDK calls the AWS STS endpoint with this token, referencing an IAM OIDC identity provider configured with the cluster’s OIDC issuer URL. The trust policy maps the Kubernetes service account name to an IAM role. After validation, the pod receives temporary AWS credentials. The pod never stores AWS access keys.
+
+**Security Relevance**
+
+Workload identity federation eliminates the most common cause of credential leakage: static service account keys. Storing keys in CI/CD secrets, configuration files, or environment variables creates a large attack surface. If a key is exposed, an attacker can use it until it is rotated, which may take days or weeks. Federation replaces this with token-based authentication where the token is short-lived, context-bound, and automatically refreshed.
+
+The trust policy provides granular control. You can restrict which external identities can impersonate which cloud resources. For example, you can allow only the `main` branch of a specific repository to assume a production deployment role, while allowing any branch in a development repository to assume a read-only role. This is impossible with static keys, which grant the same access regardless of context.
+
+Token replay is mitigated by requiring the token to be presented directly to the cloud STS within a short window (typically minutes). The token’s `audience` claim must match the STS endpoint, preventing the token from being used against other services. Additionally, the cloud provider validates the token’s signature against the IdP’s public keys, ensuring it was not forged.
+
+Operational overhead decreases because there is no key rotation process. The external IdP handles token issuance, and the cloud provider handles credential expiration. If an IdP is compromised, the trust policy can be revoked immediately by deleting the identity pool or modifying the attribute mapping. No key revocation is needed.
+
+Compliance requirements are easier to satisfy. Audit logs show exactly which external workload assumed which cloud identity, using which token claims. This provides a clear chain of authentication that static keys cannot offer. For example, you can trace a deployment action back to a specific GitHub Actions run ID and repository commit.
+
+**Key Takeaways**
+
+- Workload identity federation removes the need for long-lived service account keys by exchanging short-lived tokens from an external IdP for temporary cloud credentials, reducing the risk of credential leakage.
+- The trust policy and attribute mapping are the critical security controls; they must be configured to enforce least privilege based on token claims such as repository, branch, or environment.
+- Federation improves auditability and compliance by providing a verifiable chain of authentication from the external workload to the cloud resource, with no static secrets to rotate or revoke.

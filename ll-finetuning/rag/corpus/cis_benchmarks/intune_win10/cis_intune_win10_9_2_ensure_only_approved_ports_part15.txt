@@ -1,0 +1,30 @@
+9.2: Ensure Only Approved Ports, Protocols and Services
+
+Overview
+This policy setting allows a process to assume the identity of any user and thus gain 
+access to the resources that the user is authorized to access. 
+The recommended state for this setting is: No One. 
+Note: This user right is considered a "sensitive privilege" for the purposes of auditing.
+
+Why This Matters
+The Act as part of the operating system user right is extremely powerful. Anyone with 
+this user right can take complete control of the computer and erase evidence of their 
+activities.
+
+Audit Steps
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Act as part of the 
+operating system
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to (<![CDATA[]]>) which equals No One. 
+User Rights\Act As Part Of The Operating System 
+Note: Using (<![CDATA[]]>) to represent a blank value or No One is recommended 
+by Microsoft. However, there is a known issue where an error occurs in Endpoint 
+Manger (Intune) but does not affect the policy setting from being applied to the system 
+properly.
+
+Key Takeaways
+- The Act as part of the operating system user right is extremely powerful.
+- Anyone with  this user right can take complete control of the computer and erase evidence of their  activities.

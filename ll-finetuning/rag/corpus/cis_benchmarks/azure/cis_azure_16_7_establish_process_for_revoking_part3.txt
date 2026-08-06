@@ -1,0 +1,75 @@
+16.7: Establish Process for Revoking Access
+
+Overview
+Ensure that all Secrets in Non Role Based Access Control (RBAC) Azure Key Vaults 
+have an expiration date set.
+
+Why This Matters
+The Azure Key Vault enables users to store and keep secrets within the Microsoft Azure 
+environment. Secrets in the Azure Key Vault are octet sequences with a maximum size 
+of 25k bytes each. The exp (expiration date) attribute identifies the expiration date on or 
+after which the secret MUST NOT be used. By default, secrets never expire. It is thus 
+recommended to rotate secrets in the key vault and set an explicit expiration date for all 
+secrets. This ensures that the secrets cannot be used beyond their assigned lifetimes.
+
+Audit Steps
+Audit from Azure Portal 
+1. Go to Key vaults. 
+2. For each Key vault, click on Secrets. 
+3. In the main pane, ensure that the status of the secret is Enabled. 
+4. Set an appropriate Expiration date on all secrets. 
+Audit from Azure CLI 
+Get a list of all the key vaults in your Azure environment by running the following 
+command: 
+az keyvault list 
+For each key vault, ensure that the output of the below command contains ID (id), 
+enabled status as true and Expiration date (expires) is not empty or null: 
+az keyvault secret list --vault-name <KEYVALUTNAME> --query 
+'[*].{"kid":kid,"enabled":attributes.enabled,"expires":attributes.expires}' 
+Audit from PowerShell 
+Retrieve a list of Key vaults: 
+Get-AzKeyVault 
+ For each Key vault run the following command to determine which vaults are configured 
+to use RBAC: 
+Get-AzKeyVault -VaultName <Vault Name> 
+For each Key Vault with the EnableRbacAuthorization setting set to False or empty, 
+run the following command. 
+Get-AzKeyVaultSecret -VaultName <Vault Name> 
+Make sure the Expires setting is configured with a value as appropriate wherever the 
+Enabled setting is set to True. 
+
+Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: 98728c90-32c7-4049-8429-847dc0f4fe37 - Name: 'Key Vault secrets 
+should have an expiration date'
+
+Remediation
+Remediate from Azure Portal 
+1. Go to Key vaults. 
+2. For each Key vault, click on Secrets. 
+3. In the main pane, ensure that the status of the secret is Enabled. 
+4. Set an appropriate Expiration date on all secrets. 
+Remediate from Azure CLI 
+Update the Expiration date for the secret using the below command: 
+az keyvault secret set-attributes --name <secret_name> --vault-name 
+<vault_name> --expires Y-m-d'T'H:M:S'Z' 
+Note: To view the expiration date on all secrets in a Key Vault using Microsoft API, the 
+List Secret permission is required. 
+To update the expiration date for the secrets: 
+1. Go to Key vault, click on Access policies. 
+2. Click on Create and add an access policy with the Update permission (in the 
+Secret Permissions - Secret Management Operations section). 
+Remediate from PowerShell 
+For each Key vault with the EnableRbacAuthorization setting set to False or empty, 
+run the following command. 
+Set-AzKeyVaultSecret -VaultName <vault_name> -Name <secret_name> -Expires 
+<date_time>
+
+Key Takeaways
+- The Azure Key Vault enables users to store and keep secrets within the Microsoft Azure  environment.
+- Secrets in the Azure Key Vault are octet sequences with a maximum size  of 25k bytes each.
+- The exp (expiration date) attribute identifies the expiration date on or  after which the secret MUST NOT be used.

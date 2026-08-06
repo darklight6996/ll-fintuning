@@ -1,0 +1,106 @@
+9.2: Ensure Only Approved Ports, Protocols and Services (and related controls)
+
+Overview
+Maintains an updated list of computers on the network and supplies this list to 
+computers designated as browsers. 
+The recommended state for this setting is: Disabled or Not Installed. 
+Note: In Windows 8.1 and Windows 10, this service is bundled with the SMB 1.0/CIFS 
+File Sharing Support optional feature. As a result, removing that feature (highly 
+recommended unless backward compatibility is needed to XP/2003 and older Windows 
+OSes - see Stop using SMB1 | Storage at Microsoft) will also remediate this 
+recommendation. The feature is not installed by default starting with Windows 10 
+R1709.
+
+Windows service for application access to downloaded maps. This service is started ondemand by application accessing downloaded maps.
+
+This service enables the use of keyboards, mice, gamepads, and other input devices to 
+be used with the GameInput API. 
+The recommended state for this setting is: Disabled. 
+Note: GameInput service runs as LocalSystem in its own process of GameInputSvc.exe 
+and doesn't share its process with other services.
+
+This service monitors the current location of the system and manages geofences (a 
+geographical location with associated events). 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+This is a legacy service - its sole purpose is to maintain a list of computers and their 
+network shares in the environment (i.e. "Network Neighborhood"). If enabled, it 
+generates a lot of unnecessary traffic, including "elections" to see who gets to be the 
+"master browser". This noisy traffic could also aid malicious attackers in discovering 
+online machines, because the service also allows anyone to "browse" for shared 
+resources without any authentication. This service used to be running by default in older 
+Windows versions (e.g. Windows XP), but today it only remains for backward 
+compatibility for very old software that requires it.
+
+Mapping technologies can unwillingly reveal your location to attackers and other 
+software that picks up the information. In addition, automatic downloads of data from 
+third-party sources should be minimized when not needed. Therefore, this service 
+should not be needed in high security environments.
+
+GameInput API pipes input from keyboards, mice, gamepads, and other game 
+controllers via Direct Memory Access (DMA) to decrease latency for gaming 
+performance. This DMA use increases the risk of input data (especially keystrokes) 
+being captured by a malicious attacker.
+
+This setting affects the location feature (e.g. GPS or other location tracking). From a 
+security perspective, it’s not a good idea to reveal your location to software in most 
+cases, but there are legitimate uses, such as mapping software. However, they should 
+not be used in high security environments.
+
+Audit Steps
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4 or that the key does not exist. 
+HKLM\SYSTEM\CurrentControlSet\Services\Browser:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\MapsBroker:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\GameInputSvc:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\lfsvc:Start
+
+Remediation
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration, set the following Custom Configuration 
+Policy to 4 or confirm that the service is Not installed: 
+Name: <Enter name>
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name MapsBroker -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name GameInputSvc -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name lfsvc -StartupType Disabled
+
+Key Takeaways
+- This is a legacy service - its sole purpose is to maintain a list of computers and their  network shares in the environment (i.
+- "Network Neighborhood").
+- If enabled, it  generates a lot of unnecessary traffic, including "elections" to see who gets to be the  "master browser".

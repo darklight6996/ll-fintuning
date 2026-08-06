@@ -1,0 +1,29 @@
+4.11.52.2: .1 (L2) Ensure 'Prevent Codec Download (User)' is set
+
+Overview
+This setting controls whether Windows Media Player is allowed to download additional 
+codecs for decoding media files it does not already understand. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+This has some potential for risk if a malicious data file is opened in Media Player that 
+requires an additional codec to be installed. If a special codec is required for a 
+necessary job function, then that codec should first be tested to ensure it is legitimate, 
+and it should be supplied by the IT department in the organization.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKU\[USER 
+SID]\Software\Policies\Microsoft\WindowsMediaPlayer:PreventCodecDownload
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Windows Media 
+Player\Playback\Prevent Codec Download (User)
+
+Key Takeaways
+- This has some potential for risk if a malicious data file is opened in Media Player that  requires an additional codec to be installed.
+- If a special codec is required for a  necessary job function, then that codec should first be tested to ensure it is legitimate,  and it should be supplied by the IT department in the organization.

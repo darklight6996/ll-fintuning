@@ -1,0 +1,47 @@
+15.5: Limit Wireless Access on Client Devices (and related controls)
+
+Overview
+This policy setting prohibits access to Windows Connect Now (WCN) wizards. 
+The recommended state for this setting is: Enabled.
+
+This policy setting prevents computers from connecting to both a domain based network 
+and a non-domain based network at the same time. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+Allowing standard users to access the Windows Connect Now wizard increases the risk 
+and attack surface.
+
+The potential concern is that a user would unknowingly allow network traffic to flow 
+between the insecure public network and the enterprise managed network.
+
+Audit Steps
+For Limit Wireless Access on Client Devices:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WCN\UI:DisableWcnUi
+
+For Limit Wireless Access on Client Devices:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WcmSvc\GroupPolicy:fBlockNonDomain
+
+Remediation
+For Limit Wireless Access on Client Devices:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Network\Windows Connect Now\Prohibit access of the 
+Windows Connect Now wizards
+
+For Limit Wireless Access on Client Devices:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Network\Windows Connection Manager\Prohibit 
+connection to non-domain networks when connected to domain authenticated 
+network
+
+Key Takeaways
+- Allowing standard users to access the Windows Connect Now wizard increases the risk  and attack surface.
+- The potential concern is that a user would unknowingly allow network traffic to flow  between the insecure public network and the enterprise managed network.

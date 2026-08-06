@@ -1,0 +1,32 @@
+60.1: (L2) Ensure 'Enable news and interests' is set to 'Not
+
+Overview
+This policy setting specifies whether the news and interests feature is allowed on the 
+device. 
+The recommended state for this setting is: Not Allowed. 
+Note: This setting only applies to Windows 10. When configured in settings catalog for 
+a Windows 11 system an error will be generated in both Intune and the local event log.
+
+Why This Matters
+Due to privacy concerns, apps and features such as news and interests on the 
+Windows taskbar should be treated as a possible security risk due to the potential of 
+data being sent back to third-parties, such as Microsoft. 
+In addition, the app may display inappropriate news and interests within the feed.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds:EnableFeeds
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Not Allowed: 
+News and interests\Enable News and interests 
+Note: At time of benchmark publication, the Feeds category was not visible when 
+browsing by category. To find this setting, search for news and feeds, and the Feeds 
+category will show.
+
+Key Takeaways
+- Due to privacy concerns, apps and features such as news and interests on the  Windows taskbar should be treated as a possible security risk due to the potential of  data being sent back to third-parties, such as Microsoft.
+- In addition, the app may display inappropriate news and interests within the feed.

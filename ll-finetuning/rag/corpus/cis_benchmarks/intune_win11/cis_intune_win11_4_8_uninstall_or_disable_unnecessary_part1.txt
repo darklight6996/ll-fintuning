@@ -1,0 +1,141 @@
+4.8: Uninstall or Disable Unnecessary Services on (and related controls)
+
+Overview
+This value controls how often TCP attempts to verify that an idle connection is still intact 
+by sending a keep-alive packet. If the remote computer is still reachable, it 
+acknowledges the keep-alive packet. 
+The recommended state for this setting is: Enabled: 300,000 or 5 minutes 
+(recommended).
+
+This policy setting determines whether Redirection Guard is enabled for the print 
+spooler. Redirection Guard can prevent file redirections from being used within the print 
+spooler. 
+The recommended state for this setting is: Enabled: Redirection Guard Enabled.
+
+This policy setting allows you to control whether a user can sign in using a convenience 
+PIN. 
+Note: The user's password will be cached in the system vault when using this feature. 
+The recommended state for this setting is: Disabled.
+
+This policy setting allows you to configure the amount of functionality that the shell 
+protocol can have. When using the full functionality of this protocol, applications can 
+open folders and launch files. The protected mode reduces the functionality of this 
+protocol allowing applications to only open a limited set of folders. Applications are not 
+able to open files with this protocol when it is in the protected mode. It is recommended 
+to leave this protocol in the protected mode to increase the security of Windows. 
+The recommended state for this setting is: Disabled.
+
+This policy setting determines whether the all Windows Spotlight features are turned 
+on/off (together). 
+The recommended state for this setting is: Block. 
+Note: Per Microsoft TechNet, this policy setting only applies to Windows 10 Enterprise 
+and Windows 10 Education editions. 
+Note #2: Setting this recommendation to Block also disables the Recommendation 
+Allow Tailored Experiences With Diagnostic Data which was is included in the onprem Workstation Benchmarks. It was not included in the Intune version since this 
+setting is automatically disabled.
+
+This policy enables the automatic learning component of input personalization that 
+includes speech, inking, and typing. Automatic learning enables the collection of speech 
+and handwriting patterns, typing history, contacts, and recent calendar information. It is 
+required for the use of Cortana. Some of this collected information may be stored on the 
+user's OneDrive, in the case of inking and typing; some of the information will be 
+uploaded to Microsoft to personalize speech. 
+The recommended state for this setting is: Block.
+
+Why This Matters
+An attacker who is able to connect to network applications could establish numerous 
+connections to cause a DoS condition.
+
+This setting prevents non-administrators from redirecting files within the print spooler 
+process.
+
+A PIN is created from a much smaller selection of characters than a password, so in 
+most cases a PIN will be much less robust than a password.
+
+Limiting the opening of files and folders to a limited set reduces the attack surface of the 
+system.
+
+Disabling this setting will help ensure your data is not shared with any third party. The 
+Windows Spotlight feature collects data and uses that data to display suggested apps 
+as well as images from the internet.
+
+If this setting is Enabled sensitive information could be stored in the cloud or sent to 
+Microsoft.
+
+Audit Steps
+For Uninstall or Disable Unnecessary Services on:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 300000. 
+HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters:KeepAliveTime
+
+For Uninstall or Disable Unnecessary Services on:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers:RedirectionguardPolicy
+
+For Uninstall or Disable Unnecessary Services on:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\System:AllowDomainPINLogon
+
+For Uninstall or Disable Unnecessary Services on:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer:PreXPSP2Shel lProtocolBehavior
+
+For Uninstall or Disable Unnecessary Services on:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\(USER 
+SID)\Experience:AllowWindowsSpotlight_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\(USER 
+SID)\Experience:AllowWindowsSpotlight
+
+For Uninstall or Disable Unnecessary Services on:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization:AllowInputPersonalizati on
+
+Remediation
+For Uninstall or Disable Unnecessary Services on:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 300,000 or 5 minutes (recommended). 
+Administrative Templates\MSS (Legacy)\MSS: (KeepAliveTime) How often keepalive packets are sent in milliseconds
+
+For Uninstall or Disable Unnecessary Services on:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: Redirection Guard Enabled: 
+Administrative Templates\Printers\Configure Redirection Guard: Redirection 
+Guard Options
+
+For Uninstall or Disable Unnecessary Services on:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\System\Logon\Turn on convenience PIN sign-in
+
+For Uninstall or Disable Unnecessary Services on:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Windows Components\File Explorer\Turn off shell 
+protocol protected mode
+
+For Uninstall or Disable Unnecessary Services on:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block: 
+Experience\Allow Windows Spotlight (User)
+
+For Uninstall or Disable Unnecessary Services on:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block: 
+Privacy\Allow Input Personalization
+
+Key Takeaways
+- An attacker who is able to connect to network applications could establish numerous  connections to cause a DoS condition.
+- This setting prevents non-administrators from redirecting files within the print spooler  process.
+- A PIN is created from a much smaller selection of characters than a password, so in  most cases a PIN will be much less robust than a password.

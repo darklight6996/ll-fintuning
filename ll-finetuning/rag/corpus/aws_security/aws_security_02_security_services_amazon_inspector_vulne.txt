@@ -1,0 +1,44 @@
+Amazon Inspector is a vulnerability management service that continuously scans AWS workloads for software vulnerabilities and unintended network exposure. It integrates directly into the AWS environment, requiring no additional agents for many resource types, and produces a consolidated findings list prioritized by severity and exploitability.
+
+**Key Components**
+
+Amazon Inspector operates through two primary assessment mechanisms: network reachability and host-based vulnerability scanning.
+
+- **Network Reachability Analysis:** Inspector evaluates network configurations of Amazon EC2 instances, Elastic Load Balancers, and VPC components. It checks for unintended exposure to the internet, overly permissive security group rules, and paths that allow ingress from untrusted networks. Findings include details on the specific port, protocol, and source IP range that create the exposure. This analysis does not require an agent and runs at the hypervisor level.
+
+- **Host-Based Vulnerability Scanning:** For EC2 instances, Inspector can deploy the SSM Agent (or use an existing one) to perform deep scans of the operating system and installed applications. It checks against the Common Vulnerabilities and Exposures (CVE) database, specifically using the National Vulnerability Database (NVD) and vendor-specific advisories. The scan covers packages, libraries, and kernel versions. Findings include the CVE ID, CVSS score, and a remediation recommendation.
+
+- **Continuous Scanning and Event-Driven Triggers:** Inspector can be configured to scan on a recurring schedule (e.g., every 12 hours) or triggered by specific events, such as an EC2 instance launch or a change in security group rules. This ensures that new resources are assessed immediately and that existing resources are re-evaluated as new vulnerabilities are published.
+
+- **Findings Aggregation and Prioritization:** All findings are sent to AWS Security Hub and can be exported to Amazon EventBridge for automated response workflows. Inspector uses the Common Vulnerability Scoring System (CVSS) and additional context, such as network accessibility and exploit availability, to assign a risk score. Findings are grouped by severity: Critical, High, Medium, and Low.
+
+- **Integration with AWS Systems Manager:** Inspector leverages the SSM Agent for host-based scans. If the agent is not installed, Inspector can automatically install it during the scan setup. The service also uses SSM Patch Manager data to correlate patch status with vulnerability findings.
+
+**Real-World Application**
+
+A typical use case is a production environment with hundreds of EC2 instances running a mix of Amazon Linux, Ubuntu, and Windows Server. The security team configures Inspector to run a continuous scan every 12 hours and trigger a scan whenever a new instance is launched via Auto Scaling.
+
+- **Workflow:** Inspector identifies a critical vulnerability in the OpenSSL library on a fleet of Amazon Linux 2 instances. The finding includes the CVE ID (e.g., CVE-2023-0286), the CVSS score (7.5), and the specific package version. The team receives the finding in Security Hub and creates an automated response via EventBridge that triggers a Systems Manager Automation runbook to apply the patch. The runbook updates the package, restarts the service if needed, and then re-scans the instance to confirm remediation.
+
+- **Network Exposure Detection:** Inspector detects that a security group attached to a database instance allows inbound SSH (port 22) from 0.0.0.0/0. The finding includes the exact security group ID, the rule, and a recommendation to restrict access to a specific CIDR block. The team uses this finding to update the security group rule, reducing the attack surface.
+
+- **Compliance Validation:** For organizations subject to PCI DSS or SOC 2, Inspector provides a compliance view that maps findings to specific control requirements. For example, a finding related to an unpatched vulnerability in a web server can be linked to the requirement for timely patching. The team exports findings to a SIEM for audit evidence.
+
+**Security Relevance**
+
+Amazon Inspector addresses several critical security engineering concerns:
+
+- **Attack Surface Reduction:** By continuously identifying unintended network exposure, Inspector helps prevent common misconfigurations that lead to data breaches. The network reachability analysis is particularly valuable for detecting "shadow IT" resources that may have been deployed with overly permissive rules.
+
+- **Vulnerability Lifecycle Management:** Inspector automates the discovery phase of vulnerability management. Without it, teams would need to manually run vulnerability scanners, which is time-consuming and often misses newly published CVEs. Inspector’s continuous scanning ensures that the time between a CVE publication and detection is minimized.
+
+- **Prioritization Accuracy:** The service’s ability to combine CVSS scores with network context (e.g., is the vulnerable instance exposed to the internet?) reduces alert fatigue. A critical vulnerability on an internal-only instance may be deprioritized compared to a medium vulnerability on a publicly accessible web server.
+
+- **Integration with Incident Response:** Inspector findings can trigger automated remediation workflows. For example, a finding of a critical remote code execution vulnerability can automatically isolate the instance by modifying its security group or placing it in a quarantine VPC. This reduces the mean time to respond (MTTR).
+
+- **Compliance Automation:** For security teams managing multiple accounts, Inspector’s multi-account support (via AWS Organizations) allows centralized scanning and reporting. Findings can be aggregated into a delegated administrator account, simplifying audit preparation and evidence collection.
+
+**Key Takeaways**
+- Amazon Inspector provides continuous, agentless network reachability analysis and agent-based host vulnerability scanning, reducing manual effort in vulnerability discovery.
+- Its integration with AWS Security Hub, EventBridge, and Systems Manager enables automated remediation workflows, improving incident response times.
+- Prioritization based on CVSS scores combined with network context (e.g., internet exposure) helps security engineers focus on the most exploitable risks first.

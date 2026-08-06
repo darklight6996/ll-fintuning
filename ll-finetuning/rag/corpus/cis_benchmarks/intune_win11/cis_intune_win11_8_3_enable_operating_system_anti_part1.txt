@@ -1,0 +1,130 @@
+8.3: Enable Operating System Anti-Exploitation Features/ (and related controls)
+
+Overview
+When WDigest authentication is enabled, Lsass.exe retains a copy of the user's 
+plaintext password in memory, where it can be at risk of theft. If this setting is not 
+configured, WDigest authentication is disabled in Windows 8.1 and in Windows Server 
+2012 R2; it is enabled by default in earlier versions of Windows and Windows Server. 
+For more information about local accounts and credential theft, review the "Mitigating 
+Pass-the-Hash (PtH) Attacks and Other Credential Theft Techniques" documents. 
+For more information about UseLogonCredential, see Microsoft Knowledge Base 
+article 2871997: Microsoft Security Advisory Update to improve credentials protection 
+and management May 13, 2014. 
+The recommended state for this setting is: Disabled.
+
+Windows includes a grace period between when the screen saver is launched and 
+when the console is actually locked automatically when screen saver locking is enabled. 
+The recommended state for this setting is: Enabled: 5 or fewer seconds.
+
+This policy setting controls which protocol and protocol settings to use for outgoing 
+Remote Procedure Call (RPC) connections to a remote print spooler. 
+The recommended state for this setting is: Enabled: RPC over TCP
+
+This policy setting controls whether computers will show a warning and a security 
+elevation prompt when users create a new printer connection using Point and Print. 
+The recommended state for this setting is: Enabled: Show warning and elevation 
+prompt. 
+Note: On August 10, 2021, Microsoft announced a Point and Print Default Behavior 
+Change which modifies the default Point and Print driver installation and update 
+behavior to require Administrator privileges. This is documented in KB5005652—
+Manage new Point and Print default driver installation behavior (CVE-2021-34481). This 
+change overrides all Point and Print Group Policy settings and ensures that only 
+Administrators can install printer drivers from a print server using Point and Print.
+
+Disabling Data Execution Prevention can allow certain legacy plug-in applications to 
+function without terminating Explorer. 
+The recommended state for this setting is: Disabled. 
+Note: Some legacy plug-in applications and other software may not function with Data 
+Execution Prevention and will require an exception to be defined for that specific plugin/software.
+
+Why This Matters
+Preventing the plaintext storage of credentials in memory may reduce opportunity for 
+credential theft.
+
+The default grace period that is allowed for user movement before the screen saver lock 
+takes effect is five seconds. If you leave the default grace period configuration, your 
+computer is vulnerable to a potential attack from someone who could approach the 
+console and attempt to log on to the computer before the lock takes effect. An entry to 
+the registry can be made to adjust the length of the grace period.
+
+This setting prevents the use of named pipes for RPC connections to the print spooler 
+and forces the use of TCP which is a more secure communication method.
+
+Enabling Windows User Account Control (UAC) for the installation of new print drivers 
+can help mitigate the PrintNightmare vulnerability (CVE-2021-34527) and other Print 
+Spooler attacks. 
+Although the Point and Print default driver installation behavior overrides this setting, it 
+is important to configure this as a backstop in the event that behavior is reversed.
+
+Data Execution Prevention is an important security feature supported by Explorer that 
+helps to limit the impact of certain types of malware.
+
+Audit Steps
+For Enable Operating System Anti-Exploitation Features/:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest:UseLogonCrede ntial
+
+For Enable Operating System Anti-Exploitation Features/:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 5. 
+HKLM\SOFTWARE\Microsoft\Windows 
+NT\CurrentVersion\Winlogon:ScreenSaverGracePeriod
+
+For Enable Operating System Anti-Exploitation Features/:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows 
+NT\Printers\RPC:RpcUseNamedPipeProtocol
+
+For Enable Operating System Anti-Exploitation Features/:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\Software\Policies\Microsoft\Windows 
+NT\Printers\PointAndPrint:NoWarningNoElevationOnInstall
+
+For Enable Operating System Anti-Exploitation Features/:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer:NoDataExecutionPrevention
+
+Remediation
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\MS Security Guide\WDigest Authentication (disabling 
+may require KB2871997)
+
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 5 or fewer seconds. 
+Administrative Templates\MSS (Legacy)\MSS: (ScreenSaverGracePeriod) The time 
+in seconds before the screen saver grace period expires (0 recommended)
+
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: RPC over TCP: 
+Administrative Templates\Printers\Configure RPC connection settings: Protocol 
+to use for outgoing RPC connections
+
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: Show warning and elevation prompt. 
+Administrative Templates\Printers\Point and Print Restrictions: When 
+installing drivers for a new connection
+
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Windows Components\File Explorer\Turn off Data 
+Execution Prevention for Explorer
+
+Key Takeaways
+- Preventing the plaintext storage of credentials in memory may reduce opportunity for  credential theft.
+- The default grace period that is allowed for user movement before the screen saver lock  takes effect is five seconds.
+- If you leave the default grace period configuration, your  computer is vulnerable to a potential attack from someone who could approach the  console and attempt to log on to the computer before the lock takes effect.

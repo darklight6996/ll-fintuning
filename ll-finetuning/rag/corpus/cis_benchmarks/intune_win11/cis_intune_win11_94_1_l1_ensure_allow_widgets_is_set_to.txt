@@ -1,0 +1,26 @@
+94.1: (L1) Ensure 'Allow widgets' is set to 'Not allowed'
+
+Overview
+This policy setting specifies whether the Widgets feature is allowed on the device. The 
+Widgets feature provides information such as, weather, news, sports, stocks, traffic, and 
+entertainment (not an inclusive list). 
+The recommended state for this setting is: Not allowed.
+
+Why This Matters
+Due to privacy concerns, apps and features such as Widgets on the Windows taskbar 
+should be treated as a possible security risk due to the potential of data being sent back 
+to third-parties, such as Microsoft.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This group policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Dsh:AllowNewsAndInterests
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Not Allowed. 
+Widgets\Allow widgets
+
+Key Takeaways
+- Due to privacy concerns, apps and features such as Widgets on the Windows taskbar  should be treated as a possible security risk due to the potential of data being sent back  to third-parties, such as Microsoft.

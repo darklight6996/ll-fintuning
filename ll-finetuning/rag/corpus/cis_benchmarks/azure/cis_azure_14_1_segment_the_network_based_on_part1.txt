@@ -1,0 +1,122 @@
+14.1: Segment the Network Based on Sensitivity (and related controls)
+
+Overview
+Network Security Groups (NSGs) should be implemented to control inbound and 
+outbound traffic to Azure Databricks subnets, ensuring only authorized communication. 
+NSGs should be configured with deny rules to block unwanted traffic and restrict 
+communication to essential sources only.
+
+Automated cryptographic key rotation in Key Vault allows users to configure Key Vault 
+to automatically generate a new key version at a specified frequency. A key rotation 
+policy can be defined for each individual key.
+
+Why This Matters
+Automatic key rotation reduces risk by ensuring that keys are rotated without manual 
+intervention. 
+Azure and NIST recommend that keys be rotated every two years or less. Refer to 
+'Table 1: Suggested cryptoperiods for key types' on page 46 of the following document 
+for more information: 
+https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-57pt1r5.pdf.
+
+Audit Steps
+For Segment the Network Based on Sensitivity:
+Audit from Azure Portal 
+1. Navigate to Virtual Networks > Subnets, and review NSG assignments. 
+Audit from Azure CLI 
+az network nsg list --query "[].{Name:name, Rules:securityRules}" 
+Audit from PowerShell 
+Get-AzNetworkSecurityGroup -ResourceGroupName <resource-group-name>
+
+For Segment the Network Based on Sensitivity:
+Audit from Azure Portal 
+1. Go to Key Vaults. 
+2. Select a Key Vault. 
+3. Under Objects, select Keys. 
+4. Select a key. 
+5. From the top row, select Rotation policy. 
+6. Ensure Enable auto rotation is set to Enabled. 
+7. Ensure the Rotation time is set to an appropriate value. 
+8. Repeat steps 1-7 for each Key Vault and Key. 
+Audit from Azure CLI 
+Run the following command: 
+az keyvault key rotation-policy show --vault-name <vault-name> --name <keyname> 
+Ensure that the response contains a lifetimeAction of Rotate and that 
+timeAfterCreate is set to an appropriate value. 
+
+Audit from PowerShell 
+Run the following command: 
+Get-AzKeyVaultKeyRotationPolicy -VaultName <vault-name> -Name <key-name> 
+Ensure that the response contains a LifetimeAction of Rotate and that 
+TimeAfterCreate is set to an appropriate value. 
+
+Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: d8cf8476-a2ec-4916-896e-992351803c44 - Name: 'Keys should have 
+a rotation policy ensuring that their rotation is scheduled within the specified 
+number of days after creation.'
+
+Remediation
+For Segment the Network Based on Sensitivity:
+Remediate from Azure Portal 
+1. Assign NSG to Databricks subnets under Networking > NSG Settings.
+
+For Segment the Network Based on Sensitivity:
+Note: Azure CLI and PowerShell use the ISO8601 duration format for time spans. The 
+format is P<timespanInISO8601Format>(Y,M,D). The leading P is required and is 
+referred to as period. The (Y,M,D) are for the duration of Year, Month, and Day, 
+respectively. A time frame of 2 years, 2 months, 2 days would be P2Y2M2D. For Azure 
+CLI and PowerShell, it is easiest to supply the policy flags in a .json file, for 
+example: 
+{ 
+ "lifetimeActions": [ 
+ { 
+ "trigger": { 
+ "timeAfterCreate": "P<timespanInISO8601Format>(Y,M,D)", 
+ "timeBeforeExpiry" : null 
+ }, 
+ "action": { 
+ "type": "Rotate" 
+ } 
+ }, 
+ { 
+ "trigger": { 
+ "timeBeforeExpiry" : "P<timespanInISO8601Format>(Y,M,D)" 
+ }, 
+ "action": { 
+ "type": "Notify" 
+ } 
+ } 
+ ], 
+ "attributes": { 
+ "expiryTime": "P<timespanInISO8601Format>(Y,M,D)" 
+ } 
+} 
+
+ Remediate from Azure Portal 
+1. Go to Key Vaults. 
+2. Select a Key Vault. 
+3. Under Objects, select Keys. 
+4. Select a key. 
+5. From the top row, select Rotation policy. 
+6. Select an appropriate Expiry time. 
+7. Set Enable auto rotation to Enabled. 
+8. Set an appropriate Rotation option and Rotation time. 
+9. Optionally, set a Notification time. 
+10. Click Save. 
+11. Repeat steps 1-10 for each Key Vault and Key. 
+Remediate from Azure CLI 
+Run the following command for each key to enable automatic rotation: 
+az keyvault key rotation-policy update --vault-name <vault-name> --name <keyname> --value <path/to/policy.json> 
+Remediate from PowerShell 
+Run the following command for each key to enable automatic rotation: 
+Set-AzKeyVaultKeyRotationPolicy -VaultName <vault-name> -Name <key-name> -
+PolicyPath <path/to/policy.json>
+
+Key Takeaways
+- Network Security Groups (NSGs) should be implemented to control inbound and  outbound traffic to Azure Databricks subnets, ensuring only authorized communication.
+- NSGs should be configured with deny rules to block unwanted traffic and restrict  communication to essential sources only.
+- Automatic key rotation reduces risk by ensuring that keys are rotated without manual  intervention.

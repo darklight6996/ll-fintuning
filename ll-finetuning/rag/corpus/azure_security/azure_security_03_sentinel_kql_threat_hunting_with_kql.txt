@@ -1,0 +1,62 @@
+Threat hunting with Kusto Query Language (KQL) is the practice of proactively searching for signs of malicious activity within Microsoft Sentinel log data, using KQL’s query syntax to detect patterns that automated detection rules might miss. Unlike automated alerts, threat hunting is hypothesis-driven and iterative, requiring the analyst to craft queries that surface anomalous behaviors, correlate disparate data sources, and pivot on indicators of compromise (IOCs) without a predefined alert trigger.
+
+**Key Components of KQL for Threat Hunting**
+
+- **Data Source Selection and Filtering**  
+  Effective hunting begins with identifying the correct tables. In Sentinel, common tables include `SecurityEvent`, `SigninLogs`, `DeviceEvents`, `CommonSecurityLog`, and `VMConnection`. Use the `where` operator to filter by time range, entity (e.g., `AccountName`, `DeviceName`), or event type. Example:  
+  `SecurityEvent | where TimeGenerated > ago(7d) | where EventID == 4625` (failed logons).
+
+- **Time-Based Analysis**  
+  KQL’s `timechart` and `bin` functions allow you to visualize event frequency over time. For hunting, look for spikes or periodic patterns. Use `summarize` with `bin(TimeGenerated, 1h)` to aggregate counts and identify outliers. Example:  
+  `SigninLogs | where TimeGenerated > ago(1d) | summarize FailedAttempts = count() by bin(TimeGenerated, 1h), UserPrincipalName | where FailedAttempts > 10`.
+
+- **Join Operations for Correlation**  
+  The `join` operator links events from different tables on common fields (e.g., `AccountUpn`, `DeviceId`, `IPAddress`). This is critical for detecting lateral movement or privilege escalation. Example: join `SecurityEvent` (EventID 4688 – process creation) with `DeviceEvents` to find a process spawned by a suspicious parent process.
+
+- **String and Pattern Matching**  
+  Use `has`, `contains`, `startswith`, and `matches regex` to search for known IOCs like command-line arguments, file paths, or registry keys. For example, hunting for PowerShell encoded commands:  
+  `DeviceEvents | where ActionType == "ProcessCreated" | where ProcessCommandLine contains " -EncodedCommand "`.
+
+- **Aggregation and Statistical Anomaly Detection**  
+  The `make_set`, `make_list`, and `dcount` functions help summarize unique values. For anomaly detection, use `percentile` and `stdev` to establish baselines. Example: find accounts with logon times outside normal hours:  
+  `SigninLogs | summarize LogonHours = make_set(hour_of_day(TimeGenerated)) by UserPrincipalName | where array_length(LogonHours) < 3`.
+
+- **Pivoting and Iterative Refinement**  
+  A hunt is rarely a single query. Use `let` statements to define variables (e.g., a suspicious IP or hash) and reuse them across queries. Example:  
+  `let SuspiciousIP = "10.0.0.5";`  
+  `SigninLogs | where IPAddress == SuspiciousIP | project TimeGenerated, UserPrincipalName, AppDisplayName`.
+
+**Real-World Application: Detecting Kerberoasting**
+
+Kerberoasting is a technique where an attacker requests a service ticket for a domain account with a Service Principal Name (SPN), then cracks the ticket offline. A threat hunt for this activity in Sentinel uses KQL to correlate Windows Event ID 4769 (Kerberos service ticket request) with unusual volume or source IPs.
+
+1. **Baseline Query**: Count ticket requests per user and service.  
+   `SecurityEvent | where EventID == 4769 | summarize TicketCount = count() by TargetUserName, ServiceName | order by TicketCount desc`.
+
+2. **Anomaly Detection**: Identify users requesting tickets for many different services in a short window.  
+   `SecurityEvent | where EventID == 4769 | summarize UniqueServices = dcount(ServiceName), TotalRequests = count() by TargetUserName, bin(TimeGenerated, 1h) | where UniqueServices > 10`.
+
+3. **Correlation with Process Creation**: Check if the requesting account ran a tool like `Rubeus` or `Mimikatz`. Join with `DeviceEvents` on `AccountName`.  
+   `let SuspiciousAccounts = (SecurityEvent | where EventID == 4769 | summarize by TargetUserName);`  
+   `DeviceEvents | where ActionType == "ProcessCreated" | where AccountName in (SuspiciousAccounts) | where ProcessCommandLine contains "Rubeus"`.
+
+4. **Pivot on Source IP**: If the requests come from a non-domain controller, flag it.  
+   `SecurityEvent | where EventID == 4769 | where IpAddress != "192.168.1.10" | project TimeGenerated, TargetUserName, IpAddress`.
+
+This iterative process reduces false positives and isolates the attacker’s behavior. The final output can be a hunting bookmark or a custom detection rule.
+
+**Security Relevance**
+
+Threat hunting with KQL directly addresses the limitations of signature-based detection. Attackers often use living-off-the-land binaries (LOLBins) or modify their TTPs to evade automated rules. By writing ad-hoc KQL queries, the security engineer can:
+
+- **Detect Low-and-Slow Attacks**: An attacker exfiltrating data over weeks will not trigger a threshold alert, but a time-series query can reveal a gradual increase in outbound traffic from a single host.
+- **Identify Privilege Escalation Chains**: Join multiple event IDs (e.g., 4672 – special privileges assigned, 4688 – process creation) to trace how an attacker moved from a standard user to SYSTEM.
+- **Validate IOCs from Threat Intelligence**: Use `let` statements to load a list of known malicious IPs or hashes and cross-reference with Sentinel tables for historical hits.
+- **Reduce Dwell Time**: Proactive hunts uncover breaches that automated rules missed, shrinking the window between compromise and discovery.
+
+KQL’s ability to handle large datasets (terabytes per day) in near-real time makes it the primary tool for Sentinel-based hunting. The language’s pipe-based syntax allows rapid prototyping, and its built-in functions for time series, joins, and aggregations eliminate the need for external scripting. For compliance, documented hunt queries serve as evidence of due diligence in monitoring and incident response.
+
+**Key Takeaways**
+- KQL enables hypothesis-driven threat hunting by allowing joins across Sentinel tables, time-based anomaly detection, and iterative refinement of queries to surface stealthy attacker behaviors.
+- Real-world hunts, such as for Kerberoasting, rely on correlating multiple event IDs (e.g., 4769, 4688) and pivoting on entities like IP addresses and account names to isolate malicious activity.
+- Proactive KQL hunting reduces dwell time and complements automated detection, providing a documented, repeatable process for identifying advanced threats that evade signature-based rules.

@@ -1,0 +1,63 @@
+6.8: Define and Maintain Role-Based Access Control (and related controls)
+
+Overview
+This policy setting determines which users can bypass file, directory, registry, and other 
+persistent object permissions when restoring backed up files and directories on 
+computers that run Windows Vista (or newer) in your environment. This user right also 
+determines which users can set valid security principals as object owners; it is similar to 
+the Back up files and directories user right. 
+The recommended state for this setting is: *S-1-5-32-544 (Administrators). 
+Note: This user right is considered a "sensitive privilege" for the purposes of auditing.
+
+This policy setting allows users to take ownership of files, folders, registry keys, 
+processes, or threads. This user right bypasses any permissions that are in place to 
+protect objects to give ownership to the specified user. 
+The recommended state for this setting is: *S-1-5-32-544 (Administrators). 
+Note: This user right is considered a "sensitive privilege" for the purposes of auditing.
+
+Why This Matters
+An attacker with the Restore files and directories user right could restore sensitive 
+data to a computer and overwrite data that is more recent, which could lead to loss of 
+important data, data corruption, or a denial of service. Attackers could overwrite 
+executable files that are used by legitimate administrators or system services with 
+versions that include malicious software to grant themselves elevated privileges, 
+compromise data, or install backdoors for continued access to the computer. 
+Note: Even if the following countermeasure is configured, an attacker could still restore 
+data to a computer in a domain that is controlled by the attacker. Therefore, it is critical 
+that organizations carefully protect the media that is used to back up data.
+
+Any users with the Take ownership of files or other objects user right can take 
+control of any object, regardless of the permissions on that object, and then make any 
+changes they wish to that object. Such changes could result in exposure of data, 
+corruption of data, or a DoS condition.
+
+Audit Steps
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Restore files and 
+directories
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Take ownership of 
+files or other objects
+
+Remediation
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 (Administrators). 
+User Rights\Restore files and directories 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 (Administrators). 
+User Rights\Take Ownership 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+Key Takeaways
+- An attacker with the Restore files and directories user right could restore sensitive  data to a computer and overwrite data that is more recent, which could lead to loss of  important data, data corruption, or a denial of service.
+- Attackers could overwrite  executable files that are used by legitimate administrators or system services with  versions that include malicious software to grant themselves elevated privileges,  compromise data, or install backdoors for continued access to the computer.
+- Note: Even if the following countermeasure is configured, an attacker could still restore  data to a computer in a domain that is controlled by the attacker.

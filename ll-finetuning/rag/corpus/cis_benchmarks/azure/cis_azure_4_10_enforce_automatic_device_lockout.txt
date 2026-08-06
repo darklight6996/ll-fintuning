@@ -1,0 +1,73 @@
+4.10: Enforce Automatic Device Lockout on Portable EndUser Devices (and related controls)
+
+Overview
+The account lockout duration value determines how long an account retains the status 
+of lockout, and therefore how long before a user can continue to attempt to login after 
+passing the lockout threshold.
+
+Microsoft Azure applies a default global banned password list to all user and admin 
+accounts that are created and managed directly in Microsoft Entra ID. 
+The Microsoft Entra password policy does not apply to user accounts that are 
+synchronized from an on-premises Active Directory environment, unless Microsoft Entra 
+ID Connect is used and EnforceCloudPasswordPolicyForPasswordSyncedUsers is 
+enabled. 
+Review the Default Value section for more detail on the password policy. 
+For increased password security, a custom banned password list is recommended
+
+Why This Matters
+Account lockout is a method of protecting against brute-force and password spray 
+attacks. Once the lockout threshold has been exceeded, the account enters a lockedout state which prevents all login attempts for a variable duration. The lockout in 
+combination with a reasonable duration reduces the total number of failed login 
+attempts that a malicious actor can execute in a given period of time.
+
+Implementing a custom banned password list gives your organization further control 
+over the password policy. Disallowing easy-to-guess passwords increases the security 
+of your Azure resources.
+
+Audit Steps
+For Enforce Automatic Device Lockout on Portable EndUser Devices:
+Audit from Azure Portal 
+1. From Azure Home select the Portal Menu. 
+2. Select Microsoft Entra ID. 
+3. Under Manage, select Security. 
+4. Under Manage, select Authentication methods. 
+5. Under Manage, select Password protection. 
+6. Ensure that Lockout duration in seconds is set to 60 or higher.
+
+For Enforce Automatic Device Lockout on Portable EndUser Devices:
+Audit from Azure Portal 
+1. From Azure Home select the Portal Menu. 
+2. Select Microsoft Entra ID. 
+3. Under Manage, select Security. 
+4. Under Manage, select Authentication methods. 
+5. Under Manage, select Password protection. 
+6. Ensure Enforce custom list is set to Yes. 
+7. Review the list of words banned from use in passwords.
+
+Remediation
+For Enforce Automatic Device Lockout on Portable EndUser Devices:
+Remediate from Azure Portal 
+1. From Azure Home select the Portal Menu. 
+2. Select Microsoft Entra ID. 
+3. Under Manage, select Security. 
+4. Under Manage, select Authentication methods. 
+5. Under Manage, select Password protection. 
+6. Set the Lockout duration in seconds to 60 or higher. 
+7. Click Save.
+
+For Enforce Automatic Device Lockout on Portable EndUser Devices:
+Remediate from Azure Portal 
+1. From Azure Home select the Portal Menu. 
+2. Select Microsoft Entra ID. 
+3. Under Manage, select Security. 
+4. Under Manage, select Authentication methods. 
+5. Under Manage, select Password protection. 
+6. Set the Enforce custom list option to Yes. 
+7. Click in the Custom banned password list text box. 
+8. Add a list of words, one per line, to prevent users from using in passwords. 
+9. Click Save.
+
+Key Takeaways
+- Account lockout is a method of protecting against brute-force and password spray  attacks.
+- Once the lockout threshold has been exceeded, the account enters a lockedout state which prevents all login attempts for a variable duration.
+- The lockout in  combination with a reasonable duration reduces the total number of failed login  attempts that a malicious actor can execute in a given period of time.

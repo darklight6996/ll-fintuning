@@ -1,0 +1,50 @@
+Event ID 10 in the Windows Security Event Log corresponds to "Process Access." This event is generated when a process attempts to open a handle to another process, requesting specific access rights. It is a critical telemetry source for detecting privilege escalation, credential theft, and lateral movement, as it captures the act of one process interacting with another at the kernel level.
+
+**Definition**
+
+Event ID 10 is logged by the Microsoft-Windows-Security-Auditing provider when the `OpenProcess` or `NtOpenProcess` system call is invoked. The event is generated only if the "Audit Process Creation" and "Audit Detailed Process Tracking" subcategories are enabled in the Advanced Audit Policy. It records the source process (caller) and the target process (object), along with the requested access mask. Unlike Event ID 4688 (Process Creation), which logs when a new process starts, Event ID 10 logs an interaction with an already-running process. This distinction makes it invaluable for detecting post-exploitation behavior, such as a malicious process attempting to read the memory of `lsass.exe`.
+
+**Key Components**
+
+Each Event ID 10 entry contains the following fields, which are essential for analysis:
+
+- **Subject**: The security identifier (SID), account name, and logon ID of the process that requested the handle. This identifies the caller.
+- **Object**: The security identifier (SID), account name, and logon ID of the process being accessed. This identifies the target.
+- **Process Information**:
+  - **Source Process ID**: The PID of the calling process.
+  - **Source Process Name**: The full path to the executable of the calling process.
+  - **Target Process ID**: The PID of the target process.
+  - **Target Process Name**: The full path to the executable of the target process.
+- **Requested Access Mask**: A hexadecimal value representing the specific access rights requested. Common values include:
+  - `0x1F0FFF`: Full control (PROCESS_ALL_ACCESS)
+  - `0x0010`: PROCESS_VM_READ
+  - `0x0020`: PROCESS_VM_WRITE
+  - `0x0400`: PROCESS_QUERY_INFORMATION
+  - `0x1000`: PROCESS_TERMINATE
+- **Access Mask Details**: A human-readable breakdown of the access rights, such as "ReadProcessMemory" or "WriteProcessMemory."
+
+The access mask is the most critical field for security analysis. A request for `PROCESS_VM_READ` against `lsass.exe` is a strong indicator of credential dumping via tools like Mimikatz. A request for `PROCESS_CREATE_THREAD` against a high-integrity process may indicate code injection.
+
+**Real-World Application**
+
+Event ID 10 is a cornerstone of endpoint detection and response (EDR) and security information and event management (SIEM) correlation rules. Below are specific use cases:
+
+- **Credential Dumping Detection**: A rule that triggers on any process (excluding `lsass.exe` itself and trusted system processes like `svchost.exe`) requesting `PROCESS_VM_READ` or `PROCESS_VM_WRITE` on `lsass.exe` will detect tools such as Mimikatz, ProcDump, or custom PowerShell scripts. The rule must exclude legitimate backup agents and antivirus scanners that may also open `lsass.exe` with read access.
+- **Process Injection Detection**: A rule that flags a low-integrity process (e.g., a web browser) requesting `PROCESS_CREATE_THREAD` or `PROCESS_VM_WRITE` on a high-integrity process (e.g., `winlogon.exe` or `explorer.exe`) can indicate remote thread injection or reflective DLL injection.
+- **Lateral Movement Detection**: When a process spawned by a remote service (e.g., `wmiprvse.exe`, `svchost.exe` running DCOM) opens a handle to a local process with `PROCESS_ALL_ACCESS`, it may indicate lateral movement tools like PsExec or WMI-based execution.
+- **Privilege Escalation Detection**: A process running as a standard user that opens a handle to a SYSTEM-level process with `PROCESS_QUERY_INFORMATION` or `PROCESS_DUP_HANDLE` may be attempting to escalate privileges via token stealing.
+
+**Security Relevance**
+
+Event ID 10 is a high-fidelity signal for post-exploitation activity, but it requires careful tuning to avoid noise. The following considerations are critical for security engineers:
+
+- **Baseline and Whitelist**: Legitimate software, such as antivirus scanners, backup agents, and monitoring tools, frequently open handles to processes. Create a baseline of known-good source process names and paths. For example, `MsMpEng.exe` (Windows Defender) will open handles to `lsass.exe` for scanning. Whitelist these by source process name and path, not just by name, to prevent bypass via renamed executables.
+- **Access Mask Granularity**: Not all access to `lsass.exe` is malicious. A request for `PROCESS_QUERY_LIMITED_INFORMATION` (0x1000) is often benign. Focus on access masks that include `PROCESS_VM_READ` (0x0010) or `PROCESS_VM_WRITE` (0x0020) for credential dumping detection.
+- **Correlation with Other Events**: Event ID 10 should be correlated with Event ID 4688 (Process Creation) to understand the parent-child relationship. For example, if `rundll32.exe` (spawned by a Microsoft Office application) opens a handle to `lsass.exe`, this is highly suspicious. Correlation with network events (e.g., outbound SMB connections) can confirm lateral movement.
+- **False Positive Reduction**: High-volume sources like `svchost.exe` and `csrss.exe` will generate many Event ID 10 entries. Filter these out unless the access mask is anomalous. Additionally, processes running under the SYSTEM account that open handles to other SYSTEM processes are often benign and can be suppressed.
+- **Log Volume Management**: Event ID 10 can be extremely verbose on servers with many running processes. Consider enabling it only on critical systems (domain controllers, file servers, database servers) or using a sampling rate. On domain controllers, it is essential for detecting credential theft.
+
+**Key Takeaways**
+- Event ID 10 logs process handle access, making it the primary event for detecting credential dumping (e.g., `PROCESS_VM_READ` on `lsass.exe`) and process injection.
+- The access mask field is the most important data point; focus on `PROCESS_VM_READ`, `PROCESS_VM_WRITE`, and `PROCESS_CREATE_THREAD` for malicious activity detection.
+- Effective use requires baselining legitimate software, correlating with process creation events (Event ID 4688), and filtering high-volume system processes to reduce noise.

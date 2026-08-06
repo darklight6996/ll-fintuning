@@ -1,0 +1,127 @@
+0.0: Explicitly Not Mapped (and related controls)
+
+Overview
+This policy setting allows you to restrict remote RPC connections to SAM. 
+The recommended state for this setting is: Administrators: Remote Access: Allow. 
+Note: A Windows 10 R1607, Server 2016 or newer OS is required to access and set 
+this value in Group Policy. 
+Note #2: This setting was originally only supported on Windows 10 R1607 or newer, 
+then support for it was added to Windows 7 or newer via the March 2017 security 
+patches. 
+Note #3: If your organization is using Microsoft Defender for Identity (formerly Azure 
+Advanced Threat Protection (Azure ATP)), the (organization-named) Defender for 
+Identity Directory Service Account (DSA), will also need to be granted the same Remote 
+Access: Allow permission. For more information on adding the service account please 
+see Configure SAM-R to enable lateral movement path detection in Microsoft Defender 
+for Identity | Microsoft Docs.
+
+This policy setting determines whether Local System services that use Negotiate when 
+reverting to NTLM authentication can use the computer identity. This policy is supported 
+on at least Windows 7 or Windows Server 2008 R2. 
+The recommended state for this setting is: Allow.
+
+This setting determines if online identities are able to authenticate to this computer. 
+The Public Key Cryptography Based User-to-User (PKU2U) protocol introduced in 
+Windows 7 and Windows Server 2008 R2 is implemented as a security support provider 
+(SSP). The SSP enables peer-to-peer authentication, particularly through the Windows 
+7 media and file sharing feature called HomeGroup, which permits sharing between 
+computers that are not members of a domain. 
+With PKU2U, a new extension was introduced to the Negotiate authentication package, 
+Spnego.dll. In previous versions of Windows, Negotiate decided whether to use 
+Kerberos or NTLM for authentication. The extension SSP for Negotiate, Negoexts.dll, 
+which is treated as an authentication protocol by Windows, supports Microsoft SSPs 
+including PKU2U. 
+When computers are configured to accept authentication requests by using online IDs, 
+Negoexts.dll calls the PKU2U SSP on the computer that is used to log on. The 
+PKU2U SSP obtains a local certificate and exchanges the policy between the peer 
+computers. When validated on the peer computer, the certificate within the metadata is 
+sent to the logon peer for validation and associates the user's certificate to a security 
+token and the logon process completes. 
+The recommended state for this setting is: Block.
+
+This policy setting controls the behavior of the elevation prompt for standard users. 
+The recommended state for this setting is: Automatically deny elevation 
+requests.
+
+Why This Matters
+To ensure that an unauthorized user cannot anonymously list local account names or 
+groups and use the information to attempt to guess passwords or perform social 
+engineering attacks. (Social engineering attacks try to deceive users in some way to 
+obtain passwords or some form of security information.)
+
+When connecting to computers running versions of Windows earlier than Windows Vista 
+or Windows Server 2008 (non-R2), services running as Local System and using 
+SPNEGO (Negotiate) that revert to NTLM use the computer identity. In Windows 7, if 
+you are connecting to a computer running Windows Server 2008 or Windows Vista, 
+then a system service uses either the computer identity or a NULL session. When 
+connecting with a NULL session, a system-generated session key is created, which 
+provides no protection but allows applications to sign and encrypt data without errors. 
+When connecting with the computer identity, both signing and encryption is supported in 
+order to provide data protection.
+
+The PKU2U protocol is a peer-to-peer authentication protocol - authentication should be 
+managed centrally in most managed networks.
+
+One of the risks that the User Account Control feature introduced with Windows Vista is 
+trying to mitigate is that of malicious programs running under elevated credentials 
+without the user or administrator being aware of their activity. This setting raises 
+awareness to the user that a program requires the use of elevated privilege operations 
+and requires that the user be able to supply administrative credentials in order for the 
+program to run.
+
+Audit Steps
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a REG_SZ 
+value of O:BAG:BAD:(A;;RC;;;BA). 
+HKLM\SYSTEM\CurrentControlSet\Control\Lsa:restrictremotesam 
+O:BAG:BAD:(A;;RC;;;BA)
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Control\Lsa:UseMachineId
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SYSTEM\CurrentControlSet\Control\Lsa\pku2u:AllowOnlineID
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System:ConsentPromptB
+ehaviorUser
+
+Remediation
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Administrators: Remote Access: Allow: 
+Local Policies Security Options\Network access: Restrict clients allowed to 
+make remote calls to SAM
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Allow: 
+Local Policies Security Options\Network security: Allow Local System to use 
+computer identity for NTLM
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block: 
+Local Policies Security Options\Network Security: Allow PKU2U authentication 
+requests to this computer
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Automatically deny elevation requests: 
+Local Policies Security Options\User Account Control: Behavior of the 
+elevation prompt for standard users
+
+Key Takeaways
+- To ensure that an unauthorized user cannot anonymously list local account names or  groups and use the information to attempt to guess passwords or perform social  engineering attacks.
+- (Social engineering attacks try to deceive users in some way to  obtain passwords or some form of security information.
+- ) When connecting to computers running versions of Windows earlier than Windows Vista  or Windows Server 2008 (non-R2), services running as Local System and using  SPNEGO (Negotiate) that revert to NTLM use the computer identity.

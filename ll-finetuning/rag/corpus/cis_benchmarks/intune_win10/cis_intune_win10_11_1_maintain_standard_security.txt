@@ -1,0 +1,57 @@
+11.1: Maintain Standard Security Configurations for (and related controls)
+
+Overview
+This setting controls the number of times that TCP retransmits an individual data 
+segment (non-connect segment) before the connection is aborted. The retransmission 
+time-out is doubled with each successive retransmission on a connection. It is reset 
+when responses resume. The base time-out value is dynamically determined by the 
+measured round-trip time on the connection. 
+The recommended state for this setting is: Enabled: 3.
+
+This setting can generate a security audit in the Security event log when the log reaches 
+a user-defined threshold. 
+The recommended state for this setting is: Enabled: 90% or less. 
+Note: If log settings are configured to Overwrite events as needed or Overwrite events 
+older than x days, this event will not be generated.
+
+Why This Matters
+A malicious user could exhaust a target computer's resources if it never sent any 
+acknowledgment messages for data that was transmitted by the target computer.
+
+If the Security log reaches 90 percent of its capacity and the computer has not been 
+configured to overwrite events as needed, more recent events will not be written to the 
+log. If the log reaches its capacity and the computer has been configured to shut down 
+when it can no longer record events to the Security log, the computer will shut down and 
+will no longer be available to provide network services.
+
+Audit Steps
+For Maintain Standard Security Configurations for:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 3. 
+HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters:TcpMaxDataRetransmiss ions
+
+For Maintain Standard Security Configurations for:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 90. 
+HKLM\SYSTEM\CurrentControlSet\Services\Eventlog\Security:WarningLevel
+
+Remediation
+For Maintain Standard Security Configurations for:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 3. 
+Administrative Templates\MSS (Legacy)\MSS:(TcpMaxDataRetransmissions) How 
+many times unacknowledged data is retransmitted
+
+For Maintain Standard Security Configurations for:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 90% or less. 
+Administrative Templates\MSS (Legacy)\MSS: (WarningLevel) Percentage 
+threshold for the security event log at which the system will generate a 
+warning
+
+Key Takeaways
+- A malicious user could exhaust a target computer's resources if it never sent any  acknowledgment messages for data that was transmitted by the target computer.
+- If the Security log reaches 90 percent of its capacity and the computer has not been  configured to overwrite events as needed, more recent events will not be written to the  log.
+- If the log reaches its capacity and the computer has been configured to shut down  when it can no longer record events to the Security log, the computer will shut down and  will no longer be available to provide network services.

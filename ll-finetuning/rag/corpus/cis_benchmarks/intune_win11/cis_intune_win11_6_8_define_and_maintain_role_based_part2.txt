@@ -1,0 +1,110 @@
+6.8: Define and Maintain Role-Based Access Control (and related controls)
+
+Overview
+This policy setting determines which users and groups can change the time and date on 
+the internal clock of the computers in your environment. Users who are assigned this 
+user right can affect the appearance of event logs. When a computer's time setting is 
+changed, logged events reflect the new time, not the actual time that the events 
+occurred. 
+The recommended state for this setting is: *S-1-5-32-544 and *S-1-5-19 
+(Administrators, LOCAL SERVICE). 
+Note: Discrepancies between the time on the local computer and on the Domain 
+Controllers in your environment may cause problems for the Kerberos authentication 
+protocol, which could make it impossible for users to log on to the domain or obtain 
+authorization to access domain resources after they are logged on. Also, problems will 
+occur when Group Policy is applied to client computers if the system time is not 
+synchronized with the Domain Controllers.
+
+This policy setting determines whether users can create global objects that are available 
+to all sessions. Users can still create objects that are specific to their own session if they 
+do not have this user right. 
+Users who can create global objects could affect processes that run under other users' 
+sessions. This capability could lead to a variety of problems, such as application failure 
+or data corruption. 
+The recommended state for this setting is: *S-1-5-32-544, *S-1-5-19, *S-1-5-20 and 
+*S-1-5-6 (Administrators, LOCAL SERVICE, NETWORK SERVICE, SERVICE).
+
+This policy setting allows users to change the size of the pagefile. By making the 
+pagefile extremely large or extremely small, an attacker could easily affect the 
+performance of a compromised computer. 
+The recommended state for this setting is: *S-1-5-32-544 (Administrators).
+
+Why This Matters
+Users who can change the time on a computer could cause several problems. For 
+example, time stamps on event log entries could be made inaccurate, time stamps on 
+files and folders that are created or modified could be incorrect, and computers that 
+belong to a domain may not be able to authenticate themselves or users who try to log 
+on to the domain from them. Also, because the Kerberos authentication protocol 
+requires that the requestor and authenticator have their clocks synchronized within an 
+administrator-defined skew period, an attacker who changes a computer's time may 
+cause that computer to be unable to obtain or grant Kerberos tickets. 
+The risk from these types of events is mitigated on most Domain Controllers, Member 
+Servers, and end-user computers because the Windows Time service automatically 
+synchronizes time with Domain Controllers in the following ways: 
+• 
+All client desktop computers and Member Servers use the authenticating Domain 
+Controller as their inbound time partner. 
+• 
+All Domain Controllers in a domain nominate the Primary Domain Controller 
+(PDC) Emulator operations master as their inbound time partner. 
+• 
+All PDC Emulator operations masters follow the hierarchy of domains in the 
+selection of their inbound time partner. 
+• 
+The PDC Emulator operations master at the root of the domain is authoritative for 
+the organization. Therefore it is recommended that you configure this computer 
+to synchronize with a reliable external time server. 
+This vulnerability becomes much more serious if an attacker is able to change the 
+system time and then stop the Windows Time service or reconfigure it to synchronize 
+with a time server that is not accurate.
+
+Users who can create global objects could affect Windows services and processes that 
+run under other user or system accounts. This capability could lead to a variety of 
+problems, such as application failure, data corruption and elevation of privilege.
+
+Users who can change the page file size could make it extremely small or move the file 
+to a highly fragmented storage volume, which could cause reduced computer 
+performance.
+
+Audit Steps
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Change the system 
+time
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Create global objects
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Create a pagefile
+
+Remediation
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 and *S-1-5-19 (Administrators, LOCAL 
+SERVICE). 
+User Rights\Change System Time 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544, *S-1-5-19, *S-1-5-20 and *S-1-5-6 
+(Administrators, LOCAL SERVICE, NETWORK SERVICE, SERVICE). 
+User Rights\Create Global Objects 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 (Administrators). 
+User Rights\Create Page File 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+Key Takeaways
+- Users who can change the time on a computer could cause several problems.
+- For  example, time stamps on event log entries could be made inaccurate, time stamps on  files and folders that are created or modified could be incorrect, and computers that  belong to a domain may not be able to authenticate themselves or users who try to log  on to the domain from them.
+- Also, because the Kerberos authentication protocol  requires that the requestor and authenticator have their clocks synchronized within an  administrator-defined skew period, an attacker who changes a computer's time may  cause that computer to be unable to obtain or grant Kerberos tickets.

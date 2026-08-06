@@ -1,0 +1,140 @@
+11.2: Document Traffic Configuration Rules (and related controls)
+
+Overview
+Select this option to have Windows Firewall with Advanced Security display notifications 
+to the user when a program is blocked from receiving inbound connections. 
+The recommended state for this setting is: True. 
+Note: When the Apply local firewall rules setting is configured to No, it's 
+recommended to also configure the Display a notification setting to No. 
+Otherwise, users will continue to receive messages that ask if they want to unblock a 
+restricted inbound connection, but the user's response will be ignored.
+
+Use this option to log when Windows Firewall with Advanced Security discards an 
+inbound packet for any reason. The log records why and when the packet was dropped. 
+Look for entries with the word DROP in the action column of the log. 
+The recommended state for this setting is: Enable Logging Of Dropped Packets.
+
+Select this option to have Windows Firewall with Advanced Security display notifications 
+to the user when a program is blocked from receiving inbound connections. 
+The recommended state for this setting is: True. 
+Note: When the Apply local firewall rules setting is configured to No, it's 
+recommended to also configure the Display a notification setting to No. 
+Otherwise, users will continue to receive messages that ask if they want to unblock a 
+restricted inbound connection, but the user's response will be ignored.
+
+Use this option to log when Windows Firewall with Advanced Security allows an 
+inbound connection. The log records why and when the connection was formed. Look 
+for entries with the word ALLOW in the action column of the log. 
+The recommended state for this setting is: Enable Logging Of Successful 
+Connections.
+
+This setting controls whether local administrators are allowed to create local firewall 
+rules that apply together with firewall rules configured by Group Policy. 
+The recommended state for this setting is: False. 
+Note: When the Allow Local Policy Merge setting is configured to False, it's 
+recommended to also configure the Disable Inbound Notifications setting to True. 
+Otherwise, users will continue to receive messages that ask if they want to unblock a 
+restricted inbound connection, but the user's response will be ignored.
+
+Select this option to have Windows Firewall with Advanced Security display notifications 
+to the user when a program is blocked from receiving inbound connections. 
+The recommended state for this setting is: True.
+
+Why This Matters
+Firewall notifications can be complex and may confuse the end users, who would not be 
+able to address the alert.
+
+If events are not recorded it may be difficult or impossible to determine the root cause of 
+system problems or the unauthorized activities of malicious users.
+
+Firewall notifications can be complex and may confuse the end users, who would not be 
+able to address the alert.
+
+If events are not recorded it may be difficult or impossible to determine the root cause of 
+system problems or the unauthorized activities of malicious users.
+
+When in the Public profile, there should be no special local firewall exceptions per 
+computer. These settings should be managed by a centralized policy.
+
+Some organizations may prefer to avoid alarming users when firewall rules block certain 
+types of network activity. However, notifications can be helpful when troubleshooting 
+network issues involving the firewall.
+
+Audit Steps
+For Document Traffic Configuration Rules:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\DomainProfile:DisableNotifications
+
+For Document Traffic Configuration Rules:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\DomainProfile\Logging:LogDroppedPackets
+
+For Document Traffic Configuration Rules:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\StandardProfile:DisableNotifications
+
+For Document Traffic Configuration Rules:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\StandardProfile\Logging:LogSuccessfulConnections
+
+For Document Traffic Configuration Rules:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\PublicProfile:AllowLocalPolicyMerge
+
+For Document Traffic Configuration Rules:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\PublicProfile:DisableNotifications
+
+Remediation
+For Document Traffic Configuration Rules:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to True: 
+Firewall\Enable Domain Network Firewall: Disable Inbound Notifications
+
+For Document Traffic Configuration Rules:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enable Logging Of Dropped Packets: 
+Firewall\Enable Domain Network Firewall: Enable Log Dropped Packets
+
+For Document Traffic Configuration Rules:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to True: 
+Firewall\Enable Private Network Firewall: Disable Inbound Notifications
+
+For Document Traffic Configuration Rules:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enable Logging Of Successful Connections: 
+Firewall\Enable Private Network Firewall: Enable Log Success Connections
+
+For Document Traffic Configuration Rules:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to False: 
+Firewall\Enable Public Network Firewall: Allow Local Policy Merge
+
+For Document Traffic Configuration Rules:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 'True': 
+Firewall\Enable Public Network Firewall: Disable Inbound Notifications
+
+Key Takeaways
+- Firewall notifications can be complex and may confuse the end users, who would not be  able to address the alert.
+- If events are not recorded it may be difficult or impossible to determine the root cause of  system problems or the unauthorized activities of malicious users.
+- When in the Public profile, there should be no special local firewall exceptions per  computer.

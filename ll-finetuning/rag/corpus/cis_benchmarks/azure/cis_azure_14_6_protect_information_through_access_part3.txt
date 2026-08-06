@@ -1,0 +1,72 @@
+14.6: Protect Information through Access Control Lists
+
+Overview
+When Private endpoint is configured on a Key Vault, connections from Azure resources 
+within the same subnet will use its private IP address. However, network traffic from the 
+public internet can still flow connect to the Key Vault’s public endpoint 
+(mykeyvault.vault.azure.net) using its public IP address unless Public network access is 
+set to “Disabled”. 
+Setting the Public network access to “Disabled” with a Private Endpoint will remove the 
+Vault’s public endpoint from Azure public DNS, reducing its exposure to the public 
+internet. Network traffic will use the Vault private endpoint IP address for all requests 
+(mykeyvault.vault.privatelink.azure.net).
+
+Why This Matters
+Removing a point of interconnection from the internet edge to your Key Vault can 
+strengthen the network security boundary of your system and reduce the risk of 
+exposing the control plane or vault objects to untrusted clients. 
+Although Azure resources are never truly isolated from the public internet, disabling the 
+public endpoint removes a line of sight from the public internet and increases the effort 
+required for an attack.
+
+Audit Steps
+Audit from Azure Portal 
+1. From Azure Home open the Portal Menu in the top left corner 
+2. Select Key Vaults 
+3. Select a Key Vault to audit 
+4. Select Networking 
+5. Ensure that Public network access is Disabled. 
+6. Ensure that a Private endpoint is provisioned and connected. 
+Audit from Azure CLI 
+Run the following command for each Key Vault in each Resource Group: 
+az keyvault show --resource-group <resource_group> --name <vault_name> 
+Ensure the publicNetworkSetting setting is set to Disabled within the output of the 
+above command. 
+
+Audit from PowerShell 
+Run the following PowerShell command: 
+Get-AzKeyVault -Vaultname <vault_name> -ResourceGroupName <resource_group> 
+Ensure the Public network access setting is set to Disabled 
+
+Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: 405c5871-3e91-4644-8a63-58e19d68ff5b - Name: 'Azure Key Vault 
+should disable public network access'
+
+Remediation
+Remediate from Azure Portal 
+Key Vaults can be configured to use Azure role-based access control on creation. 
+For existing Key Vaults: 
+1. From Azure Home open the Portal Menu in the top left corner 
+2. Select Key Vaults 
+3. Select a Key Vault to audit 
+4. Select Networking 
+5. NEXT 
+Remediate from Azure CLI 
+To disable Public network access for each Key Vault, run the following Azure CLI 
+command: 
+az keyvault update --resource-group <resource_group> --name <vault_name> --
+public-network-access Disabled 
+Remediate from PowerShell 
+To enable RBAC authorization on each Key Vault, run the following PowerShell 
+command: 
+Update-AzKeyVault -ResourceGroupName <resource_group> -VaultName <vault_name> 
+-PublicNetworkAccess "Disabled"
+
+Key Takeaways
+- Removing a point of interconnection from the internet edge to your Key Vault can  strengthen the network security boundary of your system and reduce the risk of  exposing the control plane or vault objects to untrusted clients.
+- Although Azure resources are never truly isolated from the public internet, disabling the  public endpoint removes a line of sight from the public internet and increases the effort  required for an attack.

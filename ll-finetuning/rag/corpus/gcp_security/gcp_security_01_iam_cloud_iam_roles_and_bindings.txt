@@ -1,0 +1,44 @@
+Cloud IAM roles and bindings define who (identity) has what access (role) to which resource (resource hierarchy node). A binding is the association of a role with a set of identities for a specific resource or resource hierarchy node. This is the fundamental unit of access control in Google Cloud, distinct from resource-level ACLs or service-specific permissions.
+
+**Key Components**
+
+- **Roles**: Collections of permissions. Permissions are atomic actions (e.g., `compute.instances.create`). Roles aggregate these into logical groupings. Three types exist:
+  - **Primitive roles**: Owner, Editor, Viewer. Broad, legacy, and not recommended for production. They apply across all services in a project.
+  - **Predefined roles**: Fine-grained, curated by Google Cloud for specific services (e.g., `roles/storage.objectViewer`). These are the standard for least-privilege design.
+  - **Custom roles**: User-defined sets of permissions. Created at organization or project level. Useful when predefined roles are too permissive or too restrictive. Must be carefully maintained to avoid permission drift.
+
+- **Identities**: The "who" in the binding. Can be:
+  - Google Account (user email)
+  - Service Account (email-like identifier)
+  - Google Group
+  - Google Workspace or Cloud Identity domain
+  - All authenticated users (`allAuthenticatedUsers`) or all users (`allUsers`) – use with extreme caution.
+
+- **Resource Hierarchy**: Bindings are inherited downward. The hierarchy is: Organization -> Folder -> Project -> Resource. A binding at the Organization level applies to all folders, projects, and resources within. A binding at the Project level applies to all resources in that project. Bindings are additive; a more specific binding cannot remove permissions granted by a higher-level binding. This is critical for understanding effective access.
+
+- **Binding vs. Policy**: A binding is a single entry within an IAM policy. An IAM policy is a collection of bindings, plus an `etag` for concurrency control and an `auditConfigs` section. The policy is attached to a resource. When you modify bindings, you are actually reading the current policy, modifying the bindings list, and writing the entire policy back.
+
+- **Conditions**: Bindings can include conditions – logic that must be true for the binding to apply. Conditions use Common Expression Language (CEL) and can evaluate attributes like resource name, request time, IP address, or whether a resource has a specific tag. Conditions enable attribute-based access control (ABAC) on top of role-based access control (RBAC). Example: grant `roles/storage.objectViewer` only if the request originates from a corporate IP range.
+
+**Real-World Application**
+
+Consider a multi-tenant SaaS platform running on GKE with Cloud Storage for customer data. You need to grant a DevOps engineer access to view logs but not modify storage buckets.
+
+1. Create a custom role `custom.logViewer` with permissions: `logging.logEntries.list`, `logging.logs.list`, `logging.sinks.get`. Do not include `storage.objects.*`.
+2. Create a binding at the project level: role `custom.logViewer` bound to the engineer's Google Account.
+3. For a service account used by a CI/CD pipeline, create a binding at the project level with `roles/container.developer` (allows deploying to GKE) and `roles/storage.objectAdmin` (allows reading/writing to a specific bucket). Use a condition on the storage binding: `resource.name.startsWith("projects/_/buckets/ci-artifacts/objects/")` to restrict access to only the `ci-artifacts` bucket.
+4. For a security auditor, create a binding at the Organization level with `roles/iam.securityReviewer` and `roles/logging.viewer`. This grants read-only access to all IAM policies and logs across the entire organization.
+
+**Security Relevance**
+
+- **Least Privilege Enforcement**: Bindings are the mechanism to implement least privilege. Every binding should be justified. Audit bindings regularly using Cloud Asset Inventory or the IAM Recommender. Remove bindings that grant primitive roles or overly broad predefined roles.
+- **Inheritance Risks**: A binding at a higher level (e.g., Organization) can unintentionally grant access to sensitive resources in lower-level projects. Always model the hierarchy before creating bindings. Use deny policies (in Organization Policy) to block inheritance when necessary.
+- **Conditional Access**: Conditions reduce the blast radius of a compromised identity. For example, a service account key leak is less damaging if the binding only works from a specific VPC or during business hours. Conditions are not a substitute for proper role design but are a powerful defense-in-depth layer.
+- **Policy Drift**: Manual changes to bindings can lead to drift. Use Infrastructure as Code (e.g., Terraform, Config Connector) to manage IAM policies. Treat the policy as immutable; always deploy from source control. Enable audit logs for `SetIamPolicy` calls to detect unauthorized changes.
+- **Service Account Key Rotation**: Bindings for service accounts should be scoped to the minimum necessary. If a service account has a binding with `roles/owner`, a leaked key grants full control. Use workload identity federation instead of keys where possible.
+- **Deny Policies**: In addition to bindings, Google Cloud supports deny policies (part of Organization Policy). These explicitly deny access even if a binding grants it. Use deny policies for global restrictions (e.g., deny all users from making resources public) that cannot be overridden by lower-level bindings.
+
+**Key Takeaways**
+- Bindings are the atomic unit of access control; always use predefined or custom roles over primitive roles, and attach bindings at the lowest practical hierarchy node.
+- Conditions on bindings provide attribute-based access control and are essential for reducing risk from compromised identities or misconfigured service accounts.
+- Manage IAM policies as code, audit bindings continuously, and combine bindings with deny policies to enforce security boundaries across the resource hierarchy.

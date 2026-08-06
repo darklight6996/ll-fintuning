@@ -1,0 +1,28 @@
+98.1: (L2) Ensure 'Allow suggested apps in Windows Ink
+
+Overview
+This policy setting determines whether suggested apps in Windows Ink Workspace are 
+allowed. 
+The recommended state for this setting is: Block.
+
+Why This Matters
+This Microsoft feature is designed to collect data and suggest apps based on that data 
+collected. Disabling this setting will help ensure your data is not shared with any third 
+party.
+
+Audit Steps
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\WindowsInkWorkspace:Allo wSuggestedAppsInWindowsInkWorkspace_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Windows
+InkWorkspace:AllowSuggestedAppsInWindowsInkWorkspace
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block. 
+Windows Ink Workspace\Allow suggested apps in Windows Ink Workspace
+
+Key Takeaways
+- This Microsoft feature is designed to collect data and suggest apps based on that data  collected.
+- Disabling this setting will help ensure your data is not shared with any third  party.

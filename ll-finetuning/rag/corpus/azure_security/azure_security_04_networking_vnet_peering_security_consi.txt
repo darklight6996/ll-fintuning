@@ -1,0 +1,41 @@
+VNet peering is a networking mechanism that connects two Azure Virtual Networks (VNets) directly, enabling resources in each VNet to communicate with each other using private IP addresses. Traffic between peered VNets traverses the Microsoft backbone network, not the public internet. This document focuses specifically on the security considerations that must be addressed when implementing VNet peering.
+
+**Key Components of VNet Peering Security**
+
+**1. Implicit Trust Model**
+When two VNets are peered, there is no transitive routing. VNet A peered to VNet B does not automatically allow VNet A to communicate with VNet C through VNet B. This lack of transitivity is a critical security boundary. However, the peering itself creates a direct, low-latency path between the two VNets. Any resource in one VNet can potentially reach any resource in the other VNet, subject to network security group (NSG) and firewall rules. This implicit trust must be explicitly constrained.
+
+**2. Network Security Groups (NSGs)**
+NSGs remain the primary control for filtering traffic between peered VNets. An NSG applied to a subnet or NIC in VNet A can block or allow traffic from VNet B. The default rule allows all traffic within a virtual network, but this rule does not automatically apply to peered VNets. Instead, a default rule allows traffic from the peered VNet’s address space. You must explicitly create deny rules or modify default rules to restrict inter-VNet traffic. For example, if VNet A contains a web tier and VNet B contains a database tier, the database subnet’s NSG should only allow inbound traffic from the web tier’s subnet IP range, not the entire VNet A address space.
+
+**3. Azure Firewall and Network Virtual Appliances (NVAs)**
+For centralized inspection and logging, route traffic through an Azure Firewall or an NVA. This is achieved by configuring user-defined routes (UDRs) on the gateway subnet or on specific subnets within the peered VNets. For example, you can set a UDR on the spoke VNet’s gateway subnet to send all inter-VNet traffic to a central firewall in the hub VNet. This allows you to enforce consistent security policies, log all cross-VNet flows, and block malicious traffic. Without this, traffic flows directly between VNets, bypassing any inspection.
+
+**4. Gateway Transit and VPN Gateway Security**
+Gateway transit allows a peered VNet to use the VPN gateway in the hub VNet for site-to-site or point-to-site connections. This is a powerful feature but introduces a security risk: any remote site connected to the hub’s VPN gateway can potentially reach resources in the spoke VNet. To mitigate this, apply NSGs on the spoke VNet’s subnets to restrict inbound traffic from the hub’s gateway subnet. Additionally, ensure the VPN gateway itself is configured with strong authentication (e.g., Azure AD for P2S) and encryption protocols (IKEv2, AES-256). Do not enable gateway transit unless explicitly required.
+
+**5. DNS Resolution and Private Endpoints**
+Peered VNets can resolve DNS names across the peering if DNS settings are configured correctly. This can lead to information disclosure if a VNet contains private endpoints for Azure services (e.g., Storage, SQL Database). A resource in a peered VNet could resolve the private IP address of a private endpoint, potentially bypassing public endpoint restrictions. To prevent this, use Azure Private DNS Zones scoped to specific VNets, or configure conditional forwarding to a central DNS server that enforces access controls. Never rely solely on the default Azure-provided DNS for cross-VNet private endpoint resolution.
+
+**6. Service Endpoints and VNet Injection**
+Service endpoints (e.g., for Azure Storage) are not automatically extended across peered VNets. A service endpoint configured on a subnet in VNet A only secures traffic from that subnet to the Azure service. Traffic from VNet B to the same service will still use the public IP of the service unless VNet B also has a service endpoint configured. This can create a false sense of security. For services like Azure SQL Database, use private endpoints instead of service endpoints when VNet peering is involved, as private endpoints provide a more granular and isolated connection.
+
+**Real-World Application: Multi-Tier Application with Compliance Requirements**
+
+Consider a financial application with a web frontend in VNet A, an application layer in VNet B, and a database in VNet C. All three VNets are peered to a central hub VNet D that contains an Azure Firewall and a VPN gateway for remote developer access.
+
+- **Security Implementation:** NSGs on the web subnet in VNet A only allow inbound traffic from the internet (via Azure Load Balancer). The application subnet in VNet B has an NSG that only allows inbound traffic from the web subnet’s IP range. The database subnet in VNet C only allows inbound traffic from the application subnet’s IP range. All inter-VNet traffic is forced through the Azure Firewall via UDRs on each spoke VNet’s gateway subnet. The firewall logs all flows and blocks any traffic that does not match an allow rule.
+- **Compliance Relevance:** This architecture satisfies PCI DSS requirement 1.3.2 (restrict inbound and outbound traffic to only that which is necessary) and requirement 10.3 (log all network traffic). The firewall provides a single point for audit logging, and NSGs enforce least-privilege access between tiers. The VPN gateway is configured with MFA and IKEv2, meeting NIST SP 800-53 AC-17 (remote access) requirements.
+
+**Security Relevance**
+
+VNet peering reduces latency and simplifies network topology, but it also expands the attack surface. The primary security risk is lateral movement: an attacker who compromises a resource in one VNet can pivot to resources in all peered VNets unless strict controls are in place. Without NSGs, firewalls, and UDRs, the peering creates a flat network from a security perspective. Additionally, misconfigured gateway transit can expose on-premises networks to compromised spoke VNets. The most common security gaps are:
+- Overly permissive NSG rules that allow any-to-any traffic between peered VNets.
+- Failure to route traffic through a firewall for inspection.
+- Enabling gateway transit without restricting spoke VNet access.
+- Using service endpoints instead of private endpoints for sensitive Azure services.
+
+**Key Takeaways**
+- Always apply NSGs with least-privilege rules on every subnet in peered VNets; do not rely on default peering rules.
+- Route all inter-VNet traffic through a centralized Azure Firewall or NVA for inspection, logging, and policy enforcement.
+- Disable gateway transit unless explicitly required, and if enabled, restrict spoke VNet access with NSGs and UDRs.

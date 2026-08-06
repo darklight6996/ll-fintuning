@@ -1,0 +1,32 @@
+4.6.8.1: (L2) Ensure 'Turn on Mapper I/O (LLTDIO) driver' is set to
+
+Overview
+This policy setting changes the operational behavior of the Mapper I/O network protocol 
+driver. 
+LLTDIO allows a computer to discover the topology of a network it's connected to. It 
+also allows a computer to initiate Quality-of-Service requests such as bandwidth 
+estimation and network health analysis. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+To help protect from potentially discovering and connecting to unauthorized devices, 
+this setting should be disabled to prevent responding to network traffic for network 
+topology discovery.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry locations with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\LLTD:AllowLLTDIOOnDomain 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\LLTD:AllowLLTDIOOnPublicNet 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\LLTD:EnableLLTDIO 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\LLTD:ProhibitLLTDIOOnPrivateNet
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Network\Link-Layer Topology Discovery\Turn on Mapper 
+I/O (LLTDIO) driver
+
+Key Takeaways
+- To help protect from potentially discovering and connecting to unauthorized devices,  this setting should be disabled to prevent responding to network traffic for network  topology discovery.

@@ -1,0 +1,39 @@
+4.8: Log and Alert on Changes to Administrative Group
+
+Overview
+Require administrators to provide consent for applications before use.
+
+Why This Matters
+If Microsoft Entra ID is running as an identity provider for third-party applications, 
+permissions and consent should be limited to administrators or pre-approved. Malicious 
+applications may attempt to exfiltrate data or abuse privileged user accounts.
+
+Audit Steps
+Audit from Azure Portal 
+1. From Azure Home select the Portal Menu 
+2. Select Microsoft Entra ID 
+3. Under Manage, select Enterprise applications 
+4. Under Security, select Consent and permissions 
+5. Under Manage, select User consent settings 
+6. Ensure User consent for applications is set to Do not allow user 
+consent 
+Audit from PowerShell 
+Connect-MgGraph 
+(Get-MgPolicyAuthorizationPolicy).DefaultUserRolePermissions | Select-Object 
+-ExpandProperty PermissionGrantPoliciesAssigned 
+If the command returns no values in response, the configuration complies with the 
+recommendation.
+
+Remediation
+Remediate from Azure Portal 
+1. From Azure Home select the Portal Menu 
+2. Select Microsoft Entra ID 
+3. Under Manage, select Enterprise applications 
+4. Under Security, select Consent and permissions 
+5. Under Manage, select User consent settings 
+6. Set User consent for applications to Do not allow user consent 
+7. Click Save
+
+Key Takeaways
+- If Microsoft Entra ID is running as an identity provider for third-party applications,  permissions and consent should be limited to administrators or pre-approved.
+- Malicious  applications may attempt to exfiltrate data or abuse privileged user accounts.

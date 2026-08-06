@@ -1,0 +1,46 @@
+Event ID 4672 is a Windows Security log entry generated when special privileges are assigned to a new logon session. It is formally titled "Special privileges assigned to new logon." This event is critical for security monitoring because it indicates that a user or process has been granted elevated rights—such as SeTcbPrivilege (act as part of the operating system) or SeDebugPrivilege (debug programs)—which are typically reserved for system-level operations. Every time a user logs on interactively, via Remote Desktop, or through a service account, the Local Security Authority Subsystem Service (LSASS) evaluates the token and assigns privileges. If any of those privileges are classified as "special," event 4672 is generated.
+
+**Key Components of Event 4672**
+
+- **Subject**: The account that performed the logon. This includes the security ID (SID), account name, account domain, and logon ID. The logon ID is a unique identifier that links this event to a corresponding logon event (e.g., event 4624).
+- **Privileges**: A list of the specific special privileges assigned. Common examples include:
+  - SeTcbPrivilege – Act as part of the operating system
+  - SeDebugPrivilege – Debug programs
+  - SeAuditPrivilege – Generate security audits
+  - SeTakeOwnershipPrivilege – Take ownership of files or objects
+  - SeLoadDriverPrivilege – Load and unload device drivers
+  - SeBackupPrivilege – Back up files and directories
+  - SeRestorePrivilege – Restore files and directories
+- **Logon ID**: A hexadecimal value that ties this event to the initial logon session. This is essential for correlating with event 4624 (successful logon) and event 4634 (logoff).
+- **Process Information**: In some cases, the event may include the process that initiated the logon, such as Winlogon or a service host.
+
+**Real-World Application**
+
+Security engineers use event 4672 to detect privilege escalation, lateral movement, and misuse of administrative accounts. Here are specific use cases:
+
+- **Monitoring Service Accounts**: Service accounts that run with SYSTEM or LOCAL SERVICE privileges will generate 4672 events. Unexpected 4672 events from a service account that normally does not require special privileges can indicate a compromised account or misconfiguration.
+- **Detecting Pass-the-Hash Attacks**: When an attacker uses a stolen hash to authenticate, the resulting logon session may be assigned special privileges if the account is a domain admin. Correlating 4672 with event 4624 (logon type 3 for network logons) can reveal unauthorized remote access.
+- **Tracking Administrative Activity**: Domain administrators and local administrators will generate 4672 events on every logon. By filtering for these events, you can build a baseline of normal admin behavior. Anomalies—such as an admin logging on to a server they never access—warrant investigation.
+- **Identifying Privilege Abuse**: If a user who is not an administrator suddenly receives SeDebugPrivilege, it may indicate a process injection attempt or a tool like Mimikatz being executed. SeDebugPrivilege allows a process to read and write memory of other processes, which is a common technique for credential dumping.
+- **Auditing Scheduled Tasks and Services**: When a scheduled task runs as SYSTEM or a service starts, it generates a logon session with special privileges. Event 4672 will appear alongside event 4624. This helps validate that only authorized tasks are running with elevated rights.
+
+**Security Relevance**
+
+Event 4672 is a high-fidelity indicator of privileged access. Unlike generic logon events, it specifically flags sessions that have been granted rights capable of bypassing security controls. From a compliance perspective, regulations such as PCI DSS, HIPAA, and SOX require monitoring of privileged account usage. Event 4672 provides the raw data needed to meet these requirements.
+
+Key security considerations:
+
+- **False Positives**: Not all 4672 events are malicious. System processes, antivirus services, and legitimate administrative logons will generate them. The key is to baseline normal activity and alert on deviations.
+- **Correlation is Mandatory**: A single 4672 event is not actionable. You must correlate it with the corresponding logon event (4624) to determine the logon type (interactive, network, batch, service) and the source IP address. Without this context, you cannot distinguish between a remote admin logon and a local console logon.
+- **Privilege List Analysis**: The list of privileges in the event is critical. For example, SeTcbPrivilege is extremely powerful and should only be assigned to SYSTEM accounts. If a user account receives SeTcbPrivilege, it is almost certainly a misconfiguration or an attack.
+- **Log Retention**: Because 4672 events are generated frequently on domain controllers and servers, they can consume significant storage. Implement a retention policy that balances forensic needs with storage costs. Typically, 90 days is a minimum for compliance, but longer retention (180–365 days) is recommended for threat hunting.
+- **SIEM Integration**: Forward these events to a SIEM and create alerts for:
+  - 4672 events from non-administrative user accounts
+  - 4672 events with SeDebugPrivilege or SeTcbPrivilege for accounts that do not normally require them
+  - 4672 events occurring outside business hours
+  - 4672 events linked to logon type 3 (network) from external IP addresses
+
+**Key Takeaways**
+1. Event 4672 indicates that a logon session was granted special privileges (e.g., SeDebugPrivilege, SeTcbPrivilege) and must be correlated with event 4624 to determine the logon type and source.
+2. Baseline normal 4672 activity for administrative accounts and service accounts; alert on any 4672 event that includes privileges not required for the account’s role.
+3. Use 4672 to detect privilege escalation, lateral movement, and credential dumping attempts, but always validate with additional context to avoid false positives.

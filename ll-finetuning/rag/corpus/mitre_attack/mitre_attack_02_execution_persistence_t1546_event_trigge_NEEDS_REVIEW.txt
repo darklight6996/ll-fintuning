@@ -1,0 +1,69 @@
+**Definition**
+
+T1546 Event Triggered Execution is a MITRE ATT&CK technique that describes adversaries establishing persistence or elevating privileges by configuring system mechanisms to execute malicious code when a specific event occurs. Unlike scheduled tasks or service persistence, event-triggered execution relies on operating system features that automatically run code in response to predefined conditions—such as user logon, process creation, file system changes, or system startup. This technique is cataloged under the Execution and Persistence tactics because the triggered execution can both maintain access and deliver a payload.
+
+The core principle is that the adversary does not need to maintain an active connection or repeatedly execute commands. Instead, they implant a trigger mechanism that activates under normal system operations, making detection difficult because the execution appears to originate from a legitimate system process.
+
+**Key Components**
+
+Event-triggered execution encompasses multiple sub-techniques, each leveraging a different OS feature. The most relevant components for a security engineer are:
+
+- **T1546.001 – Change Default File Association**: Adversaries modify registry entries that map file extensions to applications. When a user opens a file of the associated type, the malicious executable runs instead of the legitimate program. Common targets include .txt, .pdf, and .html extensions.
+
+- **T1546.002 – Screensaver**: The screensaver executable path is stored in `HKEY_CURRENT_USER\Control Panel\Desktop\SCRNSAVE.EXE`. An adversary can replace this value with a malicious binary. The screensaver triggers after a period of user inactivity, providing persistence that activates without user interaction.
+
+- **T1546.003 – Windows Management Instrumentation (WMI) Event Subscription**: Adversaries create WMI filters and consumers that execute scripts or binaries when specific events occur—such as system startup, process creation, or logon. WMI event subscriptions persist across reboots and run with SYSTEM privileges if configured correctly.
+
+- **T1546.004 – .NET Framework CLR Injection**: By modifying environment variables or registry keys (e.g., `COR_ENABLE_PROFILING`, `COR_PROFILER`), adversaries can force the .NET Common Language Runtime to load a malicious profiler DLL into every .NET process. This triggers code execution whenever any .NET application starts.
+
+- **T1546.005 – Image File Execution Options (IFEO) Debugger**: The registry key `HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options` can be used to set a debugger for a target executable. When the target process launches, the debugger (malicious binary) executes instead. This is often used for persistence or to bypass application controls.
+
+- **T1546.006 – LD_PRELOAD (Linux)**: On Linux systems, the `LD_PRELOAD` environment variable forces the dynamic linker to load a specified shared library before all others. Adversaries can set this globally in `/etc/ld.so.preload` or per-user in shell configuration files, causing code injection into every executed process.
+
+- **T1546.007 – Netsh Helper DLL**: Netsh can load helper DLLs via the `add helper` command. An adversary can register a malicious DLL that loads whenever netsh.exe runs. Since netsh is often used legitimately, this provides stealthy persistence.
+
+- **T1546.008 – Accessibility Features (Sticky Keys, etc.)**: Adversaries replace accessibility binaries (e.g., sethc.exe, utilman.exe) with cmd.exe or a backdoor. When the user presses the Sticky Keys shortcut five times, the malicious binary executes at the logon screen with SYSTEM integrity.
+
+- **T1546.009 – AppCert DLLs**: DLLs registered under `HKLM\System\CurrentControlSet\Control\Session Manager\AppCertDlls` are loaded into every process that calls certain security functions (e.g., `CreateProcess`, `CreateProcessAsUser`). This provides broad code injection.
+
+- **T1546.010 – AppInit DLLs**: Similar to AppCert, DLLs listed in `HKLM\Software\Microsoft\Windows NT\CurrentVersion\Windows\AppInit_DLLs` are loaded into every user-mode process that loads User32.dll. This is a legacy mechanism but still functional on many systems.
+
+- **T1546.011 – Application Shimming**: The Windows Application Compatibility Shim database can redirect API calls, inject code, or modify behavior for specific executables. Adversaries can install custom shims that trigger malicious actions when a target application runs.
+
+- **T1546.012 – Component Object Model (COM) Hijacking**: By modifying CLSID registry entries, adversaries can redirect COM object instantiation to a malicious implementation. Any application that creates the hijacked COM object will execute the adversary's code.
+
+- **T1546.013 – PowerShell Profile**: PowerShell profiles are scripts that execute automatically when PowerShell starts. Adversaries can modify the profile file (`$PROFILE`) to load malicious modules or execute commands, persisting across PowerShell sessions.
+
+- **T1546.014 – Emond (macOS)**: On macOS, the Event Monitor daemon (emond) can be configured with custom rules that trigger scripts or binaries on specific events (e.g., file system changes, network connections). This is less common but effective on macOS systems.
+
+- **T1546.015 – Login Hook (macOS)**: Login hooks are scripts or binaries that execute when a user logs in. Adversaries can set a login hook via `defaults write com.apple.loginwindow LoginHook` to maintain persistence.
+
+**Real-World Application**
+
+In practice, adversaries combine event-triggered execution with initial access vectors to establish persistent footholds. For example, a phishing campaign that drops a malicious Office document may also write a WMI event subscription that executes a PowerShell payload every time the system starts. The WMI subscription is stored in the WMI repository and does not create a file on disk, making it resistant to traditional file-based detection.
+
+Another common scenario involves COM hijacking for lateral movement. An adversary who gains access to a workstation can hijack a CLSID used by a frequently run application (e.g., Microsoft Word or Outlook). When a user on another machine opens that application, the malicious COM object executes, providing code execution in a trusted process context.
+
+Accessibility feature abuse is frequently observed in ransomware deployments. By replacing sethc.exe with cmd.exe, an attacker can gain a SYSTEM shell at the logon screen even without valid credentials—useful for disabling security tools or deploying ransomware across a domain.
+
+On Linux, LD_PRELOAD is used in supply chain attacks. An adversary who compromises a package repository can inject a malicious library into a popular package. When system administrators install or update that package, the library loads into every subsequent process, providing persistent code execution across the environment.
+
+**Security Relevance**
+
+Event-triggered execution is a high-priority detection and prevention target because it bypasses traditional persistence monitoring. Unlike scheduled tasks or services, many event-triggered mechanisms do not appear in standard autorun enumeration tools (e.g., Sysinternals Autoruns may not detect WMI subscriptions or COM hijacks by default). Additionally, the execution context is often a trusted system process (e.g., svchost.exe, explorer.exe), making behavioral detection difficult.
+
+Detection strategies include:
+
+- **Registry monitoring**: Alert on modifications to IFEO, AppInit_DLLs, AppCertDlls, and CLSID keys, especially in `HKLM` hives.
+- **WMI auditing**: Enable WMI activity logging via Event ID 5861 (WMI Persistence) and monitor for new permanent event consumers.
+- **File integrity monitoring**: Track changes to accessibility binaries, shim databases, and profile scripts.
+- **Process lineage analysis**: Correlate child processes of trusted system binaries (e.g., svchost.exe spawning cmd.exe) with known trigger events.
+- **Environment variable monitoring**: On Linux, audit changes to `/etc/ld.so.preload` and shell configuration files.
+
+Prevention focuses on hardening: disable unnecessary features (e.g., WMI subscriptions for non-admin users), restrict write access to sensitive registry keys, enforce application whitelisting, and use security baselines that disable legacy mechanisms like AppInit_DLLs.
+
+**Key Takeaways**
+
+1. Event-triggered execution provides stealthy persistence by leveraging legitimate OS features that automatically run code on predefined events, making detection through standard autorun analysis insufficient.
+2. The most critical sub-techniques to monitor are WMI event subscriptions, COM hijacking, IFEO debugger, and accessibility feature abuse, as these are widely used in real-world attacks and often bypass traditional security controls.
+3. Effective defense requires a layered approach: registry and file integrity monitoring, WMI auditing, process lineage analysis, and proactive hardening of trigger mechanisms through group policy and security baselines.

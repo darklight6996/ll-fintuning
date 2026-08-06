@@ -1,0 +1,101 @@
+13.6: Encrypt the Hard Drive of All Mobile Devices. (and related controls)
+
+Overview
+This policy setting allows you to control how BitLocker-protected fixed data drives are 
+recovered in the absence of the required credentials. This policy setting is applied when 
+you turn on BitLocker. 
+In "Configure user storage of BitLocker recovery information" select whether users are 
+allowed, required, or not allowed to generate a 48-digit recovery password or a 256-bit 
+recovery key. 
+The recommended state for this setting is: Enabled: Allow 256-bit recovery key.
+
+This policy setting allows you to control how BitLocker-protected fixed data drives are 
+recovered in the absence of the required credentials. This policy setting is applied when 
+you turn on BitLocker. 
+In "Configure user storage of BitLocker recovery information" select whether users are 
+allowed, required, or not allowed to generate a 48-digit recovery password or a 256-bit 
+recovery key. 
+The recommended state for this setting is: Enabled: Allow 48-digit recovery 
+password.
+
+This policy setting allows you to control how BitLocker-protected fixed data drives are 
+recovered in the absence of the required credentials. This policy setting is applied when 
+you turn on BitLocker. 
+The "Allow data recovery agent" check box is used to specify whether a Data Recovery 
+Agent can be used with BitLocker-protected fixed data drives. Before a Data Recovery 
+Agent can be used it must be added from the Public Key Policies item in either the 
+Group Policy Management Console or the Local Group Policy Editor. Consult the 
+BitLocker Drive Encryption Deployment Guide on Microsoft TechNet for more 
+information about adding Data Recovery Agents. 
+The recommended state for this setting is: Enabled: True.
+
+Why This Matters
+Administrators should always have a safe, secure way to access encrypted data in the 
+event users cannot access their data. 
+Additionally, as with any authentication method, a drive can be compromised by 
+guessing or finding the authentication information used to access the drive. 
+To use BitLocker, a Data Recovery Agent will need to be configured for fixed drives. To 
+recover a drive will require highly-controlled access to the Data Recovery Agent private 
+key.
+
+Administrators should always have a safe, secure way to access encrypted data in the 
+event users cannot access their data. 
+Additionally, as with any authentication method, a drive can be compromised by 
+guessing or finding the authentication information used to access the drive. 
+To use BitLocker, a Data Recovery Agent will need to be configured for fixed drives. To 
+recover a drive will require highly-controlled access to the Data Recovery Agent private 
+key.
+
+Administrators should always have a safe, secure way to access encrypted data in the 
+event users cannot access their data. 
+Additionally, as with any authentication method, a drive can be compromised by 
+guessing or finding the authentication information used to access the drive. 
+To use BitLocker, a Data Recovery Agent will need to be configured for fixed drives. To 
+recover a drive will require highly-controlled access to the Data Recovery Agent private 
+key.
+
+Audit Steps
+For Encrypt the Hard Drive of All Mobile Devices.:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 2. 
+HKLM\SOFTWARE\Policies\Microsoft\FVE:FDVRecoveryKey
+
+For Encrypt the Hard Drive of All Mobile Devices.:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 2. 
+HKLM\SOFTWARE\Policies\Microsoft\FVE:FDVRecoveryPassword
+
+For Encrypt the Hard Drive of All Mobile Devices.:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\FVE:FDVManageDRA
+
+Remediation
+For Encrypt the Hard Drive of All Mobile Devices.:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: Allow 256-bit recovery key. 
+Administrative Templates\Windows Components\BitLocker Drive Encryption\Fixed 
+Data Drives\Choose how BitLocker-protected fixed drives can be recovered: 
+Recovery Key
+
+For Encrypt the Hard Drive of All Mobile Devices.:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: Allow 48-digit recovery password. 
+Administrative Templates\Windows Components\BitLocker Drive Encryption\Fixed 
+Data Drives\Choose how BitLocker-protected fixed drives can be recovered: 
+Recovery Password
+
+For Encrypt the Hard Drive of All Mobile Devices.:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: True. 
+Administrative Templates\Windows Components\BitLocker Drive Encryption\Fixed 
+Data Drives\Choose how BitLocker-protected fixed drives can be recovered: 
+Allow data recovery agent
+
+Key Takeaways
+- Administrators should always have a safe, secure way to access encrypted data in the  event users cannot access their data.
+- Additionally, as with any authentication method, a drive can be compromised by  guessing or finding the authentication information used to access the drive.
+- To use BitLocker, a Data Recovery Agent will need to be configured for fixed drives.

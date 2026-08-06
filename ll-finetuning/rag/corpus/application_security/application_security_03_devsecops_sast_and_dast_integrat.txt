@@ -1,0 +1,53 @@
+Static Application Security Testing (SAST) and Dynamic Application Security Testing (DAST) are complementary security testing methodologies that, when integrated into a DevSecOps pipeline, provide a layered defense against application vulnerabilities. SAST analyzes source code, bytecode, or binary code from within, without executing the application. DAST tests the running application from the outside, simulating attacker behavior against exposed interfaces. Their integration is not merely a combination of tools but a deliberate orchestration of scanning phases, result correlation, and policy enforcement across the software development lifecycle.
+
+**Definition**
+
+SAST is a white-box testing technique. It scans static code for known vulnerability patterns, such as SQL injection, cross-site scripting (XSS), buffer overflows, and insecure cryptographic storage. It operates early in the development cycle (shift-left), providing developers with immediate feedback on code they are writing. DAST is a black-box testing technique. It probes a deployed application—typically in a staging or pre-production environment—by sending malicious payloads and analyzing responses. It detects runtime vulnerabilities that SAST cannot, such as authentication bypasses, session management flaws, and misconfigured security headers. The core value of integration lies in coverage: SAST catches issues in code logic and structure; DAST catches issues in runtime behavior and configuration.
+
+**Key Components**
+
+A successful SAST/DAST integration requires several architectural and process components:
+
+- **Pipeline Orchestration**: The CI/CD pipeline must trigger SAST scans on every commit or pull request, ideally before code is merged. DAST scans should run against a deployed environment (e.g., a staging server) after a successful build and deployment. Orchestration tools (Jenkins, GitLab CI, GitHub Actions) manage the sequencing and conditional gating.
+
+- **Result Normalization and Deduplication**: SAST and DAST tools produce findings in different formats. A centralized vulnerability management platform (e.g., DefectDojo, ThreadFix) normalizes these findings, correlates them against a common taxonomy (e.g., CWE, OWASP Top 10), and deduplicates identical or overlapping issues. This prevents alert fatigue and provides a single source of truth.
+
+- **Policy as Code**: Security policies must be codified and enforced automatically. For example, a policy might block a merge if SAST finds a critical-severity SQL injection, or fail a deployment if DAST detects an active XSS in the staging environment. Policies should be version-controlled and auditable.
+
+- **Contextual Remediation Guidance**: Integrated tools should link SAST findings to the exact line of code and DAST findings to the specific HTTP request/response. This enables developers to reproduce and fix issues without manual triage. Some platforms also provide fix recommendations based on the vulnerability type.
+
+- **Environment and Credential Management**: DAST requires a live, instrumented environment. Integration must handle dynamic provisioning of test instances, seeding test data, and managing authentication tokens (e.g., OAuth, session cookies) so the scanner can access protected endpoints.
+
+**Real-World Application**
+
+Consider a typical web application built with a microservices architecture. The DevSecOps pipeline is configured as follows:
+
+1. **Commit Phase**: A developer pushes code to a feature branch. The CI server triggers a SAST scan on the changed files. The scan completes in under five minutes. If any high-severity findings are detected, the pipeline fails, and the developer receives a notification with the exact file and line number.
+
+2. **Build and Deploy Phase**: After the SAST scan passes, the code is built into a container image. The image is deployed to a staging Kubernetes namespace. A smoke test verifies the application is running.
+
+3. **DAST Phase**: The pipeline triggers a DAST scan against the staging environment’s public endpoints. The DAST tool is configured with a crawl scope and a set of authenticated user sessions. It runs for 30 minutes, testing for common web vulnerabilities. Results are posted to the centralized vulnerability dashboard.
+
+4. **Correlation and Gating**: The integration platform correlates SAST and DAST findings. For example, a SAST finding of “unsafe deserialization” in a Java class might correlate with a DAST finding of “remote code execution” on the same endpoint. The platform flags this as a high-confidence, high-severity issue. The pipeline blocks promotion to production until the issue is remediated.
+
+5. **Feedback Loop**: The developer receives a single ticket with both the static code location and the dynamic exploit payload. They fix the code, push a new commit, and the pipeline re-runs SAST and DAST. Only after both pass does the code proceed to production.
+
+**Security Relevance**
+
+Integrating SAST and DAST directly addresses the limitations of each method when used in isolation.
+
+- **Coverage Gaps**: SAST cannot detect vulnerabilities that depend on runtime state, such as business logic flaws, insecure direct object references (IDOR), or misconfigured cloud services. DAST cannot detect vulnerabilities in code paths that are not executed during the scan, such as error handling branches or dead code. Together, they cover both static and dynamic attack surfaces.
+
+- **False Positive Reduction**: A vulnerability flagged by both SAST and DAST is far more likely to be a true positive. For example, a SAST finding of “potential XSS” in a template engine might be a false positive if the output is properly escaped. A DAST finding of “reflected XSS” on the same endpoint confirms the exploitability. This correlation reduces wasted developer time.
+
+- **Shift-Left Without Losing Runtime Context**: SAST provides early feedback, but developers may dismiss findings that seem theoretical. When a DAST scan later confirms the exploitability, the security team can present concrete evidence. This bridges the gap between static analysis and real-world attack simulation.
+
+- **Compliance and Audit Readiness**: Many compliance frameworks (PCI DSS, SOC 2, FedRAMP) require both static and dynamic testing. An integrated pipeline provides auditable evidence that both types of testing are performed consistently and automatically on every release.
+
+- **Continuous Improvement**: Metrics from integrated scans—such as mean time to remediate (MTTR), vulnerability density, and scan pass rates—inform security posture improvements. Teams can identify which vulnerability classes are most common and invest in developer training or secure coding guidelines.
+
+**Key Takeaways**
+
+- Integrate SAST early in the pipeline (per commit) and DAST later (per deployment) to achieve comprehensive coverage of both code-level and runtime vulnerabilities, reducing the attack surface across the entire SDLC.
+- Use a centralized vulnerability management platform to normalize, correlate, and deduplicate findings from both SAST and DAST, enabling accurate prioritization and efficient remediation.
+- Enforce policy as code to automatically gate builds and deployments based on combined SAST and DAST results, ensuring that no exploitable vulnerability reaches production.

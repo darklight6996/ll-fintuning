@@ -1,0 +1,53 @@
+Cloud forensics in Microsoft Azure involves the application of forensic investigative techniques to collect, preserve, analyze, and present evidence from Azure cloud environments. Unlike traditional on-premises forensics, Azure introduces shared responsibility, ephemeral resources, and API-driven infrastructure, which fundamentally alter evidence acquisition and chain of custody.
+
+**Definition**
+
+Azure cloud forensics is the systematic process of identifying, preserving, collecting, and analyzing digital evidence from Azure services, including virtual machines, storage accounts, databases, network logs, and identity systems. The objective is to reconstruct events, attribute actions to specific identities or processes, and produce admissible evidence for incident response, internal investigations, or legal proceedings. The core challenge is that the cloud provider controls the hypervisor and physical infrastructure, while the customer controls the operating system, applications, and data. This division dictates what evidence is accessible and how it must be obtained.
+
+**Key Components**
+
+**1. Evidence Sources**
+- **Azure Activity Log:** A subscription-level log that records all control plane operations (e.g., creating a VM, modifying a network security group). Retention is 90 days by default; export to Log Analytics or storage for longer retention.
+- **Azure Resource Logs:** Previously called diagnostic logs, these are service-specific logs (e.g., Azure Key Vault audit events, Azure SQL Database audit logs). They must be explicitly enabled and routed to a Log Analytics workspace, storage account, or event hub.
+- **Azure AD Sign-in and Audit Logs:** Capture authentication events, conditional access failures, and directory modifications. Critical for tracing identity-based attacks.
+- **Virtual Machine Artifacts:** For IaaS VMs, forensic data includes memory dumps (via crash dump or VM snapshot), disk snapshots (managed disk snapshots), and guest OS logs (Event Logs, Syslog). Azure does not provide direct hypervisor memory access.
+- **Network Logs:** Network Security Group (NSG) flow logs, Azure Firewall logs, and Virtual Network Tap (preview) for packet captures. Flow logs show source/destination IP, port, and protocol but not payload.
+- **Storage Analytics Logs:** For Blob, Table, and Queue storage, enable logging for successful and failed requests. Provides IP addresses, user agents, and operation types.
+- **Kubernetes (AKS):** Control plane logs (kube-apiserver, kube-controller-manager), container logs (via Container Insights), and etcd snapshots (if accessible via backup).
+
+**2. Evidence Preservation**
+- **Snapshots and Copies:** Use Azure Disk Snapshots for VM disks. Snapshots are point-in-time, read-only copies. For storage accounts, use AzCopy to copy blob data to a secure, isolated storage account. For databases, export to bacpac or use point-in-time restore to a separate server.
+- **Immutable Storage:** Configure immutable blob storage with a retention policy to prevent tampering. This is critical for logs and evidence containers.
+- **Locking Resources:** Apply Azure resource locks (ReadOnly or CanNotDelete) to evidence storage accounts and Log Analytics workspaces to prevent accidental or malicious deletion during investigation.
+
+**3. Analysis Techniques**
+- **Log Correlation:** Use Azure Sentinel or KQL (Kusto Query Language) in Log Analytics to correlate Activity Log, Azure AD logs, and resource logs. Example: correlate a VM creation event (Activity Log) with a sign-in from an anomalous IP (Azure AD log) to identify compromised credentials.
+- **Disk Forensics:** Attach a snapshot of a compromised VM’s OS disk to a forensic analysis VM. Use tools like Autopsy, FTK Imager, or open-source tools (Sleuth Kit) to examine file system artifacts, registry hives, and prefetch files.
+- **Memory Analysis:** If a memory dump was captured (e.g., via crash dump or VM save state), analyze with Volatility or Rekall. Note: Azure does not expose hypervisor memory; only guest-accessible memory is available.
+- **Network Traffic Analysis:** Parse NSG flow logs to identify lateral movement. For packet-level analysis, deploy a packet capture agent on the VM or use Azure Network Watcher’s packet capture feature (limited to 30-day retention).
+
+**Real-World Application**
+
+Consider a scenario where an attacker gains access to an Azure subscription via a compromised service principal. The attacker creates a new VM, exfiltrates data from Azure Blob Storage, and deletes the VM to cover tracks.
+
+**Investigation Steps:**
+1. **Identify the initial access:** Query Azure AD sign-in logs for the compromised service principal. Look for anomalous IP addresses, failed MFA attempts, or unusual locations.
+2. **Trace control plane actions:** Use Azure Activity Log to list all operations performed by the service principal. Filter for "Microsoft.Compute/virtualMachines/write" and "Microsoft.Storage/storageAccounts/listKeys/action".
+3. **Preserve storage evidence:** Immediately apply an immutable retention policy on the storage account containing the exfiltrated data. Copy the storage account logs to a separate forensic storage account.
+4. **Recover VM artifacts:** Since the VM was deleted, check if a disk snapshot was taken automatically (Azure Backup) or if the VM’s managed disk still exists in a soft-delete state. If not, the VM’s guest OS evidence is lost. Rely on Activity Log and NSG flow logs for network evidence.
+5. **Analyze exfiltration path:** Query NSG flow logs for outbound connections from the VM’s IP to external IPs. Correlate with storage account logs to see which blobs were accessed and by which IP.
+6. **Containment:** Revoke the compromised service principal’s credentials, rotate storage account keys, and apply conditional access policies to block the attacker’s IP range.
+
+**Security Relevance**
+
+Azure forensics directly supports incident response, compliance audits, and legal discovery. Without a forensic capability, security teams cannot determine the root cause of a breach, the scope of data exposure, or the identity of the attacker. Key security implications include:
+
+- **Shared Responsibility Model:** The customer must proactively enable logging (Azure Resource Logs, NSG flow logs) because Azure does not log guest OS activity by default. Failure to configure these creates blind spots.
+- **Ephemeral Evidence:** VMs, containers, and serverless functions can be deleted within minutes. Forensic readiness requires automated snapshot policies, log retention, and immutable storage before an incident occurs.
+- **Chain of Custody:** Azure’s API-driven operations provide a natural audit trail (Activity Log), but manual actions (e.g., copying a disk snapshot) must be documented. Use Azure Policy to enforce tagging and logging of forensic actions.
+- **Legal Admissibility:** Evidence must be collected in a forensically sound manner. Azure Disk Snapshots are not write-blocked by default; use read-only snapshots and hash the snapshot file (e.g., with Get-FileHash in PowerShell) to prove integrity.
+
+**Key Takeaways**
+- Enable Azure Resource Logs, NSG flow logs, and Azure AD audit logs proactively; you cannot retroactively capture evidence from ephemeral resources.
+- Use Azure Disk Snapshots and immutable storage for evidence preservation; apply resource locks to prevent tampering during an investigation.
+- Correlate control plane (Activity Log) and data plane (resource logs) evidence using KQL in Log Analytics to reconstruct the full attack timeline.

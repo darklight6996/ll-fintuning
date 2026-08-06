@@ -1,0 +1,67 @@
+**Definition**
+
+SSH hardening refers to the systematic process of configuring the Secure Shell (SSH) daemon and client to reduce the attack surface, enforce strong authentication, and prevent unauthorized access or lateral movement within a network. SSH is a primary vector for remote administration, and misconfigurations—such as weak ciphers, default ports, or password-based logins—are routinely exploited by adversaries. Hardening transforms SSH from a potential backdoor into a controlled, auditable access channel.
+
+**Key Components**
+
+**1. Authentication Hardening**
+- **Disable password authentication entirely.** Password-based logins are vulnerable to brute-force, credential stuffing, and phishing. Use public-key authentication with passphrase-protected keys.
+- **Enforce key-based authentication only.** Set `PasswordAuthentication no` and `ChallengeResponseAuthentication no` in `sshd_config`.
+- **Use Ed25519 keys** over RSA (2048-bit minimum) or ECDSA. Ed25519 offers strong security with smaller key sizes and faster performance.
+- **Restrict authorized keys.** Append `from="IP_ADDRESS"` and `command="RESTRICTED_COMMAND"` options in `~/.ssh/authorized_keys` to limit key usage to specific source IPs or commands.
+- **Implement multi-factor authentication (MFA).** Combine public-key authentication with TOTP (e.g., via `libpam-google-authenticator`) or hardware tokens. Set `AuthenticationMethods publickey,keyboard-interactive` to require both factors.
+
+**2. Cryptographic Configuration**
+- **Disable weak key exchange algorithms, ciphers, and MACs.** Use only modern, secure options. Example configuration:
+  ```
+  KexAlgorithms curve25519-sha256,diffie-hellman-group16-sha512
+  Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com
+  MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com
+  ```
+- **Set host key algorithms to `ssh-ed25519`** and optionally `rsa-sha2-512` for legacy compatibility.
+- **Regenerate host keys** using `ssh-keygen -t ed25519` and remove weak default keys (e.g., `ssh-rsa` host keys).
+
+**3. Network and Access Controls**
+- **Change the default port (22) to a non-standard high port** (e.g., 2222). This reduces automated scanning noise but is not a security control—always layer with firewall rules.
+- **Bind SSH to specific interfaces only.** Set `ListenAddress 192.168.1.10` to limit SSH to a management VLAN or jump host.
+- **Use `AllowUsers` or `AllowGroups`** to restrict which accounts can SSH. Deny root login explicitly: `PermitRootLogin no`.
+- **Implement `MaxAuthTries` (e.g., 3) and `MaxSessions` (e.g., 2)** to limit brute-force attempts and concurrent sessions.
+- **Set `ClientAliveInterval` and `ClientAliveCountMax`** to drop idle connections (e.g., 300 seconds and 0 count).
+
+**4. Logging and Auditing**
+- **Enable verbose logging:** `LogLevel VERBOSE` logs fingerprint and key details for every authentication attempt.
+- **Forward logs to a SIEM** or centralized log collector. Monitor for repeated failed logins, unusual source IPs, and key acceptance events.
+- **Use `sshd -T`** to test the current configuration against expected hardening standards before restarting the service.
+
+**5. Additional Hardening Measures**
+- **Disable X11 forwarding, agent forwarding, and TCP forwarding** unless explicitly required: `X11Forwarding no`, `AllowAgentForwarding no`, `AllowTcpForwarding no`.
+- **Set `PermitUserEnvironment no`** to prevent users from injecting environment variables that could alter command behavior.
+- **Use `Match` blocks** to apply different rules per user or group (e.g., stricter settings for service accounts).
+- **Implement a jump host or bastion** for all external SSH access. No SSH daemon should be directly exposed to the internet.
+
+**Real-World Application**
+
+**Scenario: Securing SSH for a multi-cloud production environment**
+
+A financial services company manages 200 Linux servers across AWS, GCP, and on-premises. The security team implements the following:
+
+- **Centralized key management:** All engineers generate Ed25519 key pairs. Public keys are uploaded to a secrets manager (e.g., HashiCorp Vault) and deployed via configuration management (Ansible). Keys are rotated every 90 days.
+- **Bastion host architecture:** A hardened jump host (Ubuntu 22.04) is the only entry point. It runs `fail2ban` with a 10-minute ban after 5 failed attempts. The bastion itself uses MFA (TOTP) and is restricted to a `/24` management subnet.
+- **Automated configuration enforcement:** Ansible playbooks apply the hardened `sshd_config` to all servers. A CI/CD pipeline runs `ssh-audit` (a tool that scans SSH configurations) on every deployment. Non-compliant hosts are quarantined.
+- **Audit logging:** All SSH logs are shipped to a SIEM (Splunk). Alerts trigger on `Failed password` events exceeding a threshold per source IP and on any `Accepted publickey` from non-approved key fingerprints.
+- **Incident response:** A detected compromise of an engineer’s laptop triggers immediate key revocation via the secrets manager and a forced re-deployment of `authorized_keys` across all servers.
+
+**Security Relevance**
+
+SSH hardening directly mitigates several high-priority threats:
+
+- **Credential theft and brute-force attacks:** Disabling passwords and enforcing key-based authentication eliminates the most common attack vector. MFA adds a second layer even if a private key is stolen.
+- **Lateral movement:** Restricting SSH to specific users, groups, and source IPs limits an attacker’s ability to pivot after initial compromise. Disabling agent forwarding prevents credential relay.
+- **Man-in-the-middle (MITM) attacks:** Using strong, modern cryptographic algorithms (e.g., Curve25519, ChaCha20-Poly1305) ensures that session encryption cannot be downgraded or broken by attackers with passive or active network access.
+- **Compliance requirements:** Frameworks such as PCI DSS (Requirement 2.2.4), NIST SP 800-53 (AC-17, IA-5), and CIS Benchmarks mandate SSH hardening controls. Proper logging and key management satisfy audit evidence requirements.
+- **Supply chain risk:** Centralized key management and automated rotation reduce the blast radius of a compromised developer workstation or insider threat.
+
+**Key Takeaways**
+- SSH hardening must disable password authentication, enforce Ed25519 keys with MFA, and restrict access by user, group, and source IP.
+- Cryptographic configuration should use only modern algorithms (Curve25519, ChaCha20-Poly1305, HMAC-SHA2-512-ETM) and be validated with tools like `ssh-audit`.
+- Implement centralized key management, bastion hosts, and automated compliance checks to maintain hardening at scale and meet audit requirements.

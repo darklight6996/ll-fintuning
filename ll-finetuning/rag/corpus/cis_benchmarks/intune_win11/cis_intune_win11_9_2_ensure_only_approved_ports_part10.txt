@@ -1,0 +1,135 @@
+9.2: Ensure Only Approved Ports, Protocols and Services (and related controls)
+
+Overview
+This service provides support for viewing, sending and deletion of system-level problem 
+reports for the Problem Reports and Solutions control panel. 
+The recommended state for this setting is: Disabled.
+
+Creates a connection to a remote network whenever a program references a remote 
+DNS or NetBIOS name or address. 
+The recommended state for this setting is: Disabled.
+
+Remote Desktop Configuration service (RDCS) is responsible for all Remote Desktop 
+related configuration and session maintenance activities that require SYSTEM context. 
+These include per-session temporary folders, RD themes, and RD certificates. 
+The recommended state for this setting is: Disabled.
+
+Allows users to connect interactively to a remote computer. Remote Desktop and 
+Remote Desktop Session Host Server depend on this service. 
+The recommended state for this setting is: Disabled.
+
+Allows the redirection of Printers/Drives/Ports for RDP connections. 
+The recommended state for this setting is: Disabled.
+
+In Windows 2003 and older versions of Windows, the Remote Procedure Call (RPC) 
+Locator service manages the RPC name service database. In Windows Vista or newer 
+versions of Windows, this service does not provide any functionality and is present for 
+application compatibility. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+This service is involved in the process of displaying/reporting issues & solutions to/from 
+Microsoft. In a high security environment, preventing this information from being sent 
+can help reduce privacy concerns for sensitive corporate information.
+
+The function of this service is to provide a "demand dial" type of functionality. In a high 
+security environment, it is preferred that any remote "dial" connections (whether they be 
+legacy dial-in POTS or VPN) are initiated by the user, not automatically by the system.
+
+In a high security environment, Remote Desktop access is an increased security risk. 
+For these environments, only local console access should be permitted.
+
+In a high security environment, Remote Desktop access is an increased security risk. 
+For these environments, only local console access should be permitted.
+
+In a security-sensitive environment, it is desirable to reduce the possible attack surface - 
+preventing the redirection of COM, LPT and PnP ports will reduce the number of 
+unexpected avenues for data exfiltration and/or malicious code transfer within an RDP 
+session.
+
+This is a legacy service that has no value or purpose other than application compatibility 
+for very old software. It should be disabled unless there is a specific old application still 
+in use on the system that requires it.
+
+Audit Steps
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\wercplsupport:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\RasAuto:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\SessionEnv:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\TermService:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\UmRdpService:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\RpcLocator:Start
+
+Remediation
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name wercplsupport -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name RasAuto -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name SessionEnv -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name TermService -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name UmRdpService -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration, set the following Custom Configuration 
+Policy to 4: 
+Name: <Enter name>
+
+Key Takeaways
+- This service is involved in the process of displaying/reporting issues & solutions to/from  Microsoft.
+- In a high security environment, preventing this information from being sent  can help reduce privacy concerns for sensitive corporate information.
+- The function of this service is to provide a "demand dial" type of functionality.

@@ -1,0 +1,56 @@
+Bitbucket repository access control governs who can view, clone, push, and administer repositories hosted on Bitbucket Cloud or Bitbucket Data Center. It is the primary mechanism for enforcing the principle of least privilege within a Git-based development workflow. Without precise access control, unauthorized code modifications, data exfiltration, or accidental exposure of sensitive credentials become likely.
+
+**Key Components**
+
+Bitbucket access control operates at multiple layers, each with distinct enforcement points.
+
+- **Project-Level Permissions:** In Bitbucket Data Center, projects group related repositories. Permissions at this level apply to all repositories within the project. Roles include Project Admin, Project Write, and Project Read. A user with Project Read can clone any repository in the project but cannot push. This is useful for auditors or compliance teams who need read-only visibility across multiple codebases.
+
+- **Repository-Level Permissions:** These override project-level permissions for a specific repository. The granular roles are Admin, Write, Read, and (in Bitbucket Cloud) No Access. Repository Admin can manage branch permissions, delete the repository, and add other users. Write allows push access to branches that are not protected. Read allows clone and pull only. No Access explicitly removes a user’s visibility, even if they have project-level access.
+
+- **Branch Permissions:** This is the most granular control. Branch permissions restrict which users or groups can push to, delete, or merge into specific branches. Common configurations include:
+  - Restricting pushes to the main branch to only repository admins.
+  - Requiring pull request approvals before merging.
+  - Preventing force pushes on protected branches.
+  - Blocking deletion of release or hotfix branches.
+  These rules are enforced server-side, so a client-side commit hook cannot bypass them.
+
+- **Group-Based Access:** Instead of assigning permissions to individual users, Bitbucket supports groups (e.g., “developers”, “security-team”). Groups simplify administration when team membership changes. A user’s effective permission is the union of all group permissions plus any direct user permissions. If a user belongs to a group with Write access and also has a direct Read permission, they retain Write.
+
+- **Fork Permissions:** In Bitbucket Cloud, forking is controlled at the repository level. You can allow forking to any user, only users in the same workspace, or disable forking entirely. Forking creates a copy of the repository under the user’s namespace, which can bypass branch protections on the original repo. Security engineers should disable forking for repositories containing secrets or proprietary code unless strict review processes are in place.
+
+- **IP Allow Lists (Bitbucket Cloud):** Workspace-level IP allow lists restrict API and Git access to specific IP ranges. This is critical for organizations that require access only from corporate VPNs or trusted CI/CD runners. IP allow lists apply to all repositories in the workspace and cannot be overridden per repository.
+
+- **SSH and HTTPS Access Keys:** Users authenticate via SSH keys or HTTPS with app passwords (Cloud) or personal access tokens (Data Center). Repository access control is enforced after authentication. A compromised SSH key grants the same permissions as the user. Therefore, key rotation and revocation processes must be automated.
+
+**Real-World Application**
+
+Consider a financial services firm with three teams: Core Banking (developers), QA, and External Auditors. The Core Banking repository contains payment processing logic.
+
+- Project-level: All three teams are granted Project Read on the “Banking” project. This allows QA to clone any repo for testing and auditors to view code without write access.
+- Repository-level: The Core Banking repo is set to Write for the Core Banking team only. QA and Auditors remain at Read.
+- Branch permissions: The `main` branch is protected. Only repository admins can push directly. All merges require at least two approvals from Core Banking developers. Force pushes are blocked on all branches matching `release/*`.
+- Fork permissions: Forking is disabled for the Core Banking repo to prevent unauthorized copies of sensitive logic.
+- IP allow list: The workspace is restricted to the corporate VPN IP range. Developers working remotely must connect via VPN before cloning or pushing.
+- Group management: The Core Banking team is a group. When a developer leaves, removing them from the group instantly revokes all repository access.
+
+This configuration ensures that QA can test without risk of accidental pushes, auditors have read-only visibility, and the main branch is protected from unapproved changes.
+
+**Security Relevance**
+
+Improper repository access control is a common vector for data breaches and supply chain attacks. A developer with Write access to a repository can introduce malicious code into a protected branch if branch permissions are misconfigured. Overly permissive Read access can expose API keys, database credentials, or internal architecture details stored in code.
+
+Branch permissions are the most effective defense against unauthorized code changes. Without them, any user with Write access can push directly to `main`, bypassing code review. In a CI/CD pipeline that auto-deploys from `main`, this can lead to production compromise within minutes.
+
+Group-based access reduces the risk of permission sprawl. When permissions are assigned to individuals, an offboarding process that misses one user leaves a dormant account with access. Groups ensure that access is tied to role, not person.
+
+IP allow lists mitigate credential theft. Even if a developer’s SSH key is stolen, the attacker cannot use it from an external IP. This is a compensating control when full MFA enforcement on Git operations is not possible.
+
+Forking control prevents data leakage. A user with Read access who forks a repository creates an independent copy that they fully control. They can then push that fork to a public remote. Disabling forking for sensitive repos eliminates this risk.
+
+Audit logs in Bitbucket record every permission change, clone, push, and pull. Security engineers should monitor these logs for anomalies, such as a user being granted Admin access unexpectedly or a repository being cloned from an unusual IP.
+
+**Key Takeaways**
+- Enforce branch permissions on all production and release branches to prevent direct pushes and require mandatory pull request approvals.
+- Use group-based permissions instead of individual user assignments to simplify revocation and reduce the risk of orphaned access.
+- Combine IP allow lists with disabled forking for repositories containing sensitive data to limit exposure from credential theft and unauthorized copying.
