@@ -19,7 +19,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 ROOT_DIR   = SCRIPT_DIR.parent  # ll-finetuning/
 
 MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-DATA_PATH  = ROOT_DIR / "data" / "portswigger_alpaca.jsonl"
+DATA_PATH  = ROOT_DIR / "data" / "redefining_hacking.jsonl"
 OUTPUT_DIR = str(SCRIPT_DIR / "lora-output")
 ADAPTER_DIR = str(SCRIPT_DIR / "lora-adapters")
 
@@ -120,12 +120,10 @@ trainer = Trainer(
     data_collator=data_collator
 )
 
-# ==================================================
-# TRAIN — safe resume_from_checkpoint guard
-# ==================================================
-# Only resume if a checkpoint already exists; skip on fresh clone
+# Only resume if a checkpoint already exists and --resume is specified
+import sys
 last_checkpoint = None
-if os.path.isdir(OUTPUT_DIR):
+if "--resume" in sys.argv and os.path.isdir(OUTPUT_DIR):
     checkpoints = [d for d in os.listdir(OUTPUT_DIR) if d.startswith("checkpoint")]
     if checkpoints:
         last_checkpoint = True
