@@ -1,0 +1,157 @@
+{
+  "name": "HTB_Forest",
+  "target": "10.10.10.161",
+  "type": "Active Directory",
+  "scope": "10.10.10.161",
+  "status": "in_progress",
+  "created_at": "2026-09-03T16:07:54.888965+00:00",
+  "updated_at": "2026-09-03T16:07:54.906384+00:00",
+  "current_step": {
+    "id": "ad_smb_enum",
+    "phase": "enumeration",
+    "title": "Active Directory SMB Share & User Enumeration",
+    "action": "Enumerate domain password policy, null sessions, and readable SMB shares on 10.10.10.161",
+    "rationale": "Discovered SMB (port 445) and/or LDAP (port 389) open on 10.10.10.161. Auditing anonymous/guest access, domain password policies, and accessible file shares.",
+    "commands": [
+      "netexec smb 10.10.10.161 -u '' -p '' --shares",
+      "netexec smb 10.10.10.161 --pass-pol",
+      "netexec ldap 10.10.10.161 -u '' -p '' --users"
+    ],
+    "expected_output": "Domain policy, user list, and readable SMB shares (e.g. SYSVOL, NETLOGON, public).",
+    "risk_assessment": "Low risk. Generates standard SMB SessionSetup and TreeConnect events in security event logs (Event ID 4624).",
+    "step_number": 2,
+    "assigned_at": "2026-09-03T16:07:54.906384+00:00"
+  },
+  "completed_steps": [
+    {
+      "id": "recon_port_scan",
+      "phase": "reconnaissance",
+      "title": "Network Port & Service Discovery",
+      "action": "Execute Nmap service and OS detection scan against 10.10.10.161",
+      "purpose": "Identify exposed services, open ports, and operating system signatures.",
+      "rationale": "Target '10.10.10.161' is in scope, but no open port data has been ingested yet. Comprehensive port and service identification must be performed before specific exploits can be selected.",
+      "commands": [
+        "nmap -Pn -sV -sC -T4 10.10.10.161"
+      ],
+      "expected_output": "List of open ports, daemon banners, OS signatures, and initial script findings.",
+      "risk_assessment": "Standard SYN/TCP connect traffic. High volume port scanning may trigger firewall and IDS rate-limiting.",
+      "step_number": 1,
+      "assigned_at": "2026-09-03T16:07:54.890464+00:00",
+      "completed_at": "2026-09-03T16:07:54.901312+00:00",
+      "execution": {
+        "command": "pasted_scan_output",
+        "status": "completed_via_paste",
+        "stdout": "Starting Nmap 7.92 ( https://nmap.org ) at 2026-09-03 20:00 UTC\nNmap scan report for 10.10.10.161\nHost is up (0.045s latency).\nPORT     STATE SERVICE      VERSION\n53/tcp   open  domain       Simple DNS Plus\n88/tcp   open  kerberos-sec Microsoft Windows Kerberos\n135/tcp  open  msrpc        Microsoft Windows RPC\n139/tcp  open  netbios-ssn  Microsoft Windows netbios-ssn\n389/tcp  open  ldap         Microsoft Windows Active Directory LDAP\n445/tcp  open  microsoft-ds Windows Server 2016 Standard 14393 microsoft-ds\nService Info: Host: FOREST; OS: Windows"
+      }
+    }
+  ],
+  "notes": [
+    {
+      "id": "note_1",
+      "content": "Starting Nmap 7.92 ( https://nmap.org ) at 2026-09-03 20:00 UTC\nNmap scan report for 10.10.10.161\nHost is up (0.045s latency).\nPORT     STATE SERVICE      VERSION\n53/tcp   open  domain       Simple DNS Plus\n88/tcp   open  kerberos-sec Microsoft Windows Kerberos\n135/tcp  open  msrpc        Microsoft Windows RPC\n139/tcp  open  netbios-ssn  Microsoft Windows netbios-ssn\n389/tcp  open  ldap         Microsoft Windows Active Directory LDAP\n445/tcp  open  microsoft-ds Windows Server 2016 Standard 14393 microsoft-ds\nService Info: Host: FOREST; OS: Windows",
+      "author": "operator",
+      "timestamp": "2026-09-03T16:07:54.893478+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev_1",
+      "step_id": "1",
+      "command": "pasted_scan_output",
+      "output": "Starting Nmap 7.92 ( https://nmap.org ) at 2026-09-03 20:00 UTC\nNmap scan report for 10.10.10.161\nHost is up (0.045s latency).\nPORT     STATE SERVICE      VERSION\n53/tcp   open  domain       Simple DNS Plus\n88/tcp   open  kerberos-sec Microsoft Windows Kerberos\n135/tcp  open  msrpc        Microsoft Windows RPC\n139/tcp  open  netbios-ssn  Microsoft Windows netbios-ssn\n389/tcp  open  ldap         Microsoft Windows Active Directory LDAP\n445/tcp  open  microsoft-ds Windows Server 2016 Standard 14393 microsoft-ds\nService Info: Host: FOREST; OS: Windows",
+      "status": "completed_via_paste",
+      "timestamp": "2026-09-03T16:07:54.901312+00:00",
+      "artifacts": []
+    }
+  ],
+  "ingested_findings": {
+    "nmap": [],
+    "burp": [],
+    "cloud": [],
+    "generic": [],
+    "terminal_paste": [
+      {
+        "source_file": "pasted_text_note_1",
+        "ingested_at": "2026-09-03T16:07:54.898149+00:00",
+        "data": {
+          "detected_services": [
+            "DNS",
+            "Kerberos",
+            "RPC",
+            "NetBIOS",
+            "LDAP",
+            "SMB"
+          ],
+          "environment_profile": "Likely Active Directory.",
+          "host_name": "FOREST",
+          "os_info": "Windows",
+          "domain_name": null,
+          "suggested_next_step": "SMB enumeration.",
+          "entities": {
+            "ips": [
+              "10.10.10.161"
+            ],
+            "ports": [
+              53,
+              88,
+              135,
+              139,
+              389,
+              445
+            ],
+            "domains": [],
+            "services": [
+              "domain:53",
+              "kerberos-sec:88",
+              "msrpc:135",
+              "netbios-ssn:139",
+              "ldap:389",
+              "microsoft-ds:445"
+            ],
+            "cloud_resources": [],
+            "vulnerabilities": []
+          },
+          "summary": "Detected 6 service(s): DNS, Kerberos, RPC, NetBIOS, LDAP, SMB. Likely Active Directory."
+        }
+      }
+    ]
+  },
+  "targets": {
+    "ips": [
+      "10.10.10.161"
+    ],
+    "ports": [
+      53,
+      88,
+      135,
+      139,
+      389,
+      445
+    ],
+    "domains": [],
+    "services": [
+      "domain:53",
+      "kerberos-sec:88",
+      "msrpc:135",
+      "netbios-ssn:139",
+      "ldap:389",
+      "microsoft-ds:445"
+    ],
+    "cloud_resources": [],
+    "vulnerabilities": []
+  },
+  "history": [
+    {
+      "action": "ingest_terminal_paste",
+      "summary": "Detected 6 service(s): DNS, Kerberos, RPC, NetBIOS, LDAP, SMB. Likely Active Directory.",
+      "timestamp": "2026-09-03T16:07:54.898149+00:00"
+    },
+    {
+      "action": "step_completed",
+      "step_number": 1,
+      "title": "Network Port & Service Discovery",
+      "phase": "reconnaissance",
+      "timestamp": "2026-09-03T16:07:54.901312+00:00"
+    }
+  ]
+}

@@ -1,6 +1,17 @@
 # Penetration Testing Dataset Documentation (`data.jsonl`)
 
 ## Overview
+
+
+## RAG & Retrieval Data Updates (September 2026)
+
+- **Vector Distance Normalization**: FAISS index outputs are no longer reported as raw L2 squared euclidean distances. They are converted to a `0.0 - 1.0` semantic similarity score to filter out low-confidence matches. Any document scoring below `0.35` is dropped before entering the LLM context block.
+- **Prompt Context Assembly**: LLM prompts dynamically fuse data from 3 streams:
+  1. **Live Intel**: Extracted open ports, active users, groups, kernel versions, SUID binaries, and discovered banners.
+  2. **Scenario Tactics**: YAML scenario steps ranked by vector similarity.
+  3. **RAG Context**: Top matches from the static document corpus.
+- **Evidence Formatting**: Pasted data is explicitly classified as *untrusted* data using `<<<BEGIN_EVIDENCE>>>` and `<<<END_EVIDENCE>>>` tags.
+
 The `data.jsonl` file is an instruction-based dataset designed for fine-tuning Large Language Models (LLMs) on cybersecurity, penetration testing, and security auditing tasks. It contains high-quality, practical examples of command-line tools, methodologies, and security compliance checks.
 
 ## Data Structure
@@ -98,3 +109,146 @@ To ensure the project can be deployed across different environments, specific re
 
 All core dependencies are also tracked in the root `requirements.txt`.
 
+---
+
+## Assessment Scenarios & Tactical Playbooks (`ll-finetuning/rag/scenarios/`)
+
+In addition to Alpaca-style instruction pairs, the system uses structured YAML scenario specifications that encode end-to-end tactical procedures for live assessment execution.
+
+### Scenario Schema (`.yaml`)
+Each scenario contains operational steps, targeted tools, expected outputs, and risk assessments:
+```yaml
+id: linux_suid_privesc
+name: Linux SUID Executable & Capability Audit
+category: ctf_linux_privilege_escalation
+target_environment: local_shell_or_container
+steps:
+  - sequence_number: 1
+    action: Find SUID/SGID binaries on target filesystem
+    commands: ["find / -perm -4000 -type f 2>/dev/null", "getcap -r / 2>/dev/null"]
+    expected_output: List of binaries executing with effective root UID
+    risk: Read-only filesystem search
+```
+
+### Supported Categories:
+1. **CTF & Local Linux Shells:** Privilege escalation, flag discovery (`/flag`, `/challenge`), SUID/SGID, sudo rules, and path manipulation (e.g. `pwn.college` scenarios).
+2. **Active Directory & Identity:** SMB anonymous shares, Kerberoasting (`GetNPUsers.py`), LDAP enumeration, and DCSync.
+3. **Web Application & APIs:** SQL injection, authentication bypass, directory fuzzing, and CORS misconfiguration.
+4. **Cloud Infrastructure:** Azure IAM role auditing, AWS EC2 metadata service (IMDSv1/v2) SSRF exploitation, and Key Vault exfiltration.
+
+---
+
+## Live Assessment Session State Schema (`.assessments/<session>/state.json`)
+
+When an assessment or CTF is initiated, state is persisted in an atomic JSON structure:
+- **`name`**: Unique session slug (e.g., `pwn_college_first_transient_path`).
+- **`target`**: Target identifier (e.g., `localhost (pwn.college container)`, IP CIDR, domain).
+- **`type`**: Assessment methodology (`ctf`, `linux`, `active_directory`, `web`, `cloud`).
+- **`connectivity`**: Access mechanism (`VPN`, `Local`, `Direct`).
+- **`scope`**: Authorized engagement boundaries.
+- **`current_step`**: The active pending action item served by the planner.
+- **`completed_steps`**: Chronological record of completed actions with execution outputs.
+- **`evidence`**: Forensic execution proofs and raw outputs.
+- **`notes`**: Operator observations and conversational AI Co-Pilot dialogue history.
+- **`targets`**: Discovered target entities (`ips`, `domains`, `ports`, `services`, `cloud_resources`).
+
+---
+
+## Interactive CLI & AI Co-Pilot (`main.py`)
+
+The `main.py` entry point is the primary operator interface, combining a structured assessment command shell with a free-form conversational AI Security Co-Pilot. It is launched via `python main.py` from the workspace root.
+
+### Command Reference
+
+| Command | Description |
+| :--- | :--- |
+| `new <name>` | Start a new assessment session with target, type, scope, and connectivity |
+| `open <name>` | Resume an existing session. Supports **partial / prefix matching** (e.g., `open pwn_college` finds `pwn_college_first_transient_path`) |
+| `next` | Fetch exactly one recommended methodology step from the planner |
+| `run` | Execute the pending step: either run shell commands or mark as manually done |
+| `paste` | Paste raw terminal output — automatically advances the active step and analyzes for new findings |
+| `upload <path>` | Ingest an Nmap XML, Burp Suite, or cloud JSON scanner file |
+| `status` | Show full session overview: targets, ports, services, vulnerabilities, progress |
+| `scope [new]` | View or update engagement scope boundaries |
+| `type [new]` | Switch assessment methodology (`ctf`, `linux`, `web`, `active_directory`, `cloud`) |
+| `target set\|add\|rm\|clear` | Fine-tune target IPs, domains, ports, and services |
+| `back` / `undo` | Roll back the last completed step to re-evaluate |
+| `reset steps\|targets` | Clear completed steps or discovered targets |
+| `report` | Compile notes and evidence into a Markdown report |
+| `list` | List all saved assessment sessions |
+| `quit` / `exit` | Save state and exit cleanly |
+
+### AI Co-Pilot Chat
+
+Any input that is **not** a reserved command is automatically routed to the `ChatAssistant` as a free-form question. The `chat <message>` command also works explicitly. The Co-Pilot:
+1. Reads live session context (target, type, scope, steps, evidence).
+2. Performs semantic RAG retrieval over the textbook and OWASP corpus.
+3. Queries YAML scenario playbooks for matching tactics.
+4. Returns tactical, copy-pasteable guidance with commands.
+
+```
+assess [pwn_college_first_transient_path] > how do I read the flag if I'm not root?
+[AI Co-Pilot | Context: localhost (pwn.college container) (CTF)]
+-----------------------------------------------------------------
+🔍 Flag Access & Permission Breakdown:
+If /flag is owned by root:root with mode 0400, check for SUID on /challenge/* or sudo -l
+```
+
+---
+
+## RAG Core Module Architecture (`ll-finetuning/rag/core/`)
+
+The refactored `rag/core/` package contains all subsystem modules:
+
+| Module | Responsibility |
+| :--- | :--- |
+| `rag_engine.py` | FAISS vector search, embedding, cross-encoder reranking, context building |
+| `memory.py` | Conversation history loading, saving, and retrieval (JSON-backed) |
+| `prompts.py` | Prompt template formatting per model family (Mistral, FLAN-T5, default) |
+| `models.py` | Model factory wrappers and lazy loader utilities |
+| `config.py` | Centralized path constants (`INDEX_PATH`, `META_PATH`, `SCENARIOS_DIR`, etc.) |
+| `tools.py` | Reusable utility helpers (text normalization, token counting, safe file ops) |
+| `planner.py` | Phase-ordered methodology planner; serves exactly one step per `next` call |
+| `session_manager.py` | Session lifecycle, state persistence, evidence collection, target tracking |
+| `chat_assistant.py` | Conversational AI Co-Pilot: context fusion, RAG retrieval, reasoning |
+| `ingestion.py` | Multi-format file parser (Nmap XML, Burp, Cloud JSON, plain text) |
+| `report_generator.py` | Compiles session state into structured Markdown assessment reports |
+| `command_executor.py` | Safe command preview, timeout enforcement, and output capture |
+| `variable_engine.py` | Live target parameter substitution into command templates |
+| `yaml_loader.py` | Loads and validates YAML scenario files from `rag/scenarios/` |
+| `yaml_registry.py` | Indexes and catalogues all loaded scenarios for fast lookup |
+| `yaml_search.py` | Keyword and semantic search over the YAML scenario registry |
+| `model_router.py` | Device-aware inference routing (CPU → FLAN-T5, GPU → Mistral/LLaMA) |
+| `assessment_router.py` | Maps operator queries to relevant YAML scenarios and RAG context |
+| `evidence_manager.py` | Structured evidence ledger management and forensic record keeping |
+| `build_index.py` | Rebuilds the FAISS vector index from corpus text files |
+| `yaml_indexer.py` | Builds YAML scenario vector index for semantic scenario retrieval |
+
+---
+
+## Runtime Module Status (Post Code Audit - September 2026)
+
+All modules have been audited and hardened. Key changes that affect data flow:
+
+### chat_assistant.py
+- **f-string fix:** `_explain_pasted_output_and_binaries()` now correctly substitutes the `target_bin` variable into response text (was silently printing `{target_bin}` as a literal string).
+- **State mutation fix:** `respond()` no longer mutates the caller-provided empty dict default when no session is active; `chat_history` tracking only persists when a real session state is passed.
+- **Evidence-Based Dynamic Reasoning:** `extract_session_intelligence()` parses actual session artifacts (`notes`, `evidence`, `completed_steps`). When no custom SUID binary is present in the pasted output, the assistant explicitly states that no binary was found yet, preventing hallucinated references to previous labs.
+- **Session Reset Data Flush:** Acknowledging a different challenge purges prior `artifacts`, `notes`, and `completed_steps` from the session state to guarantee strict session isolation.
+
+### rag_engine.py
+- **Singleton Model Caching:** `get_global_rag_engine()` ensures `SentenceTransformer` and `CrossEncoder` weights are cached in process memory across CLI commands, eliminating duplicate model initializations.
+- **Negative Logit Filtering:** Added `min_score = -2.5` threshold to `retrieve()`, eliminating noisy, irrelevant RAG chunks from contaminating Linux reconnaissance conversations.
+
+### ingestion.py
+- **Burp XML IPs:** BurpParser now correctly reads IP addresses from the `<host ip="..." />` XML attribute (was using invalid XPath `host[@ip]` which silently returned empty strings, losing all IP data from Burp exports).
+- **Cloud JSON safety:** CloudCLIParser gracefully handles malformed JSON files without crashing the ingestion pipeline — returns a structured error result instead.
+- **Copy diagnostics:** Artifact copy failures now emit a `warnings.warn()` so operators can see when evidence files could not be saved to the session directory.
+
+### session_manager.py
+- **Backward compatibility:** `add_ingested_findings()` now uses `.setdefault()` for both the top-level `ingested_findings` key and all category sub-keys, making the system compatible with older session state files on disk.
+
+### main.py
+- **Encoding guard:** Consolidated to a single clean `sys.stdout.reconfigure(encoding="utf-8")` guard.
+- **Note truncation:** AI response notes now only append `...` when the response was actually truncated beyond 400 characters.
+- **Bilingual Chat / CLI Routing:** The `default()` handler cleanly routes natural queries directly to `ChatAssistant.respond()`, while preserving rapid execution commands (`new`, `open`, `paste`, `next`, `run`).

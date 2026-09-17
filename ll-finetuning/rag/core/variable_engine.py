@@ -34,9 +34,19 @@ class VariableEngine:
         """
         Set or update a variable value.
         Normalizes variable name to upper case without brackets.
+        Validates network-related variables against a strict allow-list regex.
         """
         clean_name = name.strip(" []{}").upper()
-        self.variables[clean_name] = str(value)
+        val_str = str(value)
+        
+        # Strict allow-list regex for network parameters to prevent injection
+        network_vars = {"IP", "TARGET_IP", "HOST", "HOSTNAME", "DOMAIN", "PORT", "TARGET", "SUBNET", "CIDR"}
+        if clean_name in network_vars or any(x in clean_name for x in ["_IP", "PORT", "HOST", "DOMAIN"]):
+            # Allow alphanumeric, dot, hyphen, underscore, colon (for IPv6/ports), and slash (for CIDR)
+            if not re.match(r'^[a-zA-Z0-9\.\-\_\:\/]+$', val_str):
+                raise ValueError(f"SECURITY ALERT: Invalid characters detected in network parameter '{clean_name}'. Value: {val_str}")
+
+        self.variables[clean_name] = val_str
 
     def set_variables(self, var_dict: Dict[str, str]):
         """
@@ -82,6 +92,7 @@ class VariableEngine:
         Returns:
             Substituted content in matching type.
         """
+        import shlex
         active_vars = dict(self.variables)
         if custom_vars:
             for k, v in custom_vars.items():
@@ -91,12 +102,14 @@ class VariableEngine:
         if isinstance(content, str):
             result = content
             for var_name, var_val in active_vars.items():
+                # Explicitly quote every substituted variable to prevent shell metacharacter injection
+                quoted_val = shlex.quote(var_val)
                 # Replace [VAR_NAME] and {VAR_NAME}
-                result = result.replace(f"[{var_name}]", var_val)
-                result = result.replace(f"{{{var_name}}}", var_val)
+                result = result.replace(f"[{var_name}]", quoted_val)
+                result = result.replace(f"{{{var_name}}}", quoted_val)
                 # Also handle lowercase variant placeholders if present e.g. [target_org]
-                result = result.replace(f"[{var_name.lower()}]", var_val)
-                result = result.replace(f"{{{var_name.lower()}}}", var_val)
+                result = result.replace(f"[{var_name.lower()}]", quoted_val)
+                result = result.replace(f"{{{var_name.lower()}}}", quoted_val)
             return result
 
         elif isinstance(content, list):

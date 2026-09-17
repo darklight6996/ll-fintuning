@@ -1,0 +1,45 @@
+{
+  "name": "pwn_college_The_Art_of_the_Shell",
+  "target": "https://pwn.college/shell-lin-do/first/",
+  "type": "Ubuntu shell",
+  "scope": "https://pwn.college/shell-lin-do/first/",
+  "status": "in_progress",
+  "created_at": "2026-09-15T20:38:14.020863+00:00",
+  "updated_at": "2026-09-15T20:38:35.202928+00:00",
+  "current_step": {
+    "id": "web_subdomain_enum",
+    "phase": "reconnaissance",
+    "title": "Subdomain Discovery & Asset Enumeration",
+    "action": "Discover active subdomains and probe live web services on pwn.college",
+    "purpose": "Map exposed subdomains, DNS records, and active HTTP endpoints.",
+    "rationale": "Target 'pwn.college' is a web application / bug bounty scope. Subdomain enumeration maps the external attack surface before testing individual endpoints.",
+    "commands": [
+      "subfinder -d pwn.college -silent | httpx -title -tech-detect -status-code",
+      "whatweb https://pwn.college"
+    ],
+    "expected_output": "List of resolved subdomains, HTTP status codes, and detected technologies.",
+    "risk_assessment": "Passive / low-footprint HTTP reconnaissance.",
+    "step_number": 1,
+    "assigned_at": "2026-09-15T20:38:35.202928+00:00"
+  },
+  "completed_steps": [],
+  "notes": [],
+  "evidence": [],
+  "ingested_findings": {
+    "nmap": [],
+    "burp": [],
+    "cloud": [],
+    "generic": []
+  },
+  "targets": {
+    "ips": [],
+    "ports": [],
+    "domains": [
+      "pwn.college"
+    ],
+    "services": [],
+    "cloud_resources": [],
+    "vulnerabilities": []
+  },
+  "history": []
+}

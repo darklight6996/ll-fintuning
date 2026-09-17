@@ -1,0 +1,29 @@
+{
+  "name": "edge_test",
+  "target": "where do i start on ubuntu?",
+  "type": "what is a binary here and explain the output of the result pasted in",
+  "scope": "no this is a completely different challenge, start fresh",
+  "status": "in_progress",
+  "created_at": "2026-09-16T17:01:56.571129+00:00",
+  "updated_at": "2026-09-16T17:01:56.573992+00:00",
+  "current_step": null,
+  "completed_steps": [],
+  "notes": [],
+  "evidence": [],
+  "ingested_findings": {
+    "nmap": [],
+    "burp": [],
+    "cloud": [],
+    "generic": []
+  },
+  "targets": {
+    "ips": [],
+    "ports": [],
+    "domains": [],
+    "services": [],
+    "cloud_resources": [],
+    "vulnerabilities": []
+  },
+  "history": [],
+  "connectivity": "exit"
+}

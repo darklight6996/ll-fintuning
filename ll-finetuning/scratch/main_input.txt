@@ -1,0 +1,5 @@
+new edge_test
+where do i start on ubuntu?
+what is a binary here and explain the output of the result pasted in
+no this is a completely different challenge, start fresh
+exit

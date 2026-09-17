@@ -1,0 +1,53 @@
+{
+  "name": "Shopify_Bounty",
+  "target": "store.acme.com",
+  "type": "Bug Bounty",
+  "scope": "*.acme.com",
+  "status": "in_progress",
+  "created_at": "2026-09-03T16:13:50.509265+00:00",
+  "updated_at": "2026-09-03T16:13:50.529596+00:00",
+  "current_step": {
+    "id": "web_subdomain_enum",
+    "phase": "reconnaissance",
+    "title": "Subdomain Discovery & Asset Enumeration",
+    "action": "Discover active subdomains and probe live web services on store.acme.com",
+    "purpose": "Map exposed subdomains, DNS records, and active HTTP endpoints.",
+    "rationale": "Target 'store.acme.com' is a web application / bug bounty scope. Subdomain enumeration maps the external attack surface before testing individual endpoints.",
+    "commands": [
+      "subfinder -d store.acme.com -silent | httpx -title -tech-detect -status-code",
+      "whatweb https://store.acme.com"
+    ],
+    "expected_output": "List of resolved subdomains, HTTP status codes, and detected technologies.",
+    "risk_assessment": "Passive / low-footprint HTTP reconnaissance.",
+    "step_number": 1,
+    "assigned_at": "2026-09-03T16:13:50.523991+00:00"
+  },
+  "completed_steps": [],
+  "notes": [
+    {
+      "id": "note_1",
+      "content": "admin                   [Status: 301, Size: 169]\napi                     [Status: 301, Size: 169]\ngraphql                 [Status: 200, Size: 2450]",
+      "author": "operator",
+      "timestamp": "2026-09-03T16:13:50.529596+00:00"
+    }
+  ],
+  "evidence": [],
+  "ingested_findings": {
+    "nmap": [],
+    "burp": [],
+    "cloud": [],
+    "generic": []
+  },
+  "targets": {
+    "ips": [],
+    "ports": [],
+    "domains": [
+      "store.acme.com",
+      "acme.com"
+    ],
+    "services": [],
+    "cloud_resources": [],
+    "vulnerabilities": []
+  },
+  "history": []
+}

@@ -1,0 +1,99 @@
+# Category: Cross-Site Request Forgery (CSRF)
+name: "CSRF where token is not tied to user session"
+id: "csrf-token-not-tied-to-session-001"
+category: "csrf"
+subcategory: "bypass"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This scenario covers CSRF where the application generates CSRF tokens that
+  are not tied to the user's session. The attacker can obtain a valid token
+  (e.g., from their own session) and use it in a CSRF attack against another
+  user because the server does not verify that the token belongs to the
+  victim's session.
+
+learning_objectives:
+  - Understand session binding in CSRF tokens
+  - Identify tokens that are not tied to the session
+  - Obtain a token from one session and use it in another
+  - Perform CSRF attacks using a known valid token
+
+tools:
+  - Burp Suite
+  - curl
+
+prerequisites:
+  - Target application with session-independent tokens
+  - Ability to obtain a valid token
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Examine CSRF token generation"
+    commands:
+      - "# Observe token in the page source"
+      - "# Note if the token changes with session or remains constant"
+    expected_output: "Token is not tied to the user session"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Use a token from the attacker's session"
+    commands:
+      - "# Obtain a valid token from the attacker's session"
+      - "# Craft a CSRF request with that token"
+      - "<form action='https://target.com/change-email' method='POST'>"
+      - "<input type='hidden' name='csrf_token' value='ATTACKER_TOKEN'>"
+      - "<input type='hidden' name='email' value='attacker@evil.com'>"
+      - "</form>"
+    expected_output: "The request is accepted with the attacker's token"
+    detection: "Application logs show token used from another session"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Escalate to other actions"
+    commands:
+      - "# Use the same token for other state-changing operations"
+    expected_output: "Multiple actions performed"
+    detection: "Audit logs show suspicious token usage"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1204"
+    description: "User Execution"
+  - standard: "OWASP"
+    control: "A01:2021"
+    description: "Broken Access Control"
+
+detection:
+  network_indicators:
+    - "Same token used across different sessions"
+  log_indicators:
+    - "Token reuse anomalies"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Bind CSRF tokens to the user's session"
+    - "Use session-based token generation"
+  long_term:
+    - "Implement per-request or per-session tokens"
+    - "Validate token ownership on the server"
+
+variables:
+  target_url: "https://target.com/change-email"
+  attacker_token: "abc123xyz"
+  new_email: "attacker@evil.com"
+
+assessment_questions:
+  - "Why is it important to tie CSRF tokens to sessions?"
+  - "How can an attacker exploit session-independent tokens?"
+  - "What is the recommended approach for CSRF token generation?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/csrf"
+    title: "OWASP CSRF"
+  - url: "https://portswigger.net/web-security/csrf/bypassing-token-validation"
+    title: "PortSwigger CSRF Bypass"

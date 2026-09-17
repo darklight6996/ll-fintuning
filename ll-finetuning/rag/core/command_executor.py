@@ -151,10 +151,12 @@ class CommandExecutor:
             }
 
         try:
-            # Run command shell safely
+            # SECURITY: parse command string into a list and execute with shell=False
+            # This prevents shell injection vulnerabilities.
+            command_list = shlex.split(command_str)
             result = subprocess.run(
-                command_str,
-                shell=True,
+                command_list,
+                shell=False,
                 capture_output=True,
                 text=True,
                 timeout=60

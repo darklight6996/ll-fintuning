@@ -1,4 +1,8 @@
 # Core Dependencies for ll-finetuning & RAG Engine
+# NOTE: System CLI assessment tools (nmap, ffuf, subfinder, etc.) are NOT 
+# downloaded via pip. Please run `python setup/check_tools.py` 
+# after installing these Python packages to check your system dependencies.
+
 --extra-index-url https://download.pytorch.org/whl/cu121
 
 torch

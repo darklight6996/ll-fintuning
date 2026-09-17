@@ -48,6 +48,8 @@ GPU_SESSION_ID = "gpu_session"
 # CPU MODEL SETTINGS
 # ==============================
 
+# google/flan-t5-large is the base model that was fine-tuned for CPU.
+# The PEFT/LoRA adapters can be applied to this base model.
 CPU_MODEL_NAME = "google/flan-t5-large"
 CPU_MAX_INPUT_TOKENS = 2048
 CPU_MAX_NEW_TOKENS = 200
@@ -57,7 +59,7 @@ CPU_MAX_NEW_TOKENS = 200
 # ==============================
 
 GPU_MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.2"
-GPU_MAX_INPUT_TOKENS = 2048
+GPU_MAX_INPUT_TOKENS = 3072
 GPU_MAX_NEW_TOKENS = 512
 
 # ==============================

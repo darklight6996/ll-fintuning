@@ -7,6 +7,19 @@
 # IMPORTS
 # ==============================
 
+import os
+import sys
+import io
+import logging
+import warnings
+from typing import Optional, List, Tuple, Dict, Any
+
+warnings.filterwarnings("ignore")
+logging.getLogger("transformers").setLevel(logging.ERROR)
+logging.getLogger("sentence_transformers").setLevel(logging.ERROR)
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+
 import faiss
 import pickle
 import numpy as np
@@ -24,6 +37,8 @@ from core.config import (
     EMBED_MODEL,
     RERANK_MODEL
 )
+
+_GLOBAL_RAG_ENGINE: Optional["RAGEngine"] = None
 
 
 # ==============================
@@ -49,7 +64,8 @@ class RAGEngine:
         top_k=TOP_K,
         final_k=FINAL_K,
         embed_model_name=EMBED_MODEL,
-        rerank_model_name=RERANK_MODEL
+        rerank_model_name=RERANK_MODEL,
+        verbose: bool = False
     ):
         """
         Parameters
@@ -71,6 +87,9 @@ class RAGEngine:
 
         rerank_model_name : str
             CrossEncoder reranker model.
+
+        verbose : bool
+            Whether to print loading progress to stdout.
         """
 
         self.index_path = index_path
@@ -79,47 +98,57 @@ class RAGEngine:
         self.final_k = final_k
         self.embed_model_name = embed_model_name
         self.rerank_model_name = rerank_model_name
+        self.verbose = verbose
 
         self.embed_model = None
         self.reranker = None
         self.index = None
         self.metadata = None
 
-        self._load_components()
+        self._load_components(verbose=self.verbose)
 
     # ==========================================================
     # INTERNAL LOADER
     # ==========================================================
 
-    def _load_components(self):
+    def _load_components(self, verbose: bool = False):
         """
-        Load all retrieval-related components:
+        Load all retrieval-related components silently or with clean status:
         - embedding model
         - reranker
         - FAISS index
         - metadata
         """
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        try:
+            if not verbose:
+                sys.stdout = io.StringIO()
+                sys.stderr = io.StringIO()
 
-        print("Loading embedding model...")
-        self.embed_model = SentenceTransformer(
-            self.embed_model_name
-        )
+            self.embed_model = SentenceTransformer(
+                self.embed_model_name
+            )
 
-        print("Loading reranker...")
-        self.reranker = CrossEncoder(
-            self.rerank_model_name
-        )
+            self.reranker = CrossEncoder(
+                self.rerank_model_name
+            )
 
-        print("Loading FAISS index...")
-        self.index = faiss.read_index(
-            self.index_path
-        )
+            self.index = faiss.read_index(
+                self.index_path
+            )
 
-        print("Loading metadata...")
-        with open(self.meta_path, "rb") as f:
-            self.metadata = pickle.load(f)
+            with open(self.meta_path, "rb") as f:
+                self.metadata = pickle.load(f)
 
-        print("RAG Engine loaded successfully.")
+        finally:
+            if not verbose:
+                sys.stdout = old_stdout
+                sys.stderr = old_stderr
+
+        if verbose:
+            print("[+] RAG Neural Engine ready.")
+
 
     # ==========================================================
     # QUERY EMBEDDING
@@ -145,9 +174,9 @@ class RAGEngine:
     # RETRIEVAL
     # ==========================================================
 
-    def retrieve(self, query: str):
+    def retrieve(self, query: str, min_score: float = -2.5):
         """
-        Retrieve top documents for a query and rerank them.
+        Retrieve top documents for a query and rerank them, filtering out negative irrelevant logits.
 
         Returns
         -------
@@ -173,19 +202,21 @@ class RAGEngine:
         )
 
         # --------------------------
-        # Collect candidate docs
+        # Collect candidate docs & compute normalized similarity (0..1)
         # --------------------------
+        similarities = 1.0 / (1.0 + distances[0])
         candidates = []
 
-        for idx in indices[0]:
-            if idx == -1:
+        for idx, dist, sim in zip(indices[0], distances[0], similarities):
+            if idx < 0:
                 continue
 
             # safety check
             if idx < len(self.metadata):
-                candidates.append(
-                    self.metadata[idx]
-                )
+                meta = dict(self.metadata[idx])
+                meta["_faiss_dist"] = float(dist)
+                meta["_score"] = float(sim)  # normalized 0..1, higher is better
+                candidates.append((meta, float(sim)))
 
         # If nothing found
         if not candidates:
@@ -196,7 +227,7 @@ class RAGEngine:
         # --------------------------
         pairs = [
             [query, doc.get("text", "")]
-            for doc in candidates
+            for doc, _ in candidates
         ]
 
         # --------------------------
@@ -206,26 +237,30 @@ class RAGEngine:
             pairs
         )
 
-        ranked = sorted(
-            zip(candidates, scores),
-            key=lambda x: x[1],
-            reverse=True
-        )
+        ranked = []
+        for (doc, sim), rerank_score in zip(candidates, scores):
+            doc["_rerank_score"] = float(rerank_score)
+            if float(rerank_score) >= min_score and sim >= 0.25:
+                ranked.append((doc, float(sim)))
 
+        ranked.sort(key=lambda x: x[0].get("_rerank_score", x[1]), reverse=True)
         return ranked[:self.final_k]
 
     # ==========================================================
     # CONTEXT BUILDER
     # ==========================================================
 
-    def build_context(self, ranked_docs):
+    def build_context(self, ranked_docs, min_sim: float = 0.35):
         """
         Convert reranked docs into one formatted context string.
+        Filters out low-similarity chunks below min_sim (default 0.35).
 
         Parameters
         ----------
         ranked_docs : list[tuple[dict, float]]
             Output from retrieve()
+        min_sim : float
+            Minimum similarity threshold (0..1) to include in context.
 
         Returns
         -------
@@ -234,11 +269,15 @@ class RAGEngine:
         """
 
         if not ranked_docs:
-            return "No relevant context retrieved."
+            return ""
 
         context_parts = []
 
         for doc, score in ranked_docs:
+            sim = doc.get("_score", score)
+            if sim < min_sim:
+                continue
+
             source = doc.get(
                 "filename",
                 doc.get("source", "Unknown")
@@ -257,7 +296,7 @@ class RAGEngine:
             block = (
                 f"[SOURCE: {source}]\n"
                 f"[CHUNK: {chunk_id}]\n"
-                f"[SCORE: {score:.4f}]\n"
+                f"[SIMILARITY: {sim:.4f}]\n"
                 f"{text}"
             )
 
@@ -282,3 +321,34 @@ class RAGEngine:
             "rerank_model": self.rerank_model_name,
             "metadata_count": len(self.metadata) if self.metadata else 0
         }
+
+
+def get_global_rag_engine(
+    index_path=INDEX_PATH,
+    meta_path=META_PATH,
+    top_k=TOP_K,
+    final_k=FINAL_K,
+    verbose: bool = False
+) -> Optional[RAGEngine]:
+    """
+    Module-level singleton getter to ensure model weights and FAISS indices
+    are loaded only once in process memory, eliminating reload lag.
+    """
+    global _GLOBAL_RAG_ENGINE
+    if _GLOBAL_RAG_ENGINE is None:
+        try:
+            from pathlib import Path
+            if Path(index_path).exists() and Path(meta_path).exists():
+                _GLOBAL_RAG_ENGINE = RAGEngine(
+                    index_path=index_path,
+                    meta_path=meta_path,
+                    top_k=top_k,
+                    final_k=final_k,
+                    verbose=verbose
+                )
+            else:
+                _GLOBAL_RAG_ENGINE = False
+        except Exception:
+            _GLOBAL_RAG_ENGINE = False
+
+    return _GLOBAL_RAG_ENGINE if _GLOBAL_RAG_ENGINE is not False else None

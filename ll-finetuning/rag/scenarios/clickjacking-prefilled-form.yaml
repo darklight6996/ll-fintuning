@@ -1,0 +1,96 @@
+# Category: Clickjacking
+name: "Clickjacking with form input data prefilled from a URL parameter"
+id: "clickjacking-prefilled-form-001"
+category: "clickjacking"
+subcategory: "prefilled"
+difficulty: "apprentice"
+estimated_time: "30 minutes"
+
+description: |
+  This scenario covers clickjacking where the target application pre-fills
+  form fields using URL parameters (e.g., ?email=attacker@evil.com). The
+  attacker can overlay a hidden iframe on a decoy page, and when the victim
+  clicks, the form is submitted with the pre-filled malicious data.
+
+learning_objectives:
+  - Understand how URL parameters can pre-fill form fields
+  - Combine clickjacking with parameter injection
+  - Pre-fill a sensitive form with attacker-controlled values
+  - Trick the user into submitting the form
+
+tools:
+  - Burp Suite
+  - Basic HTML/CSS
+
+prerequisites:
+  - Target application pre-fills forms via URL parameters
+  - No X-Frame-Options header
+  - Victim has an active session
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify pre-filled form parameters"
+    commands:
+      - "# Look for forms that accept parameters: ?email=, ?username=, ?role="
+      - "# Test if the parameter values appear in the form fields"
+    expected_output: "Form fields can be pre-filled via URL parameters"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Create a clickjacking page with pre-filled form"
+    commands:
+      - "# Iframe URL: https://target.com/update-profile?email=attacker@evil.com"
+      - "# Use the same overlay technique as basic clickjacking"
+      - "<iframe src='https://target.com/update-profile?email=attacker@evil.com' style='...opacity:0.0001...'></iframe>"
+    expected_output: "When victim clicks the decoy button, the pre-filled form is submitted with malicious data"
+    detection: "Application logs show the update with the attacker's email"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Escalate to account takeover"
+    commands:
+      - "# If email is changed, request password reset"
+    expected_output: "Full account takeover"
+    detection: "Security alerts for email change"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1204"
+    description: "User Execution"
+  - standard: "OWASP"
+    control: "A04:2021"
+    description: "Insecure Design"
+
+detection:
+  network_indicators:
+    - "Requests with pre-filled parameters"
+  log_indicators:
+    - "Form submissions with values from URL parameters"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Set X-Frame-Options: DENY"
+    - "Do not pre-fill sensitive fields from URL parameters"
+  long_term:
+    - "Validate all input on the server side"
+    - "Use CSRF tokens and anti-clickjacking headers"
+
+variables:
+  target_url: "https://target.com/update-profile"
+  param_name: "email"
+  malicious_value: "attacker@evil.com"
+
+assessment_questions:
+  - "How can URL parameters be used in clickjacking attacks?"
+  - "Why is it dangerous to pre-fill forms from URL parameters?"
+  - "What is the best defense against this type of attack?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/Clickjacking"
+    title: "OWASP Clickjacking"
+  - url: "https://portswigger.net/web-security/clickjacking"
+    title: "PortSwigger Clickjacking"

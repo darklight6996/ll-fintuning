@@ -1,0 +1,97 @@
+# Category: Cross-Site Request Forgery (CSRF)
+name: "SameSite Lax bypass via method override"
+id: "csrf-samesite-lax-method-override-001"
+category: "csrf"
+subcategory: "samesite_bypass"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This scenario covers bypassing SameSite=Lax cookie protection. When a site
+  uses SameSite=Lax, cookies are not sent for cross-origin POST requests but
+  are sent for GET requests. The attacker can use method override headers
+  (e.g., `X-HTTP-Method-Override: POST`) to send a GET request that is treated
+  as a POST by the server, triggering the CSRF attack.
+
+learning_objectives:
+  - Understand SameSite cookie attribute behavior
+  - Identify method override techniques
+  - Use `X-HTTP-Method-Override` or `_method` to bypass SameSite
+  - Perform CSRF attacks with SameSite=Lax
+
+tools:
+  - Burp Suite
+  - curl
+
+prerequisites:
+  - Target application uses SameSite=Lax
+  - Application supports method override headers
+  - State-changing request can be sent via GET with method override
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify SameSite cookie setting"
+    commands:
+      - "# Check cookie attributes: SameSite=Lax or SameSite=Strict"
+      - "# Observe if the application supports method override"
+    expected_output: "SameSite=Lax used; method override supported"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Use method override to bypass SameSite"
+    commands:
+      - "# Send a GET request with method override header:"
+      - "GET https://target.com/change-email?email=attacker@evil.com"
+      - "X-HTTP-Method-Override: POST"
+      - "# Or use _method parameter: https://target.com/change-email?_method=POST"
+    expected_output: "Request is processed as POST despite being GET, bypassing SameSite"
+    detection: "Application logs show GET with method override"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Escalate to other actions"
+    commands:
+      - "# Use the technique for password reset, profile changes"
+    expected_output: "Victim's account compromised"
+    detection: "Security alerts for unusual request patterns"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1204"
+    description: "User Execution"
+  - standard: "OWASP"
+    control: "A01:2021"
+    description: "Broken Access Control"
+
+detection:
+  network_indicators:
+    - "GET requests with method override headers"
+  log_indicators:
+    - "Method override used for state-changing actions"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Disable HTTP method override for sensitive endpoints"
+    - "Use SameSite=Strict for sensitive cookies"
+  long_term:
+    - "Implement proper CSRF tokens in addition to SameSite"
+    - "Use a framework that prevents method override abuse"
+
+variables:
+  target_url: "https://target.com/change-email"
+  new_email: "attacker@evil.com"
+
+assessment_questions:
+  - "What is the difference between SameSite=Lax and SameSite=Strict?"
+  - "How does method override bypass SameSite=Lax?"
+  - "What is the most secure SameSite setting?"
+
+references:
+  - url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite"
+    title: "MDN SameSite"
+  - url: "https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions"
+    title: "PortSwigger SameSite Bypass"

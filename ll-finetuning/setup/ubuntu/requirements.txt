@@ -1,4 +1,8 @@
 # Ubuntu / Linux (GPU or CPU) - Core Dependencies
+# NOTE: System CLI assessment tools (nmap, ffuf, subfinder, etc.) are NOT 
+# downloaded via pip. Please run `./setup.sh` or `python3 ../check_tools.py` 
+# after installing these Python packages to check your system dependencies.
+
 # For NVIDIA CUDA support (CUDA 12.1+):
 --extra-index-url https://download.pytorch.org/whl/cu121
 

@@ -9,3 +9,6 @@ from core.planner import Planner, AssessmentPlan
 from core.variable_engine import VariableEngine
 from core.command_executor import CommandExecutor, CommandPreview
 from core.evidence_manager import EvidenceManager, EvidenceRecord
+from core.session_manager import SessionManager
+from core.ingestion import FileIngestionEngine, IngestionResult
+from core.report_generator import ReportGenerator

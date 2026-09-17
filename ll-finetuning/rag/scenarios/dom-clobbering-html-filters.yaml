@@ -1,0 +1,96 @@
+# Category: DOM-based Vulnerabilities
+name: "Clobbering DOM attributes to bypass HTML filters"
+id: "dom-clobbering-html-filters-001"
+category: "dom_based"
+subcategory: "dom_clobbering"
+difficulty: "expert"
+estimated_time: "75 minutes"
+
+description: |
+  This scenario covers using DOM clobbering to bypass HTML sanitization filters.
+  By creating DOM elements with specific attributes, an attacker can cause
+  the filter to misinterpret the DOM structure, allowing malicious HTML/JavaScript
+  to pass through sanitization and execute.
+
+learning_objectives:
+  - Understand HTML sanitization and its limitations
+  - Use DOM clobbering to confuse sanitization filters
+  - Bypass HTML filters using clobbered attributes
+  - Execute XSS despite sanitization
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Target uses HTML sanitization filters
+  - Filter relies on DOM attributes or structure
+  - DOM clobbering can manipulate the filter's behavior
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify sanitization filter behavior"
+    commands:
+      - "# Test the filter with various payloads"
+      - "# Observe what is stripped or allowed"
+    expected_output: "Filter behavior understood"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Use DOM clobbering to bypass the filter"
+    commands:
+      - "# Create elements that clobber attributes:"
+      - "<form id='xss'><input name='innerHTML' value='alert(1)'></form>"
+      - "# If the filter checks element.innerHTML, the clobbering changes the result"
+      - "# Or use: <img name='src' src='x' onerror='alert(\"XSS\")'>"
+    expected_output: "Filter is bypassed; XSS executes"
+    detection: "Web server logs may show the payload"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Exfiltrate data"
+    commands:
+      - "# Use the bypass to steal cookies or perform actions"
+    expected_output: "Data exfiltrated"
+    detection: "Attacker server logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests with DOM clobbering payloads"
+  log_indicators:
+    - "Unusual filtered content patterns"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use robust sanitization libraries (e.g., DOMPurify) that handle clobbering"
+    - "Avoid relying on DOM properties for security decisions"
+  long_term:
+    - "Use a server-side HTML sanitizer"
+    - "Implement CSP to reduce impact"
+
+variables:
+  target_url: "https://target.com/page"
+  clobbering_payload: "<form id='xss'><input name='innerHTML' value='alert(1)'></form>"
+
+assessment_questions:
+  - "How can DOM clobbering bypass HTML filters?"
+  - "What are the limitations of client-side sanitization?"
+  - "How can you prevent DOM clobbering attacks?"
+
+references:
+  - url: "https://portswigger.net/web-security/dom-based/dom-clobbering"
+    title: "PortSwigger DOM Clobbering"
+  - url: "https://owasp.org/www-community/attacks/DOM_Clobbering"
+    title: "OWASP DOM Clobbering"

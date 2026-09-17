@@ -1,0 +1,95 @@
+# Category: Cross-Site Request Forgery (CSRF)
+name: "CSRF where Referer validation depends on header being present"
+id: "csrf-referer-validation-depends-on-header-001"
+category: "csrf"
+subcategory: "bypass"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This scenario covers CSRF where the application validates the Referer header
+  but only if it is present. If the Referer header is not sent, the request is
+  accepted. The attacker can exploit this by using a method that does not send
+  the Referer header (e.g., using a meta refresh or opening a new window).
+
+learning_objectives:
+  - Understand Referer header validation
+  - Identify conditional Referer validation
+  - Use techniques to omit the Referer header
+  - Perform CSRF attacks without a Referer header
+
+tools:
+  - Burp Suite
+  - curl
+
+prerequisites:
+  - Target application with Referer validation
+  - Validation is bypassed when Referer is missing
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Test Referer validation behavior"
+    commands:
+      - "# Send request with a valid Referer (should work)"
+      - "# Send request with an invalid Referer (should fail)"
+      - "# Send request without a Referer header (might work)"
+    expected_output: "Request without Referer is accepted"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Omit the Referer header"
+    commands:
+      - "# Use a meta refresh to navigate: <meta http-equiv='refresh' content='0;url=https://target.com/change-email?email=attacker@evil.com'>"
+      - "# Or use: window.open('https://target.com/change-email?email=attacker@evil.com')"
+      - "# These methods may not send a Referer header"
+    expected_output: "Request is processed without Referer header"
+    detection: "Application logs show requests without Referer"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Escalate to other actions"
+    commands:
+      - "# Use the technique for other state-changing operations"
+    expected_output: "Victim's account compromised"
+    detection: "Audit logs show requests without Referer"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1204"
+    description: "User Execution"
+  - standard: "OWASP"
+    control: "A01:2021"
+    description: "Broken Access Control"
+
+detection:
+  network_indicators:
+    - "Requests without Referer headers"
+  log_indicators:
+    - "State-changing actions without Referer"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Validate the Referer header; reject requests without it"
+    - "Use CSRF tokens in addition to Referer validation"
+  long_term:
+    - "Use a strict Referer validation policy"
+    - "Implement proper CSRF protection"
+
+variables:
+  target_url: "https://target.com/change-email"
+  new_email: "attacker@evil.com"
+
+assessment_questions:
+  - "How does Referer header validation work?"
+  - "Why might an application accept requests without a Referer?"
+  - "What is the difference between Referer and Origin headers?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/csrf"
+    title: "OWASP CSRF"
+  - url: "https://portswigger.net/web-security/csrf/bypassing-token-validation"
+    title: "PortSwigger CSRF Bypass"

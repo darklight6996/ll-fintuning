@@ -1,0 +1,95 @@
+# Category: DOM-based Vulnerabilities
+name: "DOM-based cookie manipulation"
+id: "dom-based-cookie-manipulation-001"
+category: "dom_based"
+subcategory: "cookie_manipulation"
+difficulty: "practitioner"
+estimated_time: "30 minutes"
+
+description: |
+  This scenario covers DOM-based cookie manipulation where the application
+  uses user-controlled data to set cookies (e.g., `document.cookie = ...`).
+  An attacker can inject malicious data into the cookie, potentially
+  affecting application behavior, bypassing security controls, or enabling
+  session fixation attacks.
+
+learning_objectives:
+  - Understand DOM-based cookie manipulation vulnerabilities
+  - Identify where user input is used to set cookies
+  - Inject malicious data into cookies
+  - Perform session fixation or bypass controls
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Target uses user input to set cookies
+  - Cookie value is used by the application (e.g., language, user preferences)
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify cookie setting with user input"
+    commands:
+      - "# Look for: document.cookie = 'key=' + location.search.substring(...)"
+      - "# Observe how the cookie value is used"
+    expected_output: "Cookie is set with user-controlled value"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Inject malicious data into the cookie"
+    commands:
+      - "# Example: https://target.com/page?param=malicious%3B%20admin%3Dtrue"
+      - "# This could inject a new cookie or modify existing ones"
+      - "# Payload: param=; Path=/; domain=.target.com"
+    expected_output: "Cookie is set with injected data"
+    detection: "Application logs may show unusual cookie values"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Use manipulated cookie to escalate privileges"
+    commands:
+      - "# If admin cookie is set, access admin panel"
+    expected_output: "Privilege escalation achieved"
+    detection: "Security alerts for privileged access from unexpected user"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1098"
+    description: "Account Manipulation"
+  - standard: "OWASP"
+    control: "A04:2021"
+    description: "Insecure Design"
+
+detection:
+  network_indicators:
+    - "Requests with cookie injection payloads"
+  log_indicators:
+    - "Unusual cookie values in application logs"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Do not set cookies from user-controlled data"
+    - "Validate and sanitize all input before using in cookies"
+  long_term:
+    - "Use secure cookie attributes (HttpOnly, Secure, SameSite)"
+    - "Implement server-side validation of cookie values"
+
+variables:
+  target_url: "https://target.com/page?param=PAYLOAD"
+  malicious_cookie: "admin=true"
+
+assessment_questions:
+  - "What is DOM-based cookie manipulation?"
+  - "How can an attacker use cookie manipulation for privilege escalation?"
+  - "What is the difference between DOM-based and server-side cookie manipulation?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/xss/"
+    title: "OWASP XSS"
+  - url: "https://portswigger.net/web-security/dom-based/cookie-manipulation"
+    title: "PortSwigger DOM-based Cookie Manipulation"
