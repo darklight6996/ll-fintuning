@@ -268,9 +268,98 @@ was broken by removing the `PromptBuilder` export from `builders/__init__.py`. `
 
 ---
 
-### 11. Full Test Suite Status (September 2026)
+### 11. Phase 7 — Tool Calling Subsystem (`core/tool_registry.py`)
 
-**44 / 44 tests passing** across 7 test modules:
+An extensible, schema-driven tool calling subsystem was introduced to transform the co-pilot from a reactive chatbot into an autonomous offensive security agent.
+
+#### 11.1 Architecture
+
+```
+core/tool_registry.py
+  ToolParameter   — Strongly typed parameter definition (type, desc, required, enum)
+  ToolDefinition  — Tool metadata and OpenAI function calling schema generator
+  ToolResult      — Standardized execution wrapper (success, output, error, latency)
+  ToolRegistry    — Thread-safe tool catalog, validator, and dispatcher
+```
+
+#### 11.2 Built-In Offensive Operations Tools
+
+| Tool | Parameters | Purpose |
+|---|---|---|
+| `rag_search` | `query: str`, `top_k: int` | Vector search over cybersecurity manuals & playbooks with reranking |
+| `yaml_lookup` | `query: str`, `category: str`, `top_k: int` | Semantic search over YAML assessment playbooks |
+| `command_preview` | `command: str`, `variables: dict` | Preview and safety-check shell commands with variable interpolation |
+| `session_memory_read` | `session_id: str`, `limit: int` | Read multi-turn conversation history from SQLite |
+| `intelligence_extract` | `raw_output: str` | Extract user, kernel, port, binary, flag intel from terminal dumps |
+
+#### 11.3 OpenAI Function Calling Schema Export
+
+`ToolRegistry.get_openai_tools()` exports all registered tools into OpenAI-compatible tool specifications (`{"type": "function", "function": {...}}`), ready for use with tool-calling models like Qwen 2.5 or frontier models.
+
+#### 11.4 Verification Results
+
+| Test | Status |
+|---|---|
+| `test_parameter_and_tool_definition_schema` | ✅ PASSED |
+| `test_tool_execution_success` | ✅ PASSED |
+| `test_tool_execution_missing_required_param` | ✅ PASSED |
+| `test_tool_execution_exception_handling` | ✅ PASSED |
+| `test_openai_tools_schema_export` | ✅ PASSED |
+| `test_registry_duplicate_registration` | ✅ PASSED |
+| `test_rag_search_builtin_tool` | ✅ PASSED |
+| `test_yaml_lookup_builtin_tool` | ✅ PASSED |
+| `test_command_preview_builtin_tool` | ✅ PASSED |
+| `test_session_memory_read_builtin_tool` | ✅ PASSED |
+| `test_intelligence_extract_builtin_tool` | ✅ PASSED |
+| `test_custom_tool_registration` | ✅ PASSED |
+
+---
+
+### 12. Phase 8 — Local Agent Framework (`core/agent.py`)
+
+A local agent orchestrator (`CyberAgent`) coordinates conversational AI, deterministic reasoning, RAG context, and autonomous tool calling into a unified agentic runtime.
+
+#### 12.1 Architecture
+
+```
+core/agent.py
+  AgentRequest   — Strongly typed input contract (query, session_id, session_state, max_iterations)
+  AgentResponse  — Strongly typed output contract (text, intent, tools_used, confidence, latency)
+  CyberAgent     — Autonomous offensive security agent coordinator
+  get_agent()    — Session-scoped agent registry singleton
+```
+
+#### 12.2 Key Features
+
+- **Dual-Engine Execution**: Uses primary local LLM (`LLMService`) for dynamic reasoning when available; automatically falls back to deterministic 8-branch `IntentRouter` when offline or on CPU.
+- **Autonomous Tool Dispatching**: If the model emits tool calls (in JSON format or structured action blocks), the agent dispatches tools via `ToolRegistry` and loops up to `max_tool_iterations` times.
+- **State & Memory Synchronization**: Automatically updates session state, registers extracted intelligence, and persists conversational exchanges to SQLite via `MemoryService`.
+- **Per-Session Agent Singletons**: `get_agent(session_id)` ensures thread-safe, isolated state per engagement.
+
+#### 12.3 Verification Results
+
+| Test | Status |
+|---|---|
+| `test_agent_initialization` | ✅ PASSED |
+| `test_agent_lazy_service_loading` | ✅ PASSED |
+| `test_agent_run_deterministic_fallback` | ✅ PASSED |
+| `test_agent_run_steering_intent` | ✅ PASSED |
+| `test_agent_run_reset_intent` | ✅ PASSED |
+| `test_agent_run_recon_intent` | ✅ PASSED |
+| `test_agent_run_llm_primary_success` | ✅ PASSED |
+| `test_agent_run_llm_empty_fallback` | ✅ PASSED |
+| `test_agent_tool_execution_loop` | ✅ PASSED |
+| `test_agent_max_tool_iterations_guard` | ✅ PASSED |
+| `test_agent_session_memory_persistence` | ✅ PASSED |
+| `test_agent_intelligence_extraction_in_pipeline` | ✅ PASSED |
+| `test_get_agent_singleton_registry` | ✅ PASSED |
+| `test_agent_response_metadata_and_latency` | ✅ PASSED |
+
+---
+
+### 13. Full Test Suite Status (September 2026)
+
+**70 / 70 tests passing** across 9 test modules:
 
 | Module | Tests | Status |
 |---|---|---|
@@ -281,8 +370,11 @@ was broken by removing the `PromptBuilder` export from `builders/__init__.py`. `
 | `test_rag_pipeline.py` | 7 | ✅ All passed |
 | `test_core_modules.py` | 0 (import only) | ✅ No errors |
 | `test_cli_architecture.py` | 4 | ✅ All passed |
+| `test_tool_registry.py` | 12 | ✅ All passed |
+| `test_agent.py` | 14 | ✅ All passed |
 
 Run: `python -m pytest ll-finetuning/rag/core/ -v --tb=short`
+
 
 
 **Target Audience:** Non-technical stakeholders, compliance auditors, security operations center (SOC) analysts, and newly onboarded operators.

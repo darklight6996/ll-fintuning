@@ -107,7 +107,29 @@ To support production-grade local offensive/defensive operations, the codebase h
 - **Circular Import Fix**: `core/builders/__init__.py` no longer re-exports `PromptBuilder`, breaking a circular dependency chain through `core.prompts.prompt_builder → core.builders.context_builder → core.builders.__init__`.
 - **Verification**: 10/10 unit tests passing in `test_prompt_subsystem.py`.
 
-#### Overall Test Suite Status: **44 / 44 passing**
+#### 6.7 Phase 7 — Tool Calling System (`core/tool_registry.py`)
+- **First-Class Tool Protocol**: Implements an extensible tool execution registry for offensive security operations:
+  - `ToolDefinition` & `ToolParameter`: Strongly typed parameter schemas supporting strings, integers, floats, booleans, arrays, and enums.
+  - `ToolResult`: Standardized result wrapper with `success`, `output`, `error`, and microsecond `execution_time_ms` metrics.
+  - `ToolRegistry`: Thread-safe registry providing dynamic tool registration, parameter validation, schema reflection, and execution.
+  - **OpenAI Function Calling Format**: `get_openai_tools()` exports tools directly into OpenAI-compatible JSON function definitions for frontier and local fine-tuned LLM execution.
+- **5 Built-In Offensive Operations Tools**:
+  - `rag_search`: Queries the neural vector store (`RAGService`) with cross-encoder reranked context.
+  - `yaml_lookup`: Queries the semantic playbook library (`YAMLService`) for MITRE ATT&CK tactics and compliance procedures.
+  - `command_preview`: Generates a safety preview and variable interpolation check for shell commands before execution.
+  - `session_memory_read`: Retrieves recent multi-turn conversation exchanges from persistent SQLite storage.
+  - `intelligence_extract`: Dispatches raw terminal evidence to the plugin-based `IntelligenceExtractor` and updates session state.
+- **Verification**: 12/12 unit tests passing in `test_tool_registry.py`.
+
+#### 6.8 Phase 8 — Local Agent Framework (`core/agent.py`)
+- **Autonomous Cyber Agent Architecture**: `CyberAgent` orchestrates conversational AI, deterministic reasoning, RAG context, and autonomous tool calling into a unified agentic runtime:
+  - `AgentRequest` & `AgentResponse`: Typed boundary contracts specifying query, session ID, live state, and returning response text, intent, tools invoked, confidence, and latency.
+  - **Multi-Turn Autonomous ReAct Loop**: Configurable tool execution loop (`max_tool_iterations=3`) allowing models to inspect outputs and invoke successive tools before synthesizing final answers.
+  - **Dual-Engine Execution**: Primary high-fidelity reasoning via local fine-tuned LLM (`DarkLight6996/CyberSec-Model-V2` / `CyberSec-Qwen-V1`), with automatic fallback to the deterministic 8-branch `IntentRouter` when running offline or without GPU acceleration.
+  - **Per-Session Agent Registry**: `get_agent(session_id)` manages session-scoped agent singletons with persistent SQLite memory continuity.
+- **Verification**: 14/14 unit tests passing in `test_agent.py`.
+
+#### Overall Test Suite Status: **70 / 70 passing**
 
 | Module | Tests | Status |
 |---|---|---|
@@ -117,6 +139,8 @@ To support production-grade local offensive/defensive operations, the codebase h
 | `test_prompt_subsystem.py` | 10 | ✅ All passed |
 | `test_rag_pipeline.py` | 7 | ✅ All passed |
 | `test_cli_architecture.py` | 4 | ✅ All passed |
+| `test_tool_registry.py` | 12 | ✅ All passed |
+| `test_agent.py` | 14 | ✅ All passed |
 
 Run all tests: `python -m pytest ll-finetuning/rag/core/ -v --tb=short`
 
