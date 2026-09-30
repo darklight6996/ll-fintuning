@@ -349,14 +349,14 @@ def _tool_command_preview(command: str, target: str = "") -> ToolResult:
     )
 
 
-def _tool_session_memory_read(session_id: str, limit: int = 6) -> ToolResult:
+def _tool_session_memory_read(session_id: str, limit: int = 6, db_path: str = "") -> ToolResult:
     """
     Read recent conversation turns from persistent session memory.
     Returns the last N user/assistant exchanges.
     """
     try:
         from core.services.memory_service import get_memory
-        mem = get_memory(session_id)
+        mem = get_memory(session_id, db_path=db_path or None)
         turns = mem.get_recent(limit=limit)
         if not turns:
             return ToolResult(
@@ -375,6 +375,37 @@ def _tool_session_memory_read(session_id: str, limit: int = 6) -> ToolResult:
     except Exception as exc:
         return ToolResult(
             tool_name="session_memory_read",
+            success=False,
+            output="",
+            error=str(exc),
+        )
+
+
+def _tool_session_memory_search(session_id: str, query: str, top_k: int = 3, db_path: str = "") -> ToolResult:
+    """
+    Search past conversation history semantically or by keyword for this session.
+    """
+    try:
+        from core.services.memory_service import get_memory
+        mem = get_memory(session_id, db_path=db_path or None)
+        results = mem.search_memory(query=query, top_k=top_k)
+        if not results:
+            return ToolResult(
+                tool_name="session_memory_search",
+                success=True,
+                output="No matching conversation records found.",
+                metadata={"session_id": session_id, "query": query},
+            )
+        lines = [f"[{r['role']}] (score: {r.get('score', 1.0)}): {r['content']}" for r in results]
+        return ToolResult(
+            tool_name="session_memory_search",
+            success=True,
+            output="\n".join(lines),
+            metadata={"session_id": session_id, "count": len(results)},
+        )
+    except Exception as exc:
+        return ToolResult(
+            tool_name="session_memory_search",
             success=False,
             output="",
             error=str(exc),
@@ -489,8 +520,25 @@ def _build_default_registry() -> ToolRegistry:
         parameters=[
             ToolParameter("session_id", "string", "The unique session identifier.", required=True),
             ToolParameter("limit", "integer", "Number of recent turns to retrieve.", required=False, default=6),
+            ToolParameter("db_path", "string", "Optional database path override.", required=False, default=""),
         ],
         handler=_tool_session_memory_read,
+        category="memory",
+    )
+
+    registry.register_function(
+        name="session_memory_search",
+        description=(
+            "Search past conversation history semantically or by keyword for this session. "
+            "Use when looking up specific facts, commands, or answers given earlier in the assessment."
+        ),
+        parameters=[
+            ToolParameter("session_id", "string", "The unique session identifier.", required=True),
+            ToolParameter("query", "string", "The search query or keyword.", required=True),
+            ToolParameter("top_k", "integer", "Number of matching messages to retrieve.", required=False, default=3),
+            ToolParameter("db_path", "string", "Optional database path override.", required=False, default=""),
+        ],
+        handler=_tool_session_memory_search,
         category="memory",
     )
 

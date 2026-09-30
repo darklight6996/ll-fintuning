@@ -395,9 +395,43 @@ core/chat_assistant.py
 
 ---
 
-### 14. Full Test Suite Status (September 2026)
+### 14. Phase 10 — Enriched Semantic Memory Subsystem (`core/memory.py`, `core/services/memory_service.py`)
 
-**80 / 80 tests passing** across 10 test modules:
+`ChatMemory` was upgraded from a raw append-only SQLite store into a searchable conversational knowledge memory for long-running security assessments.
+
+#### 14.1 Architecture
+
+```
+core/memory.py & core/services/memory_service.py
+  ChatMemory.search_memory(query, top_k) ──► SentenceTransformer dense vector dot product
+  ChatMemory.search_text(keyword, limit) ──► Fast SQL LIKE pattern matching
+  ChatMemory.count()                     ──► Total turn counter
+  ChatMemory.get_summary()               ──► Audit statistics (user/assistant counts, timestamps)
+  ChatMemory.export_json()               ──► Full session export
+```
+
+#### 14.2 Integrated Agent Tooling
+
+`ToolRegistry` registers `session_memory_search`, enabling autonomous agents to look up historical facts, previous tool outputs, or user directives without blowing past context token budgets.
+
+#### 14.3 Verification Results
+
+| Test | Status |
+|---|---|
+| `test_chat_memory_add_and_count` | ✅ PASSED |
+| `test_chat_memory_search_text` | ✅ PASSED |
+| `test_chat_memory_search_memory_semantic` | ✅ PASSED |
+| `test_chat_memory_empty_history` | ✅ PASSED |
+| `test_chat_memory_get_summary` | ✅ PASSED |
+| `test_chat_memory_export_json` | ✅ PASSED |
+| `test_memory_service_wrapper_delegation` | ✅ PASSED |
+| `test_session_memory_search_builtin_tool` | ✅ PASSED |
+
+---
+
+### 15. Full Test Suite Status (September 2026)
+
+**88 / 88 tests passing** across 11 test modules:
 
 | Module | Tests | Status |
 |---|---|---|
@@ -411,8 +445,10 @@ core/chat_assistant.py
 | `test_tool_registry.py` | 12 | ✅ All passed |
 | `test_agent.py` | 14 | ✅ All passed |
 | `test_chat_assistant.py` | 10 | ✅ All passed |
+| `test_memory_enrichment.py` | 8 | ✅ All passed |
 
 Run: `python -m pytest ll-finetuning/rag/core/ -v --tb=short`
+
 
 
 

@@ -137,7 +137,16 @@ To support production-grade local offensive/defensive operations, the codebase h
   - **State & Memory Synchronization**: Automatically updates session state history and persists multi-turn exchanges to persistent SQLite storage.
 - **Verification**: 10/10 unit tests passing in `test_chat_assistant.py`.
 
-#### Overall Test Suite Status: **80 / 80 passing**
+#### 6.10 Phase 10 — Enriched Semantic Session Memory (`core/memory.py`, `core/services/memory_service.py`)
+- **Beyond Linear SQLite Storage**: Enhanced `ChatMemory` and `ChatMemoryWrapper` from raw append-only buffers into intelligent semantic retrieval stores:
+  - `search_memory(query, top_k)`: Performs dense vector semantic search across past conversation turns using `EmbeddingService` normalized cosine similarity, with automatic fallback to keyword matching.
+  - `search_text(keyword, limit)`: Fast SQL `LIKE` query for exact token, IP address, and flag lookups across multi-hour penetration testing sessions.
+  - `get_summary()`: Generates chronological audit statistics including user vs. assistant turn ratios and ISO timestamps.
+  - `export_json()`: Serializes conversation histories for reporting and compliance archiving.
+  - `session_memory_search` Tool: First-class agent tool registered in `ToolRegistry` allowing autonomous agents to recall previous findings.
+- **Verification**: 8/8 unit tests passing in `test_memory_enrichment.py`.
+
+#### Overall Test Suite Status: **88 / 88 passing**
 
 | Module | Tests | Status |
 |---|---|---|
@@ -150,6 +159,7 @@ To support production-grade local offensive/defensive operations, the codebase h
 | `test_tool_registry.py` | 12 | ✅ All passed |
 | `test_agent.py` | 14 | ✅ All passed |
 | `test_chat_assistant.py` | 10 | ✅ All passed |
+| `test_memory_enrichment.py` | 8 | ✅ All passed |
 
 Run all tests: `python -m pytest ll-finetuning/rag/core/ -v --tb=short`
 

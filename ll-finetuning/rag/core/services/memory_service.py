@@ -66,6 +66,31 @@ class ChatMemoryWrapper:
             return self._memory.get_full_history()
         return []
 
+    def search_memory(self, query: str, top_k: int = 3):
+        if self._memory:
+            return self._memory.search_memory(query=query, top_k=top_k)
+        return []
+
+    def search_text(self, keyword: str, limit: int = 5):
+        if self._memory:
+            return self._memory.search_text(keyword=keyword, limit=limit)
+        return []
+
+    def count(self) -> int:
+        if self._memory:
+            return self._memory.count()
+        return 0
+
+    def get_summary(self):
+        if self._memory:
+            return self._memory.get_summary()
+        return {}
+
+    def export_json(self):
+        if self._memory:
+            return self._memory.export_json()
+        return []
+
     def reset_session(self) -> None:
         if self._memory:
             self._memory.reset_session()
