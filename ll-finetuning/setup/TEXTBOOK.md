@@ -94,6 +94,32 @@ To support production-grade local offensive/defensive operations, the codebase h
 - **Structured Models**: Merges all parsed artifacts into typed `SessionIntelligence` dataclass with seamless `.to_dict()` backward compatibility for prompt builders.
 - **Verification**: 11/11 unit tests passing in `test_intelligence_parsers.py`.
 
+#### 6.6 Phase 6 — Prompt Engineering Subsystem (`core/prompts/`)
+- **Composable Token-Budgeted Pipeline**: Replaced the monolithic `PromptBuilder` with a dependency-injectable pipeline of focused sub-components:
+  - `PromptBudget` (`budget.py`): Dynamically partitions the total input-token budget across 4 named context sections (intel, history, RAG, tactics). Undershooting sections redistribute their surplus proportionally.
+  - `HistoryBuilder` (`history_builder.py`): Rolling conversation compressor with semantic deduplication — prevents identical exchanges from occupying repeated context budget.
+  - `IntelBuilder` (`intel_builder.py`): Serializes `SessionIntelligence` into a sandboxed `<<<BEGIN_EVIDENCE>>>` block, rejecting any prompt-injection attempts embedded in terminal output.
+  - `KnowledgeBuilder` (`knowledge_builder.py`): Assembles deduplicated RAG chunk context with source attribution.
+  - `ScenarioBuilder` (`scenario_builder.py`): Formats YAML attack playbook steps as a numbered `SCENARIO TACTICS` block.
+  - `PromptTemplate` + `detect_model_family()` (`templates.py`): Applies exact token framing for 6 model families (Qwen ChatML, Llama 3, Mistral, Gemma, DeepSeek, Standard). Auto-detects family from HuggingFace repo ID including `DarkLight6996` custom adapters.
+  - `PromptBuilder` (`prompt_builder.py`): Coordinates all sub-components via constructor injection.
+  - `PromptManager` (`manager.py`): Backward-compatibility wrapper preserving the legacy `build_prompt()` call signature.
+- **Circular Import Fix**: `core/builders/__init__.py` no longer re-exports `PromptBuilder`, breaking a circular dependency chain through `core.prompts.prompt_builder → core.builders.context_builder → core.builders.__init__`.
+- **Verification**: 10/10 unit tests passing in `test_prompt_subsystem.py`.
+
+#### Overall Test Suite Status: **44 / 44 passing**
+
+| Module | Tests | Status |
+|---|---|---|
+| `test_embedding_service.py` | 7 | ✅ All passed |
+| `test_yaml_index.py` | 5 | ✅ All passed |
+| `test_intelligence_parsers.py` | 11 | ✅ All passed |
+| `test_prompt_subsystem.py` | 10 | ✅ All passed |
+| `test_rag_pipeline.py` | 7 | ✅ All passed |
+| `test_cli_architecture.py` | 4 | ✅ All passed |
+
+Run all tests: `python -m pytest ll-finetuning/rag/core/ -v --tb=short`
+
 ---
 
 ## Front Matter
