@@ -3,6 +3,99 @@
 
 ---
 
+## Engine Evolution: The Sovereign Cyber AI Co-Pilot Architecture
+
+As of September 2026, the underlying Chat Assistant engine transitioned from a static decision-tree into an offline, sovereign **Hybrid LLM + Deterministic Fallback** architecture designed for air-gapped security operations and government compliance.
+
+### 1. From Regex Decision Trees to Grounded Causal Reasoning
+In traditional security co-pilots, assistants answer queries through hardcoded keyword triggers. When an operator asks complex questions like *"Where do I start on this Ubuntu machine?"* or encounters custom challenge binaries, rule trees break down or hallucinate.
+By transitioning to modern causal language models—featuring the active `DarkLight6996/CyberSec-Model-V2` (TinyLlama 1.1B adapter) and the next-generation `Qwen/Qwen2.5-7B-Instruct` QLoRA model (`DarkLight6996/CyberSec-Qwen-V1`)—the co-pilot fuses real-time session facts, FAISS RAG documents, and YAML scenario tactics into actionable shell commands.
+
+### 2. Token Framing: The Alpaca to ChatML Transition
+To prevent prompt degradation and cross-role leakage, instruction data transitions from classic Alpaca 3-field JSONL (`instruction`, `input`, `output`) to native token-framed ChatML:
+```text
+<|im_start|>system
+You are an expert penetration-testing mentor inside a live operator console.<|im_end|>
+<|im_start|>user
+[QUERY + UNTRUSTED EVIDENCE + RAG CONTEXT]<|im_end|>
+<|im_start|>assistant
+[GROUNDED TECHNICAL TACTICS & COMMANDS]<|im_end|>
+```
+
+### 3. Consumer Hardware Optimization (4-Bit QLoRA on Windows)
+Running a 7-billion parameter model on 8GB VRAM (such as an NVIDIA RTX 3060 Ti) requires strict engineering controls:
+- **4-Bit NF4 Quantization**: Model weights are loaded via `bitsandbytes` using NormalFloat 4-bit representation and double quantization.
+- **PyTorch Native SDPA**: Uses `attn_implementation="sdpa"` for native Windows execution without external FlashAttention build dependencies.
+- **Low-Rank Adaptation**: LoRA rank $r=8$, $\alpha=16$ targeting all 7 projection modules (`q, k, v, o, gate, up, down`).
+- **Sequence Budgeting**: Input length is bounded to `max_seq_length=512` to guarantee VRAM usage remains safely under 7.5GB.
+
+### 4. Security & Isolation Defenses
+- **Command Injection Prevention**: Variables substituted into command templates are strictly validated against allow-lists (`^[a-zA-Z0-9\.\-\_\:\/]+$`) and encapsulated via `shlex.quote()`. All executions use `shell=False`.
+- **Prompt Injection Containment**: Ingested terminal banners and scanner logs are sandboxed inside `<<<BEGIN_EVIDENCE>>>` and `<<<END_EVIDENCE>>>` blocks, flagged as unexecutable data.
+- **Confirmation-Gated Resets**: Session clears require explicit `reset confirm` to prevent accidental loss of forensic artifacts.
+
+### 5. Dual-Track Resilience & Engineering Gates
+To ensure zero operational downtime during live demonstrations:
+- **Pre-Flight Verification**: Mandatory Day 1 4-bit CUDA smoke test (`verify_bnb.py`) and ChatML tokenizer verification (`verify_tokenizer.py`).
+- **Fail-Safe Fallback**: If the neural LLM is unavailable or offline, the system seamlessly routes queries through the deterministic 8-branch rule engine or the lightweight TinyLlama adapter.
+
+### 6. Modular Cyber AI Operating System Refactor (September 2026)
+To support production-grade local offensive/defensive operations, the codebase has been re-architected from monolithic classes into a decoupled, pluggable operating system following SOLID and Dependency Injection principles.
+
+#### 6.1 Phase 1 — Global Architecture & Services Layer (`core/services/`)
+- **Process Singletons**: Centralized accessors eliminate redundant weight loads for `SentenceTransformer`, `CrossEncoder`, and vector databases.
+- **Service Stack**:
+  - `EmbeddingService` (`embedding_service.py`): Process-wide shared embedder.
+  - `RerankService` (`rerank_service.py`): Process-wide cross-encoder reranker.
+  - `LLMService` (`llm_service.py`): Unified interface for quantized neural inference with fallback.
+  - `YAMLService` (`yaml_service.py`): Scenario template registry and vector lookup.
+  - `RAGService` (`rag_service.py`): Stable facade over knowledge base retrieval.
+  - `MemoryService` (`memory_service.py`): Thread-safe session database connection pooling.
+
+#### 6.2 Phase 2 — Shared Embedding Service (`core/services/embedding_service.py`)
+- **Single Process Instance**: Enforces exactly one `SentenceTransformer` instance process-wide with `RLock` thread safety.
+- **Features**: Built-in LRU cache, float32 numpy normalization, hardware auto-detection (CUDA / DirectML / CPU / ONNX).
+- **Model Support**: Default `all-MiniLM-L6-v2`, with pluggable support for `BAAI/bge-large` and future models.
+- **Verification**: 7/7 unit tests passing in `test_embedding_service.py`.
+
+#### 6.3 Phase 3 — Persistent Incremental YAML Index (`core/yaml_indexer.py`)
+- **Persistent Storage**: Serializes `yaml.index` (FAISS) and `yaml_meta.pkl` to eliminate re-embedding overhead on cold starts.
+- **Change Detection**: SHA-256 file hashing detects newly added, modified, or deleted YAML templates.
+- **Incremental Indexing**: Re-embeds only changed scenario playbooks while preserving untouched template vectors.
+- **Verification**: 5/5 unit tests passing in `test_yaml_index.py`.
+
+#### 6.4 Phase 4 — Modular RAG & Pluggable Vector Stores (`core/retrieval/`)
+- **VectorStore Abstraction**: `BaseVectorStore` contract with concrete adapters:
+  - `FAISSVectorStore`: High-performance L2 vector index with normalized $[0..1]$ similarity scores.
+  - `HNSWVectorStore`: Hierarchical Navigable Small World graph adapter.
+  - `QdrantVectorStore`: Qdrant vector database adapter.
+  - `ChromaVectorStore`: ChromaDB adapter.
+  - Dynamic switching via `VECTOR_STORE_BACKEND` configuration without touching downstream code.
+- **Decoupled Components**:
+  - `Retriever`: Dependency-injected query embedder and vector search coordinator.
+  - `ChunkFilter`: Configurable similarity thresholding and metadata validation.
+  - `Reranker`: Cross-encoder scoring and logit cutoff ($min\_score = -2.5$).
+  - `RAGContextBuilder`: Formatted prompt context synthesis with source attribution.
+  - `RAGEngine`: Coordinator preserving 100% backward compatibility with legacy calls.
+- **Verification**: 7/7 unit tests passing in `test_rag_pipeline.py`.
+
+#### 6.5 Phase 5 — Plugin-Based Intelligence Extraction (`core/intelligence/`)
+- **Elimination of Monolithic Regex**: Decomposed `extract_session_intelligence` into 9 dedicated single-responsibility parsers:
+  - `UserParser` (`parsers/user.py`): Discovers UIDs, GIDs, usernames, groups, and sudo status.
+  - `KernelParser` (`parsers/kernel.py`): Identifies operating systems, kernel releases, and architectures.
+  - `PortParser` (`parsers/ports.py`): Parses Nmap, netstat, and ss tabular network ports.
+  - `BannerParser` (`parsers/banners.py`): Fingerprints server banners and daemon versions.
+  - `BinaryParser` (`parsers/binaries.py`): Discovers challenge binaries, compiled tools, and local executables.
+  - `SUIDParser` (`parsers/suid.py`): Detects SUID/SGID privilege escalation targets.
+  - `StringsParser` (`parsers/strings.py`): Identifies dangerous function calls (`system()`, `/bin/sh -p`) and tokens.
+  - `FlagParser` (`parsers/flags.py`): Detects CTF flag strings and `/flag` filesystem permissions.
+  - `FilesystemParser` (`parsers/filesystem.py`): Extracts current working directories (`pwd`) and writable staging areas.
+- **Extensible Architecture**: `IntelligenceExtractor` registry allows dynamic runtime registration of custom parsers (e.g. CVE parsers).
+- **Structured Models**: Merges all parsed artifacts into typed `SessionIntelligence` dataclass with seamless `.to_dict()` backward compatibility for prompt builders.
+- **Verification**: 11/11 unit tests passing in `test_intelligence_parsers.py`.
+
+---
+
 ## Front Matter
 
 ### Preface: The Philosophy of Grounded Learning

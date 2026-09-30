@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 # Add rag directory to sys.path
-RAG_DIR = Path(__file__).resolve().parent
+RAG_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAG_DIR))
 
 from core.yaml_loader import YAMLLoader

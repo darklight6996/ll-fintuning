@@ -10,7 +10,6 @@ import time
 import pickle
 import numpy as np
 import faiss
-from sentence_transformers import SentenceTransformer, CrossEncoder
 
 # Resolve system paths
 CORE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -26,16 +25,18 @@ from core.config import (
     EMBED_MODEL,
     RERANK_MODEL
 )
+from core.services.embedding_service import get_embedding_service
+from core.services.rerank_service import get_rerank_service
 
 # ==========================================================
 # LOAD
 # ==========================================================
 
-print("Loading embedding model...")
-embed_model = SentenceTransformer(EMBED_MODEL)
+print("Loading embedding service...")
+embed_service = get_embedding_service(EMBED_MODEL)
 
-print("Loading reranker...")
-reranker = CrossEncoder(RERANK_MODEL)
+print("Loading rerank service...")
+rerank_service = get_rerank_service(RERANK_MODEL)
 
 print("Loading FAISS...")
 if not os.path.exists(INDEX_PATH) or not os.path.exists(META_PATH):
@@ -65,8 +66,7 @@ tests = [
 # ==========================================================
 
 def search(query):
-    q = embed_model.encode([query])
-    q = np.array(q, dtype=np.float32)
+    q = embed_service.embed_many([query])
 
     distances, indices = index.search(q, TOP_K)
 
@@ -76,7 +76,7 @@ def search(query):
         return []
 
     pairs = [[query, doc.get("text", "")] for doc in candidates]
-    scores = reranker.predict(pairs)
+    scores = rerank_service.predict(pairs)
 
     ranked = sorted(
         zip(candidates, scores),

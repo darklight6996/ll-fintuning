@@ -16,6 +16,8 @@ Responsibilities
 from typing import Dict, Any, List, Optional
 from core.rag_engine import RAGEngine
 from core.yaml_search import YAMLSearch
+from core.services.rag_service import get_rag_service
+from core.services.yaml_service import get_yaml_service
 
 
 class MergedContext:
@@ -75,8 +77,28 @@ class AssessmentRouter:
         rag_engine: Optional[RAGEngine] = None,
         yaml_search: Optional[YAMLSearch] = None
     ):
-        self.rag_engine = rag_engine
-        self.yaml_search = yaml_search
+        self._rag_engine = rag_engine
+        self._yaml_search = yaml_search
+
+    @property
+    def rag_engine(self) -> Optional[RAGEngine]:
+        if self._rag_engine is None:
+            self._rag_engine = get_rag_service() or False
+        return self._rag_engine if self._rag_engine is not False else None
+
+    @rag_engine.setter
+    def rag_engine(self, val: Optional[RAGEngine]):
+        self._rag_engine = val
+
+    @property
+    def yaml_search(self) -> Optional[YAMLSearch]:
+        if self._yaml_search is None:
+            self._yaml_search = get_yaml_service() or False
+        return self._yaml_search if self._yaml_search is not False else None
+
+    @yaml_search.setter
+    def yaml_search(self, val: Optional[YAMLSearch]):
+        self._yaml_search = val
 
     def route(
         self,

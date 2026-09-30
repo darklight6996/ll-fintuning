@@ -4,18 +4,162 @@
 ---
 
 
-## Engine Evolution: The Hybrid LLM Architecture
+## Engine Evolution: The Sovereign Cyber AI Co-Pilot Architecture
 
-As of September 2026, the underlying Chat Assistant engine transitioned from a static decision-tree into a **Hybrid LLM + Deterministic Fallback** architecture. 
+As of September 2026, the underlying Chat Assistant engine transitioned from a static decision-tree into an offline, sovereign **Hybrid LLM + Deterministic Fallback** architecture designed for air-gapped security operations and government compliance.
 
-### Why the Shift?
-In traditional architectures, the assistant could only answer questions that were explicitly accounted for in hardcoded regex rules. If a user asked "Explain Kerberoasting" or queried a non-standard port (e.g., port `31337`), the system hallucinated generic responses.
+### 1. From Regex Decision Trees to Grounded Causal Reasoning
+In traditional security co-pilots, assistants answer queries through hardcoded keyword triggers. When an operator asks complex questions like *"Where do I start on this Ubuntu machine?"* or encounters custom challenge binaries, rule trees break down or hallucinate.
+By transitioning to modern causal language models—featuring the active `DarkLight6996/CyberSec-Model-V2` (TinyLlama 1.1B adapter) and the next-generation `Qwen/Qwen2.5-7B-Instruct` QLoRA model (`DarkLight6996/CyberSec-Qwen-V1`)—the co-pilot fuses real-time session facts, FAISS RAG documents, and YAML scenario tactics into actionable shell commands.
 
-By implementing a local, offline LLM (such as `Qwen2.5-1.5B-Instruct` on CPU or `Mistral-7B` on GPU), the system now parses the full context of the session and generates dynamic, grounded responses.
+### 2. Token Framing: The Alpaca to ChatML Transition
+To prevent prompt degradation and cross-role leakage, instruction data transitions from classic Alpaca 3-field JSONL (`instruction`, `input`, `output`) to native token-framed ChatML:
+```text
+<|im_start|>system
+You are an expert penetration-testing mentor inside a live operator console.<|im_end|>
+<|im_start|>user
+[QUERY + UNTRUSTED EVIDENCE + RAG CONTEXT]<|im_end|>
+<|im_start|>assistant
+[GROUNDED TECHNICAL TACTICS & COMMANDS]<|im_end|>
+```
 
-### Security Defenses Implemented
-- **Command Injection Prevention**: Variables substituted into command templates are strictly validated against allow-lists and encapsulated via `shlex.quote()`. All executions use `shell=False`.
-- **Prompt Injection Containment**: Because operators paste potentially hostile terminal banners into the assistant, all pasted evidence is heavily sandboxed inside the AI prompt with strict instructions not to execute the enclosed text.
+### 3. Consumer Hardware Optimization (4-Bit QLoRA on Windows)
+Running a 7-billion parameter model on 8GB VRAM (such as an NVIDIA RTX 3060 Ti) requires strict engineering controls:
+- **4-Bit NF4 Quantization**: Model weights are loaded via `bitsandbytes` using NormalFloat 4-bit representation and double quantization.
+- **PyTorch Native SDPA**: Uses `attn_implementation="sdpa"` for native Windows execution without external FlashAttention build dependencies.
+- **Low-Rank Adaptation**: LoRA rank $r=8$, $\alpha=16$ targeting all 7 projection modules (`q, k, v, o, gate, up, down`).
+- **Sequence Budgeting**: Input length is bounded to `max_seq_length=512` to guarantee VRAM usage remains safely under 7.5GB.
+
+### 4. Security & Isolation Defenses
+- **Command Injection Prevention**: Variables substituted into command templates are strictly validated against allow-lists (`^[a-zA-Z0-9\.\-\_\:\/]+$`) and encapsulated via `shlex.quote()`. All executions use `shell=False`.
+- **Prompt Injection Containment**: Ingested terminal banners and scanner logs are sandboxed inside `<<<BEGIN_EVIDENCE>>>` and `<<<END_EVIDENCE>>>` blocks, flagged as unexecutable data.
+- **Confirmation-Gated Resets**: Session clears require explicit `reset confirm` to prevent accidental loss of forensic artifacts.
+
+### 5. Dual-Track Resilience & Engineering Gates
+To ensure zero operational downtime during live demonstrations:
+- **Pre-Flight Verification**: Mandatory Day 1 4-bit CUDA smoke test (`verify_bnb.py`) and ChatML tokenizer verification (`verify_tokenizer.py`).
+- **Fail-Safe Fallback**: If the neural LLM is unavailable or offline, the system seamlessly routes queries through the deterministic 8-branch rule engine or the lightweight TinyLlama adapter.
+
+### 6. Phase 1 — Global Architecture Refactor: The Services Pattern (September 2026)
+
+#### 6.1 The Problem: Monolithic Lazy-Loaders
+
+As a codebase grows, it is tempting to put "get the model if not loaded yet" logic directly inside the class that needs it:
+
+```python
+# BEFORE — embedded lazy-loader inside ChatAssistant (50 lines per service)
+def _get_llm_router(self):
+    if self._llm_router is None:
+        from core.model_router import ModelRouter
+        import torch
+        mode = "gpu" if torch.cuda.is_available() else "cpu"
+        model_name = GPU_MODEL_NAME if mode == "gpu" else CPU_MODEL_NAME
+        self._llm_router = ModelRouter(model_name=model_name, mode=mode, ...)
+    return self._llm_router
+```
+
+This pattern violates the **Single Responsibility Principle**: `ChatAssistant` should reason about security, not manage GPU memory. It also means every class that needs the LLM duplicates this code — and if two instances of `ChatAssistant` are created, the model loads twice, wasting VRAM.
+
+#### 6.2 The Solution: Process-Wide Service Singletons
+
+A **service singleton** separates _infrastructure ownership_ from _business logic_:
+
+```python
+# AFTER — llm_service.py owns the model; ChatAssistant just calls it
+# core/services/llm_service.py
+_INSTANCE = None
+
+def get_llm_service() -> Optional[LLMService]:
+    global _INSTANCE
+    if _INSTANCE is None:
+        _INSTANCE = LLMService()  # loads once; never again
+    return _INSTANCE
+
+# core/chat_assistant.py — all loading logic removed
+def _get_llm_router(self):
+    if self._llm_svc is None:
+        self._llm_svc = get_llm_service() or False
+    return self._llm_svc if self._llm_svc is not False else None
+```
+
+The model now loads exactly once per Python process, regardless of how many `ChatAssistant` instances are created.
+
+#### 6.3 The Six Services and Their Responsibilities
+
+| Service | What It Owns | Key Design Decision |
+|---|---|---|
+| `EmbeddingService` | `SentenceTransformer` encoder | Shares the same instance with `YAMLSearch` — both need the same model |
+| `RerankService` | `CrossEncoder` reranker | Decoupled from `RAGEngine` — can be swapped without touching retrieval logic |
+| `LLMService` | `ModelRouter` + GPU/CPU detection | The only place in the codebase that touches `torch.cuda.is_available()` |
+| `RAGService` | `RAGEngine` | Thin facade — `retrieve()` and `build_context()` only |
+| `YAMLService` | `YAMLLoader + YAMLRegistry + YAMLSearch` | Collapses a 3-object init chain into one call |
+| `MemoryService` | `ChatMemory` per session | Registry pattern — prevents two open SQLite connections to the same session |
+
+#### 6.4 Dependency Injection vs. Singleton: The Trade-Off
+
+This refactor uses **module-level singletons** (global `_INSTANCE` in each service file). The alternative is a **DI container** where services are passed as constructor arguments. The module singleton approach was chosen because:
+
+1. It matches the existing `get_global_rag_engine()` pattern already in the codebase.
+2. It requires zero changes to `main.py` or any caller.
+3. It enables test-time override by setting `_INSTANCE` directly before a test.
+
+In Phase 2+, a proper DI container (e.g., passing services as constructor args to `ChatAssistant`) can be layered on top without changing the service implementations.
+
+#### 6.5 The `False` Sentinel Pattern
+
+Both the old and new code use a `False` sentinel to distinguish "not yet tried" (`None`) from "tried and failed" (`False`):
+
+```python
+if self._llm_svc is None:          # first access — try to get service
+    self._llm_svc = get_llm_service() or False
+return self._llm_svc if self._llm_svc is not False else None
+```
+
+This prevents re-attempting a failed model load on every query call, which would add significant latency.
+
+### 7. Phase 2 — Shared Embedding Service (`core/services/embedding_service.py`)
+- **Single Process Instance**: Enforces exactly one `SentenceTransformer` instance process-wide with `RLock` thread safety.
+- **Features**: Built-in LRU cache, float32 numpy normalization, hardware auto-detection (CUDA / DirectML / CPU / ONNX).
+- **Model Support**: Default `all-MiniLM-L6-v2`, with pluggable support for `BAAI/bge-large` and future models.
+- **Verification**: 7/7 unit tests passing in `test_embedding_service.py`.
+
+### 8. Phase 3 — Persistent Incremental YAML Index (`core/yaml_indexer.py`)
+- **Persistent Storage**: Serializes `yaml.index` (FAISS) and `yaml_meta.pkl` to eliminate re-embedding overhead on cold starts.
+- **Change Detection**: SHA-256 file hashing detects newly added, modified, or deleted YAML templates.
+- **Incremental Indexing**: Re-embeds only changed scenario playbooks while preserving untouched template vectors.
+- **Verification**: 5/5 unit tests passing in `test_yaml_index.py`.
+
+### 9. Phase 4 — Modular RAG & Pluggable Vector Stores (`core/retrieval/`)
+- **VectorStore Abstraction**: `BaseVectorStore` contract with concrete adapters:
+  - `FAISSVectorStore`: High-performance L2 vector index with normalized $[0..1]$ similarity scores.
+  - `HNSWVectorStore`: Hierarchical Navigable Small World graph adapter.
+  - `QdrantVectorStore`: Qdrant vector database adapter.
+  - `ChromaVectorStore`: ChromaDB adapter.
+  - Dynamic switching via `VECTOR_STORE_BACKEND` configuration without touching downstream code.
+- **Decoupled Components**:
+  - `Retriever`: Dependency-injected query embedder and vector search coordinator.
+  - `ChunkFilter`: Configurable similarity thresholding and metadata validation.
+  - `Reranker`: Cross-encoder scoring and logit cutoff ($min\_score = -2.5$).
+  - `RAGContextBuilder`: Formatted prompt context synthesis with source attribution.
+  - `RAGEngine`: Coordinator preserving 100% backward compatibility with legacy calls.
+- **Verification**: 7/7 unit tests passing in `test_rag_pipeline.py`.
+
+### 10. Phase 5 — Plugin-Based Intelligence Extraction (`core/intelligence/`)
+- **Elimination of Monolithic Regex**: Decomposed `extract_session_intelligence` into 9 dedicated single-responsibility parsers:
+  - `UserParser` (`parsers/user.py`): Discovers UIDs, GIDs, usernames, groups, and sudo status.
+  - `KernelParser` (`parsers/kernel.py`): Identifies operating systems, kernel releases, and architectures.
+  - `PortParser` (`parsers/ports.py`): Parses Nmap, netstat, and ss tabular network ports.
+  - `BannerParser` (`parsers/banners.py`): Fingerprints server banners and daemon versions.
+  - `BinaryParser` (`parsers/binaries.py`): Discovers challenge binaries, compiled tools, and local executables.
+  - `SUIDParser` (`parsers/suid.py`): Detects SUID/SGID privilege escalation targets.
+  - `StringsParser` (`parsers/strings.py`): Identifies dangerous function calls (`system()`, `/bin/sh -p`) and tokens.
+  - `FlagParser` (`parsers/flags.py`): Detects CTF flag strings and `/flag` filesystem permissions.
+  - `FilesystemParser` (`parsers/filesystem.py`): Extracts current working directories (`pwd`) and writable staging areas.
+- **Extensible Architecture**: `IntelligenceExtractor` registry allows dynamic runtime registration of custom parsers (e.g. CVE parsers).
+- **Structured Models**: Merges all parsed artifacts into typed `SessionIntelligence` dataclass with seamless `.to_dict()` backward compatibility for prompt builders.
+- **Verification**: 11/11 unit tests passing in `test_intelligence_parsers.py`.
+
+
 
 
 ## Front Matter

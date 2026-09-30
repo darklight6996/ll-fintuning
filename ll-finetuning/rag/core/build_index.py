@@ -8,7 +8,6 @@ import os
 import sys
 import pickle
 import faiss
-from sentence_transformers import SentenceTransformer
 
 # Resolve system paths
 CORE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -23,6 +22,7 @@ from core.config import (
     FAISS_INDEX_DIR,
     EMBED_MODEL
 )
+from core.services.embedding_service import get_embedding_service
 
 
 def build():
@@ -38,7 +38,7 @@ def build():
     os.makedirs(FAISS_INDEX_DIR, exist_ok=True)
 
     print(f"\nLoading embedding model: {EMBED_MODEL}...")
-    model = SentenceTransformer(EMBED_MODEL)
+    model = get_embedding_service(EMBED_MODEL)
 
     documents = []
     metadata = []

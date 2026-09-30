@@ -8,6 +8,7 @@ import os
 # Resolve paths relative to this config file's directory (core/)
 CORE_DIR = os.path.dirname(os.path.abspath(__file__))
 RAG_DIR = os.path.dirname(CORE_DIR)
+ROOT_DIR = os.path.dirname(RAG_DIR)  # project root (ll-finetuning/)
 
 # ==============================
 # PATHS
@@ -33,6 +34,7 @@ DATABASE_PATH = os.path.join(RAG_DIR, "sessions.db")
 TOP_K = 10
 FINAL_K = 3
 MAX_CONTENT_CHARS = 3000
+VECTOR_STORE_BACKEND = os.getenv("VECTOR_STORE_BACKEND", "faiss")  # "faiss", "hnsw", "qdrant", "chroma"
 
 # ==============================
 # MEMORY SETTINGS
@@ -58,9 +60,16 @@ CPU_MAX_NEW_TOKENS = 200
 # GPU MODEL SETTINGS
 # ==============================
 
-GPU_MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.2"
+GPU_MODEL_NAME = "DarkLight6996/CyberSec-Model-V2"
 GPU_MAX_INPUT_TOKENS = 3072
 GPU_MAX_NEW_TOKENS = 512
+
+# ==============================
+# LORA ADAPTER
+# ==============================
+
+# Path to local LoRA adapter directory (used by llm_service when available)
+LORA_ADAPTER_PATH = os.path.join(ROOT_DIR, "..", "lora-adapters")
 
 # ==============================
 # EMBEDDING + RERANKING

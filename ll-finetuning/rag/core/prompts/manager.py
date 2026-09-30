@@ -1,24 +1,16 @@
-# ==========================================================
-# prompts.py
-# Central Prompt Management
-# ==========================================================
+"""
+core/prompts/manager.py
+
+Legacy PromptManager preserved for backward compatibility with verification scripts.
+"""
 
 class PromptManager:
-
-    # ======================================================
-    # CONSTRUCTOR
-    # ======================================================
+    """
+    Standard PromptManager holding static prompts and simple memory/context builders.
+    """
 
     def __init__(self):
-
-        # Store all system prompts in one location
-
         self.prompts = {
-
-            # ----------------------------------------------
-            # Standard RAG Assistant
-            # ----------------------------------------------
-
             "rag": """
 You are a cybersecurity mentor and assistant.
 
@@ -31,11 +23,6 @@ Rules:
 5. Prefer educational explanations over short answers.
 6. Focus on cybersecurity learning and understanding.
 """,
-
-            # ----------------------------------------------
-            # Pentesting Mentor
-            # ----------------------------------------------
-
             "pentest_mentor": """
 You are a penetration testing mentor.
 
@@ -49,11 +36,6 @@ Rules:
 6. Do not automatically perform actions.
 7. Encourage critical thinking.
 """,
-
-            # ----------------------------------------------
-            # Compliance Analyst
-            # ----------------------------------------------
-
             "compliance": """
 You are a cybersecurity compliance analyst.
 
@@ -66,11 +48,6 @@ Rules:
 5. Prioritize findings by risk.
 6. Write clearly and professionally.
 """,
-
-            # ----------------------------------------------
-            # Read-Only Agent
-            # ----------------------------------------------
-
             "agent_readonly": """
 You are a cybersecurity assistant.
 
@@ -85,79 +62,34 @@ Rules:
 """
         }
 
-    # ======================================================
-    # MEMORY SECTION
-    # ======================================================
-
     def build_memory_section(self, memory_rows):
-
         if not memory_rows:
             return "No previous conversation."
-
         memory_text = "CONVERSATION HISTORY:\n\n"
-
         for role, content in memory_rows:
-
             memory_text += f"{role}: {content}\n"
-
         return memory_text
 
-    # ======================================================
-    # CONTEXT SECTION
-    # ======================================================
     def build_context_section(self, retrieved_docs):
         if not retrieved_docs:
             return "No context retrieved."
-
         context_text = ""
-
         for i, (doc, score) in enumerate(retrieved_docs, start=1):
             filename = doc.get("filename", "Unknown Source")
             text = doc.get("text", "")
             chunk_id = doc.get("chunk_id", "N/A")
-
             context_text += (
                 f"\n[SOURCE {i}] {filename}\n"
                 f"[CHUNK] {chunk_id}\n"
                 f"[RERANK SCORE] {score:.4f}\n"
                 f"{text}\n"
             )
-
         return context_text
 
-    # ======================================================
-    # FINAL PROMPT BUILDER
-    # ======================================================
-
-    def build_prompt(
-        self,
-        mode,
-        query,
-        retrieved_docs,
-        memory_rows
-    ):
-
-        # Select prompt type
-
-        system_prompt = self.prompts.get(
-            mode,
-            self.prompts["rag"]
-        )
-
-        # Build memory section
-
-        memory_section = self.build_memory_section(
-            memory_rows
-        )
-
-        # Build context section
-
-        context_section = self.build_context_section(
-            retrieved_docs
-        )
-
-        # Final prompt
-
+    def build_prompt(self, mode, query, retrieved_docs, memory_rows):
+        system_prompt = self.prompts.get(mode, self.prompts["rag"])
+        memory_section = self.build_memory_section(memory_rows)
+        context_section = self.build_context_section(retrieved_docs)
         prompt = f"""
 {system_prompt}
 
@@ -183,5 +115,4 @@ USER QUESTION
 ANSWER
 ==================================================
 """
-
         return prompt

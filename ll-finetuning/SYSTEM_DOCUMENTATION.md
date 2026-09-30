@@ -4,25 +4,285 @@
 
 ## Architectural Updates (September 2026)
 
-### 1. Hybrid LLM Reasoning & Fallback Engine (`chat_assistant.py`)
-- **Transition**: Migrated from a static N-branch decision tree to a **Hybrid LLM + Deterministic Fallback** architecture.
-- **LLM First**: User queries are now passed to an LLM (`ModelRouter`) powered by a highly structured prompt containing live session intelligence, RAG documents, and YAML scenario tactics.
-- **Rule Fallback**: The deterministic 8-branch rule engine only executes if the LLM is unavailable or fails to generate a valid response.
-- **Safety**: Context resets are now confirmation-gated (`reset confirm`) to prevent accidental session wipes.
-- **Prompt Injection Defense**: All untrusted terminal output ingested into the LLM prompt is heavily sandboxed within `<<<BEGIN_EVIDENCE>>>` delimiters and accompanied by strict data-only instructions.
+### 1. Next-Generation Qwen2.5-7B-Instruct QLoRA & ChatML Pipeline
+- **Primary Model Evolution**: Transitioning primary offensive/defensive fine-tuning from `TinyLlama-1.1B` to `Qwen/Qwen2.5-7B-Instruct`, targeting the adapter repository `DarkLight6996/CyberSec-Qwen-V1`.
+- **ChatML Token Framing**: Migrated from legacy Alpaca 3-field JSONL to strict Qwen ChatML formatting (`<|im_start|>system...<|im_end|>\n<|im_start|>user...<|im_end|>\n<|im_start|>assistant...<|im_end|>`) via `scripts/alpaca_to_chatml.py`.
+- **4-Bit QLoRA Optimization**: Engineered for native Windows execution on 8GB consumer VRAM (RTX 3060 Ti) using `BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.bfloat16)`.
+- **PyTorch Native SDPA**: Enforced `attn_implementation="sdpa"` to eliminate complex C++ compilation and FlashAttention build failures on Windows.
+- **LoRA Hyperparameters**: LoRA rank $r=8$, $\alpha=16$, dropout $0.05$ targeting all 7 linear projection layers (`q_proj`, `k_proj`, `v_proj`, `o_proj`, `gate_proj`, `up_proj`, `down_proj`). Sequence length constrained to `max_seq_length=512`.
 
-### 2. Command Execution Security (`command_executor.py`, `variable_engine.py`)
+### 2. Engineering Verification Gates & Demo Readiness
+- **Gate 1 (Go/No-Go)**: Day 1 `bitsandbytes` 4-bit CUDA verification gate (`scripts/verify_bnb.py`) to validate 4-bit quantization kernel execution on Windows.
+- **Gate 2 (VRAM Decision Tree)**: Dynamic sequence length and rank throttle: if VRAM peak exceeds 7.5GB during 10-sample testing, `max_seq_length` throttles from 512 to 384 and rank from 8 to 4.
+- **Gate 3 (Dual-Track Fallback)**: Standby rehearsals for both the verified `DarkLight6996/CyberSec-Model-V2` (TinyLlama 1.1B adapter) and the deterministic 8-branch rule engine to guarantee zero risk during government demonstrations.
+- **Measurable Acceptance Criteria**: Strict pass/fail benchmarks enforced across CTF access control, session reset isolation, and Linux reconnaissance playbooks.
+
+### 3. Hybrid LLM Reasoning & Fallback Engine (`chat_assistant.py`)
+- **Transition**: Migrated from a static N-branch decision tree to a **Hybrid LLM + Deterministic Fallback** architecture.
+- **LLM First**: User queries are passed to an LLM (`ModelRouter`) powered by a highly structured prompt containing live session intelligence, RAG documents, and YAML scenario tactics.
+- **Prompt Synchronization**: Inference prompt construction updated to format system persona, live session intel, untrusted evidence, RAG context, and chat history into native ChatML before generation.
+- **Rule Fallback**: The deterministic 8-branch rule engine executes if the LLM is unavailable, offline, or returns empty tokens.
+- **Safety**: Context resets are confirmation-gated (`reset confirm`) to prevent accidental session wipes.
+- **Prompt Injection Defense**: All untrusted terminal output ingested into the LLM prompt is heavily sandboxed within `<<<BEGIN_EVIDENCE>>>` and `<<<END_EVIDENCE>>>` delimiters and accompanied by strict data-only instructions.
+
+### 4. Command Execution Security (`command_executor.py`, `variable_engine.py`)
 - **Shell Escaping**: Completely removed `shell=True` from `CommandExecutor`. All commands are executed via list formats (`shell=False`) after passing through `shlex.split()`.
 - **Injection Mitigation**: The `VariableEngine` now routes all substituted variables through `shlex.quote()` prior to command generation.
 - **Network Validation**: Strict allow-list regex validation (`^[a-zA-Z0-9\.\-\_\:\/]+$`) enforced on all network parameters (IP, PORT, HOST, DOMAIN) to block unexpected shell characters.
 
-### 3. Engine Configuration (`config.py`)
-- **CPU Model**: Default CPU inference engine upgraded from `google/flan-t5-large` to `Qwen/Qwen2.5-1.5B-Instruct` to leverage a true chat-tuned causal LM.
-- **Context Budgets**: CPU prompt context strictly capped at 1024 input tokens to prevent silent truncation.
+### 5. Engine Configuration & Vector Search (`config.py`, `rag_engine.py`)
+- **Context Budgets**: Input context budget dynamically allocated across live intel, recent turns, and RAG chunks.
+- **Similarity Normalization**: FAISS L2 distances normalized using `1.0 / (1.0 + distance)`.
+- **Noise Thresholds**: Hard negative logit cutoff (`min_score = -2.5`) applied during RAG retrieval to prevent irrelevant knowledge from polluting the prompt context.
 
-### 4. Vector Search Tuning (`rag_engine.py`)
-- **Similarity Normalization**: FAISS L2 distances are mathematically inverted and normalized using `1.0 / (1.0 + distance)`, translating lower distances into intuitive similarity scores `[0, 1]`.
-- **Noise Thresholds**: Implemented hard similarity minimums (e.g., `> 0.35`) during context building to prevent irrelevant low-quality corpus matches from polluting the prompt.
+### 6. Phase 1 — Global Architecture Refactor (September 2026)
+
+A production-quality services layer (`core/services/`) was introduced to enforce SOLID principles, eliminate duplicate model loading, and apply dependency injection across the entire pipeline.
+
+#### 6.1 New Services Layer (`core/services/`)
+
+| Service | File | Responsibility |
+|---|---|---|
+| `EmbeddingService` | `embedding_service.py` | Owns `SentenceTransformer` — one instance per process |
+| `RerankService` | `rerank_service.py` | Owns `CrossEncoder` — one instance per process |
+| `LLMService` | `llm_service.py` | Auto-detects GPU/CPU, owns `ModelRouter`, exposes `generate()` |
+| `YAMLService` | `yaml_service.py` | Owns `YAMLLoader + YAMLRegistry + YAMLSearch` stack |
+| `RAGService` | `rag_service.py` | Wraps `RAGEngine` with `retrieve()` / `build_context()` interface |
+| `MemoryService` | `memory_service.py` | Per-session `ChatMemory` registry — prevents duplicate DB connections |
+
+All services expose a `get_<service>()` module-level singleton accessor. Services are loaded lazily on first call and cached for the process lifetime.
+
+#### 6.2 Refactored Core Files
+
+- **`config.py`**: `GPU_MODEL_NAME` updated to `DarkLight6996/CyberSec-Model-V2`. Added `ROOT_DIR` and `LORA_ADAPTER_PATH` constants.
+- **`model_router.py`**: Added `get_global_model_router()` singleton getter. Broadened 4-bit quantization detection to cover all PEFT adapters, not just known model families.
+- **`rag_engine.py`**: `_load_components()` now delegates embedding and reranking to shared service singletons — eliminates duplicate VRAM allocation if multiple `RAGEngine` instances exist.
+- **`chat_assistant.py`**: Removed 3 private 50-line lazy-loaders (`_get_llm_router`, `_get_rag_engine`, `_get_yaml_search`). Constructor is now 5 lines. Service resolution happens through `get_llm_service()`, `get_rag_service()`, `get_yaml_service()`.
+
+#### 6.3 Backward Compatibility
+
+`main.py` and all existing entry points remain **untouched**. All prior imports (`from core.model_router import ModelRouter`, `from core.rag_engine import get_global_rag_engine`, etc.) continue to work unchanged.
+
+#### 6.4 Verification Results
+
+All 6 smoke tests passed:
+- Service imports: ✅
+- Config values correct (`DarkLight6996/CyberSec-Model-V2`): ✅
+- `ChatAssistant.__init__` has zero side-effects: ✅
+- `RAGService` retrieves and builds context: ✅
+- `YAMLService` loads 214 scenarios, returns search results: ✅
+- `MemoryService` session isolation verified: ✅
+
+> **YAML Note**: 19 of 233 scenario files have syntax errors (bad escape sequences in `adcs-*`, `event-log-tampering`, etc.). These are pre-existing issues in the scenario corpus and do not affect system operation — 214 valid scenarios loaded successfully.
+
+---
+
+### 7. Phase 2 — Vector Store Abstraction Layer (`core/retrieval/`)
+
+A pluggable vector database abstraction was introduced under `core/retrieval/` so the system can swap storage backends without touching any retrieval or service code.
+
+#### 7.1 New Module: `core/retrieval/vector_store.py`
+
+| Backend | Class | Notes |
+|---|---|---|
+| FAISS | `FAISSVectorStore` | Default. In-process; no server required. Production-verified. |
+| HNSW | `HNSWVectorStore` | `hnswlib` adapter; higher throughput at scale. |
+| Qdrant | `QdrantVectorStore` | `qdrant_client` adapter; supports persistent remote storage. |
+| Chroma | `ChromaVectorStore` | `chromadb` adapter; lightweight embedded option. |
+
+All backends implement the `BaseVectorStore` abstract interface: `search()`, `add()`, `persist()`, `load()`, `count()`. The active backend is selected at startup via `VECTOR_STORE_BACKEND` environment variable (default: `"faiss"`). `config.py` exposes this setting.
+
+#### 7.2 New Module: `core/retrieval/retriever.py`
+
+`Retriever` wraps a `BaseVectorStore` instance and exposes a unified `retrieve(query, top_k)` API. It includes a `ChunkFilter` that prunes low-similarity and duplicate chunks before results reach the reranker.
+
+#### 7.3 New Module: `core/retrieval/reranker.py`
+
+`RetrieverReranker` wraps `RerankService` and re-sorts a short candidate list by cross-encoder score, returning only `final_k` highest-confidence chunks.
+
+#### 7.4 New Module: `core/retrieval/context_builder.py`
+
+`RetrievalContextBuilder` merges reranked chunks into a single formatted string and ensures the combined length stays within the configured `MAX_CONTENT_CHARS` budget.
+
+#### 7.5 `config.py` Addition
+
+```python
+VECTOR_STORE_BACKEND = os.getenv("VECTOR_STORE_BACKEND", "faiss")
+```
+
+#### 7.6 Verification Results
+
+| Test | Status |
+|---|---|
+| `test_faiss_vector_store_in_memory` | ✅ PASSED |
+| `test_vector_store_factory_switching` | ✅ PASSED |
+| `test_chunk_filter` | ✅ PASSED |
+| `test_retriever_with_mocks` | ✅ PASSED |
+| `test_reranker_with_mock_service` | ✅ PASSED |
+| `test_rag_context_builder` | ✅ PASSED |
+| `test_rag_engine_backward_compatibility` | ✅ PASSED |
+
+---
+
+### 8. Phase 3 — Intent Router Extraction (`core/routers/intent_router.py`)
+
+The 8-branch deterministic fallback engine was fully extracted from `ChatAssistant` into an independent `IntentRouter` class, eliminating the coupling between conversation orchestration and route logic.
+
+#### 8.1 `Intent` Enum (8 values)
+
+```
+RESET | RECON | STEERING | EXPLAIN_OUTPUT | CTF_PRIVESC | AD_NETWORK | WEB_API | GENERAL
+```
+
+#### 8.2 Key Methods
+
+| Method | Purpose |
+|---|---|
+| `detect_operator_steering(query)` | Detects hallucination correction / tangent signals |
+| `detect_reset_or_different_challenge(query)` | Detects session reset requests |
+| `detect_recon_request(query)` | Detects initial recon / where-do-I-start queries |
+| `classify(query, state, intel)` | Returns `Intent` enum value |
+| `execute_reset(state)` | Wipes session state after `"reset confirm"` gate |
+| `dispatch_fallback(intent, ...)` | Routes to the appropriate deterministic reasoning method |
+
+The intent router is stateless; `ChatAssistant` supplies `state` and `intel` dicts per turn. Fallback reasoning methods (`reason_ctf_query`, `reason_linux_recon_methodology`, etc.) remain embedded in `intent_router.py` for locality.
+
+---
+
+### 9. Phase 4 — Intelligence Extraction Subsystem (`core/intelligence/`)
+
+The monolithic intelligence extraction regex block was decomposed into a plugin-based parser registry under `core/intelligence/`.
+
+#### 9.1 Architecture
+
+```
+core/intelligence/
+  base.py          — BaseIntelParser abstract class
+  models.py        — SessionIntelligence dataclass (typed, frozen)
+  extractor.py     — IntelligenceExtractor: orchestrates all parsers
+  parsers/
+    user.py        — UID / GID / username extraction
+    kernel.py      — OS kernel version and architecture
+    ports.py       — open TCP/UDP port parsing
+    banners.py     — service banner / version extraction
+    binaries.py    — interesting binary identification
+    suid.py        — SUID / SGID binary detection
+    strings.py     — strings(1) output extraction
+    flags.py       — CTF flag pattern matching
+    filesystem.py  — sensitive file / directory detection
+```
+
+#### 9.2 `BaseIntelParser` contract
+
+```python
+class BaseIntelParser(ABC):
+    @property
+    def key(self) -> str: ...       # dict key in SessionIntelligence
+    def parse(self, text: str) -> Any: ...
+```
+
+`IntelligenceExtractor` iterates all registered parsers, merges results into a `SessionIntelligence` instance, and supports third-party parser registration via `extractor.register_parser(parser)`.
+
+#### 9.3 Verification Results
+
+| Test | Status |
+|---|---|
+| `test_user_parser` | ✅ PASSED |
+| `test_kernel_parser` | ✅ PASSED |
+| `test_port_parser` | ✅ PASSED |
+| `test_banner_parser` | ✅ PASSED |
+| `test_binary_parser` | ✅ PASSED |
+| `test_suid_parser` | ✅ PASSED |
+| `test_strings_parser` | ✅ PASSED |
+| `test_flag_parser` | ✅ PASSED |
+| `test_filesystem_parser` | ✅ PASSED |
+| `test_intelligence_extractor_e2e` | ✅ PASSED |
+| `test_custom_parser_plugin_registration` | ✅ PASSED |
+
+---
+
+### 10. Phase 5 — Prompt Engineering Subsystem (`core/prompts/`)
+
+The monolithic `PromptBuilder` was decomposed into a composable, token-budgeted prompt pipeline under `core/prompts/`.
+
+#### 10.1 Architecture
+
+```
+core/prompts/
+  budget.py          — PromptBudget: dynamic token allocation across 4 sections
+  history_builder.py — HistoryBuilder: rolling summary + semantic deduplication
+  intel_builder.py   — IntelBuilder: sandboxed evidence serialization
+  knowledge_builder.py — KnowledgeBuilder: deduplicated RAG context compilation
+  scenario_builder.py  — ScenarioBuilder: YAML attack step formatting
+  templates.py       — PromptTemplate + ModelFamily + detect_model_family()
+  prompt_builder.py  — PromptBuilder: unified coordinator (DI-injectable sub-components)
+  manager.py         — PromptManager: backward-compatibility wrapper
+```
+
+#### 10.2 `PromptBudget` Allocation
+
+`PromptBudget` divides the total token budget across 4 named slots (intel, history, RAG, tactics). Sections that undershoot their allocation return surplus proportionally to other sections, preventing wasted context space.
+
+#### 10.3 Multi-Model Template Support
+
+`detect_model_family()` auto-detects the chat template from a model name or HuggingFace repo ID:
+
+| Pattern | Family | Template |
+|---|---|---|
+| `qwen`, `cybersec-qwen*` | `QWEN` | `<\|im_start\|>` / `<\|im_end\|>` (ChatML) |
+| `llama`, `tinyllama`, `alpaca`, `cybersec-model*`, `darklight*` | `LLAMA` | `<\|begin_of_text\|>` / `<\|eot_id\|>` |
+| `mistral`, `zephyr`, `mixtral` | `MISTRAL` | `[INST]` / `[/INST]` |
+| `gemma` | `GEMMA` | `<start_of_turn>` / `<end_of_turn>` |
+| `deepseek` | `DEEPSEEK` | `<｜begin of sentence｜>` / `<｜thought｜>` |
+| anything else | `STANDARD` | Raw text fallback |
+
+> **DarkLight6996 Adapters**: `CyberSec-Model-V2` (TinyLlama base) → `LLAMA`; `CyberSec-Qwen-V1` (Qwen base) → `QWEN`.
+
+#### 10.4 Circular Import Fix
+
+`core/builders/__init__.py` no longer re-exports `PromptBuilder`. The import chain:
+
+```
+core.builders.__init__ → core.builders.prompt_builder (alias)
+                       → core.prompts.prompt_builder
+                       → core.builders.context_builder
+                       → core.builders.__init__  ← CIRCULAR
+```
+
+was broken by removing the `PromptBuilder` export from `builders/__init__.py`. `PromptBuilder` is now imported directly from `core.prompts` or `core.builders.prompt_builder`.
+
+#### 10.5 Verification Results
+
+| Test | Status |
+|---|---|
+| `test_prompt_budget_allocation_and_surplus` | ✅ PASSED |
+| `test_history_builder_dedup_and_rolling_summary` | ✅ PASSED |
+| `test_intel_builder_sandboxing_and_deduplication` | ✅ PASSED |
+| `test_intel_builder_with_session_intelligence_model` | ✅ PASSED |
+| `test_knowledge_builder_dedup` | ✅ PASSED |
+| `test_scenario_builder` | ✅ PASSED |
+| `test_multi_model_templates` | ✅ PASSED |
+| `test_detect_model_family` | ✅ PASSED |
+| `test_prompt_builder_full_pipeline` | ✅ PASSED |
+| `test_prompt_manager_backward_compatibility` | ✅ PASSED |
+
+---
+
+### 11. Full Test Suite Status (September 2026)
+
+**44 / 44 tests passing** across 7 test modules:
+
+| Module | Tests | Status |
+|---|---|---|
+| `test_embedding_service.py` | 7 | ✅ All passed |
+| `test_yaml_index.py` | 5 | ✅ All passed |
+| `test_intelligence_parsers.py` | 11 | ✅ All passed |
+| `test_prompt_subsystem.py` | 10 | ✅ All passed |
+| `test_rag_pipeline.py` | 7 | ✅ All passed |
+| `test_core_modules.py` | 0 (import only) | ✅ No errors |
+| `test_cli_architecture.py` | 4 | ✅ All passed |
+
+Run: `python -m pytest ll-finetuning/rag/core/ -v --tb=short`
 
 
 **Target Audience:** Non-technical stakeholders, compliance auditors, security operations center (SOC) analysts, and newly onboarded operators.
@@ -747,18 +1007,20 @@
 ## 2.15 `model_router.py`
 
 ### 1. Executive Concept & Real-World Analogy
-* **Real-World Analogy:** Think of `ModelRouter` like an intelligent power transmission station. Whether electricity is flowing from a local low-voltage generator (CPU) or a high-capacity industrial power plant (GPU), and whether the machinery uses alternating current (Seq2Seq T5) or direct current (Causal Mistral), the power station standardizes the output voltage so that household appliances plug into the exact same wall outlet seamlessly.
-* **Problem Solved:** CPU environments and GPU environments require completely different model architectures, tokenizers, memory precision settings (`float16`), and device placement strategies. Writing separate generation logic throughout the codebase creates code duplication and brittleness. `ModelRouter` abstracts all model loading and exposes a unified `.generate(prompt)` interface.
+* **Real-World Analogy:** Think of `ModelRouter` like an intelligent power transmission station. Whether electricity is flowing from a local low-voltage generator (CPU) or a high-capacity industrial power plant (GPU), and whether the machinery uses alternating current (Seq2Seq T5), direct causal base weights (Mistral/Qwen), or plug-in voltage transformers (PEFT LoRA adapters), the power station standardizes the output voltage so that household appliances plug into the exact same wall outlet seamlessly.
+* **Problem Solved:** CPU environments, GPU environments, base foundation models, and parameter-efficient LoRA adapters require completely different loading routines, precision types (`bfloat16`/`float16`), quantization configs (`bitsandbytes`), and device placement strategies. Writing separate generation logic throughout the codebase creates code duplication and brittleness. `ModelRouter` abstracts all model and adapter loading and exposes a unified `.generate(prompt)` interface.
 
 ### 2. The Functional Journey (Plain-English Timeline)
-1. **Model Family Detection:** Inspects the model name string. If it contains `flan` or `t5`, it routes to Sequence-to-Sequence (`AutoModelForSeq2SeqLM`); otherwise, it routes to Causal LM (`AutoModelForCausalLM`).
-2. **Tokenizer Loading & Padding Alignment:** Loads the HuggingFace tokenizer and sets `pad_token = eos_token` if padding tokens are undefined.
-3. **Hardware-Aware Loading:**
-   * *CPU Mode:* Loads model weights onto system RAM in standard precision and sets evaluation mode.
-   * *GPU Mode:* Validates CUDA availability, loads weights in `torch.float16` precision, configures `device_map="auto"`, and maps tensors to GPU memory.
-4. **Input Tokenization & Truncation:** Converts incoming prompt text into PyTorch tensors, enforcing `max_input_tokens = 2048` truncation.
-5. **Inference Execution:** Executes `model.generate()` within a `torch.no_grad()` context using specified temperature and top-p sampling.
-6. **Output Decoding:** Decodes generated token IDs into clean text, stripping special tokens and isolating new response tokens.
+1. **Model & Adapter Identification:** Inspects the requested model name or repository string. Checks whether the target is a PEFT LoRA repository (e.g. `DarkLight6996/CyberSec-Model-V2` or `DarkLight6996/CyberSec-Qwen-V1`) via `PeftConfig.from_pretrained()`.
+2. **Base Architecture Resolution:** If a LoRA adapter is detected, extracts the underlying `base_model_name_or_path` (e.g., `TinyLlama/TinyLlama-1.1B-Chat-v1.0` or `Qwen/Qwen2.5-7B-Instruct`) and loads the base model and tokenizer.
+3. **Tokenizer Loading & Chat Template Alignment:** Loads the tokenizer and aligns padding tokens (`pad_token = eos_token`). In causal chat architectures (ChatML), verifies special token delimiters (`<|im_start|>`, `<|im_end|>`).
+4. **Hardware & Quantization-Aware Loading:**
+   * *CPU Mode:* Loads model weights onto system RAM in float32 precision and sets evaluation mode.
+   * *GPU Mode:* Validates CUDA availability. If 4-bit quantization is configured, applies `BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4")` and attaches weights to GPU memory via `device_map="auto"`.
+5. **Adapter Attachment:** If a LoRA adapter was specified, attaches adapter layers to the active model using `PeftModel.from_pretrained(model, adapter_path)`.
+6. **Input Tokenization & Truncation:** Converts incoming prompt text into PyTorch tensors, enforcing `max_input_tokens` limits.
+7. **Inference Execution:** Executes `model.generate()` within a `torch.no_grad()` context using specified temperature and top-p sampling.
+8. **Output Decoding & Causal Token Slicing:** For causal models, slices output tokens past the input sequence length (`outputs[0][input_length:]`) and decodes into clean text, stripping internal generation artifacts.
 
 ### 3. Core Business Rules & System Constraints
 * **CUDA Hardware Validation:** If `mode="gpu"` is requested on a system without CUDA, immediately raises `RuntimeError("GPU mode requested, but CUDA is not available.")`.

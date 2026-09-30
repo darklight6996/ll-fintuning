@@ -13,7 +13,10 @@ Why this matters:
 """
 
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, AutoModelForCausalLM
+from typing import Optional
 import torch
+
+_GLOBAL_ROUTER: Optional["ModelRouter"] = None
 
 
 class ModelRouter:
@@ -83,64 +86,54 @@ class ModelRouter:
 
     def _load_model(self):
         """
-        Loads tokenizer + model depending on CPU or GPU mode.
-
-        Design choice:
-        - CPU pipeline will likely use Flan-T5 (seq2seq model)
-        - GPU pipeline may use Mistral / causal LM
-
-        So this router supports BOTH:
-        - Seq2Seq models via AutoModelForSeq2SeqLM
-        - Causal models via AutoModelForCausalLM
-
-        How do we decide?
-        Simple rule:
-        - if model name contains "flan" or "t5" -> treat as seq2seq
-        - otherwise -> treat as causal LM
+        Loads tokenizer + model depending on CPU or GPU mode,
+        with seamless support for PEFT LoRA adapters (TinyLlama/Qwen)
+        and 4-bit quantization on GPU for 7B models.
         """
+        is_peft = False
+        base_model_name = self.model_name
+        adapter_path = None
 
-        print(f"Loading tokenizer for: {self.model_name}")
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        try:
+            from peft import PeftConfig
+            peft_config = PeftConfig.from_pretrained(self.model_name)
+            is_peft = True
+            base_model_name = peft_config.base_model_name_or_path
+            adapter_path = self.model_name
+            print(f"[*] Detected PEFT LoRA adapter: {self.model_name} (Base: {base_model_name})")
+        except Exception:
+            is_peft = False
 
-        # Some causal models do not have a pad token set.
-        # If pad_token is missing, use eos_token as fallback.
+        print(f"Loading tokenizer for: {base_model_name}")
+        try:
+            self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        except Exception:
+            self.tokenizer = AutoTokenizer.from_pretrained(base_model_name)
+
         if self.tokenizer.pad_token is None and self.tokenizer.eos_token is not None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
-            print(f"pad token is not set for {self.model_name}")
+            print(f"pad token set to eos token for {base_model_name}")
 
-        # ------------------------------------------------------------
-        # Decide model family
-        # ------------------------------------------------------------
-        lower_name = self.model_name.lower()
-
-        if "t5" in lower_name or "flan" in lower_name:
+        lower_base = base_model_name.lower()
+        if "t5" in lower_base or "flan" in lower_base:
             model_family = "seq2seq"
         else:
             model_family = "causal"
 
         print(f"Detected model family: {model_family}")
 
-        # ------------------------------------------------------------
-        # CPU MODE
-        # ------------------------------------------------------------
         if self.mode == "cpu":
             self.device = "cpu"
             print("Loading model in CPU mode...")
-
             if model_family == "seq2seq":
-                self.model = AutoModelForSeq2SeqLM.from_pretrained(
-                    self.model_name
-                )
+                self.model = AutoModelForSeq2SeqLM.from_pretrained(base_model_name)
             else:
-                self.model = AutoModelForCausalLM.from_pretrained(
-                    self.model_name
-                )
-
+                self.model = AutoModelForCausalLM.from_pretrained(base_model_name)
+            if is_peft:
+                from peft import PeftModel
+                self.model = PeftModel.from_pretrained(self.model, adapter_path)
             self.model.to(self.device)
 
-        # ------------------------------------------------------------
-        # GPU MODE
-        # ------------------------------------------------------------
         elif self.mode == "gpu":
             if not torch.cuda.is_available():
                 raise RuntimeError("GPU mode requested, but CUDA is not available.")
@@ -148,23 +141,47 @@ class ModelRouter:
             self.device = "cuda"
             print("Loading model in GPU mode...")
 
-            if model_family == "seq2seq":
-                self.model = AutoModelForSeq2SeqLM.from_pretrained(
-                    self.model_name,
-                    torch_dtype=torch.float16
+            # Broaden 4-bit detection: any large causal model benefits from 4-bit quantization
+            # (7B+, Qwen, Mistral, or any PEFT/fine-tuned derivative like CyberSec-Model-V2)
+            use_4bit = (
+                "7b" in lower_base
+                or "qwen" in lower_base
+                or "mistral" in lower_base
+                or is_peft  # LoRA adapters on 7B+ base models always use 4-bit
+            )
+            if use_4bit and model_family == "causal":
+                from transformers import BitsAndBytesConfig
+                print("[*] Applying 4-bit NF4 quantization for GPU loading...")
+                bnb_config = BitsAndBytesConfig(
+                    load_in_4bit=True,
+                    bnb_4bit_quant_type="nf4",
+                    bnb_4bit_use_double_quant=True,
+                    bnb_4bit_compute_dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+                )
+                self.model = AutoModelForCausalLM.from_pretrained(
+                    base_model_name,
+                    quantization_config=bnb_config,
+                    device_map="auto",
+                    attn_implementation="sdpa"
                 )
             else:
-                self.model = AutoModelForCausalLM.from_pretrained(
-                    self.model_name,
-                    torch_dtype=torch.float16,
-                    device_map="auto"
-                )
+                if model_family == "seq2seq":
+                    self.model = AutoModelForSeq2SeqLM.from_pretrained(
+                        base_model_name,
+                        torch_dtype=torch.float16
+                    )
+                    self.model.to(self.device)
+                else:
+                    self.model = AutoModelForCausalLM.from_pretrained(
+                        base_model_name,
+                        torch_dtype=torch.float16,
+                        device_map="auto"
+                    )
 
-            # Important:
-            # if device_map="auto" is used, Hugging Face may already place
-            # the model on the GPU. Calling .to("cuda") again is not necessary.
-            if model_family == "seq2seq":
-                self.model.to(self.device)
+            if is_peft:
+                from peft import PeftModel
+                print(f"[*] Attaching PEFT LoRA adapter from {adapter_path}...")
+                self.model = PeftModel.from_pretrained(self.model, adapter_path)
 
         else:
             raise ValueError("mode must be either 'cpu' or 'gpu'")
@@ -257,3 +274,51 @@ class ModelRouter:
             "max_input_tokens": self.max_input_tokens,
             "max_new_tokens": self.max_new_tokens
         }
+
+
+# ============================================================
+# MODULE-LEVEL SINGLETON GETTER
+# ============================================================
+
+def get_global_model_router(
+    model_name: Optional[str] = None,
+    mode: Optional[str] = None,
+    max_input_tokens: Optional[int] = None,
+    max_new_tokens: Optional[int] = None,
+) -> Optional["ModelRouter"]:
+    """
+    Return the process-wide ModelRouter singleton.
+    Creates it on first call using config defaults; subsequent calls return
+    the cached instance regardless of arguments.
+
+    Returns None if model loading fails (CUDA unavailable, weights missing, etc.).
+    """
+    global _GLOBAL_ROUTER
+    if _GLOBAL_ROUTER is None:
+        try:
+            import torch
+            from core.config import (
+                CPU_MODEL_NAME, GPU_MODEL_NAME,
+                CPU_MAX_INPUT_TOKENS, CPU_MAX_NEW_TOKENS,
+                GPU_MAX_INPUT_TOKENS, GPU_MAX_NEW_TOKENS,
+            )
+
+            if mode is None:
+                mode = "gpu" if torch.cuda.is_available() else "cpu"
+            if model_name is None:
+                model_name = GPU_MODEL_NAME if mode == "gpu" else CPU_MODEL_NAME
+            if max_input_tokens is None:
+                max_input_tokens = GPU_MAX_INPUT_TOKENS if mode == "gpu" else CPU_MAX_INPUT_TOKENS
+            if max_new_tokens is None:
+                max_new_tokens = GPU_MAX_NEW_TOKENS if mode == "gpu" else CPU_MAX_NEW_TOKENS
+
+            _GLOBAL_ROUTER = ModelRouter(
+                model_name=model_name,
+                mode=mode,
+                max_input_tokens=max_input_tokens,
+                max_new_tokens=max_new_tokens,
+            )
+        except Exception as exc:
+            print(f"[!] get_global_model_router failed ({type(exc).__name__}: {exc})")
+            _GLOBAL_ROUTER = None  # type: ignore[assignment]
+    return _GLOBAL_ROUTER

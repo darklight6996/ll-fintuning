@@ -8,7 +8,6 @@ import os
 import sys
 import pickle
 import faiss
-from sentence_transformers import SentenceTransformer
 
 # Resolve system paths
 CORE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -17,6 +16,7 @@ if RAG_DIR not in sys.path:
     sys.path.insert(0, RAG_DIR)
 
 from core.config import INDEX_PATH, META_PATH, EMBED_MODEL
+from core.services.embedding_service import get_embedding_service
 
 
 def main():
@@ -32,7 +32,7 @@ def main():
         return
 
     print(f"Loading embedding model ({EMBED_MODEL})...")
-    model = SentenceTransformer(EMBED_MODEL)
+    model = get_embedding_service(EMBED_MODEL)
 
     print("Loading FAISS Index...")
     index = faiss.read_index(INDEX_PATH)
