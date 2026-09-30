@@ -139,9 +139,9 @@ class IntentRouter:
     @staticmethod
     def execute_reset(state: Dict[str, Any]) -> str:
         """Actually wipe session state. Only called after explicit 'reset confirm'."""
-        state["artifacts"] = state.get("artifacts", [])
         state["artifacts"] = []
         state["notes"] = []
+        state["evidence"] = []
         state["completed_steps"] = []
         state.pop("focus", None)
         state.pop("operator_directive", None)

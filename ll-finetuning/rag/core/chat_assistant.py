@@ -29,11 +29,12 @@ from core.services.llm_service import get_llm_service
 from core.services.rag_service import get_rag_service
 from core.services.yaml_service import get_yaml_service
 
-# Routers, Builders, and Intelligence
+# Routers, Builders, Intelligence, and Agent
 from core.routers.intent_router import IntentRouter, Intent
 from core.builders.context_builder import ContextBuilder, ContextPackage
 from core.builders.prompt_builder import PromptBuilder
 from core.intelligence import get_intelligence_extractor, IntelligenceExtractor
+from core.agent import CyberAgent, AgentRequest, AgentResponse
 
 
 class ChatAssistant:
@@ -64,6 +65,7 @@ class ChatAssistant:
             intelligence_extractor=self.extract_session_intelligence
         )
         self.prompt_builder = prompt_builder or PromptBuilder()
+        self._agent = None
 
     # ------------------------------------------------------------------
     # Service accessors (cached after first resolution)
@@ -121,7 +123,7 @@ class ChatAssistant:
         return self.intelligence_extractor.extract_dict(session_state)
 
     # ==================================================================
-    # MAIN RESPOND METHOD (Orchestration)
+    # MAIN RESPOND METHOD (Delegated to CyberAgent)
     # ==================================================================
     def respond(
         self,
@@ -131,60 +133,39 @@ class ChatAssistant:
         """
         Generate a reasoned, context-aware cybersecurity response.
         Works seamlessly both within an active session and as a standalone conversational advisor.
-        Utilizes local Neural LLM reasoning with grounded RAG context, falling back gracefully
-        to deterministic rule-based modules if offline or uninitialized.
+        Delegates execution to CyberAgent (Phase 8 Agent Framework) while keeping state synchronized.
         """
         state = session_state or {}
         clean_msg = user_message.strip()
 
-        # Update chat history — only persist to state if a real session dict was passed
+        # Update chat history in session_state if active session
         if session_state is not None:
             chat_history = state.setdefault("chat_history", [])
             chat_history.append({"role": "operator", "message": clean_msg})
         else:
             chat_history = []
 
-        # 1. Build context package (live intel + RAG + YAML tactics)
-        ctx = self.context_builder.build(clean_msg, state)
+        session_id = state.get("name") or "default_session"
 
-        # 2. Classify intent
-        intent = self.intent_router.classify(clean_msg, state, ctx.intel)
+        # Instantiate or reuse CyberAgent configured with our components
+        agent = self._agent or CyberAgent(
+            session_id=session_id,
+            router=self.intent_router,
+            extractor=self.intelligence_extractor,
+            prompt_builder=self.prompt_builder,
+            llm=self._get_llm_router(),
+        )
 
-        # 3. Primary reasoning: Neural LLM Generation
-        response = None
-        llm = self._get_llm_router()
+        req = AgentRequest(
+            query=clean_msg,
+            state=state,
+            session_id=session_id
+        )
 
-        if llm:
-            tokenizer = getattr(llm, "tokenizer", None)
-            model_id = getattr(llm, 'model_name', 'unknown')
-            print(f"[LLM] Using model: {model_id}")
+        res = agent.run(req)
+        response = res.text
 
-            prompt = self.prompt_builder.build(clean_msg, state, context=ctx, tokenizer=tokenizer)
-            try:
-                raw_out = llm.generate(prompt, temperature=0.3)
-                if raw_out and len(raw_out.strip()) > 10:
-                    response = raw_out.strip()
-                    print(f"[LLM] Response generated ({len(response)} chars).")
-                else:
-                    print("[LLM] Empty/short output — falling back to rules.")
-            except Exception as e:
-                print(f"[LLM] Generation error ({type(e).__name__}: {e}) — falling back to rules.")
-                response = None
-        else:
-            print("[FALLBACK] LLM unavailable — using rule-based engine.")
-
-        # 4. Fallback reasoning: Deterministic Rules Engine
-        if not response:
-            response = self.intent_router.dispatch_fallback(
-                intent=intent,
-                query=clean_msg,
-                state=state,
-                intel=ctx.intel,
-                rag_context=ctx.rag_context,
-                yaml_tactics=ctx.yaml_tactics
-            )
-
-        # Record assistant reply into history (only if we have a live list)
+        # Record assistant reply into session_state history
         if session_state is not None:
             chat_history.append({"role": "assistant", "message": response})
 

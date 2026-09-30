@@ -357,9 +357,47 @@ core/agent.py
 
 ---
 
-### 13. Full Test Suite Status (September 2026)
+### 13. Phase 9 — Conversational Co-Pilot Runtime Integration (`core/chat_assistant.py`)
 
-**70 / 70 tests passing** across 9 test modules:
+`ChatAssistant` was refactored to delegate directly to the `CyberAgent` runtime while providing 100% backward compatibility for all legacy interfaces, method signatures, and state mutations.
+
+#### 13.1 Architecture
+
+```
+core/chat_assistant.py
+  ChatAssistant.respond() ──► wraps query & state into AgentRequest
+                          ──► calls CyberAgent.run(request)
+                          ──► updates state["chat_history"]
+                          ──► returns response text
+```
+
+#### 13.2 Key Capabilities
+
+- **Delegation with Zero Breaking Changes**: Seamlessly handles interactive CLI queries without modifying caller code in `main.py`.
+- **Deterministic Control Gates**: Queries flagged as `RESET`, `STEERING`, or `RECON` route immediately through deterministic rule handlers, eliminating LLM hallucinations when operators course-correct the assistant or request standard reconnaissance playbooks.
+- **Session State Synchronization**: Updates in-memory session chat history and writes persistent multi-turn history to SQLite.
+- **Full Backward Compatibility**: Preserves all helper methods (`extract_session_intelligence`, `_detect_operator_steering`, `_detect_reset_or_different_challenge`, `_detect_recon_request`, `_execute_reset`, `_build_llm_prompt`).
+
+#### 13.3 Verification Results
+
+| Test | Status |
+|---|---|
+| `test_chat_assistant_init_defaults` | ✅ PASSED |
+| `test_chat_assistant_custom_injection` | ✅ PASSED |
+| `test_chat_assistant_respond_no_session` | ✅ PASSED |
+| `test_chat_assistant_respond_with_session` | ✅ PASSED |
+| `test_chat_assistant_respond_reset_gate` | ✅ PASSED |
+| `test_chat_assistant_respond_steering` | ✅ PASSED |
+| `test_chat_assistant_respond_recon` | ✅ PASSED |
+| `test_chat_assistant_respond_ctf_with_binary` | ✅ PASSED |
+| `test_chat_assistant_backward_compatibility_methods` | ✅ PASSED |
+| `test_chat_assistant_agent_delegation` | ✅ PASSED |
+
+---
+
+### 14. Full Test Suite Status (September 2026)
+
+**80 / 80 tests passing** across 10 test modules:
 
 | Module | Tests | Status |
 |---|---|---|
@@ -372,8 +410,10 @@ core/agent.py
 | `test_cli_architecture.py` | 4 | ✅ All passed |
 | `test_tool_registry.py` | 12 | ✅ All passed |
 | `test_agent.py` | 14 | ✅ All passed |
+| `test_chat_assistant.py` | 10 | ✅ All passed |
 
 Run: `python -m pytest ll-finetuning/rag/core/ -v --tb=short`
+
 
 
 

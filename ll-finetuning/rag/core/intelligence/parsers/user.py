@@ -28,15 +28,18 @@ class UserParser(BaseParser):
 
         # Pattern 1: POSIX 'id' command output:
         # uid=1000(hacker) gid=1000(hacker) groups=1000(hacker),27(sudo)
+        # or standalone uid=1000(hacker)
         id_match = re.search(
-            r'uid=(\d+)\(([^)]+)\)\s+gid=(\d+)\(([^)]+)\)\s+groups=([^\r\n]+)',
+            r'uid=(\d+)\(([^)]+)\)(?:\s+gid=(\d+)\(([^)]+)\))?(?:\s+groups=([^\r\n]+))?',
             text
         )
         if id_match:
             uid = int(id_match.group(1))
             user = id_match.group(2)
-            gid = int(id_match.group(3))
-            groups = [g.strip() for g in id_match.group(5).split(',')]
+            if id_match.group(3):
+                gid = int(id_match.group(3))
+            if id_match.group(5):
+                groups = [g.strip() for g in id_match.group(5).split(',')]
 
         # Pattern 2: Fallback whoami
         if not user:

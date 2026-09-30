@@ -129,7 +129,15 @@ To support production-grade local offensive/defensive operations, the codebase h
   - **Per-Session Agent Registry**: `get_agent(session_id)` manages session-scoped agent singletons with persistent SQLite memory continuity.
 - **Verification**: 14/14 unit tests passing in `test_agent.py`.
 
-#### Overall Test Suite Status: **70 / 70 passing**
+#### 6.9 Phase 9 — ChatAssistant to CyberAgent Runtime Integration (`core/chat_assistant.py`)
+- **Seamless Modernization with Backward Compatibility**: `ChatAssistant` delegates its execution loop directly to `CyberAgent`:
+  - `ChatAssistant.respond()` packages `user_message`, `session_state`, and `session_id` into typed `AgentRequest` contracts and invokes `CyberAgent.run()`.
+  - **100% Backward Compatibility**: Fully preserves legacy helper signatures (`_detect_operator_steering`, `_detect_reset_or_different_challenge`, `_detect_recon_request`, `_execute_reset`, `_build_llm_prompt`, `extract_session_intelligence`).
+  - **Deterministic Control Gates**: `RESET`, `STEERING`, and `RECON` intents bypass LLM generation, ensuring zero hallucination on critical session resets, operator course corrections, and structured 5-phase reconnaissance methodologies.
+  - **State & Memory Synchronization**: Automatically updates session state history and persists multi-turn exchanges to persistent SQLite storage.
+- **Verification**: 10/10 unit tests passing in `test_chat_assistant.py`.
+
+#### Overall Test Suite Status: **80 / 80 passing**
 
 | Module | Tests | Status |
 |---|---|---|
@@ -141,6 +149,7 @@ To support production-grade local offensive/defensive operations, the codebase h
 | `test_cli_architecture.py` | 4 | ✅ All passed |
 | `test_tool_registry.py` | 12 | ✅ All passed |
 | `test_agent.py` | 14 | ✅ All passed |
+| `test_chat_assistant.py` | 10 | ✅ All passed |
 
 Run all tests: `python -m pytest ll-finetuning/rag/core/ -v --tb=short`
 

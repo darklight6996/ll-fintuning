@@ -115,17 +115,21 @@ class CyberAgent:
         session_id: str = "default_session",
         db_path: Optional[str] = None,
         verbose: bool = False,
+        router: Optional[Any] = None,
+        extractor: Optional[Any] = None,
+        prompt_builder: Optional[Any] = None,
+        llm: Optional[Any] = None,
+        memory: Optional[Any] = None,
+        tools: Optional[Any] = None,
     ):
         self.session_id = session_id
         self._verbose = verbose
-
-        # -- Lazy-loaded services (no VRAM hit at __init__) --
-        self._router = None       # IntentRouter
-        self._extractor = None    # IntelligenceExtractor
-        self._prompt_builder = None  # PromptBuilder
-        self._llm = None          # LLMService
-        self._memory = None       # ChatMemoryWrapper
-        self._tools = None        # ToolRegistry
+        self._router = router
+        self._extractor = extractor
+        self._prompt_builder = prompt_builder
+        self._llm = llm
+        self._memory = memory
+        self._tools = tools
         self._db_path = db_path
 
     # ------------------------------------------------------------------
@@ -205,7 +209,7 @@ class CyberAgent:
         intel_dict = self._extract_intel(state)
         intent = self.router.classify(query, state=state, intel=intel_dict)
 
-        # 2. Handle explicit reset gate
+        # 2. Handle control-gate intents (reset, steering, recon) deterministically
         if intent.value == "reset":
             text = self.router.dispatch_fallback(
                 intent=intent,
@@ -220,6 +224,22 @@ class CyberAgent:
                 text=text,
                 intent=intent.value,
                 source="reset",
+                latency_ms=_elapsed_ms(t_start),
+            )
+        elif intent.value in ("steering", "recon"):
+            text = self.router.dispatch_fallback(
+                intent=intent,
+                query=query,
+                state=state,
+                intel=intel_dict,
+                rag_context="",
+                yaml_tactics=[],
+            )
+            self._save_turn(query, text)
+            return AgentResponse(
+                text=text,
+                intent=intent.value,
+                source="fallback",
                 latency_ms=_elapsed_ms(t_start),
             )
 
@@ -308,7 +328,11 @@ class CyberAgent:
         """Extract intelligence dict from session state."""
         try:
             intel = self.extractor.extract(state)
-            return intel.to_dict()
+            if hasattr(intel, "to_dict"):
+                return intel.to_dict()
+            elif isinstance(intel, dict):
+                return intel
+            return {}
         except Exception:
             return {}
 
