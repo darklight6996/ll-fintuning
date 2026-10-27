@@ -1,0 +1,45 @@
+Cross-account access patterns define the mechanisms by which identities in one AWS account (the source) are granted permissions to resources in a separate AWS account (the target). This is a core requirement for organizations operating multiple accounts under AWS Organizations, enabling centralized administration, resource sharing, and delegated operations without consolidating all workloads into a single account boundary.
+
+**Key Components**
+
+The implementation of cross-account access relies on three primary AWS services and their associated constructs:
+
+- **AWS Identity and Access Management (IAM) Roles**: The most common and recommended pattern. A role is created in the target account with a trust policy that specifies the source account (or a specific role/user within it) as a trusted principal. The source identity then assumes this role using the `sts:AssumeRole` API. This provides temporary, scoped credentials and avoids long-term access keys.
+
+- **IAM Policies**: Two policy types govern access. The *trust policy* on the target account’s role defines who can assume it (e.g., `"Principal": { "AWS": "arn:aws:iam::123456789012:root" }`). The *permissions policy* on that same role defines what actions are allowed on which resources. Additionally, the source identity must have an IAM policy granting `sts:AssumeRole` permission for the target role’s ARN.
+
+- **Resource-Based Policies**: Certain AWS services (S3 buckets, SQS queues, SNS topics, Lambda functions, KMS keys) support policies attached directly to the resource, rather than to an IAM identity. These policies can grant access to principals from other accounts by specifying the principal ARN (e.g., `"Principal": { "AWS": "arn:aws:iam::123456789012:user/Admin" }`). This pattern does not require role assumption; the source identity uses its own credentials directly.
+
+- **AWS Organizations Service Control Policies (SCPs)**: SCPs are account-level permission boundaries applied to member accounts within an organization. They can explicitly deny or allow cross-account access actions (e.g., `sts:AssumeRole`) across all accounts in the organization. SCPs cannot grant permissions but can restrict them, making them a critical guardrail.
+
+- **AWS IAM Roles Anywhere**: For workloads outside AWS (on-premises servers, containers) that need cross-account access, IAM Roles Anywhere issues temporary credentials based on X.509 certificates. The trust policy on the target role must include the Roles Anywhere service principal.
+
+**Real-World Application**
+
+A common architecture is the centralized logging account pattern. An organization has a dedicated security account (Account A) that aggregates logs from all other accounts (Accounts B, C, D).
+
+- In Account A, an IAM role named `LogDeliveryRole` is created with a trust policy allowing the root user of Accounts B, C, and D to assume it. The permissions policy grants `s3:PutObject` on a specific S3 bucket and `kms:Encrypt` on a KMS key.
+- In each source account (B, C, D), an IAM policy is attached to the application or service that generates logs (e.g., an EC2 instance role, a Lambda execution role). This policy grants `sts:AssumeRole` for the `LogDeliveryRole` ARN in Account A.
+- The application code calls `AssumeRole`, receives temporary credentials, and uses those credentials to write logs to the central bucket.
+- An SCP is applied at the organization root to deny `sts:AssumeRole` to any role outside the organization’s account IDs, preventing accidental or malicious role assumption to external accounts.
+
+Another pattern is cross-account data sharing via resource-based policies. A data lake account owns an S3 bucket. A policy on the bucket grants `s3:GetObject` to the IAM role of a data science account. The data science role can directly read objects without assuming a role in the data lake account, simplifying audit trails because the source principal’s identity is preserved in CloudTrail logs.
+
+**Security Relevance**
+
+Cross-account access introduces several attack surface considerations that must be explicitly controlled:
+
+- **Confused Deputy Problem**: A role in Account A might be assumed by a principal in Account B, but that principal could be a compromised instance or a malicious user. Mitigation: Use `aws:SourceArn` and `aws:SourceAccount` condition keys in the trust policy to restrict assumption to only specific resources (e.g., a specific Lambda function ARN) from the source account.
+
+- **Privilege Escalation via Role Chaining**: If a role in Account A can assume a role in Account B, and that role in Account B can assume another role in Account C, an attacker who compromises the first role can traverse the chain. Mitigation: Limit the depth of role assumption chains. Use SCPs to deny `sts:AssumeRole` on roles that themselves have `sts:AssumeRole` permissions.
+
+- **Credential Exposure**: Temporary credentials from `AssumeRole` have a configurable duration (default 1 hour, max 12 hours). Long durations increase the window for credential theft. Mitigation: Set the maximum session duration to the minimum required for the workload. Use `aws:MultiFactorAuthPresent` condition to require MFA for role assumption.
+
+- **Resource-Based Policy Over-Permission**: A resource-based policy granting access to an entire external account (`"Principal": { "AWS": "123456789012" }`) allows any principal in that account to access the resource. Mitigation: Specify exact principal ARNs (user or role) rather than account-level wildcards. Use `aws:PrincipalOrgID` condition to restrict access to principals within your AWS Organization.
+
+- **Audit Logging**: CloudTrail records all `AssumeRole` events and resource-based policy access. Monitor for `AssumeRole` calls from unexpected source IPs or accounts. Enable AWS Config rules to detect roles with overly permissive trust policies (e.g., `"Principal": { "AWS": "*" }`).
+
+**Key Takeaways**
+- Prefer IAM roles with scoped trust policies over long-term access keys or account-level wildcards in resource-based policies for cross-account access.
+- Always use condition keys (`aws:SourceArn`, `aws:SourceAccount`, `aws:PrincipalOrgID`) in trust policies to prevent the confused deputy problem.
+- Enforce cross-account access boundaries with SCPs and monitor all `AssumeRole` activity in CloudTrail to detect anomalous privilege escalation attempts.

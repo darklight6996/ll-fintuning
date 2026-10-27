@@ -1,0 +1,52 @@
+Zero Trust architecture (ZTA) is a security model that eliminates implicit trust by requiring continuous verification of every access request, regardless of the user’s location or network perimeter. Unlike traditional perimeter-based security, which trusts entities inside the corporate network, ZTA assumes breach and enforces least-privilege access for all resources. The core principle is "never trust, always verify."
+
+**Key Components of Zero Trust Architecture**
+
+A functional ZTA is built on several interdependent components, each enforcing specific controls:
+
+- **Policy Decision Point (PDP) and Policy Enforcement Point (PEP):** The PDP evaluates access requests against policy rules (e.g., user identity, device health, context). The PEP executes the decision, typically at the network gateway or application proxy. In practice, the PDP is often a centralized policy engine, while PEPs are distributed at resource access points.
+
+- **Identity and Access Management (IAM) with Multi-Factor Authentication (MFA):** Identity is the new perimeter. Every user and service must authenticate using strong, phishing-resistant MFA. IAM systems must support just-in-time (JIT) privilege elevation and attribute-based access control (ABAC) rather than static role-based groups.
+
+- **Device Trust and Endpoint Compliance:** Every device requesting access must be evaluated for compliance (e.g., OS patch level, antivirus status, disk encryption). This requires integration with endpoint detection and response (EDR) or mobile device management (MDM) tools. Non-compliant devices are denied or routed to remediation.
+
+- **Micro-Segmentation:** Networks are divided into small, isolated zones, often at the workload or application level. Firewalls or software-defined networking (SDN) policies enforce east-west traffic restrictions. For example, a web server can only communicate with its database server on a specific port; all other traffic is blocked.
+
+- **Data-Centric Security:** Encryption at rest and in transit is mandatory. Data classification and labeling (e.g., via DLP tools) ensure that access policies adapt to data sensitivity. Dynamic data masking may be applied based on user clearance.
+
+- **Continuous Monitoring and Analytics:** Logs from all components (authentication, network flows, endpoints) feed into a security information and event management (SIEM) or user and entity behavior analytics (UEBA) system. Anomalies trigger automated responses, such as session revocation or step-up authentication.
+
+**Real-World Application: Implementing ZTA in a Hybrid Cloud Environment**
+
+Consider a company migrating workloads to AWS while retaining on-premises Active Directory. A practical ZTA deployment would follow these steps:
+
+1. **Define the Protect Surface:** Identify critical assets (e.g., customer database, payment API) rather than the entire network. Map data flows between these assets.
+
+2. **Deploy an Identity Provider (IdP):** Use Azure AD or Okta as the central PDP. Integrate with on-prem AD via federation. Enforce MFA for all administrative and remote access.
+
+3. **Implement a Cloud-Native PEP:** Use AWS Network Firewall or a third-party cloud security broker (e.g., Zscaler, Netskope) as the PEP for cloud resources. For on-premises, deploy a software-defined perimeter (SDP) gateway.
+
+4. **Apply Micro-Segmentation:** In AWS, use security groups and network ACLs to restrict traffic between VPCs. For example, the web tier can only initiate outbound connections to the app tier on TCP 443, and the app tier can only connect to the database on TCP 3306. On-premises, use host-based firewalls or VMware NSX.
+
+5. **Enforce Device Compliance:** Integrate EDR (e.g., CrowdStrike) with the IdP. Devices failing health checks (e.g., missing patches) are redirected to a remediation VLAN or denied access to sensitive apps.
+
+6. **Monitor and Automate:** Stream logs to a SIEM (e.g., Splunk). Create alerts for repeated failed authentication attempts or lateral movement attempts. Automate session termination if a device is flagged as compromised.
+
+**Security Relevance**
+
+Zero Trust directly mitigates several high-impact attack vectors:
+
+- **Lateral Movement:** Micro-segmentation and strict east-west policies prevent an attacker from pivoting from a compromised web server to a database server. Even if credentials are stolen, the attacker cannot reach the database without passing the PEP and PDP checks.
+
+- **Credential Theft and Pass-the-Hash:** MFA and JIT access reduce the window of opportunity. Even if a password is compromised, the attacker lacks the second factor. JIT ensures that privileged access tokens are short-lived.
+
+- **Insider Threats:** Continuous monitoring and ABAC limit what a legitimate user can access. A disgruntled employee cannot exfiltrate data from a system they do not normally interact with, as the PDP will deny the request.
+
+- **Supply Chain and Third-Party Risk:** ZTA extends to external partners. They must authenticate through the same IdP and their devices must meet compliance standards. Access is limited to specific APIs or applications, not the entire network.
+
+- **Cloud Misconfigurations:** By enforcing policies at the PDP level, ZTA reduces reliance on correct cloud IAM configurations. Even if a storage bucket is misconfigured, the PEP will block unauthorized access.
+
+**Key Takeaways**
+- Zero Trust architecture replaces implicit trust with continuous verification of identity, device health, and context for every access request.
+- Core components include a centralized policy decision point, micro-segmentation, strong MFA, and real-time monitoring integrated with automated response.
+- Real-world deployment requires mapping the protect surface, enforcing least-privilege access via ABAC, and using software-defined perimeters to isolate workloads in hybrid environments.

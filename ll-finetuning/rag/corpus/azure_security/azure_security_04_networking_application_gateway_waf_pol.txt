@@ -1,0 +1,40 @@
+Application Gateway WAF (Web Application Firewall) policies provide centralized, rule-based inspection and filtering of HTTP/S traffic at the application layer (Layer 7) of the OSI model. They are deployed on Azure Application Gateway, a regional load balancer, and are distinct from Azure Front Door WAF policies, which operate at the global edge. A WAF policy is a resource that defines the set of rules, exclusions, and settings applied to one or more listeners, routing rules, or the entire gateway.
+
+**Key Components**
+
+A WAF policy consists of several mandatory and optional components that dictate its behavior.
+
+- **Managed Rule Sets**: These are pre-configured, Microsoft-maintained rule sets that protect against common vulnerabilities. The default rule set (DRS) is the current standard, replacing the older OWASP rule sets. DRS 2.1 is the latest stable version. It includes rules for SQL injection, cross-site scripting (XSS), remote code execution, and other OWASP Top 10 threats. You can enable or disable individual rules within a managed rule set.
+- **Custom Rules**: These are user-defined rules for traffic that is not covered by managed rule sets. Custom rules are evaluated before managed rules. Each rule consists of a priority (integer, lower number = higher priority), a condition (e.g., request URI contains a specific string, request body size exceeds a threshold), and an action (Allow, Block, Log, or Anomaly Score). Custom rules are useful for blocking known malicious IP addresses, enforcing geo-filtering, or rejecting requests with specific headers.
+- **Policy Settings**: These control the overall behavior of the WAF. Key settings include:
+    - **Mode**: Detection (log only, no blocking) or Prevention (log and block).
+    - **Maximum Request Body Size**: Default is 128 KB. Requests exceeding this size are inspected up to the limit, then the remainder is ignored or blocked based on the setting.
+    - **Maximum File Upload Size**: Default is 100 MB. This is the total size of all files in a single request.
+    - **Request Body Inspection**: Can be enabled or disabled. Disabling it improves performance but reduces security.
+- **Exclusions**: These allow you to bypass WAF inspection for specific request attributes (e.g., headers, cookies, query string parameters, or request body arguments). Exclusions are critical for reducing false positives caused by legitimate traffic that triggers a WAF rule. For example, a web application that accepts base64-encoded data in a header may trigger a rule for suspicious encoding patterns. An exclusion for that specific header prevents the false positive.
+- **Per-Rule Exclusions**: A more granular exclusion that applies only to a specific rule within a managed rule set. This is preferred over a global exclusion because it minimizes the security gap.
+
+**Real-World Application**
+
+Consider a financial services company deploying a public-facing web application for account management. The application is behind an Azure Application Gateway with a WAF policy in Prevention mode.
+
+- **Scenario 1: Blocking SQL Injection**: A malicious user submits a login form with a username containing `' OR 1=1 --`. The WAF policy, using DRS 2.1, inspects the request body. Rule 942100 (SQL Injection) matches the payload. The policy is in Prevention mode, so the request is blocked with a 403 Forbidden response. The security team sees the event in the WAF logs.
+- **Scenario 2: Handling False Positives**: The application uses a custom header `X-Client-Data` that contains a JSON payload with base64-encoded session tokens. The WAF rule 942440 (SQL Comment Sequence) incorrectly flags this header. The security engineer creates a per-rule exclusion for rule 942440, targeting the `X-Client-Data` header. This stops the false positive without disabling the rule for other traffic.
+- **Scenario 3: Geo-Fencing with Custom Rules**: The company only serves customers in the United States and Canada. A custom rule is created with priority 100: if the request's `X-Forwarded-For` header (or the client IP if not present) is not within the US or Canada IP ranges, the action is Block. This rule is evaluated before any managed rules, reducing unnecessary processing.
+- **Scenario 4: Rate Limiting (via Custom Rules)**: Although Application Gateway WAF does not have native rate limiting (that is a feature of Azure Front Door WAF), you can approximate it with a custom rule that checks for a high frequency of requests from a single IP within a short window. This is done by combining a custom rule with a condition on the `@requestCount` variable (available in WAF_v2). For example, block an IP if it makes more than 100 requests in 5 minutes.
+
+**Security Relevance**
+
+From a security engineering perspective, WAF policies are a critical layer of defense against application-layer attacks. They are not a substitute for secure coding practices, but they provide a compensating control for vulnerabilities that are not yet patched or are unknown (zero-day). The key security considerations are:
+
+- **False Positive Management**: A WAF in Prevention mode that generates excessive false positives will block legitimate users and degrade the application. Rigorous testing in Detection mode, combined with precise exclusions, is mandatory before enabling Prevention mode.
+- **Logging and Monitoring**: WAF logs must be integrated with a SIEM (e.g., Azure Sentinel, Splunk) for real-time alerting. Logs include the rule ID, action taken, request details, and client IP. Without monitoring, a WAF is a blind security control.
+- **Rule Set Updates**: Managed rule sets are updated by Microsoft as new vulnerabilities are discovered. You must configure automatic updates (enabled by default) and test new rule versions in a staging environment before applying them to production. A new rule version may introduce false positives.
+- **TLS Inspection**: Application Gateway WAF can inspect HTTPS traffic if you provide a TLS certificate and enable end-to-end TLS. Without this, the WAF only sees encrypted traffic and cannot inspect the payload, rendering it ineffective against application-layer attacks.
+- **OWASP Top 10 Coverage**: The DRS covers the majority of OWASP Top 10 vulnerabilities, but it is not exhaustive. Custom rules should be added for application-specific threats, such as business logic flaws or API abuse.
+
+**Key Takeaways**
+
+1.  Application Gateway WAF policies use managed rule sets (DRS 2.1) and custom rules to inspect HTTP/S traffic, with exclusions essential for reducing false positives without disabling security controls.
+2.  Always deploy a WAF policy in Detection mode first, analyze logs for false positives, apply precise per-rule exclusions, and only then switch to Prevention mode.
+3.  Integrate WAF logs with a SIEM, enable automatic managed rule set updates, and test new rule versions in a staging environment to maintain effective protection without service disruption.

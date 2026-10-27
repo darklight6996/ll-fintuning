@@ -1,0 +1,49 @@
+Just-In-Time (JIT) VM access is a Microsoft Defender for Cloud feature that reduces the attack surface of Azure virtual machines by enforcing time-bound, approved network access to management ports (typically RDP on TCP 3389 and SSH on TCP 22). Instead of leaving these ports permanently open to the internet, JIT dynamically creates and removes network security group (NSG) rules or Azure Firewall policies that allow traffic only from specific source IP addresses, for a defined duration, and only after a successful authorization request. This eliminates the standing risk of brute-force attacks, credential theft, and lateral movement via exposed management endpoints.
+
+**Key Components**
+
+The JIT VM access implementation relies on several integrated components within the Azure ecosystem:
+
+- **Azure Network Security Groups (NSGs) or Azure Firewall**: JIT modifies the underlying NSG rules attached to a VM’s network interface or subnet. When using Azure Firewall, JIT creates temporary DNAT rules. The default behavior is to deny all inbound traffic to the specified management ports, then add a temporary allow rule for the requesting user’s source IP.
+
+- **Microsoft Defender for Cloud (MDC)**: The central control plane for JIT policy configuration, request approval, and audit logging. MDC enforces the JIT policy across all VMs in a subscription or management group. It also integrates with Azure Policy to ensure new VMs are automatically onboarded.
+
+- **Azure Role-Based Access Control (RBAC)**: JIT requests require specific RBAC permissions. The built-in roles “Security Reader” and “Security Admin” can request access, but only users with “Security Admin” or custom roles containing the `Microsoft.Security/locations/jitNetworkAccessPolicies/initiate/action` permission can approve requests. This ensures separation of duties.
+
+- **Azure Policy**: Used to enforce JIT as a mandatory configuration. A built-in policy, “Management ports of virtual machines should be protected with just-in-time network access control,” can be assigned at the subscription or resource group level to automatically enable JIT on all existing and new VMs.
+
+- **Azure Monitor and Log Analytics**: All JIT access requests, approvals, and denials are logged to the Azure Activity Log. For advanced auditing, you can stream these logs to a Log Analytics workspace and create custom alerts for anomalous access patterns, such as repeated denied requests or access from unexpected geographies.
+
+**Real-World Application**
+
+A typical JIT VM access workflow for a security engineer managing a production environment:
+
+1. **Policy Configuration**: In Defender for Cloud, navigate to “Workload protections” > “Just-in-time VM access.” Select the subscription and configure the default ports (RDP, SSH) and the maximum allowed request duration (e.g., 3 hours). You can also specify allowed source IP ranges—for example, only the corporate VPN CIDR block (10.0.0.0/8) and a bastion host IP (203.0.113.5).
+
+2. **Onboarding VMs**: Apply the JIT policy to a resource group containing critical domain controllers. The policy immediately removes any existing inbound rules for RDP and SSH from the NSG and replaces them with a default deny rule. The VMs become unreachable on those ports from the internet.
+
+3. **Requesting Access**: A junior administrator needs to patch a domain controller. They open the Azure portal, navigate to the VM, select “Connect” > “Just-in-time VM access,” and request access for 2 hours from their current public IP (198.51.100.10). The request is logged.
+
+4. **Approval and Connection**: The security engineer receives an email alert (via Azure Monitor) of the pending request. They review the request details—source IP, VM name, requested duration—and approve it. Defender for Cloud immediately adds a temporary NSG rule allowing inbound RDP from 198.51.100.10 to the VM’s private IP on port 3389, with a priority of 100 (higher than the deny rule). The junior admin can now connect via RDP. After 2 hours, the rule is automatically removed.
+
+5. **Emergency Break-Glass**: If the security engineer is unavailable, a pre-configured break-glass process can be used. For example, a separate automation runbook (Azure Automation) with elevated permissions can approve requests from a specific emergency IP range, logged and audited separately.
+
+**Security Relevance**
+
+JIT VM access directly addresses the following security concerns:
+
+- **Reduced Attack Surface**: By default, management ports are closed to all inbound traffic. An attacker scanning for open RDP/SSH ports will find none. This eliminates the most common vector for brute-force and credential-stuffing attacks.
+
+- **Compliance with Zero Trust Principles**: JIT enforces “never trust, always verify.” Every access request is explicitly authorized, time-bound, and logged. No persistent trust is granted to any IP address, including internal corporate ranges.
+
+- **Audit Trail and Forensics**: Every JIT request, approval, and connection is recorded in the Azure Activity Log. This provides a clear chain of custody for incident response. For example, if a compromised VM is used to pivot, you can trace which user requested access, from which IP, and at what time.
+
+- **Mitigation of Lateral Movement**: Even if an attacker compromises a user’s workstation, they cannot directly access management ports on other VMs unless they have explicit JIT approval. This limits the blast radius of a single compromised endpoint.
+
+- **Integration with SIEM/SOAR**: JIT logs can be ingested into Azure Sentinel or third-party SIEMs. You can create detection rules for anomalous behavior, such as a user requesting access to 10 VMs in 5 minutes, or requests from IPs not in the approved corporate range.
+
+**Key Takeaways**
+
+- Just-In-Time VM access eliminates standing management port exposure by dynamically creating temporary NSG rules only after explicit, time-bound authorization, drastically reducing the attack surface for brute-force and credential theft.
+- Implementation requires careful RBAC configuration to enforce separation of duties between requesters and approvers, and Azure Policy to ensure consistent enforcement across all VMs.
+- All JIT activity is fully auditable via Azure Activity Logs, enabling integration with SIEM systems for real-time threat detection and post-incident forensics.

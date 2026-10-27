@@ -1,0 +1,52 @@
+T1550 Use Alternate Authentication Material
+
+Definition
+
+T1550, as defined by the MITRE ATT&CK framework, describes the technique where an adversary uses credentials or authentication artifacts that are not the standard username/password pair to gain access to a system or network resource. Instead of cracking or stealing a primary password, the attacker leverages alternate forms of authentication material—such as Kerberos tickets, NTLM hashes, SSH private keys, or session tokens—to authenticate without needing to know the plaintext password. This technique is distinct from credential dumping (T1003) because it focuses on the *use* of already-obtained material, not its acquisition. The core threat is that these materials often bypass multi-factor authentication (MFA) controls and can be reused across sessions or systems.
+
+Key Components
+
+The technique is subdivided into four primary sub-techniques, each targeting a different authentication protocol or material type:
+
+- **T1550.001: Application Access Token** – Adversaries steal or forge tokens used by applications (e.g., OAuth 2.0 access tokens, JWT tokens, or cloud provider session tokens). These tokens grant access to APIs, cloud resources, or SaaS applications without requiring re-authentication. Common sources include compromised browser sessions, misconfigured OAuth consent grants, or token replay from intercepted traffic.
+
+- **T1550.002: Pass the Hash** – The attacker uses an NTLM password hash (not the plaintext password) to authenticate to a remote system or service that accepts NTLM authentication. This is effective in Windows environments where the hash is sufficient for network logon (e.g., SMB, WMI, RPC). The hash is typically obtained from LSASS memory (via Mimikatz) or from a domain controller’s NTDS.dit file.
+
+- **T1550.003: Pass the Ticket** – The attacker uses a Kerberos ticket-granting ticket (TGT) or service ticket to authenticate to a domain-joined system or service. Unlike Pass the Hash, this technique works against Kerberos-enabled services. Tools like Mimikatz can extract tickets from LSASS memory, and the attacker can then inject them into their own session to impersonate the original user.
+
+- **T1550.004: Web Session Cookie** – The attacker steals a session cookie from a web application (e.g., from a browser’s cookie store or via traffic interception) and reuses it to impersonate the authenticated user. This bypasses password-based authentication and often MFA, since the session is already established.
+
+Real-World Application
+
+In practice, T1550 is a post-exploitation technique that follows initial credential access. A typical attack chain:
+
+1. **Initial Access**: The attacker gains a foothold on a workstation via phishing or a vulnerability.
+2. **Credential Dumping**: Using Mimikatz or a similar tool, the attacker extracts NTLM hashes and Kerberos tickets from LSASS memory.
+3. **Lateral Movement**: The attacker uses Pass the Hash (T1550.002) to authenticate to a file server via SMB, using the hash of a domain admin. No password is needed. The attacker then dumps additional tickets from the file server.
+4. **Privilege Escalation**: Using Pass the Ticket (T1550.003), the attacker injects a domain admin TGT into their session and accesses a domain controller.
+5. **Persistence**: The attacker steals OAuth tokens from a cloud-connected application (T1550.001) to maintain access to Office 365 or Azure resources even after the on-premises compromise is remediated.
+
+Real-world examples include the 2020 SolarWinds compromise, where attackers used stolen SAML tokens (a form of application access token) to authenticate to cloud services, and numerous ransomware operations that use Pass the Hash to move laterally across Windows networks.
+
+Security Relevance
+
+For a security engineer, T1550 represents a critical gap in traditional authentication defenses. Standard controls like strong password policies and MFA are ineffective against this technique because:
+
+- **MFA Bypass**: Pass the Hash and Pass the Ticket do not trigger MFA prompts because the authentication material already includes proof of prior authentication.
+- **Reusability**: Hashes and tickets can be reused until they expire or are rotated. A single compromised hash can grant access to multiple systems.
+- **Detection Difficulty**: These attacks use legitimate authentication protocols and often appear as normal user activity. For example, a Pass the Ticket attack uses valid Kerberos tickets that may not trigger anomalous logon event IDs.
+
+Mitigation requires a layered approach:
+
+- **Network Segmentation**: Restrict lateral movement by limiting SMB, RPC, and WinRM access between segments. Use host-based firewalls to block unnecessary inbound connections.
+- **Credential Guard**: Enable Windows Defender Credential Guard to protect LSASS from memory dumping. This prevents extraction of hashes and tickets.
+- **Kerberos Armoring**: Enable Kerberos armoring (FAST) to protect ticket requests from being intercepted or forged.
+- **Token Binding**: For web applications, implement token binding to tie session cookies to the TLS channel, preventing cookie reuse.
+- **Short-Lived Credentials**: Reduce the lifetime of Kerberos tickets and session tokens. Use Azure AD Conditional Access policies to require re-authentication for high-risk sessions.
+- **Monitoring**: Alert on Event ID 4624 (logon) with unusual logon types (e.g., type 3 for network logon from a non-domain controller) and Event ID 4768 (Kerberos TGT request) from unexpected source IPs. Monitor for multiple simultaneous logons from the same user across different workstations.
+- **Privileged Access Workstations (PAWs)**: Ensure administrative accounts only log on to dedicated PAWs, reducing the surface area for credential dumping.
+
+Key Takeaways
+- T1550 enables attackers to authenticate using hashes, tickets, tokens, or cookies, bypassing password-based controls and MFA.
+- The most common sub-techniques in enterprise environments are Pass the Hash (T1550.002) and Pass the Ticket (T1550.003), which rely on extracting credentials from LSASS memory.
+- Effective defense requires a combination of credential protection (Credential Guard), network segmentation, short credential lifetimes, and monitoring for anomalous authentication patterns.

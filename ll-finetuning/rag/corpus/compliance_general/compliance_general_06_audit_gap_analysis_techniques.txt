@@ -1,0 +1,44 @@
+A gap analysis in a security audit context is a systematic process that compares an organization’s current security posture against a defined baseline, standard, or set of requirements. The objective is to identify specific deficiencies—gaps—between the current state and the target state. This is not a risk assessment; it is a compliance and capability measurement. The output is a prioritized list of missing controls, insufficient configurations, or absent processes that must be addressed to meet the target framework.
+
+**Key Components of a Gap Analysis**
+
+A rigorous gap analysis relies on four core components:
+
+- **Target State Definition:** This is the benchmark. It must be a specific, auditable standard such as NIST SP 800-53, ISO 27001, CIS Benchmarks, or a regulatory requirement like PCI DSS v4.0. The target state is not a vague goal; it is a documented set of control objectives and implementation specifications.
+
+- **Current State Assessment:** This involves collecting evidence of existing controls. Methods include automated scanning (e.g., vulnerability scanners, configuration compliance tools), manual review of policy documents, interviews with system owners, and examination of system logs and architecture diagrams. The assessment must be objective and repeatable.
+
+- **Gap Identification and Classification:** Each control in the target framework is compared against the current state evidence. Gaps are classified by type: missing control (control not implemented), partial control (control implemented but not meeting all requirements), or ineffective control (control implemented but not operating as intended). Each gap is assigned a severity based on the criticality of the asset and the risk of non-compliance.
+
+- **Remediation Roadmap:** This is the actionable output. It lists each gap, the required remediation action, the responsible owner, a target completion date, and a verification method. The roadmap must be prioritized, typically by regulatory deadline or risk severity.
+
+**Real-World Application: PCI DSS Gap Analysis**
+
+Consider a mid-sized e-commerce company preparing for a PCI DSS v4.0 assessment. The target state is the full set of PCI DSS requirements. The current state assessment involves:
+
+1.  **Network Segmentation Review:** Examine firewall rules and network diagrams to verify that the cardholder data environment (CDE) is isolated from the corporate network. A gap is identified if any non-CDE system has unrestricted access to the CDE.
+2.  **Access Control Audit:** Review user accounts and permissions against the principle of least privilege. A gap is found if shared accounts exist or if terminated employees still have active credentials.
+3.  **Logging and Monitoring:** Check that audit logs capture all required events (e.g., all access to cardholder data, all administrative actions). A gap is identified if logs are not sent to a centralized SIEM or if retention is less than 12 months.
+4.  **Vulnerability Management:** Compare the latest vulnerability scan results against the PCI DSS requirement for quarterly external and internal scans. A gap exists if any scan is overdue or if critical vulnerabilities remain unpatched beyond the required timeframe.
+
+The output is a spreadsheet with each PCI DSS requirement listed, a status (Compliant, Non-Compliant, Not Applicable), evidence references, and a remediation action. For example, a gap might be: "Requirement 7.2.1 – Access control system does not enforce role-based access for all CDE systems. Remediation: Implement RBAC on all database servers and file shares. Owner: Systems Admin Lead. Due: 30 days."
+
+**Security Relevance**
+
+Gap analysis directly supports three critical security functions:
+
+- **Compliance Validation:** It provides the evidence needed to prove to auditors or regulators that controls are in place. Without a gap analysis, an organization cannot demonstrate due diligence. It is the foundation of any audit evidence package.
+
+- **Resource Prioritization:** Security teams operate with limited budget and personnel. A gap analysis quantifies the delta between current and required security posture. This allows leadership to allocate resources to the highest-impact deficiencies first, rather than working on ad-hoc improvements.
+
+- **Continuous Improvement:** Gap analysis is not a one-time event. It should be performed at regular intervals (e.g., quarterly for critical systems, annually for all systems) or after major changes (mergers, new applications, regulatory updates). Each iteration reduces the attack surface and strengthens the overall security architecture.
+
+A common pitfall is treating gap analysis as a checkbox exercise. If the current state assessment is superficial—relying only on self-reported surveys without technical verification—the gaps will be inaccurate. A security engineer must insist on automated evidence collection and manual validation for high-risk controls. For example, do not accept a policy statement that "passwords are complex"; instead, run a password audit tool against the domain controller to verify minimum length and complexity settings.
+
+Another critical point: gap analysis must account for compensating controls. If a required control cannot be implemented due to technical constraints (e.g., legacy system cannot support multi-factor authentication), the compensating control must be documented and validated. The gap analysis should flag this as a "partial gap" with a compensating control review.
+
+**Key Takeaways**
+
+- A gap analysis is a structured comparison of current security controls against a specific, auditable standard, producing a prioritized list of deficiencies and a remediation roadmap.
+- Real-world application requires automated evidence collection and manual verification, not self-reported surveys, to ensure accuracy and audit defensibility.
+- The primary security value is resource prioritization: it enables teams to focus on the most critical missing controls first, directly reducing compliance risk and attack surface.

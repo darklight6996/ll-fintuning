@@ -1,0 +1,61 @@
+Eradication procedures and root cause analysis form the third phase of the incident response lifecycle, following containment. While containment stops the bleeding, eradication removes the threat from the environment, and root cause analysis determines why the incident occurred. Without both, an organization risks re-infection, incomplete remediation, and failure to prevent similar events.
+
+**Definition**
+
+Eradication is the process of eliminating all artifacts, persistence mechanisms, and access vectors associated with an incident from every affected system. This includes malicious files, registry keys, scheduled tasks, compromised credentials, backdoor accounts, and any other foothold the adversary established. Eradication is not complete until the environment is verified clean.
+
+Root cause analysis (RCA) is the systematic investigation to identify the initial vulnerability, misconfiguration, or failure that allowed the incident to occur. It answers the question: "What specific condition made this compromise possible?" RCA is distinct from simply identifying the attack vector; it drills down to the underlying weakness that must be fixed.
+
+**Key Components**
+
+**Eradication Procedures**
+
+- **System reimaging or rebuilding:** For most malware infections or kernel-level compromises, the only reliable eradication method is a full wipe and reinstall from a known-good image. Patching or removing files on a live system risks missing hidden persistence.
+- **Credential rotation:** All passwords, API keys, and service account secrets that were exposed or potentially exposed must be rotated immediately. This includes local admin passwords, domain admin accounts, and application tokens.
+- **Revocation of certificates and tokens:** If the adversary accessed certificate authorities or token signing keys, those must be revoked and reissued. Session tokens for cloud services should be invalidated.
+- **Removal of backdoor accounts:** Any accounts created by the attacker must be deleted. Check for accounts with unusual SIDs, disabled accounts that were re-enabled, or accounts with unexpected group memberships.
+- **Cleaning of persistence mechanisms:** Remove scheduled tasks, startup scripts, WMI event subscriptions, service installations, and registry run keys. Use autoruns tools to enumerate all persistence points.
+- **Verification of removal:** Run scans with multiple antivirus engines, check for file hashes of known malware, and validate that no unauthorized processes are running. Use memory forensics tools to confirm no rootkits remain.
+
+**Root Cause Analysis Components**
+
+- **Timeline reconstruction:** Map every event from initial access to containment. Correlate logs from endpoints, network devices, authentication servers, and cloud APIs.
+- **Vulnerability identification:** Determine if the initial access was via an unpatched CVE, a phishing email, a weak password, or a misconfigured service. Check vulnerability scanners and patch management records.
+- **Configuration review:** Examine firewall rules, access control lists, group policies, and cloud IAM policies for misconfigurations that allowed lateral movement or privilege escalation.
+- **Human factor analysis:** If the root cause was a user action (e.g., clicking a malicious link), assess whether training, phishing simulations, or technical controls (e.g., email filtering) were inadequate.
+- **Third-party dependency check:** If the breach originated through a vendor, partner, or supply chain component, document the specific dependency and its security posture.
+
+**Real-World Application**
+
+Consider a ransomware incident where the adversary gained initial access via an exposed RDP port with a weak password, then used a local privilege escalation exploit (CVE-2023-XXXX) to gain SYSTEM access, and finally deployed ransomware via Group Policy.
+
+**Eradication steps in this scenario:**
+- Reimage all affected workstations and servers from clean backups.
+- Rotate all local administrator passwords and domain admin credentials.
+- Revoke any certificates used for code signing or authentication that were on compromised systems.
+- Remove the scheduled task that executed the ransomware payload.
+- Disable the RDP port on the internet-facing system and enforce network-level authentication.
+- Verify that no lateral movement tools (e.g., PsExec, WMI) remain on any host.
+
+**Root cause analysis in this scenario:**
+- Timeline shows the initial RDP connection from a known malicious IP at 02:14 UTC.
+- Vulnerability scan reveals the privilege escalation exploit was unpatched on all affected systems.
+- Configuration review shows the RDP port was exposed due to a firewall rule that was never documented or approved.
+- Human factor: No user action was involved; the root cause was a misconfiguration.
+- Third-party dependency: None.
+
+The RCA concludes that the root cause was an unapproved firewall rule exposing RDP and a missing security patch. The fix is to remove the firewall rule, implement a change management process for firewall changes, and ensure all systems are patched within the defined SLA.
+
+**Security Relevance**
+
+Eradication and RCA are not optional steps. Incomplete eradication leads to persistent threats that can re-emerge weeks or months later, often with more destructive payloads. Without RCA, the same vulnerability will be exploited again. For compliance frameworks such as NIST SP 800-61, PCI DSS, and ISO 27001, documented eradication and RCA are required for incident closure.
+
+From a defensive engineering perspective, RCA data feeds directly into the security program. It identifies gaps in detection, prevention, and response capabilities. For example, if multiple incidents trace back to unpatched vulnerabilities, the patch management process needs improvement. If phishing is the root cause, email security controls and user training require enhancement.
+
+Eradication also has legal and regulatory implications. If a system is not fully cleaned, residual malware could exfiltrate data after the incident is declared closed, leading to additional disclosure obligations and potential fines. Forensic soundness during eradication ensures that evidence is preserved for legal action.
+
+**Key Takeaways**
+
+1. Eradication must be complete and verifiable; reimaging is the only safe method for kernel-level or persistent compromises, and credential rotation must cover all potentially exposed accounts.
+2. Root cause analysis must identify the specific vulnerability, misconfiguration, or human failure that enabled the incident, not just the attack vector, to prevent recurrence.
+3. Both eradication and RCA must be documented and fed back into security controls, patch management, and configuration management processes to close the loop in the incident response lifecycle.

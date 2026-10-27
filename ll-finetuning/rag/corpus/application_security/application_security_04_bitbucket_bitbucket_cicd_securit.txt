@@ -1,0 +1,80 @@
+Bitbucket CI/CD pipelines execute code automatically in response to repository events such as pushes, pull requests, or merges. This automation introduces a distinct attack surface: pipeline configuration files, runner environments, secrets management, and artifact handling. Securing Bitbucket CI/CD requires controlling who can modify pipeline definitions, what those pipelines can access, and how secrets and artifacts are stored and transmitted.
+
+**Definition**
+
+Bitbucket CI/CD security refers to the set of controls, configurations, and practices that protect the continuous integration and continuous deployment workflows defined in Bitbucket repositories. It encompasses the security of the pipeline definition file (bitbucket-pipelines.yml), the runner environment (both Atlassian-hosted and self-hosted), the secrets and variables injected into builds, and the artifacts produced. The goal is to prevent unauthorized code execution, credential theft, supply chain compromise, and data exfiltration through the pipeline.
+
+**Key Components**
+
+**1. Pipeline Configuration Security**
+
+The bitbucket-pipelines.yml file is the single source of truth for pipeline behavior. Its integrity is critical.
+
+- **Branch-level restrictions**: Use branch permissions to restrict who can push changes to pipeline definitions. Only allow trusted users to modify the YAML file on protected branches (e.g., main, release/*).
+- **Pull request validation**: Require pipelines to run on all pull requests targeting protected branches. This ensures that any proposed change to the pipeline itself is tested and reviewed.
+- **YAML linting and validation**: Implement automated checks that validate the pipeline YAML against known insecure patterns, such as hardcoded credentials, insecure shell commands, or use of untrusted base images.
+
+**2. Secrets Management**
+
+Secrets (API keys, passwords, tokens) must never appear in plaintext in the repository or pipeline logs.
+
+- **Repository variables**: Store secrets as encrypted repository variables in Bitbucket. These are injected at runtime and are not visible in the YAML file.
+- **Workspace and project variables**: For secrets shared across multiple repositories, use workspace or project-level variables. Restrict access to these variables using workspace permissions.
+- **External secrets managers**: For high-security environments, integrate with HashiCorp Vault, AWS Secrets Manager, or Azure Key Vault. Pipelines can fetch secrets at runtime via API calls, avoiding any static storage in Bitbucket.
+- **Audit logging**: Enable audit logging for variable access. Monitor for unexpected access patterns, especially from non-admin users.
+
+**3. Runner Environment Security**
+
+The runner executes the pipeline steps. Its security posture directly impacts the pipeline.
+
+- **Atlassian-hosted runners**: These are managed by Atlassian and provide a clean, ephemeral environment per build. They are suitable for most use cases but offer limited customization.
+- **Self-hosted runners**: These run on your infrastructure. They require hardening:
+    - Run runners in isolated VMs or containers with no persistent storage.
+    - Apply the principle of least privilege: the runner service account should have only the permissions needed to clone repos and execute build steps.
+    - Regularly patch the runner OS and Docker daemon.
+    - Use network segmentation to prevent runners from accessing internal resources unless explicitly required.
+- **Ephemeral vs. persistent runners**: Prefer ephemeral runners (created per build, destroyed after) to reduce the risk of cross-build contamination.
+
+**4. Artifact and Dependency Security**
+
+Pipelines often produce artifacts (binaries, containers, reports) and consume dependencies.
+
+- **Artifact storage**: Store artifacts in a secure, access-controlled repository (e.g., Artifactory, S3 with IAM policies). Set expiration policies to delete old artifacts.
+- **Dependency scanning**: Integrate SCA (Software Composition Analysis) tools into the pipeline to scan for known vulnerabilities in third-party libraries. Fail the build on critical or high-severity findings.
+- **Container image scanning**: If building Docker images, scan them for vulnerabilities before pushing to a registry. Use signed images and enforce signature verification at deployment.
+- **Supply chain integrity**: Pin dependency versions in your package manager files. Use checksum verification for downloaded binaries.
+
+**5. Access Control and Auditing**
+
+Who can trigger, view, or modify pipelines is a security control.
+
+- **Pipeline permissions**: Bitbucket allows you to set permissions per pipeline step or per deployment environment. Restrict who can manually trigger deployments to production.
+- **Audit logs**: Enable and monitor Bitbucket audit logs for events such as pipeline configuration changes, variable access, and runner registration. Forward logs to a SIEM for correlation.
+- **Branch permissions**: Combine with branch permissions to ensure that only authorized users can push to branches that trigger production deployments.
+
+**Real-World Application**
+
+Consider a financial services company that uses Bitbucket for a payment processing microservice. The pipeline builds a Docker image, runs unit and integration tests, scans for vulnerabilities, and deploys to a Kubernetes cluster.
+
+- **Configuration**: The bitbucket-pipelines.yml is stored in a protected branch. Only senior developers can modify it. Any pull request that changes the pipeline triggers a separate security review step.
+- **Secrets**: Database credentials and API keys are stored as repository variables. The pipeline uses an OIDC token to authenticate to AWS and fetch short-lived credentials from AWS Secrets Manager for the deployment step.
+- **Runner**: A self-hosted runner runs in a dedicated AWS account, inside a VPC with no internet access except through a NAT gateway. The runner instance is replaced every 24 hours via an auto-scaling group.
+- **Artifacts**: The Docker image is scanned with Trivy. If a critical vulnerability is found, the build fails. The image is signed with Cosign and pushed to a private ECR repository with IAM policies that restrict pull access to the production cluster's IAM role.
+- **Auditing**: All pipeline executions are logged to CloudWatch. Anomaly detection alerts on any pipeline that attempts to access a secret not used in the previous 30 days.
+
+**Security Relevance**
+
+Bitbucket CI/CD pipelines are a high-value target because they often have elevated permissions to production environments. A compromised pipeline can lead to:
+
+- **Credential theft**: If secrets are exposed in logs or environment variables, an attacker can pivot to other systems.
+- **Supply chain attack**: An attacker who modifies the pipeline can inject malicious code into the build artifact, affecting downstream consumers.
+- **Data exfiltration**: Pipelines that access databases or cloud storage can be used to copy sensitive data.
+- **Lateral movement**: Self-hosted runners with broad network access can be used to scan internal networks.
+
+Mitigating these risks requires a defense-in-depth approach: secure the pipeline definition, isolate the runner, protect secrets, scan dependencies, and audit all actions. Treat the pipeline as a privileged user and apply the same security controls you would for any production system.
+
+**Key Takeaways**
+
+1.  Treat the bitbucket-pipelines.yml file as a security-critical asset; restrict write access and validate all changes through branch permissions and pull request reviews.
+2.  Never store secrets in plaintext; use Bitbucket repository variables or an external secrets manager, and audit all secret access events.
+3.  Harden self-hosted runners by applying least privilege, using ephemeral environments, and segmenting network access to limit blast radius in case of compromise.

@@ -1,0 +1,108 @@
+6.3: Enable Detailed Logging (and related controls)
+
+Overview
+This policy setting allows you to audit when plug and play detects an external device. 
+The recommended state for this setting is to include: Success. 
+Note: A Windows 10, Server 2016 or newer OS is required to access and set this value 
+in Group Policy.
+
+This subcategory reports the creation of a process and the name of the program or user 
+that created it. Events for this subcategory include: 
+• 
+4688: A new process has been created. 
+• 
+4696: A primary token was assigned to process. 
+Refer to Microsoft Knowledge Base article 947226: Description of security events in 
+Windows Vista and in Windows Server 2008 for the most recent information about this 
+setting. 
+The recommended state for this setting is to include: Success.
+
+This subcategory allows you to audit attempts to access files and folders on a shared 
+folder. Events for this subcategory include: 
+• 
+5145: network share object was checked to see whether client can be granted 
+desired access. 
+The recommended state for this setting is to include: Failure.
+
+This policy setting allows you to audit user attempts to access file system objects on a 
+removable storage device. A security audit event is generated only for all objects for all 
+types of access requested. If you configure this policy setting, an audit event is 
+generated each time an account accesses a file system object on a removable storage. 
+Success audits record successful attempts and Failure audits record unsuccessful 
+attempts. If you do not configure this policy setting, no audit event is generated when an 
+account accesses a file system object on a removable storage. 
+The recommended state for this setting is: Success and Failure. 
+Note: A Windows 8.0, Server 2012 (non-R2) or newer OS is required to access and set 
+this value in Group Policy.
+
+Why This Matters
+Enabling this setting will allow a user to audit events when a device is plugged into a 
+system. This can help alert IT staff if unapproved devices are plugged in.
+
+Auditing these events may be useful when investigating a security incident.
+
+Auditing the Failures will log which unauthorized users attempted (and failed) to get 
+access to a file or folder on a network share on this computer, which could possibly be 
+an indication of malicious intent.
+
+Auditing removable storage may be useful when investigating an incident. For example, 
+if an individual is suspected of copying sensitive information onto a USB drive.
+
+Audit Steps
+For Enable Detailed Logging:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. 
+OR 
+To audit the system using auditpol.exe, perform the following and confirm it is set as 
+prescribed: 
+auditpol /get /subcategory:"{0cce9248-69ae-11d9-bed3-505054503030}"
+
+For Enable Detailed Logging:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. 
+OR 
+To audit the system using auditpol.exe, perform the following and confirm it is set as 
+prescribed: 
+auditpol /get /subcategory:"{0cce922b-69ae-11d9-bed3-505054503030}"
+
+For Enable Detailed Logging:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. 
+OR 
+To audit the system using auditpol.exe, perform the following and confirm it is set as 
+prescribed: 
+auditpol /get /subcategory:"{0cce9244-69ae-11d9-bed3-505054503030}"
+
+For Enable Detailed Logging:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. 
+OR 
+To audit the system using auditpol.exe, perform the following and confirm it is set as 
+prescribed: 
+auditpol /get /subcategory:"{0cce9245-69ae-11d9-bed3-505054503030}"
+
+Remediation
+For Enable Detailed Logging:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Success. 
+Auditing\Detailed Tracking Audit PNP Activity
+
+For Enable Detailed Logging:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Success. 
+Auditing\Detailed Tracking Audit Process Creation
+
+For Enable Detailed Logging:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Failure. 
+Auditing\Object Access Audit Detailed File Share
+
+For Enable Detailed Logging:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Success and Failure. 
+Auditing\Object Access Audit Removable Storage
+
+Key Takeaways
+- Enabling this setting will allow a user to audit events when a device is plugged into a  system.
+- This can help alert IT staff if unapproved devices are plugged in.
+- Auditing these events may be useful when investigating a security incident.

@@ -1,0 +1,53 @@
+**Definition**
+
+Audit and Accountability (AU) is a control family within NIST SP 800-53 that establishes requirements for recording, monitoring, and analyzing system events to support security investigations, compliance verification, and operational oversight. The core objective is to create a verifiable trail of actions that can be attributed to specific entities (users, processes, or systems) and retained for a defined period. AU controls are foundational for detecting unauthorized activity, enforcing non-repudiation, and meeting legal or regulatory mandates such as FedRAMP, FISMA, and HIPAA.
+
+**Key Components**
+
+The AU family comprises multiple controls, but the most critical for implementation are:
+
+- **AU-2 (Event Logging):** Defines which events must be logged. This includes authentication attempts, privilege escalations, file access, system startup/shutdown, and administrative actions. The selection must align with organizational risk assessments and applicable laws.
+- **AU-3 (Content of Audit Records):** Specifies the minimum data each log entry must contain: timestamp (with time zone), event type, source IP, user or process identifier, outcome (success/failure), and a description of the action. Without these fields, logs lose forensic value.
+- **AU-4 (Audit Storage Capacity):** Mandates that storage allocation for logs must be sufficient to meet retention requirements and operational needs. This includes planning for peak event rates and failover capacity.
+- **AU-5 (Response to Audit Processing Failures):** Requires automated alerts and actions when logging systems fail (e.g., disk full, service crash). Typical responses include pausing non-critical processes, notifying administrators, or switching to a secondary logging pipeline.
+- **AU-6 (Audit Review, Analysis, and Reporting):** Establishes a process for regular review of logs—not just storage. This includes correlation with threat intelligence, anomaly detection, and generation of compliance reports.
+- **AU-7 (Audit Reduction and Report Generation):** Demands tools that can filter, sort, and aggregate logs to produce actionable reports. Raw logs are too voluminous for manual review; reduction tools must preserve the original data integrity.
+- **AU-8 (Time Stamps):** Requires synchronization of all system clocks to a single authoritative time source (e.g., NTP). Inconsistent timestamps break correlation across distributed systems.
+- **AU-9 (Protection of Audit Information):** Mandates that logs be protected from unauthorized modification, deletion, or access. This is typically achieved through write-once storage, cryptographic hashing, or immutable log services.
+- **AU-11 (Audit Record Retention):** Defines how long logs must be kept. Retention periods vary by regulation (e.g., 90 days for some federal systems, 7 years for HIPAA). The control also requires secure disposal after retention expires.
+- **AU-12 (Audit Generation):** Ensures that logging is enabled and configured for all in-scope systems. This includes verifying that logging cannot be disabled by non-privileged users.
+
+**Real-World Application**
+
+Implementing AU controls in a production environment requires careful integration with existing infrastructure. Here is a practical approach:
+
+1. **Centralized Log Management:** Deploy a SIEM (e.g., Splunk, ELK Stack, Azure Sentinel) to aggregate logs from servers, network devices, cloud services, and endpoints. Configure each source to send logs in a structured format (e.g., CEF, JSON, Syslog). Ensure the SIEM is sized to handle peak event volumes—typically 10,000–50,000 events per second for a mid-size enterprise.
+
+2. **Event Selection:** Use AU-2 to define a baseline event list. For a typical web application, include: all authentication events (success/failure), SQL injection attempts (from WAF logs), file permission changes, and API calls to sensitive endpoints. Avoid logging high-volume, low-value events (e.g., routine health checks) to control storage costs.
+
+3. **Immutable Storage:** Write logs to a dedicated, append-only storage system. In AWS, use S3 with Object Lock in compliance mode. In on-premises environments, use a hardened syslog server with a WORM (Write Once, Read Many) file system. Hash each log file and store the hash in a separate database to detect tampering.
+
+4. **Alerting on Failures:** Configure AU-5 by setting disk usage thresholds (e.g., alert at 80% capacity). If the logging pipeline fails, trigger an automated response: pause non-critical services, send an alert to the SOC via email or PagerDuty, and fail over to a secondary log collector.
+
+5. **Time Synchronization:** Deploy a local NTP server stratum 2 or higher. All systems must point to this server. Verify synchronization daily using a script that checks offset—any device with >1 second drift should be flagged.
+
+6. **Retention and Rotation:** Set retention policies in the SIEM. For example, keep hot logs (searchable) for 30 days, warm logs (compressed) for 90 days, and cold logs (archived to tape or cloud) for 7 years. Automate deletion of expired logs using lifecycle policies.
+
+7. **Review Process:** Assign a team to perform weekly log reviews for high-risk systems. Use dashboards to visualize failed login trends, privilege escalations, and outbound data transfers. For compliance, generate monthly reports showing that all required events are being logged and retained.
+
+**Security Relevance**
+
+Audit and Accountability controls are not merely compliance checkboxes; they are operational necessities. Without robust logging, incident response teams cannot determine the scope of a breach. Without time synchronization, forensic reconstruction becomes impossible. Without protection of audit records, an attacker can cover their tracks by deleting logs.
+
+From a defensive perspective, AU controls enable:
+- **Detection of lateral movement:** Correlating logins from unusual IPs or at odd hours.
+- **Insider threat identification:** Tracking excessive file downloads or privilege escalations.
+- **Compliance audits:** Providing evidence that controls are operating as intended.
+- **Non-repudiation:** Proving that a specific user performed an action, which is critical for legal proceedings.
+
+A common failure is treating logging as a passive storage function. Active review and correlation are what transform raw data into security intelligence. Organizations that only store logs without analysis are effectively blind to ongoing attacks.
+
+**Key Takeaways**
+- Audit logs must be immutable, time-synchronized, and contain sufficient detail (user, action, timestamp, outcome) to support forensic analysis.
+- Implement automated alerts for logging failures and capacity thresholds to prevent gaps in coverage.
+- Regular review and correlation of logs (not just storage) is essential for detecting threats and satisfying compliance requirements.

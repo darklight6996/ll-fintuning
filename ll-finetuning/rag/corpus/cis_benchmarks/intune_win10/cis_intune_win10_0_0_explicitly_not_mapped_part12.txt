@@ -1,0 +1,144 @@
+0.0: Explicitly Not Mapped (and related controls)
+
+Overview
+This setting controls whether or not Windows Installer should use system permissions 
+when it installs any program on the system. 
+Note: This setting appears both in the Computer Configuration and User Configuration 
+folders. To make this setting effective, you must enable the setting in both folders. 
+Caution: If enabled, skilled users can take advantage of the permissions this setting 
+grants to change their privileges and gain permanent access to restricted files and 
+folders. Note that the User Configuration version of this setting is not guaranteed to be 
+secure. 
+The recommended state for this setting is: Disabled.
+
+This policy setting determines whether published User Activities can be uploaded to the 
+cloud. 
+The recommended state for this setting is: Disabled.
+
+This policy setting controls whether the Connected User Experience and Telemetry 
+service can automatically use an authenticated proxy to send data back to Microsoft. 
+The recommended state for this setting is: Enable.
+
+This policy setting lets you prevent apps and features from working with files on 
+OneDrive using the Next Generation Sync Client. 
+The recommended state for this setting is: Sync Disabled.
+
+Minimum PIN length configures the minimum number of characters required for the PIN. 
+The lowest number you can configure for this policy setting is 4. The largest number you 
+can configure must be less than the number configured in the Maximum PIN length 
+policy setting or the number 127, whichever is the lowest. 
+The recommended state for this setting is: 6 more character(s).
+
+This policy setting determines whether Windows Ink items are allowed above the lock 
+screen. 
+The recommended state for this setting is: Ink workspace is enabled (feature is 
+turned on), but the user can't access it above the lock screen OR 
+Access to ink workspace is disabled. The feature is turned off.
+
+Why This Matters
+Users with limited privileges can exploit this feature by creating a Windows Installer 
+installation package that creates a new local account that belongs to the local built-in 
+Administrators group, adds their current account to the local built-in Administrators 
+group, installs malicious software, or performs other unauthorized activities.
+
+Due to privacy concerns, data should never be sent to any third-party since this data 
+could contain sensitive information.
+
+Sending any data to a third-party vendor is a security concern and should only be done 
+on an as needed basis.
+
+Enabling this setting prevents users from accidentally (or intentionally) uploading 
+confidential or sensitive corporate information to the OneDrive cloud service using the 
+Next Generation Sync Client. 
+Note: This security concern applies to any cloud-based file storage application installed 
+on a workstation, not just the one supplied with Windows.
+
+Windows Hello for Business utilizes key-based or certificate-based authentication and 
+makes credential theft extremely difficult. 
+When backed with a TPM chip multiple physical security mechanisms are added in 
+order to make it tamper resistant.
+
+Allowing any apps to be accessed while system is locked is not recommended. If this 
+feature is permitted, it should only be accessible once a user authenticates with the 
+proper credentials.
+
+Audit Steps
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKU\[USER 
+SID]\Software\Policies\Microsoft\Windows\Installer:AlwaysInstallElevated
+
+For Explicitly Not Mapped:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Privacy:UploadUserActivi ties_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Privacy
+:UploadUserActivities
+
+For Explicitly Not Mapped:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\System:DisableEnterprise
+AuthProxy_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 1. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\System:
+DisableEnterpriseAuthProxy
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive:DisableFileSyncNGSC
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 6 (or higher). 
+HKLM\SOFTWARE\Microsoft\Policies\PassportForWork\<TenantID>\Device\Policies\PINComplexity:MinimumPINLength
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0 or 1. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\WindowsInkWorkspace:Allo wWindowsInkWorkspace
+
+Remediation
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled: 
+Microsoft App Store\MSI Always install with elevated privileges (User)
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled: 
+Privacy\Upload User Activities
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enable. 
+System\Disable Enterprise Auth Proxy
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Sync Disabled: 
+System\Disable One Drive File Sync
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 6 (or more character(s)): 
+Windows Hello For Business\Minimum PIN Length
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Ink workspace is enabled (feature is turned on), 
+but the user can't access it above the lock screen OR Access to ink 
+workspace is disabled. The feature is turned off. 
+Windows Ink Workspace\Allow Windows Ink Workspace
+
+Key Takeaways
+- Users with limited privileges can exploit this feature by creating a Windows Installer  installation package that creates a new local account that belongs to the local built-in  Administrators group, adds their current account to the local built-in Administrators  group, installs malicious software, or performs other unauthorized activities.
+- Due to privacy concerns, data should never be sent to any third-party since this data  could contain sensitive information.
+- Sending any data to a third-party vendor is a security concern and should only be done  on an as needed basis.

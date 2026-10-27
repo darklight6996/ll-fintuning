@@ -1,0 +1,156 @@
+9.4: Apply Host-based Firewalls or Port Filtering (and related controls)
+
+Overview
+This setting determines the behavior for inbound connections that do not match an 
+inbound firewall rule. 
+The recommended state for this setting is: Block.
+
+Use this option to log when Windows Firewall with Advanced Security allows an 
+inbound connection. The log records why and when the connection was formed. Look 
+for entries with the word ALLOW in the action column of the log. 
+The recommended state for this setting is: Enable Logging Of Successful 
+Connections.
+
+Use this option to specify the path and name of the file in which Windows Firewall will 
+write its log information. 
+The recommended state for this setting is: 
+%SystemRoot%\System32\logfiles\firewall\domainfw.log.
+
+Use this option to specify the size limit of the file in which Windows Firewall will write its 
+log information. 
+The recommended state for this setting is: 16,384 KB or greater.
+
+Select True (recommended) to have Windows Firewall with Advanced Security use the 
+settings for this profile to filter network traffic. If you select False, Windows Firewall with 
+Advanced Security will not use any of the firewall rules or connection security rules for 
+this profile. 
+The recommended state for this setting is: True (recommended).
+
+This setting determines the behavior for inbound connections that do not match an 
+inbound firewall rule. 
+The recommended state for this setting is: Block.
+
+Use this option to log when Windows Firewall with Advanced Security discards an 
+inbound packet for any reason. The log records why and when the packet was dropped. 
+Look for entries with the word DROP in the action column of the log. 
+The recommended state for this setting is: Enable Logging Of Dropped Packets.
+
+Why This Matters
+If the firewall allows all traffic to access the system then an attacker may be more easily 
+able to remotely exploit a weakness in a network service.
+
+If events are not recorded it may be difficult or impossible to determine the root cause of 
+system problems or the unauthorized activities of malicious users.
+
+If Windows Firewall events are not recorded it may be difficult or impossible for 
+Administrators to analyze system issues or unauthorized activities of malicious users. 
+Microsoft stores all firewall events as one file on the system (pfirewall.log). To 
+improve logging, separate each firewall profile (domain, private, public) into its own 
+distinct log file (domainfw.log, privatefw.log, publicfw.log) for better organization 
+and identification of specific issues within each profile.
+
+If events are not recorded it may be difficult or impossible to determine the root cause of 
+system problems or the unauthorized activities of malicious users.
+
+If the firewall is turned off all traffic will be able to access the system and an attacker 
+may be more easily able to remotely exploit a weakness in a network service.
+
+If the firewall allows all traffic to access the system then an attacker may be more easily 
+able to remotely exploit a weakness in a network service.
+
+If events are not recorded it may be difficult or impossible to determine the root cause of 
+system problems or the unauthorized activities of malicious users.
+
+Audit Steps
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\DomainProfile:DefaultInboundAction
+
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\DomainProfile\Logging:LogSuccessfulConnections
+
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a REG_SZ 
+value of %SystemRoot%\System32\logfiles\firewall\domainfw.log. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\DomainProfile\Logging:LogFilePath
+
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 16384. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\DomainProfile\Logging:LogFileSize
+
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\StandardProfile:EnableFirewall
+
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\StandardProfile:DefaultInboundAction
+
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\StandardProfile\Logging:LogDroppedPackets
+
+Remediation
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block: 
+Firewall\Enable Domain Network Firewall: Default Inbound Action for Domain 
+Profile
+
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enable Logging Of Successful Connections: 
+Firewall\Enable Domain Network Firewall: Enable Log Success Connections
+
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 
+%SystemRoot%\System32\logfiles\firewall\domainfw.log: 
+Firewall\Enable Domain Network Firewall: Log File Path
+
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 16,384 KB or greater: 
+Firewall\Enable Domain Network Firewall: Log Max File Size (KB)
+
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to True (recommended): 
+Firewall\Enable Private Network Firewall
+
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block: 
+Firewall\Enable Private Network Firewall: Default Inbound Action for Private 
+Profile
+
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enable Logging Of Dropped Packets: 
+Firewall\Enable Private Network Firewall: Enable Log Dropped Packets
+
+Key Takeaways
+- If the firewall allows all traffic to access the system then an attacker may be more easily  able to remotely exploit a weakness in a network service.
+- If events are not recorded it may be difficult or impossible to determine the root cause of  system problems or the unauthorized activities of malicious users.
+- If Windows Firewall events are not recorded it may be difficult or impossible for  Administrators to analyze system issues or unauthorized activities of malicious users.

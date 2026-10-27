@@ -1,0 +1,41 @@
+LDAP (Lightweight Directory Access Protocol) is the primary protocol used to query and modify Active Directory objects. Without proper security controls, LDAP traffic is transmitted in cleartext, exposing credentials and directory data to interception. LDAP signing is a mechanism that digitally signs LDAP packets to ensure integrity and authenticity, preventing replay attacks and man-in-the-middle (MITM) modifications.
+
+**Key Components**
+
+- **LDAP Session Security**: Active Directory supports three levels of LDAP security: None, Sign, and Seal. "None" sends data in plaintext. "Sign" appends a digital signature to each packet using the session key derived from Kerberos or NTLM authentication. "Seal" adds both signing and encryption (via GSS-API or TLS). Signing alone does not encrypt the payload; it only verifies that the packet has not been altered in transit.
+
+- **Domain Controller Policy**: The LDAP server signing requirement is enforced via Group Policy under Computer Configuration > Policies > Windows Settings > Security Settings > Local Policies > Security Options. The relevant setting is "Domain controller: LDAP server signing requirements." Options are "None," "Require signing," and "Not Defined." When set to "Require signing," the DC will reject any LDAP bind request that does not negotiate signing.
+
+- **Client Signing Requirement**: The client-side counterpart is "Network security: LDAP client signing requirements" under the same Security Options path. This setting controls whether the client machine will attempt to sign LDAP traffic. Options are "Negotiate signing" (default) and "Require signing." If a client requires signing but the DC does not, the connection fails.
+
+- **Channel Binding**: LDAP signing alone does not prevent credential relay attacks where an attacker forwards authentication tokens to a different service. LDAP channel binding (using the LDAP_SERVER_CHANNEL_BINDING_OID control) ties the LDAP session to the TLS channel, preventing token reuse across different connections. This is critical when LDAP over TLS (LDAPS) is used.
+
+- **LDAPS vs. LDAP Signing**: LDAPS (LDAP over TLS) encrypts the entire session, including the bind request and all queries. LDAP signing without TLS only signs packets after authentication; the initial bind request (including password) is sent in cleartext unless TLS is negotiated first. For production environments, use LDAPS combined with signing for defense in depth.
+
+**Real-World Application**
+
+- **Enforcing Signing in a Hybrid Environment**: In a typical enterprise with Windows 10/11 clients and Windows Server 2016+ domain controllers, the default behavior is "Negotiate signing" on clients and "Not Defined" on DCs. This means signing is used when both sides support it, but falls back to cleartext if one side does not. To harden, set the DC policy to "Require signing" and the client policy to "Require signing" via Group Policy. Test with a pilot group first, as legacy applications (e.g., older Linux LDAP clients, some network appliances) may not support signing.
+
+- **Troubleshooting Signing Failures**: When a client fails to connect after enforcing signing, check Event ID 2887 on the DC (LDAP server signing requirements not met) and Event ID 2888 (LDAP client signing requirements not met). Use LDP.exe or PowerShell (Get-ADDomainController -Server <DC> | Select-Object Name, LdapPort, SslPort) to verify DC configuration. For non-Windows clients, ensure they support GSSAPI signing or use LDAPS.
+
+- **LDAP Signing with Application Service Accounts**: Service accounts used by applications (e.g., ticketing systems, monitoring tools) must be configured to request signing. For .NET applications, set the LdapConnection.SessionOptions.Signing property to true. For Java, use the "javax.naming.ldap.control.manageReferral" and ensure the underlying JNDI provider supports signing. Test each application after policy enforcement.
+
+- **Migration from NTLM to Kerberos**: LDAP signing relies on the session key from the authentication protocol. NTLM-based LDAP binds can be signed, but Kerberos provides stronger session keys and mutual authentication. Migrate applications to use Kerberos authentication for LDAP binds to improve signing security.
+
+**Security Relevance**
+
+- **Replay Attack Mitigation**: Without signing, an attacker who captures LDAP traffic can replay captured packets to perform unauthorized queries or modifications. Signing includes a timestamp and sequence number, making replayed packets invalid.
+
+- **Man-in-the-Middle Prevention**: In a network where an attacker can intercept traffic (e.g., compromised switch, rogue DHCP), unsigned LDAP allows the attacker to modify queries or responses. Signing ensures the DC can detect any alteration to the packet payload.
+
+- **Credential Theft via Cleartext Bind**: The most common attack vector is capturing the initial LDAP bind request. If LDAP signing is enforced without TLS, the bind request itself is still sent in cleartext. An attacker can capture the password hash or plaintext password (if using simple bind). Always combine signing with LDAPS or enforce signing only after TLS negotiation.
+
+- **Compliance Requirements**: Regulations such as PCI DSS v4.0 (Requirement 4.2.1) and NIST SP 800-53 (SC-8) mandate encryption of authentication traffic over untrusted networks. LDAP signing alone does not satisfy encryption requirements; it must be paired with TLS or IPsec. For internal networks, signing is often accepted as a compensating control if encryption is not feasible, but this should be documented in the risk register.
+
+- **Attack Scenario: LDAP Relay**: An attacker on the same network segment can use tools like Responder to force a client to authenticate to a rogue LDAP server. If signing is not required, the attacker can forward the captured credentials to the real DC. Enforcing signing prevents this because the rogue server cannot produce a valid signature without the session key.
+
+**Key Takeaways**
+
+1. LDAP signing prevents replay and tampering of LDAP traffic after authentication, but does not encrypt the initial bind request; always pair signing with LDAPS or enforce TLS negotiation before the bind.
+2. Enforce "Require signing" on both domain controllers and clients via Group Policy, but validate all legacy applications and non-Windows LDAP clients for compatibility before deployment.
+3. LDAP channel binding is essential to prevent credential relay attacks when using LDAPS; configure it via the "Domain controller: LDAP server channel binding token requirements" policy.

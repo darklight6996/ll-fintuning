@@ -1,0 +1,57 @@
+**Definition**
+
+T1059 Command and Scripting Interpreter is a MITRE ATT&CK technique that describes the adversary's use of built-in operating system scripting environments to execute arbitrary commands. This technique is categorized under Execution (TA0002) and is frequently chained with Persistence (TA0003) mechanisms. The core concept is that attackers leverage legitimate interpreters—such as PowerShell, Bash, cmd, Python, or Windows Script Host—to run code that is not a compiled binary. Because these interpreters are native to the OS, their activity often blends with normal administrative tasks, making detection challenging. T1059 is not a single attack but a class of behaviors where the interpreter itself becomes the execution vector.
+
+**Key Components**
+
+T1059 is subdivided into multiple sub-techniques, each targeting a specific interpreter. The most relevant for security engineers are:
+
+- **T1059.001 (PowerShell)**: Adversaries use PowerShell to execute scripts, load .NET assemblies, or perform in-memory operations. Common patterns include `IEX (New-Object Net.WebClient).DownloadString(...)` for remote payloads and `Invoke-Mimikatz` for credential theft. PowerShell logging (ScriptBlock, Module, and Transcription) is the primary defensive control.
+- **T1059.003 (Windows Command Shell)**: The legacy cmd.exe is used for simple batch scripts, often to disable security tools (`net stop <service>`), modify registry keys, or schedule tasks for persistence. Cmd.exe is less capable than PowerShell but still widely abused.
+- **T1059.004 (Unix Shell)**: On Linux/macOS, adversaries use bash, sh, or zsh to execute shell scripts. Common persistence mechanisms include cron jobs (`crontab -e`), SSH authorized_keys manipulation, or init.d scripts. Shell history (`~/.bash_history`) is a key forensic artifact.
+- **T1059.005 (Visual Basic Script)**: VBScript (`.vbs`) is used in older Windows environments, often delivered via phishing attachments or macro-enabled documents. It can execute commands via `WScript.Shell` or `Shell.Application`.
+- **T1059.006 (Python)**: Python is increasingly used for cross-platform attacks, especially in cloud environments. Adversaries may execute Python scripts to interact with APIs, deploy backdoors, or perform data exfiltration.
+- **T1059.007 (JavaScript/JScript)**: JavaScript can be executed via Windows Script Host (`cscript.exe` or `wscript.exe`) or embedded in HTML applications (`.hta`). It is often used for downloaders and reconnaissance.
+
+Common components across all sub-techniques include:
+- **Script execution**: Running a script file (`.ps1`, `.bat`, `.sh`, `.py`) or inline code.
+- **Command-line arguments**: Passing parameters to control behavior, such as `-EncodedCommand` in PowerShell to obfuscate payloads.
+- **Parent-child process relationships**: The interpreter process (e.g., `powershell.exe`) spawning child processes (e.g., `net.exe`, `reg.exe`, `schtasks.exe`).
+- **Network connections**: Outbound connections to download additional payloads or exfiltrate data, often over HTTPS or DNS.
+
+**Real-World Application**
+
+A typical attack chain using T1059 might proceed as follows:
+
+1. **Initial Access**: A user receives a phishing email with a malicious Microsoft Office document containing a VBA macro.
+2. **Execution**: The macro invokes `WScript.Shell.Run("powershell.exe -WindowStyle Hidden -EncodedCommand <base64>")`.
+3. **Staging**: The PowerShell script downloads a second-stage payload from a remote server using `Invoke-WebRequest` and executes it in memory without touching disk.
+4. **Persistence**: The second-stage payload creates a scheduled task (via `schtasks.exe`) that runs a PowerShell script every hour to maintain access.
+5. **Lateral Movement**: The attacker uses PowerShell Remoting (`Enter-PSSession`) or WinRM to move to other machines, executing scripts on each.
+
+In a real incident, the attacker might use `cmd.exe /c reg add HKLM\Software\Microsoft\Windows\CurrentVersion\Run /v Updater /t REG_SZ /d "powershell.exe -File C:\Users\Public\update.ps1"` to establish registry run key persistence. The script itself could be obfuscated using string concatenation, variable substitution, and compression to evade signature-based detection.
+
+Another common pattern is the use of Python in cloud environments. An attacker with compromised AWS credentials might run a Python script using the boto3 library to enumerate S3 buckets, modify IAM policies, or create Lambda functions for persistence. The script would be executed via `python3 exploit.py` on a compromised EC2 instance or a developer workstation.
+
+**Security Relevance**
+
+T1059 is one of the most prevalent techniques observed in intrusions across all sectors. Its relevance stems from several factors:
+
+- **Living off the land**: Attackers use tools already present on the system, reducing the need to drop custom binaries that might be flagged by application whitelisting or AV.
+- **Obfuscation**: Scripts can be easily obfuscated using encoding, compression, or encryption. PowerShell's `-EncodedCommand` and `-EncryptedCommand` parameters are frequently abused.
+- **Logging gaps**: Many organizations do not enable full script block logging or command-line auditing. Even when enabled, high volumes of legitimate script activity can mask malicious use.
+- **Persistence integration**: Scripts are often used to install persistence mechanisms (scheduled tasks, services, WMI event subscriptions) that are themselves difficult to detect.
+- **Defense evasion**: Attackers can disable or tamper with logging controls from within the script, e.g., `Set-MpPreference -DisableRealtimeMonitoring $true` in PowerShell.
+
+Defensive strategies must focus on:
+- **Enabling and centralizing script block logging** (PowerShell), **command-line auditing** (Event ID 4688), and **process creation events** (Sysmon Event ID 1).
+- **Implementing constrained language mode** for PowerShell to restrict dangerous cmdlets.
+- **Monitoring for anomalous parent-child process relationships**, such as `winword.exe` spawning `powershell.exe`.
+- **Using application control** (AppLocker, WDAC) to block unauthorized script interpreters or restrict execution paths.
+- **Correlating script execution with network connections** to known malicious IPs or domains.
+
+**Key Takeaways**
+
+1. T1059 exploits legitimate scripting interpreters (PowerShell, cmd, bash, Python) to execute code, making it a primary vector for both execution and persistence due to its native trust and logging evasion capabilities.
+2. Defenders must enable detailed logging (script block, command-line, process creation) and monitor for suspicious patterns such as encoded commands, unusual parent processes, and scripts spawning network connections or persistence mechanisms.
+3. Mitigation requires a layered approach: application control to restrict interpreter use, constrained language modes to limit capabilities, and behavioral analytics to detect anomalous script execution that bypasses signature-based detection.

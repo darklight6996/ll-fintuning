@@ -1,0 +1,32 @@
+Adaptive application controls (AAC) are a feature within Microsoft Defender for Cloud that provide a whitelisting-based approach to controlling which applications can run on your Azure and hybrid virtual machines. Unlike traditional antivirus or signature-based detection, AAC builds a baseline of known-safe processes and then alerts on or blocks any executable that deviates from that baseline. This mechanism is designed to reduce the attack surface by preventing the execution of unapproved or malicious software, including ransomware, coin miners, and zero-day exploits. AAC operates at the kernel level using Windows Defender Application Control (WDAC) or AppLocker policies, depending on the OS version, and integrates directly with Defender for Cloud’s security alerts and recommendations.
+
+**Key Components**
+
+- **Baseline Generation**: AAC automatically learns the normal application behavior for each VM over a period of 7 to 30 days. It observes running processes, installed software, and execution patterns. The baseline is unique per machine, not a global policy, which reduces false positives in heterogeneous environments.
+- **Allowlist Rules**: After the learning period, AAC creates a set of allowlist rules that define which executables, scripts, and installers are permitted. Rules can be based on file hash, publisher certificate, file path, or a combination. You can manually add or remove rules to refine the policy.
+- **Enforcement Modes**: Two modes are available: *Audit* and *Enforce*. In Audit mode, AAC logs violations but does not block execution. In Enforce mode, any application not on the allowlist is blocked at runtime. You can switch modes per VM or per subscription.
+- **Recommendations and Alerts**: Defender for Cloud surfaces recommendations to enable AAC on VMs that are not yet protected. Once enabled, it generates security alerts for any blocked or suspicious execution attempts. These alerts include process details, file paths, and recommended remediation steps.
+- **Integration with Defender for Cloud’s Workload Protections**: AAC is part of the broader cloud workload protection platform (CWPP) offering. It works alongside file integrity monitoring, vulnerability assessments, and just-in-time VM access to provide layered defense.
+
+**Real-World Application**
+
+Consider a scenario where a financial services company runs a fleet of Windows Server 2019 VMs in Azure hosting a line-of-business application. The security team wants to prevent employees from installing unauthorized tools like remote access trojans or unapproved scripting engines. They enable AAC in Audit mode for two weeks on a pilot group of VMs. During this period, AAC observes that the application uses a specific set of signed executables and PowerShell scripts. After the learning period, the team reviews the generated allowlist, removes a few false positives (e.g., a rarely used diagnostic tool), and switches the pilot VMs to Enforce mode.
+
+A week later, an attacker gains access to one VM via a compromised admin credential. They attempt to run a PowerShell-based reverse shell. AAC blocks the execution because the PowerShell script is not on the allowlist. Defender for Cloud generates a high-severity alert: “Adaptive application control blocked a suspicious process.” The security team receives the alert, investigates the incident, and finds the attacker’s persistence mechanism. They then apply the same AAC policy to the remaining 200 VMs in the subscription, using Defender for Cloud’s policy assignment feature to enforce the allowlist across all resources.
+
+In another example, a DevOps team uses ephemeral VMs for CI/CD pipelines. They enable AAC in Audit mode only, because the pipeline frequently installs new packages and tools. The audit logs help them detect any unexpected binaries introduced by compromised build agents, without disrupting the pipeline’s operation.
+
+**Security Relevance**
+
+AAC addresses a fundamental gap in traditional endpoint protection: the inability to prevent execution of unknown or zero-day malware. Signature-based detection relies on known malware hashes, while behavioral detection can be evaded. AAC shifts the security model to a zero-trust approach for processes—only known-good applications are allowed. This is particularly effective against:
+
+- **Ransomware**: Most ransomware variants are new or polymorphic, so they lack signatures. AAC blocks them because they are not on the allowlist.
+- **Living-off-the-land binaries (LOLBins)**: Attackers often use legitimate system tools like PowerShell, wmic, or certutil. AAC can block these if they are not part of the baseline, or you can create publisher-based rules to allow only signed versions from trusted vendors.
+- **Supply chain attacks**: If a legitimate application is compromised and starts executing unexpected child processes, AAC will block those processes unless they are explicitly allowed.
+
+However, AAC is not a silver bullet. It requires careful tuning to avoid breaking legitimate applications. Misconfigurations can lead to service outages or operational friction. For example, if a VM runs a scheduled task that downloads and executes a new binary daily, AAC will block it unless you add a rule for that binary or use publisher-based allowlisting. Additionally, AAC does not protect against kernel-level rootkits or drivers that load before the policy is applied. It must be combined with other controls like endpoint detection and response (EDR), network segmentation, and identity protection.
+
+**Key Takeaways**
+- Adaptive application controls reduce the attack surface by enforcing a machine-specific allowlist of approved executables, blocking unknown or malicious software at runtime.
+- Proper implementation requires a learning period in Audit mode, followed by manual review of the baseline before switching to Enforce mode to avoid business disruption.
+- AAC is most effective against zero-day malware and LOLBins but must be part of a layered defense strategy that includes EDR, vulnerability management, and access controls.

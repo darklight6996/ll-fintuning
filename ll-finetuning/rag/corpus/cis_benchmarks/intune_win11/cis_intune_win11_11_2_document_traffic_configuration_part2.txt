@@ -1,0 +1,26 @@
+11.2: Document Traffic Configuration Rules
+
+Overview
+Use this option to log when Windows Firewall with Advanced Security discards an 
+inbound packet for any reason. The log records why and when the packet was dropped. 
+Look for entries with the word DROP in the action column of the log. 
+The recommended state for this setting is: Enable Logging Of Dropped Packets.
+
+Why This Matters
+If events are not recorded it may be difficult or impossible to determine the root cause of 
+system problems or the unauthorized activities of malicious users.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\PublicProfile\Logging:LogDroppedPackets
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enable Logging Of Dropped Packets: 
+Firewall\Enable Public Network Firewall: Enable Log Dropped Packets
+
+Key Takeaways
+- If events are not recorded it may be difficult or impossible to determine the root cause of  system problems or the unauthorized activities of malicious users.

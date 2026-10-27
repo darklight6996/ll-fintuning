@@ -1,0 +1,129 @@
+6.8: Define and Maintain Role-Based Access Control (and related controls)
+
+Overview
+This policy setting allows users to change the Trusted for Delegation setting on a 
+computer object in Active Directory. Abuse of this privilege could allow unauthorized 
+users to impersonate other users on the network. 
+The recommended state for this setting is: No One. 
+Note: This user right is considered a "sensitive privilege" for the purposes of auditing.
+
+This policy setting determines which users or processes can generate audit records in 
+the Security log. 
+The recommended state for this setting is: *S-1-5-19 and *S-1-5-20 (LOCAL 
+SERVICE, NETWORK SERVICE). 
+Note: This user right is considered a "sensitive privilege" for the purposes of auditing.
+
+This policy setting determines whether users can increase the base priority class of a 
+process. (It is not a privileged operation to increase relative priority within a priority 
+class.) This user right is not required by administrative tools that are supplied with the 
+operating system but might be required by software development tools. 
+The recommended state for this setting is: *S-1-5-32-544 and *S-1-5-90-0 
+(Administrators, Window Manager\Window Manager Group).
+
+This policy setting allows users to dynamically load a new device driver on a system. An 
+attacker could potentially use this capability to install malicious code that appears to be 
+a device driver. This user right is required for users to add local printers or printer 
+drivers in Windows Vista. 
+The recommended state for this setting is: *S-1-5-32-544 (Administrators). 
+Note: This user right is considered a "sensitive privilege" for the purposes of auditing.
+
+This policy setting allows a process to keep data in physical memory, which prevents 
+the system from paging the data to virtual memory on disk. If this user right is assigned, 
+significant degradation of system performance can occur. 
+The recommended state for this setting is: No One.
+
+Why This Matters
+Misuse of the Enable computer and user accounts to be trusted for delegation user 
+right could allow unauthorized users to impersonate other users on the network. An 
+attacker could exploit this privilege to gain access to network resources and make it 
+difficult to determine what has happened after a security incident.
+
+An attacker could use this capability to create a large number of audited events, which 
+would make it more difficult for a system administrator to locate any illicit activity. Also, if 
+the event log is configured to overwrite events as needed, any evidence of unauthorized 
+activities could be overwritten by a large number of unrelated events.
+
+A user who is assigned this user right could increase the scheduling priority of a 
+process to Real-Time, which would leave little processing time for all other processes 
+and could lead to a DoS condition.
+
+Device drivers run as highly privileged code. A user who has the Load and unload 
+device drivers user right could unintentionally install malicious code that masquerades 
+as a device driver. Administrators should exercise greater care and install only drivers 
+with verified digital signatures.
+
+Users with the Lock pages in memory user right could assign physical memory to 
+several processes, which could leave little or no RAM for other processes and result in 
+a DoS condition.
+
+Audit Steps
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Enable computer and 
+user accounts to be trusted for delegation
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Generate security 
+audits
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Increase scheduling 
+priority
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Load and unload 
+device drivers
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Lock pages in memory
+
+Remediation
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to (<![CDATA[]]>) which equals No One. 
+User Rights\Enable Delegation 
+Note: Using (<![CDATA[]]>) to represent a blank value or No One is recommended 
+by Microsoft. However, there is a known issue where an error occurs in Endpoint 
+Manger (Intune) but does not affect the policy setting from being applied to the system 
+properly.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-19 and *S-1-5-20 (LOCAL SERVICE, NETWORK 
+SERVICE). 
+User Rights\Generate security audits 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 and *S-1-5-90-0 (Administrators, Window 
+Manager\Window Manager Group). 
+User Rights\Increase scheduling priority 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 (Administrators). 
+User Rights\Load Unload Device Drivers 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to (<![CDATA[]]>) which equals No One. 
+User Rights\Lock Memory 
+Note: Using (<![CDATA[]]>) to represent a blank value or No One is recommended 
+by Microsoft. However, there is a known issue where an error occurs in Endpoint 
+Manger (Intune) but does not affect the policy setting from being applied to the system 
+properly.
+
+Key Takeaways
+- Misuse of the Enable computer and user accounts to be trusted for delegation user  right could allow unauthorized users to impersonate other users on the network.
+- An  attacker could exploit this privilege to gain access to network resources and make it  difficult to determine what has happened after a security incident.
+- An attacker could use this capability to create a large number of audited events, which  would make it more difficult for a system administrator to locate any illicit activity.

@@ -1,0 +1,44 @@
+The CIS (Center for Internet Security) Linux Benchmarks are a set of prescriptive, consensus-driven configuration guidelines designed to harden Linux operating systems against common attack vectors. They are part of the broader CIS Benchmarks program, which covers over 100 technology platforms. For a security engineer, these benchmarks serve as a primary reference for establishing a secure baseline configuration, ensuring that a Linux system is deployed with the minimum necessary privileges, services, and exposed surfaces.
+
+**Definition and Purpose**
+
+A CIS Linux Benchmark is a document that specifies security configuration rules for a specific Linux distribution (e.g., Ubuntu 22.04 LTS, Red Hat Enterprise Linux 9, Debian 12). Each rule is categorized by a severity level (e.g., Level 1, Level 2) and includes a rationale, audit steps, and remediation procedures. The primary purpose is to reduce the attack surface by eliminating insecure defaults, disabling unnecessary services, enforcing least privilege, and ensuring proper logging and auditing. These benchmarks are developed through a public consensus process involving subject matter experts from government, academia, and industry.
+
+**Key Components of a CIS Linux Benchmark**
+
+A typical CIS Linux Benchmark for a distribution is organized into the following sections:
+
+- **Initial Setup**: Covers filesystem partitioning, package management, and filesystem integrity. This includes recommendations like creating separate partitions for `/tmp`, `/var`, and `/home` to prevent resource exhaustion and privilege escalation via world-writable directories. It also mandates the use of `aide` or `tripwire` for file integrity monitoring.
+- **Services**: Focuses on disabling or removing unnecessary services and daemons. For example, disabling `avahi-daemon`, `cups`, and `rpcbind` if not required. It also covers time synchronization (e.g., `chrony` or `ntp`) and the use of `systemd` socket activation controls.
+- **Network Configuration**: Addresses host-based firewall rules (typically `iptables` or `nftables`), disabling IPv6 if not used, and restricting network parameters to prevent IP spoofing and SYN floods. It also includes recommendations for `sysctl` parameters like `net.ipv4.conf.all.accept_source_route = 0`.
+- **Logging and Auditing**: Mandates the configuration of `auditd` to record security-relevant events (e.g., user logins, privilege escalations, modifications to `/etc/passwd`). It also specifies log rotation and remote log forwarding (e.g., via `rsyslog` or `syslog-ng`).
+- **Access, Authentication, and Authorization**: Enforces password complexity (e.g., `pam_pwquality`), account lockout policies, and the use of SSH key-based authentication with disabled root login. It also covers `sudo` configuration to restrict command execution.
+- **System Maintenance**: Includes file permission hardening (e.g., `chmod 600` on `/etc/shadow`), kernel module blacklisting (e.g., `usb-storage`, `bluetooth`), and ensuring that world-writable files are minimized.
+- **Level 1 vs. Level 2 Profiles**: Level 1 rules are considered essential and have minimal operational impact. Level 2 rules provide defense-in-depth but may affect performance or require significant administrative overhead (e.g., enabling SELinux in enforcing mode, disabling all GUI services).
+
+**Real-World Application**
+
+Implementing CIS Linux Benchmarks in a production environment requires a phased, automated approach.
+
+1.  **Baseline Selection**: Choose the appropriate benchmark version for your exact distribution and kernel version. Using a benchmark for Ubuntu 20.04 on a 22.04 system will produce false positives and missing controls.
+2.  **Automated Scanning**: Use tools like `OpenSCAP` (with the `ssg-*` security content) or `CIS-CAT Pro` to assess current compliance. These tools generate a machine-readable report (e.g., XCCDF, OVAL) that maps each rule to a pass/fail status.
+3.  **Remediation Strategy**: Do not blindly apply all Level 1 and Level 2 rules. For each failed rule, evaluate the operational impact. For example, disabling `cron` on a server that relies on scheduled jobs will break functionality. Use a phased rollout: apply Level 1 rules to a staging environment first, then test application compatibility.
+4.  **Configuration Management Integration**: Embed the benchmark rules into infrastructure-as-code tools like Ansible, Puppet, or Chef. For example, an Ansible role can enforce `sysctl` parameters, `auditd` rules, and SSH configuration. This ensures that new instances are born compliant.
+5.  **Continuous Monitoring**: Re-scan systems on a regular cadence (e.g., weekly) and after any configuration change. Integrate the scan results into a SIEM or vulnerability management platform to track drift.
+
+A common real-world scenario is hardening a web server. The benchmark will require disabling the `httpd` or `nginx` service from running as root, restricting directory permissions to 750, and enabling `mod_security` or equivalent WAF rules. It will also mandate that the server is not running `telnet`, `FTP`, or `X11` services.
+
+**Security Relevance**
+
+The security relevance of CIS Linux Benchmarks is direct and measurable. They address the most common misconfigurations exploited in the wild, as documented in the MITRE ATT&CK framework (e.g., T1078 - Valid Accounts, T1548 - Abuse Elevation Control Mechanism, T1562 - Impair Defenses).
+
+- **Attack Surface Reduction**: By disabling unnecessary services (e.g., `rpcbind`, `telnet`), the benchmark eliminates potential entry points for remote exploitation. For example, the `rpcbind` service has a history of remote code execution vulnerabilities (CVE-2017-8779).
+- **Privilege Escalation Prevention**: Enforcing file permissions (e.g., `chmod 750` on `/etc/sudoers.d`) and disabling SUID/SGID binaries on non-essential files prevents standard users from escalating to root.
+- **Credential Theft Mitigation**: Password complexity rules and SSH key-only authentication reduce the risk of brute-force attacks and credential theft. The benchmark also mandates that `/etc/shadow` is only readable by root.
+- **Audit Trail Integrity**: Configuring `auditd` to log all `sudo` commands and file modifications ensures that an incident responder can reconstruct an attacker's actions. The benchmark also requires that logs are sent to a remote syslog server to prevent log tampering.
+- **Compliance Alignment**: Adhering to CIS Benchmarks often satisfies requirements from PCI DSS, HIPAA, and FedRAMP. For example, PCI DSS Requirement 2.2.1 mandates the implementation of security configuration standards, and CIS Benchmarks are a recognized standard.
+
+**Key Takeaways**
+- CIS Linux Benchmarks provide a distribution-specific, consensus-based set of hardening rules that directly reduce attack surface and mitigate common exploitation techniques.
+- Implementation must be automated via tools like OpenSCAP and integrated into configuration management (e.g., Ansible) to ensure consistent, repeatable compliance across all systems.
+- Always evaluate Level 2 rules for operational impact before deployment; prioritize Level 1 rules as a minimum security baseline for any production Linux system.

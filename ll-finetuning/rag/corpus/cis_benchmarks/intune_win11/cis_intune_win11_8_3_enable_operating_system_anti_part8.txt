@@ -1,0 +1,61 @@
+8.3: Enable Operating System Anti-Exploitation Features/ (and related controls)
+
+Overview
+This option will only enable Virtualization Based Protection of Code Integrity on devices 
+with UEFI firmware support for the Memory Attributes Table. Devices without the UEFI 
+Memory Attributes Table may have firmware that is incompatible with Virtualization 
+Based Protection of Code Integrity which in some cases can lead to crashes or data 
+loss or incompatibility with certain plug-in cards. If not setting this option the targeted 
+devices should be tested to ensure compatibility. 
+The recommended state for this setting is: Require UEFI Memory Attributes Table. 
+Note: Virtualization Based Security requires a 64-bit version of Windows with Secure 
+Boot enabled, which in turn requires that Windows was installed with a UEFI BIOS 
+configuration, not a Legacy BIOS configuration. In addition, if running Windows on a 
+virtual machine, the hardware-assisted CPU virtualization feature (Intel VT-x or AMD-V) 
+must be exposed by the host to the guest VM. 
+More information on system requirements for this feature can be found at Windows 
+Defender Credential Guard Requirements (Windows 10) | Microsoft Docs 
+Note #2: Credential Guard and Device Guard are not currently supported when using 
+Azure IaaS VMs.
+
+This policy setting determines whether enhanced anti-spoofing is configured for devices 
+which support it. 
+The recommended state for this setting is: true.
+
+Why This Matters
+This setting will help protect this control from being enabled on a system that is not 
+compatible which could lead to a crash or data loss.
+
+Enterprise managed environments are now supporting a wider range of mobile devices, 
+increasing the security on these devices will help protect against unauthorized access 
+on your network.
+
+Audit Steps
+For Enable Operating System Anti-Exploitation Features/:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\VirtualizationBasedTechn ology:RequireUEFIMemoryAttributesTable_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 1. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Virtual izationBasedTechnology:RequireUEFIMemoryAttributesTable
+
+For Enable Operating System Anti-Exploitation Features/:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Microsoft\Policies\PassportForWork\Biometrics:FacialFeaturesUse
+EnhancedAntiSpoofing
+
+Remediation
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Require UEFI Memory Attributes Table. 
+Virtualization Based Technology\Require UEFI Memory Attributes Table
+
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to true. 
+Windows Hello For Business\Facial Features Use Enhanced Anti Spoofing
+
+Key Takeaways
+- This setting will help protect this control from being enabled on a system that is not  compatible which could lead to a crash or data loss.
+- Enterprise managed environments are now supporting a wider range of mobile devices,  increasing the security on these devices will help protect against unauthorized access  on your network.

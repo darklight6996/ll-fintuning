@@ -1,0 +1,123 @@
+9.2: Ensure Only Approved Ports, Protocols and Services (and related controls)
+
+Overview
+This policy setting allows an organization to prevent its devices from showing feedback 
+questions from Microsoft. 
+The recommended state for this setting is: Feedback notifications are disabled.
+
+This policy setting determines whether the LAN Manager (LM) hash value for the new 
+password is stored when the password is changed. The LM hash is relatively weak and 
+prone to attack compared to the cryptographically stronger Microsoft Windows NT hash. 
+Since LM hashes are stored on the local computer in the security database, passwords 
+can then be easily compromised if the database is attacked. 
+Note: Older operating systems and some third-party applications may fail when this 
+policy setting is enabled. Also, note that the password will need to be changed on all 
+accounts after you enable this setting to gain the proper benefit. 
+The recommended state for this setting is: Enabled.
+
+This policy setting determines which behaviors are allowed by clients for applications 
+using the NTLM Security Support Provider (SSP). The SSP Interface (SSPI) is used by 
+applications that need authentication services. The setting does not modify how the 
+authentication sequence works but instead require certain behaviors in applications that 
+use the SSPI. 
+The recommended state for this setting is: Require NTLM and 128-bit encryption. 
+Note: These values are dependent on the Network security: LAN Manager 
+Authentication Level security setting value.
+
+This setting enables or disables the Windows Game Recording and Broadcasting 
+features. 
+The recommended state for this setting is: Block.
+
+Manages a Windows app's ability to share data between users who have installed the 
+app. Data is shared through the SharedLocal folder. This folder is available through the 
+Windows.Storage API. 
+The recommended state for this setting is: Block.
+
+Why This Matters
+Users should not be sending any feedback to third-party vendors in an enterprise 
+managed environment.
+
+The SAM file can be targeted by attackers who seek access to username and password 
+hashes. Such attacks use special tools to crack passwords, which can then be used to 
+impersonate users and gain access to resources on your network. These types of 
+attacks will not be prevented if you enable this policy setting, but it will be much more 
+difficult for these types of attacks to succeed.
+
+You can enable both options for this policy setting to help protect network traffic that 
+uses the NTLM Security Support Provider (NTLM SSP) from being exposed or 
+tampered with by an attacker who has gained access to the same network. In other 
+words, these options help protect against man-in-the-middle attacks.
+
+If this setting is allowed, users could record and broadcast session info to external sites, 
+which is both a risk of accidentally exposing sensitive company data (on-screen) outside 
+the company as well as a privacy concern.
+
+Users of a system could accidentally share sensitive data with other users on the same 
+system.
+
+Audit Steps
+For Ensure Only Approved Ports, Protocols and Services:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Experience:DoNotShowFeed backNotifications_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 1. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Experie nce:DoNotShowFeedbackNotifications
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Control\Lsa:NoLMHash
+
+For Ensure Only Approved Ports, Protocols and:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 537395200. 
+HKLM\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0:NTLMMinClientSec
+
+For Ensure Only Approved Ports, Protocols and:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\ApplicationManagement:Al lowGameDVR_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Applica tionManagement:AllowGameDVR
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\AppModel\StateManager
+:AllowSharedLocalAppData
+
+Remediation
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Feedback notifications are disabled: 
+Experience\Do not show feedback notifications
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+Local Policies Security Options\Network security: Do not store LAN Manager 
+hash value on next password change
+
+For Ensure Only Approved Ports, Protocols and:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Require NTLM and 128-bit encryption: 
+Local Policies Security Options\Network security: Minimum session security 
+for NTLM SSP based (including secure RPC) clients
+
+For Ensure Only Approved Ports, Protocols and:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block: 
+Microsoft App Store\Allow Game DVR
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block. 
+Microsoft App Store\Allow Shared User App Data
+
+Key Takeaways
+- Users should not be sending any feedback to third-party vendors in an enterprise  managed environment.
+- The SAM file can be targeted by attackers who seek access to username and password  hashes.
+- Such attacks use special tools to crack passwords, which can then be used to  impersonate users and gain access to resources on your network.

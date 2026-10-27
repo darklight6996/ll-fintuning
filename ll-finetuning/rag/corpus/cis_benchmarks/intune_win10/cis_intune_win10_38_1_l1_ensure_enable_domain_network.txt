@@ -1,0 +1,27 @@
+38.1: (L1) Ensure 'Enable Domain Network Firewall' is set to 'True'
+
+Overview
+Select True (recommended) to have Windows Firewall with Advanced Security use the 
+settings for this profile to filter network traffic. If you select False, Windows Firewall with 
+Advanced Security will not use any of the firewall rules or connection security rules for 
+this profile. 
+The recommended state for this setting is: True.
+
+Why This Matters
+If the firewall is turned off all traffic will be able to access the system and an attacker 
+may be more easily able to remotely exploit a weakness in a network service.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\DomainProfile:EnableFirewall
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to True: 
+Firewall\Enable Domain Network Firewall
+
+Key Takeaways
+- If the firewall is turned off all traffic will be able to access the system and an attacker  may be more easily able to remotely exploit a weakness in a network service.

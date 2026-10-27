@@ -1,0 +1,113 @@
+0.0: Explicitly Not Mapped (and related controls)
+
+Overview
+This policy setting specifies whether users can participate in the Help Experience 
+Improvement program. The Help Experience Improvement program collects information 
+about how customers use Windows Help so that Microsoft can improve it. 
+The recommended state for this setting is: Enabled.
+
+This policy setting prevents connected users from being enumerated on domain-joined 
+computers. 
+The recommended state for this setting is: Enabled.
+
+This policy setting allows local users to be enumerated on domain-joined computers. 
+The recommended state for this setting is: Disabled.
+
+This policy setting allows you to prevent app notifications from appearing on the lock 
+screen. 
+The recommended state for this setting is: Enabled. 
+Warning: If the Self Service Password Reset (SSPR) feature is used in Microsoft Entra 
+ID, an exception to this recommendation is needed as it's known to interfere with SSPR.
+
+Specifies whether or not the user is prompted for a password when the system resumes 
+from sleep. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+Large enterprise managed environments may not want to have information collected by 
+Microsoft from managed client computers.
+
+A malicious user could use this feature to gather account names of other users, that 
+information could then be used in conjunction with other types of attacks such as 
+guessing passwords or social engineering. The value of this countermeasure is small 
+because a user with domain credentials could gather the same account information 
+using other methods.
+
+A malicious user could use this feature to gather account names of other users, that 
+information could then be used in conjunction with other types of attacks such as 
+guessing passwords or social engineering. The value of this countermeasure is small 
+because a user with domain credentials could gather the same account information 
+using other methods.
+
+App notifications might display sensitive business or personal data.
+
+Enabling this setting ensures that anyone who wakes an unattended computer from 
+sleep state will have to provide logon credentials before they can access the system.
+
+Audit Steps
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKU\[USER 
+SID]\Software\Policies\Microsoft\Assistance\Client\1.0:NoImplicitFeedback
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\System:DontEnumerateConnectedUsers
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\System:EnumerateLocalUsers
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\System:DisableLockScreenAppNotificat ions
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Power\PowerSettings\0e796bdb-100d-47d6-a2d5f7d2daa51f51:ACSettingIndex
+
+Remediation
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Internet Communication Management\Internet 
+Communication Settings\Turn off Help Experience Improvement Program
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Logon\Do not enumerate connected users on 
+domain-joined computers
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\System\Logon\Enumerate local users on domain-joined 
+computers
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Logon\Turn off app notifications on the lock 
+screen
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Power Management\Sleep Settings\Require a 
+password when a computer wakes (plugged in)
+
+Key Takeaways
+- Large enterprise managed environments may not want to have information collected by  Microsoft from managed client computers.
+- A malicious user could use this feature to gather account names of other users, that  information could then be used in conjunction with other types of attacks such as  guessing passwords or social engineering.
+- The value of this countermeasure is small  because a user with domain credentials could gather the same account information  using other methods.

@@ -1,0 +1,59 @@
+IAM users are individual identities within AWS Identity and Access Management (IAM) that represent a person or service that needs to interact with AWS resources. Each IAM user has a unique name, a set of credentials (password, access keys, or both), and a set of permissions defined by attached policies. Unlike root user credentials, IAM user credentials are scoped, auditable, and can be rotated independently. IAM users are the foundational unit for granting least-privilege access to human operators, CI/CD pipelines, and application components that require long-term AWS API access.
+
+**Key Components**
+
+- **User Name and ARN**: Every IAM user is created with a unique name within an AWS account. The Amazon Resource Name (ARN) follows the pattern `arn:aws:iam::<account-id>:user/<username>`. This ARN is used in resource-based policies and for logging in CloudTrail.
+
+- **Credentials**:
+  - **Password**: Used for AWS Management Console access. Password policies enforce complexity, rotation, and reuse rules at the account level.
+  - **Access Keys**: A pair of access key ID and secret access key used for programmatic access via AWS CLI, SDKs, or APIs. Access keys are long-term credentials and should be rotated regularly.
+  - **SSH Keys**: Optional for CodeCommit or EC2 instance connect.
+  - **MFA Devices**: Virtual or hardware MFA devices can be assigned to a user to enforce multi-factor authentication for console login or API calls.
+
+- **Permissions**: IAM users have no permissions by default. Permissions are granted via:
+  - **Attached Policies**: Managed policies (AWS-managed or customer-managed) or inline policies directly attached to the user.
+  - **Group Membership**: Users inherit permissions from IAM groups they belong to. This is the recommended approach for managing permissions at scale.
+  - **Permission Boundaries**: A boundary policy can be set on a user to limit the maximum permissions the user can have, even if a broader policy is attached.
+
+- **Tags**: Key-value metadata that can be attached to users for attribute-based access control (ABAC), cost allocation, or organizational tracking.
+
+- **Path**: An optional path element in the user ARN, useful for organizing users in a hierarchy (e.g., `/engineering/`).
+
+**Real-World Application**
+
+- **Human Operators**: Each engineer, administrator, or auditor gets a unique IAM user. For example, a DevOps engineer named `alice` is created with console password and MFA. She is placed in the `Developers` group, which has a managed policy granting read-only access to S3 buckets tagged with `Environment=Development`. Her access keys are rotated every 90 days via an automated script.
+
+- **Service Accounts**: Automated processes like CI/CD pipelines (e.g., Jenkins, GitHub Actions) use IAM users with only programmatic access. A user `jenkins-deploy` has an access key and is attached to a policy that allows `ec2:RunInstances` and `s3:PutObject` only on specific resources. No console password is created for this user.
+
+- **Cross-Account Access**: IAM users in a central identity account can assume roles in other accounts. The user itself has a policy allowing `sts:AssumeRole` to a specific role ARN. This avoids creating duplicate users across accounts.
+
+- **Emergency Access**: A break-glass IAM user with full administrative permissions is created but disabled. In an incident, the user is enabled, MFA is enforced, and all actions are logged. After the incident, the user is disabled again.
+
+**Security Relevance**
+
+- **Least Privilege**: IAM users enforce the principle of least privilege. Each user should have only the permissions necessary for their job function. Over-permissioned users are a common source of data breaches.
+
+- **Credential Hygiene**: Access keys are long-term secrets. If leaked, they can be used to compromise the entire account. Best practices include:
+  - Rotating access keys every 90 days or less.
+  - Using IAM Access Analyzer to identify unused permissions.
+  - Enforcing MFA for all human users.
+  - Disabling unused users and deleting orphaned access keys.
+
+- **Audit Trail**: Every action performed by an IAM user is logged in AWS CloudTrail with the user ARN. This enables forensic analysis, anomaly detection, and compliance reporting. For example, a security engineer can query CloudTrail for all `ConsoleLogin` events from a specific user to detect unusual login locations.
+
+- **Risk of Over-Privilege**: A common mistake is attaching the `AdministratorAccess` policy to a user for convenience. This violates least privilege and increases blast radius. Instead, use groups and permission boundaries to scope permissions.
+
+- **IAM User vs. IAM Role**: IAM users are appropriate for long-term human access and service accounts that need static credentials. IAM roles are preferred for EC2 instances, Lambda functions, and federated access because they provide temporary credentials. Using roles reduces the risk of long-term key exposure.
+
+- **Password Policy**: Enforce strong password policies: minimum length (14+ characters), require uppercase, lowercase, numbers, and symbols, set expiration (90 days), and prevent password reuse (last 24 passwords). Disable password recovery for users that should only use programmatic access.
+
+- **Monitoring**: Set up CloudWatch alarms for:
+  - Failed console login attempts (potential brute force).
+  - Access key usage from unexpected IP ranges.
+  - Creation of new IAM users or keys (especially by non-admin users).
+  - Changes to IAM policies attached to users.
+
+**Key Takeaways**
+1. IAM users are individual identities with long-term credentials; always enforce MFA for human users and rotate access keys regularly to minimize exposure from credential leaks.
+2. Grant permissions through group membership and permission boundaries rather than direct user policy attachments to simplify management and enforce least privilege at scale.
+3. Monitor all IAM user activity via CloudTrail and set alerts for anomalous behavior, such as new user creation or console logins from unusual locations, to detect compromise early.

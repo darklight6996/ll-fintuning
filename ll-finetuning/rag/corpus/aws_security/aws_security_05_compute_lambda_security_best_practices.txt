@@ -1,0 +1,77 @@
+Lambda functions, as an event-driven compute service, shift security responsibilities from infrastructure management to code, configuration, and access control. Unlike managing servers, securing Lambda requires a focus on the execution environment, the function's permissions, and the data it processes. This article details the specific security best practices for AWS Lambda.
+
+**Definition**
+
+Lambda security encompasses the policies, configurations, and practices that protect the function code, its execution role, the data it handles, and the underlying runtime environment. The shared responsibility model applies: AWS secures the underlying infrastructure (hypervisor, network, runtime lifecycle), while the customer is responsible for securing the function code, dependencies, IAM policies, environment variables, and VPC configuration.
+
+**Key Components**
+
+**1. IAM Permissions (Least Privilege)**
+The execution role is the most critical security control. It defines what the function can access.
+- **Never use a wildcard (`*`) for actions or resources** in the execution role policy. For example, instead of `"Action": "s3:*"`, use `"Action": ["s3:GetObject", "s3:PutObject"]` and restrict the `Resource` to a specific bucket and prefix.
+- **Separate roles for different functions.** A function that reads from DynamoDB should not have write permissions to S3.
+- **Use condition keys** to further restrict access. For example, `aws:SourceArn` to limit which SQS queue can invoke the function, or `aws:SourceVpce` for VPC endpoints.
+- **Avoid using the same role for Lambda and other services** (e.g., EC2). Create a dedicated role per function or per logical group.
+
+**2. Function Code and Dependencies**
+The code executed inside Lambda is a primary attack surface.
+- **Scan dependencies for vulnerabilities.** Use tools like `pip-audit` for Python, `npm audit` for Node.js, or commercial SCA tools. Integrate this into the CI/CD pipeline.
+- **Minimize dependencies.** Remove unused libraries. Each dependency increases the attack surface and potential for supply chain attacks.
+- **Use a minimal base image** for container-based Lambda functions. Prefer AWS-provided base images or hardened, minimal images.
+- **Do not hardcode secrets.** Use AWS Secrets Manager or Systems Manager Parameter Store. Retrieve secrets at runtime, not during deployment.
+
+**3. Environment Variables and Secrets**
+Environment variables are visible in the Lambda console and CloudWatch Logs if not handled correctly.
+- **Enable encryption at rest** for environment variables using a KMS key. This is a checkbox in the console or a parameter in the API.
+- **Do not store secrets in environment variables** even if encrypted. Use Secrets Manager or Parameter Store with a VPC endpoint for retrieval.
+- **Audit access to environment variables.** CloudTrail logs `UpdateFunctionConfiguration` and `GetFunctionConfiguration` events. Monitor for unauthorized reads.
+
+**4. VPC Configuration**
+Placing a Lambda function inside a VPC introduces networking security considerations.
+- **Use private subnets only.** Do not attach a function to a public subnet with an internet gateway.
+- **Provide a VPC endpoint** for services like S3, DynamoDB, and Secrets Manager to avoid traversing the internet.
+- **Limit outbound traffic** with a NAT gateway or VPC egress-only internet gateway only if required. Otherwise, use VPC endpoints.
+- **Ensure the function's security group** allows only necessary outbound traffic (e.g., to an RDS database) and blocks all inbound traffic (Lambda is invoked by AWS, not by inbound network connections).
+
+**5. Logging and Monitoring**
+Visibility into function behavior is essential for incident response.
+- **Enable CloudWatch Logs** and set a retention policy (e.g., 90 days). Do not use infinite retention.
+- **Use CloudWatch Logs Insights** to query for errors, unusual invocation patterns, or access denied errors.
+- **Enable AWS CloudTrail** for management events (e.g., `CreateFunction`, `UpdateFunctionCode`). Monitor for unauthorized changes.
+- **Set up alarms** for high error rates, throttles, or concurrent execution spikes that could indicate an attack.
+
+**6. Runtime and Execution Environment**
+- **Use managed runtimes** (e.g., Python 3.12, Node.js 20) and keep them updated. AWS deprecates runtimes; plan migrations before end-of-support.
+- **Do not use the `aws-lambda-rie` (Runtime Interface Emulator) in production.** It is for local testing only.
+- **Set a function timeout** that is as short as possible. Long timeouts increase the window for resource exhaustion attacks.
+- **Set a reserved concurrency limit** to prevent a single function from consuming all available concurrency in an account (denial of wallet).
+
+**Real-World Application**
+
+Consider a Lambda function that processes user-uploaded images from an S3 bucket and stores metadata in DynamoDB.
+
+**Insecure Implementation:**
+- Execution role with `s3:*` and `dynamodb:*` on all resources.
+- Environment variable `DB_PASSWORD` stored in plaintext.
+- Function placed in a public subnet with a 0.0.0.0/0 route.
+- No CloudWatch alarm for errors.
+
+**Secure Implementation:**
+- Execution role with `s3:GetObject` on `arn:aws:s3:::uploads/*` and `dynamodb:PutItem` on `arn:aws:dynamodb:us-east-1:123456789012:table/metadata`.
+- Secret retrieved from Secrets Manager using a VPC endpoint.
+- Function attached to a private subnet with a VPC endpoint for DynamoDB and S3.
+- CloudWatch alarm on `Errors` metric with a threshold of 1 in 5 minutes.
+- Code scanned for vulnerabilities in CI/CD pipeline.
+
+**Security Relevance**
+
+Lambda's serverless nature does not eliminate security risks; it shifts them. The primary threats are:
+- **Privilege escalation:** An attacker who compromises a function with overly broad permissions can pivot to other AWS resources.
+- **Data exfiltration:** A function with internet access can send data to an external endpoint. VPC configuration and egress controls mitigate this.
+- **Supply chain attacks:** Compromised dependencies can execute arbitrary code inside the function's runtime.
+- **Denial of service:** A flood of events can exhaust concurrency limits or incur high costs. Reserved concurrency and throttling controls are essential.
+
+**Key Takeaways**
+- Enforce least privilege on Lambda execution roles using specific actions, resources, and condition keys; never use wildcards.
+- Never store secrets in environment variables or code; use AWS Secrets Manager or Parameter Store with VPC endpoints.
+- Restrict network access by placing functions in private subnets with VPC endpoints and limiting outbound traffic to only required destinations.

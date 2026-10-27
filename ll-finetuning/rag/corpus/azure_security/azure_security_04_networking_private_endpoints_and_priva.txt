@@ -1,0 +1,33 @@
+**Definition**
+
+Private Endpoints and Azure Private Link provide a mechanism to access Azure Platform-as-a-Service (PaaS) resources (e.g., Azure Storage, SQL Database, Azure Key Vault) and your own Private Link Services over a private IP address within a virtual network (VNet). This eliminates exposure to the public internet. A Private Endpoint is a network interface that connects privately and securely to a service powered by Azure Private Link. The endpoint uses a private IP from your VNet, effectively bringing the service into your network space. Private Link is the underlying service that enables this connectivity by mapping the PaaS resource or your own service to a private endpoint.
+
+**Key Components**
+
+- **Private Endpoint:** A network interface (NIC) with a private IP from your VNet. It is deployed in a subnet and connects to a specific Azure resource (e.g., a single storage account) or to a Private Link Service. Traffic from the endpoint to the resource traverses the Microsoft backbone network, never the public internet.
+- **Private Link Service:** Your own service (e.g., a web application behind an internal load balancer) that you expose via Private Link. You create a Private Link Service attached to a Standard Load Balancer. Consumers can then create private endpoints in their VNets to connect to your service.
+- **Private DNS Zone:** Required for name resolution. When you create a private endpoint, you must link a private DNS zone (e.g., `privatelink.blob.core.windows.net`) to your VNet. This ensures that the fully qualified domain name (FQDN) of the resource resolves to the private IP of the endpoint, not the public IP.
+- **Network Security Groups (NSGs) and Route Tables:** Private endpoints do not support NSGs applied to the subnet where they are deployed. Traffic to the endpoint is controlled by NSGs on the source side and by the resource’s firewall (e.g., storage account firewall). Route tables on the endpoint subnet are also not supported; traffic is forced through the Microsoft backbone.
+- **Private Endpoint Policies:** You can restrict which private endpoints can connect to a resource using network policies on the subnet (e.g., `privateEndpointNetworkPolicies`). This prevents unauthorized creation of endpoints.
+- **Approval Workflow:** For Private Link Services, the consumer’s connection request must be approved by the service provider. This can be automated or manual, providing a control point for access.
+
+**Real-World Application**
+
+- **Secure Data Exfiltration Prevention:** By using Private Endpoints for Azure Storage, you can block all public access to the storage account (set firewall to “Deny all” except for trusted services). This ensures that data can only be accessed from within your VNet, reducing the risk of data exfiltration via the internet.
+- **Hybrid Connectivity:** Combine Private Endpoints with ExpressRoute or Site-to-Site VPN to allow on-premises systems to access Azure PaaS resources privately. For example, an on-premises application can connect to an Azure SQL Database via a private endpoint, using DNS resolution through a custom DNS server that forwards to Azure Private DNS.
+- **Multi-Tenant Service Exposure:** If you run a SaaS application on Azure VMs behind a Standard Load Balancer, you can create a Private Link Service. Customers can then connect their VNets to your service via private endpoints, ensuring their traffic never traverses the public internet. You control approval and can monitor connections.
+- **Compliance and Auditing:** Private Endpoints enable you to meet compliance requirements that mandate no public internet exposure. All traffic is logged in Azure Monitor and can be correlated with network security groups flow logs. You can also use Azure Policy to enforce that specific resources (e.g., storage accounts) must use private endpoints.
+
+**Security Relevance**
+
+- **Reduced Attack Surface:** Private Endpoints eliminate the need for public IP addresses on PaaS resources. This removes a common vector for internet-based attacks (e.g., DDoS, brute force on public endpoints). The resource’s firewall can be set to deny all public traffic, making it invisible to the internet.
+- **Network Segmentation:** Private Endpoints allow you to enforce that only specific VNets or subnets can access a resource. Combined with NSGs on the source side, you can implement micro-segmentation. For example, only the application tier subnet can access the database private endpoint.
+- **Data in Transit Protection:** Traffic between the private endpoint and the PaaS resource stays within the Microsoft backbone. This avoids transit over the public internet where interception or man-in-the-middle attacks are possible. However, you should still enforce TLS/SSL for application-level encryption.
+- **Access Control via Approval:** For Private Link Services, the approval workflow acts as an explicit authorization gate. You can reject connections from unknown or untrusted VNets. This is critical for multi-tenant scenarios where you need to verify each consumer.
+- **Monitoring and Threat Detection:** Use Azure Monitor and Network Watcher to track private endpoint connections. Alerts can be set for failed connection attempts or unusual traffic patterns. Private Link Service logs show consumer connection requests and approvals, enabling audit trails.
+- **DNS Security:** Private DNS zones prevent DNS poisoning or spoofing attacks that could redirect traffic to malicious endpoints. By controlling the DNS resolution within your VNet, you ensure that the FQDN always resolves to your private endpoint.
+
+**Key Takeaways**
+- Private Endpoints and Private Link eliminate public internet exposure for Azure PaaS resources and custom services, directly reducing the attack surface and meeting compliance requirements.
+- Proper configuration of Private DNS zones and network policies is essential for reliable name resolution and access control; misconfiguration can lead to connectivity failures or unintended exposure.
+- Use the approval workflow for Private Link Services to enforce explicit authorization, and combine with Azure Policy to mandate private endpoint usage across your organization.

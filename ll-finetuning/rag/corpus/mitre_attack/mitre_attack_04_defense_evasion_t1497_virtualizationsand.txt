@@ -1,0 +1,62 @@
+**Definition**
+
+T1497 Virtualization/Sandbox Evasion is a defense evasion technique defined by the MITRE ATT&CK framework. It describes the deliberate actions taken by malware or an adversary to detect whether their code is executing inside a virtualized environment, a sandbox, or an analysis tool. The primary goal is to avoid detection, analysis, and attribution by security researchers, automated malware analysis systems, and endpoint detection and response (EDR) solutions. If the malware determines it is being observed, it will alter its behavior—typically by terminating execution, sleeping for extended periods, or executing benign code—to prevent the security tool from observing its true malicious payload.
+
+**Key Components**
+
+The technique relies on a set of checks that probe the environment for artifacts indicative of virtualization or analysis. These checks can be categorized into four main areas:
+
+- **Hardware and System Artifacts**  
+  - **MAC Address and Network Adapter Checks**: Malware queries the MAC address of the primary network adapter. Common vendor prefixes (e.g., 00:0C:29 for VMware, 00:15:5D for Hyper-V) are used as indicators.  
+  - **BIOS and System Information**: The malware reads the system’s BIOS version, manufacturer, or model string. Strings like "VMware," "VirtualBox," "QEMU," or "Xen" are strong signals.  
+  - **Hardware Device IDs**: Checks for specific PCI device IDs associated with virtualized hardware (e.g., VMware’s SVGA II adapter ID 15AD).  
+  - **Processor and Memory Count**: A single-core CPU or very low RAM (e.g., less than 2 GB) is a common sandbox configuration. Malware may also check for the presence of a hypervisor via CPUID instructions.
+
+- **Process and File System Artifacts**  
+  - **Running Processes**: The malware enumerates running processes for analysis tools (e.g., `procmon.exe`, `wireshark.exe`, `vmtoolsd.exe`, `VBoxService.exe`).  
+  - **File System Presence**: Checks for the existence of specific files or directories, such as `C:\windows\system32\drivers\vmmouse.sys` (VMware) or `C:\Program Files\Oracle\VirtualBox Guest Additions\`.  
+  - **Registry Keys**: Queries registry keys like `HKLM\SOFTWARE\VMware, Inc.\VMware Tools` or `HKLM\HARDWARE\DESCRIPTION\System\BIOS` for virtualization-related strings.
+
+- **Timing and Behavioral Checks**  
+  - **Sleep and Time Manipulation**: Malware calls `Sleep()` or `NtDelayExecution()` with a long duration (e.g., 120 seconds) and then measures the actual elapsed time. If the sleep is accelerated or skipped (common in sandboxes), it indicates analysis.  
+  - **CPU Instruction Timing**: Uses `RDTSC` (Read Time-Stamp Counter) to measure the time taken to execute a series of instructions. A significant discrepancy from expected values can indicate emulation.  
+  - **User Interaction Checks**: Monitors for mouse movements, keyboard input, or window focus. A lack of user input for a prolonged period is a strong sandbox indicator.
+
+- **Network and Domain Checks**  
+  - **DNS and IP Resolution**: Attempts to resolve known sandbox detection domains or checks if the system’s IP address belongs to a known cloud provider or analysis lab range.  
+  - **Network Latency**: Measures round-trip time to external hosts. Unusually low latency may indicate a simulated network.
+
+**Real-World Application**
+
+Real-world malware families implement T1497 with varying levels of sophistication. A common pattern is a multi-stage evasion routine:
+
+1. **Initial Probe**: The malware executes a series of lightweight checks (e.g., CPU count, MAC address) immediately upon execution. If any check fails (i.e., indicates a virtual environment), it calls `ExitProcess` or enters an infinite loop.
+
+2. **Delayed Payload**: If the initial checks pass, the malware enters a long sleep (e.g., 10 minutes) and then re-checks the environment. This defeats sandboxes that have a short analysis timeout (e.g., 5 minutes).
+
+3. **Conditional Execution**: Only after passing all checks does the malware decrypt and execute its core payload (e.g., a ransomware binary or a C2 beacon).
+
+For example, the TrickBot trojan was observed using a combination of checks: it would query the system’s BIOS version, check for VMware tools processes, and measure the time delta of a `Sleep(60000)` call. If any check indicated a sandbox, it would simply exit without performing any malicious activity. Similarly, the Emotet loader would check for the presence of `vmtoolsd.exe` and, if found, would not load its DLL payload.
+
+Advanced adversaries may also use **evasive sleep** techniques, such as `NtDelayExecution` with a custom timer or `WaitForSingleObject` on a mutex, to bypass simple sleep-skipping sandboxes. Some malware will even perform a series of benign operations (e.g., file writes to `%TEMP%`) to appear legitimate before executing the malicious code.
+
+**Security Relevance**
+
+For security engineers, understanding T1497 is critical for two reasons: detection and sandbox configuration.
+
+- **Detection**: Traditional signature-based detection is ineffective because the evasion checks themselves are not malicious. Instead, detection must focus on the *behavior* of the checks. For example, an EDR rule can alert on a process calling `GetSystemFirmwareTable` followed by an immediate `ExitProcess`. Alternatively, behavioral analytics can flag a process that queries the MAC address of all adapters and then sleeps for an unusually long time.
+
+- **Sandbox Configuration**: To reduce false negatives, security teams must harden their analysis environments. This includes:
+  - Using custom MAC addresses and BIOS strings that do not match known vendor patterns.
+  - Running analysis VMs with multiple CPU cores and adequate RAM (e.g., 4 GB+).
+  - Simulating realistic user activity (mouse movements, keystrokes) using automation tools.
+  - Setting analysis timeouts to at least 10–15 minutes to defeat long-sleep evasion.
+  - Removing or renaming common analysis tool processes and files.
+
+- **Red Teaming**: Adversaries will use T1497 to evade your detection stack. Red teams should incorporate these checks into their payloads to test whether your sandbox and EDR can handle evasion. If the red team’s malware can successfully evade detection by checking for your specific sandbox artifacts, you have a gap.
+
+**Key Takeaways**
+
+- T1497 is a systematic set of checks (hardware, process, timing, network) that malware uses to detect analysis environments; if detected, the malware will not execute its payload.
+- To defend against T1497, security engineers must harden sandbox configurations by removing virtualization artifacts, simulating realistic user behavior, and extending analysis timeouts beyond typical evasion delays.
+- Detection of T1497 requires behavioral monitoring of the evasion checks themselves (e.g., process termination after system queries) rather than relying on static signatures.

@@ -1,0 +1,84 @@
+OAuth 2.0 is an authorization framework that enables a third-party application to obtain limited access to an HTTP service, either on behalf of a resource owner or by allowing the third-party application to obtain access on its own behalf. OpenID Connect (OIDC) is an identity layer built on top of OAuth 2.0 that adds authentication and identity verification. OAuth 2.0 alone does not authenticate the user; it only authorizes access to resources. OIDC fills this gap by providing a standardized way to verify the identity of the end-user and obtain basic profile information.
+
+**Key Components**
+
+**OAuth 2.0 Roles**
+- **Resource Owner:** The entity that can grant access to a protected resource, typically the end-user.
+- **Resource Server:** The server hosting the protected resources, capable of accepting and responding to protected resource requests using access tokens.
+- **Client:** The application making protected resource requests on behalf of the resource owner and with its authorization.
+- **Authorization Server:** The server issuing access tokens to the client after successfully authenticating the resource owner and obtaining authorization.
+
+**OAuth 2.0 Grant Types**
+- **Authorization Code Grant:** The most secure grant for server-side applications. The client redirects the user to the authorization server, which returns an authorization code. The client then exchanges this code for an access token. This prevents the access token from being exposed to the user agent.
+- **Implicit Grant (Deprecated):** Previously used for browser-based applications, but now considered insecure because the access token is returned directly in the URL fragment. Use the Authorization Code Grant with PKCE instead.
+- **Resource Owner Password Credentials Grant:** The client directly collects the user’s credentials. Only suitable for highly trusted applications, such as first-party apps, and should be avoided due to credential exposure risk.
+- **Client Credentials Grant:** Used for server-to-server communication where no user is involved. The client authenticates itself to obtain an access token.
+
+**OAuth 2.0 Tokens**
+- **Access Token:** A credential used to access protected resources. It is opaque to the client and should have a short lifetime (e.g., 15 minutes to 1 hour).
+- **Refresh Token:** An optional token used to obtain a new access token when the current one expires. Refresh tokens must be stored securely and have a longer lifetime. They should be revocable.
+
+**OpenID Connect Components**
+- **ID Token:** A JSON Web Token (JWT) that contains claims about the authentication event and the end-user. It includes standard claims like `sub` (subject identifier), `iss` (issuer), `aud` (audience), `exp` (expiration), and `iat` (issued at).
+- **UserInfo Endpoint:** A protected resource that returns claims about the authenticated end-user. The client uses the access token to call this endpoint.
+- **Scopes:** OIDC defines specific scopes: `openid` (required), `profile`, `email`, and `address`. The `openid` scope signals that the client intends to use OIDC.
+
+**Real-World Application**
+
+**Single Sign-On (SSO) for Enterprise Applications**
+- An organization deploys an OIDC-compliant identity provider (IdP) such as Azure AD, Okta, or Keycloak.
+- Employees access multiple internal web applications (e.g., HR portal, ticketing system, code repository).
+- When a user attempts to access an application, the application (client) redirects them to the IdP.
+- The IdP authenticates the user (e.g., via password + MFA) and returns an ID token and access token.
+- The application validates the ID token (signature, issuer, audience, expiration) and establishes a session.
+- The user is now authenticated across all applications without re-entering credentials.
+
+**Mobile Application with API Access**
+- A mobile banking app uses the Authorization Code Grant with PKCE (Proof Key for Code Exchange).
+- The app generates a cryptographic challenge and sends it to the authorization server during the authorization request.
+- After the user authenticates, the authorization server returns an authorization code.
+- The app exchanges the code for an access token and refresh token, using the PKCE verifier to prove possession.
+- The access token is used to call the bank’s API endpoints (e.g., account balance, transaction history).
+- When the access token expires, the app uses the refresh token to obtain a new one without user interaction.
+
+**Third-Party API Integration**
+- A SaaS platform allows users to connect their Google Drive account.
+- The platform initiates an OAuth 2.0 flow with Google’s authorization server, requesting scopes like `drive.readonly`.
+- The user grants permission, and the platform receives an access token.
+- The platform uses this token to read files from the user’s Drive, but cannot write or delete.
+- The token is scoped and time-limited, reducing risk if the platform is compromised.
+
+**Security Relevance**
+
+**Token Storage and Handling**
+- Access tokens and refresh tokens must never be stored in browser local storage or session storage due to XSS risks. Use secure, HttpOnly cookies or in-memory storage for client-side apps.
+- For server-side apps, store tokens in encrypted databases or secure vaults. Never log tokens.
+- Refresh tokens should be rotated on each use to prevent replay attacks.
+
+**PKCE (Proof Key for Code Exchange)**
+- Mandatory for public clients (e.g., mobile apps, single-page applications) to prevent authorization code interception attacks.
+- The client generates a cryptographically random `code_verifier` and sends its SHA-256 hash (`code_challenge`) during the authorization request.
+- When exchanging the code, the client sends the original `code_verifier`. The authorization server verifies the hash matches.
+- Without PKCE, an attacker who intercepts the authorization code can exchange it for a token.
+
+**ID Token Validation**
+- Always validate the ID token signature using the public keys from the issuer’s JWKS (JSON Web Key Set) endpoint.
+- Verify the `iss` claim matches the expected issuer.
+- Verify the `aud` claim contains the client ID of your application.
+- Check the `exp` and `iat` claims to ensure the token is not expired or issued in the future.
+- Use the `nonce` claim to prevent replay attacks if provided during the authentication request.
+
+**Scope and Consent**
+- Request the minimum scopes necessary for your application’s functionality. Over-scoping increases the blast radius of a token leak.
+- Implement consent screens that clearly explain what data the application will access.
+- For sensitive scopes (e.g., `email`, `profile`), ensure the user explicitly grants consent.
+
+**Token Revocation**
+- Implement token revocation endpoints on your authorization server to invalidate tokens when a user logs out or a session is terminated.
+- Clients should call the revocation endpoint when they no longer need a token (e.g., user logs out).
+- Refresh tokens should be revocable independently of access tokens.
+
+**Key Takeaways**
+- OAuth 2.0 provides authorization only; use OpenID Connect to add authentication and identity verification via ID tokens.
+- Always use the Authorization Code Grant with PKCE for public clients and never expose tokens in URL fragments or browser storage.
+- Validate ID tokens rigorously (signature, issuer, audience, expiration) and implement token revocation to minimize the impact of token compromise.

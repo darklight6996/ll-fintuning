@@ -1,0 +1,49 @@
+Access control requirements under PCI DSS are a set of mandatory technical and procedural controls designed to restrict access to cardholder data (CHD) and the systems that process, store, or transmit it. These requirements are codified primarily in PCI DSS Requirement 7 and Requirement 8, and they enforce the principle of least privilege, ensuring that only authorized personnel have access to the minimum necessary data and system resources required to perform their job functions. Non-compliance with these requirements is a leading cause of data breaches and directly results in non-compliance penalties, including fines and loss of card processing privileges.
+
+**Key Components**
+
+The access control requirements are built on three foundational pillars: identification, authentication, and authorization. Each pillar has specific technical mandates.
+
+1.  **Identification and Authentication (Requirement 8)**
+    *   **Unique User IDs:** Every individual with access to system components or CHD must have a unique ID. Shared or generic accounts are prohibited for user access. This enables non-repudiation and audit trail integrity.
+    *   **Strong Authentication:** At least one of the following must be used for all non-console administrative access and all remote access to the CDE: something you know (password/passphrase), something you have (token/smart card), or something you are (biometric). For all other access, a password or passphrase is the minimum.
+    *   **Password Strength and Management:** Passwords must be at least 7 characters long and contain both numeric and alphabetic characters. Passphrases must be at least 7 characters long. Passwords must be changed every 90 days, and a minimum of four unique passwords must be used before reuse.
+    *   **Session Timeout:** Inactive user sessions must be terminated after 15 minutes or less. This prevents unauthorized use of unattended workstations.
+    *   **Lockout:** After six consecutive failed login attempts, the user account must be locked out for at least 30 minutes or until an administrator unlocks it. This mitigates brute-force attacks.
+
+2.  **Authorization and Least Privilege (Requirement 7)**
+    *   **Need-to-Know Basis:** Access to CHD must be restricted to only those individuals whose job requires it. This is not a policy statement; it must be enforced by technical controls.
+    *   **Access Control Systems:** An access control system (e.g., Active Directory, LDAP, or a dedicated IAM platform) must be used to enforce access rules. This system must be configured to deny all access by default, and only explicitly granted permissions are allowed.
+    *   **Role-Based Access Control (RBAC):** Access rights must be assigned based on job roles, not individual identities. This simplifies management and ensures consistency. For example, a customer service representative role should have read-only access to the last four digits of a PAN, while a fraud analyst role might have read access to the full PAN.
+    *   **Documentation and Review:** A formal access control policy must be documented, and access rights must be reviewed at least every six months. This review must identify and remove any accounts that have excessive or inappropriate privileges.
+
+3.  **Physical Access Controls (Requirement 9)**
+    *   While often considered separately, physical access controls are a critical component of the overall access control strategy. They include:
+        *   **Facility Controls:** Card readers, electronic locks, and visitor logs for data centers and server rooms.
+        *   **Media Controls:** Secure storage and destruction of physical media containing CHD (e.g., backup tapes, printed reports).
+        *   **Visual Obscuration:** Workstations and terminals that display CHD must be positioned so that the data is not visible to unauthorized individuals (e.g., shoulder surfing).
+
+**Real-World Application**
+
+A security engineer implementing PCI DSS access controls in a typical e-commerce environment would take the following steps:
+
+*   **Network Segmentation:** First, isolate the Cardholder Data Environment (CDE) from the corporate network using a firewall. This is a prerequisite for reducing the scope of the assessment. Only specific, authorized IP addresses and ports are allowed to communicate with the CDE.
+*   **Directory Services Integration:** Configure Active Directory or a similar LDAP directory to enforce unique user IDs and password policies. Disable local accounts on all servers and network devices. Use Group Policy Objects (GPOs) to enforce password complexity, lockout thresholds, and session timeouts.
+*   **Application-Level Access:** For the web application handling payment data, implement RBAC. For example, a customer service agent’s role should only allow viewing the last four digits of a credit card number. The application must never display the full PAN or CVV to any user. Use parameterized queries and input validation to prevent SQL injection, which could bypass access controls.
+*   **Database Access:** Configure the database to use separate service accounts for the application and for administrative tasks. The application service account should have only the minimum required permissions (e.g., SELECT, INSERT, UPDATE on specific tables). Administrative accounts (e.g., `sa` in SQL Server) should be disabled or renamed and only used for break-glass scenarios.
+*   **Logging and Monitoring:** Enable detailed logging for all access control events: successful and failed logins, privilege escalations, and account modifications. Forward these logs to a SIEM system for real-time alerting and forensic analysis. Ensure logs are immutable and retained for at least 12 months (with the last 3 months immediately available).
+*   **Quarterly Reviews:** Every quarter, run a script to compare current user access rights against the documented role definitions. Any discrepancies (e.g., a user in the "customer service" role having write access to the database) must be investigated and remediated immediately.
+
+**Security Relevance**
+
+Access control requirements are the primary defense against the most common attack vectors in payment card environments. Without them, a single compromised credential can lead to a full data breach.
+
+*   **Mitigating Insider Threats:** The principle of least privilege directly limits the damage a malicious insider or a compromised account can cause. If a customer service agent’s credentials are stolen, the attacker cannot access the full PAN database because the agent’s role does not permit it.
+*   **Preventing Lateral Movement:** Unique user IDs and strong authentication make it difficult for an attacker who has compromised one system to move laterally to another. If an attacker gains access to a web server, they cannot use a shared admin account to pivot to the database server.
+*   **Enabling Forensic Analysis:** Unique IDs and comprehensive logging provide a clear audit trail. In the event of a breach, investigators can determine exactly which account was used, when, and what actions were performed. This is essential for identifying the root cause and containing the damage.
+*   **Compliance and Liability:** Meeting PCI DSS access control requirements is not optional for any entity that stores, processes, or transmits cardholder data. Failure to comply can result in fines from acquiring banks, increased transaction fees, and, in severe cases, revocation of the right to process credit cards. More importantly, a breach resulting from weak access controls exposes the organization to lawsuits, regulatory fines (e.g., under GDPR or CCPA), and irreparable reputational damage.
+
+**Key Takeaways**
+- Access control under PCI DSS is enforced through three distinct technical pillars: unique identification (Requirement 8), least privilege authorization (Requirement 7), and physical security (Requirement 9).
+- The most effective implementation combines network segmentation, role-based access control at the application layer, and strict database service account permissions to create defense in depth.
+- Regular, automated reviews of access rights and immutable logging are not optional; they are the only way to detect and prove compliance with the principle of least privilege.

@@ -1,0 +1,59 @@
+Timeline reconstruction is a forensic analysis technique that establishes the chronological order of events on a digital system by correlating timestamps from multiple data sources. It answers the question "what happened, and in what sequence?" during an incident. Unlike simple file listing, timeline reconstruction accounts for time zone offsets, clock skew, and artifact interdependencies to produce a reliable sequence of actions.
+
+**Key Components**
+
+Timeline reconstruction relies on three foundational elements: data sources, normalization, and correlation.
+
+**Data Sources**
+- File system metadata: MAC times (Modified, Accessed, Changed) from NTFS, ext4, APFS. These provide creation, modification, and access timestamps for files and directories.
+- System logs: Windows Event Logs (.evtx), syslog, auditd logs, and application-specific logs (IIS, Apache, database logs). These record user logins, process starts, service changes, and privilege escalations.
+- Registry hives (Windows): LastWrite timestamps on keys, MRU lists, UserAssist data, and ShimCache entries reveal application execution, USB device insertion, and user configuration changes.
+- Browser artifacts: History, cache, cookies, and download records from Chrome, Firefox, Edge. These show user browsing activity and file downloads.
+- Prefetch files (Windows) and Superfetch logs: Record application execution with timestamps and run counts.
+- Journaling data: NTFS $UsnJrnl, ext4 journal, and APFS snapshots capture file system changes in near-real-time.
+- Memory artifacts: Process creation timestamps, network connection times, and loaded modules from RAM dumps.
+- Network logs: Firewall logs, proxy logs, and NetFlow records provide external communication timestamps.
+
+**Normalization**
+All timestamps must be converted to a single time zone (typically UTC) and a consistent format (e.g., Unix epoch or ISO 8601). This step accounts for:
+- System clock drift: Compare event timestamps against known reference points (e.g., NTP logs, external timestamps from network devices).
+- Time zone misconfigurations: Identify the system’s configured time zone via registry (HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation) or /etc/localtime.
+- Daylight saving transitions: Adjust for ambiguous or missing DST shifts.
+
+**Correlation**
+Events are linked by common identifiers (process IDs, user SIDs, file paths, IP addresses) to build a unified sequence. For example, a file creation timestamp from NTFS is correlated with a process creation event from Sysmon that shows which executable wrote the file. Correlation tools like Plaso (log2timeline), Timesketch, or custom scripts merge disparate logs into a single timeline view.
+
+**Real-World Application**
+
+Consider a data exfiltration incident where an employee copied sensitive files to a USB drive before resigning.
+
+1. **Initial collection**: Acquire the workstation’s disk image, memory dump, and network logs from the past 30 days.
+2. **Extract artifacts**:
+   - File system: Identify all files with modified or accessed timestamps in the target folder during the relevant period.
+   - Registry: Check USBSTOR keys for device insertion timestamps and last connected times.
+   - Prefetch: Find prefetch files for compression tools (e.g., 7z, WinRAR) that may have been used to archive data.
+   - Event logs: Filter Security.evtx for Event ID 4663 (attempt to access an object) targeting the sensitive folder.
+3. **Normalize**: Convert all timestamps to UTC. Note that the system clock was 3 minutes ahead of NTP, so subtract 180 seconds from each local timestamp.
+4. **Correlate**: Overlay USB insertion time (from USBSTOR) with file access events (Event ID 4663) and prefetch execution times. The timeline shows:
+   - 09:15:00 – USB device inserted (USBSTOR last write)
+   - 09:16:30 – 7z.exe executed (Prefetch)
+   - 09:17:00 – 4663 events for 50 files in the sensitive folder
+   - 09:20:00 – USB device removed (USBSTOR last write updated)
+5. **Interpretation**: The sequence confirms the employee used a compression tool to archive files and copied them to a USB drive within a 5-minute window. Without timeline reconstruction, the individual events appear isolated; together, they form a coherent narrative.
+
+**Security Relevance**
+
+Timeline reconstruction is critical for several security functions:
+
+- **Incident response**: Determines the initial compromise vector (e.g., phishing email opened at 14:00, followed by malware download at 14:02). This informs containment and eradication priorities.
+- **Insider threat detection**: Identifies anomalous sequences, such as a user accessing HR files immediately after a termination meeting, or a sysadmin creating a backdoor account after hours.
+- **Attribution**: Links attacker actions across multiple systems. For example, a lateral movement sequence: RDP connection from host A to host B at 10:00, followed by service creation on host B at 10:05, and data staging at 10:10.
+- **Legal and compliance**: Provides admissible evidence for court or regulatory audits. A properly reconstructed timeline demonstrates the chain of events with verifiable timestamps, meeting standards like ISO 27037.
+- **Root cause analysis**: Distinguishes between primary and secondary events. A crash at 15:00 may be caused by a driver installed at 14:55, not the user action at 15:01.
+
+Without timeline reconstruction, investigators risk misattributing events, missing causal links, or drawing false conclusions from out-of-context timestamps. For example, a file’s modification time may be updated by a backup process, not by an attacker—only correlation with backup logs reveals this.
+
+**Key Takeaways**
+- Timeline reconstruction requires collecting, normalizing, and correlating timestamps from file system metadata, logs, registry, and memory to produce a reliable event sequence.
+- Real-world application involves merging disparate artifacts (e.g., USB insertion, process execution, file access) to prove a specific chain of actions, such as data exfiltration.
+- Security relevance includes incident response, insider threat detection, attribution, and legal compliance; without it, isolated timestamps can mislead investigations.

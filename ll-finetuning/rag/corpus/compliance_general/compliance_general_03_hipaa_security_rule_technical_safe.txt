@@ -1,0 +1,57 @@
+The Security Rule technical safeguards are a subset of the HIPAA Security Rule (45 CFR § 164.312) that mandate specific mechanisms for protecting electronic protected health information (ePHI) at rest and in transit. Unlike administrative or physical safeguards, technical safeguards focus exclusively on the technology, policies, and procedures used to control access, audit activity, and ensure data integrity. Compliance is not optional; covered entities and business associates must implement these safeguards unless an equivalent alternative is both reasonable and appropriate, documented with a risk analysis.
+
+**Key Components**
+
+The Security Rule defines four main technical safeguard standards, each with required and addressable implementation specifications.
+
+**1. Access Control (164.312(a)(1))**
+This standard requires that only authorized persons or software programs have access to ePHI. It includes four implementation specifications:
+- **Unique User Identification (Required):** Assign a unique identifier to each user. Shared accounts are prohibited because they prevent individual accountability.
+- **Emergency Access Procedure (Required):** Establish a documented process for obtaining ePHI during an emergency (e.g., system outage, natural disaster). This often involves a break-glass account with post-event auditing.
+- **Automatic Logoff (Addressable):** Implement electronic session termination after a predetermined period of inactivity. Typical thresholds are 5-15 minutes for high-risk workstations.
+- **Encryption and Decryption (Addressable):** Encrypt ePHI at rest. If you choose not to encrypt, you must document the rationale and implement an equivalent compensating control.
+
+**2. Audit Controls (164.312(b))**
+This standard requires hardware, software, and/or procedural mechanisms to record and examine access and other activity in systems containing ePHI. Implementation is required, not addressable. Logs must capture user ID, timestamp, action (read, write, delete, export), and source IP. Logs must be protected from tampering and retained per the entity’s record retention policy (typically 6 years under HIPAA, but state laws may differ).
+
+**3. Integrity Controls (164.312(c)(1))**
+This standard mandates policies and procedures to protect ePHI from improper alteration or destruction. The sole implementation specification is:
+- **Mechanism to Authenticate ePHI (Addressable):** Use technical controls to verify that ePHI has not been altered or destroyed in an unauthorized manner. Common implementations include checksums, digital signatures, hash verification, and versioning controls. For databases, this often involves row-level hashing or database auditing triggers.
+
+**4. Transmission Security (164.312(e)(1))**
+This standard requires technical security measures to guard against unauthorized access to ePHI transmitted over an electronic communications network. It has two addressable implementation specifications:
+- **Integrity Controls:** Ensure that ePHI sent over a network is not improperly modified without detection. This is typically achieved through TLS/SSL, IPsec, or message-level digital signatures.
+- **Encryption:** Encrypt ePHI whenever it is transmitted over open networks (e.g., the internet, wireless LANs). For internal networks, encryption is addressable but strongly recommended. Do not rely on network segmentation alone as a compensating control.
+
+**Real-World Application**
+
+A security engineer implementing these safeguards should follow a risk-based approach, not a checkbox mentality.
+
+**Access Control in Practice:**
+- Deploy a centralized identity and access management (IAM) system with role-based access control (RBAC). Map roles to job functions, not individuals. For example, a “Billing Specialist” role should only have read access to billing-related ePHI fields, not clinical notes.
+- Implement multi-factor authentication (MFA) for all remote access and for any system with privileged access to ePHI. MFA is not explicitly required by the Security Rule, but it is a de facto standard for meeting the “reasonable and appropriate” requirement.
+- Use network segmentation to isolate ePHI systems from general corporate networks. Place ePHI databases behind firewalls with strict ingress/egress rules.
+
+**Audit Controls in Practice:**
+- Centralize logs from all systems containing ePHI (EHR, PACS, lab systems, firewalls, VPNs) into a Security Information and Event Management (SIEM) platform.
+- Configure alerts for anomalous patterns: multiple failed logins, access outside business hours, bulk data exports, or access from unusual geographic locations.
+- Retain logs in a write-once, read-many (WORM) format to prevent tampering. Use a dedicated log server with restricted administrative access.
+
+**Integrity Controls in Practice:**
+- For file-based ePHI, use file integrity monitoring (FIM) tools (e.g., Tripwire, OSSEC) to detect unauthorized changes to critical files.
+- For databases, enable change data capture (CDC) or database auditing to track all DML operations (INSERT, UPDATE, DELETE) on ePHI columns.
+- Implement versioning for clinical documents. If a record is modified, retain the previous version and log the change.
+
+**Transmission Security in Practice:**
+- Enforce TLS 1.2 or higher for all web-based applications handling ePHI. Disable older protocols (SSL 3.0, TLS 1.0/1.1) and weak cipher suites.
+- For email containing ePHI, use a secure email gateway that enforces TLS or use encrypted email solutions (e.g., SMTP over TLS with mutual authentication).
+- For API integrations between systems, require mutual TLS (mTLS) or OAuth 2.0 with signed tokens. Never transmit ePHI over plain HTTP or unencrypted FTP.
+
+**Security Relevance**
+
+The technical safeguards are not merely compliance requirements; they are foundational security controls that directly reduce risk. Without unique user IDs, you cannot attribute actions to individuals, making breach investigation impossible. Without audit controls, you cannot detect a data exfiltration in progress. Without encryption, a lost laptop or misconfigured cloud bucket becomes a reportable breach. The Security Rule’s addressable specifications give engineers flexibility, but the risk analysis must justify any deviation. For example, if you choose not to encrypt ePHI at rest on a server in a physically secured data center, you must document that the physical controls (e.g., biometric access, 24/7 guards, locked racks) provide an equivalent level of protection.
+
+**Key Takeaways**
+- The four technical safeguard standards (Access Control, Audit Controls, Integrity Controls, Transmission Security) are mandatory; addressable specifications require documented justification if not implemented.
+- Unique user identification and emergency access procedures are required; shared accounts and unmonitored break-glass access are non-compliant.
+- Encryption of ePHI in transit over open networks is a de facto requirement; encryption at rest is addressable but strongly recommended based on risk analysis.

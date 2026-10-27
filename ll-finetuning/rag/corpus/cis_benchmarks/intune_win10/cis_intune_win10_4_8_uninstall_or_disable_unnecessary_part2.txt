@@ -1,0 +1,46 @@
+4.8: Log and Alert on Changes to Administrative Group
+
+Overview
+This policy setting allows other users on the network to connect to the computer and is 
+required by various network protocols that include Server Message Block (SMB)-based 
+protocols, NetBIOS, Common Internet File System (CIFS), and Component Object 
+Model Plus (COM+). 
+The recommended state for this setting is: *S-1-5-32-544 and *S-1-5-32-555 
+(Administrators, Remote Desktop Users). 
+Note: If your organization is using Microsoft Defender for Identity (formerly Azure 
+Advanced Threat Protection (Azure ATP)), the (organization-named) Defender for 
+Identity Directory Service Account (DSA), will also need to be granted the same Access 
+from network User Right Assignment. For more information on adding the service 
+account please see Make sure the DSA is allowed to access computers from the 
+network in Microsoft Defender for Identity | Microsoft Docs.
+
+Why This Matters
+Users who can connect from their computer to the network can access resources on 
+target computers for which they have permission. For example, the Access this 
+computer from the network user right is required for users to connect to shared 
+printers and folders. If this user right is assigned to the Everyone group, then anyone 
+will be able to read the files in those shared folders. However, this situation is unlikely 
+for new installations of Windows Server 2003 with Service Pack 1 (SP1), because the 
+default share and NTFS permissions in Windows Server 2003 do not include the 
+Everyone group. This vulnerability may have a higher level of risk for computers that 
+you upgrade from Windows NT 4.0 or Windows 2000, because the default permissions 
+for these operating systems are not as restrictive as the default permissions in Windows 
+Server 2003.
+
+Audit Steps
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Access this computer 
+from the network
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 and *S-1-5-32-555 (Administrators, Remote 
+Desktop Users). 
+User Rights\Access From Network 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+Key Takeaways
+- Users who can connect from their computer to the network can access resources on  target computers for which they have permission.
+- For example, the Access this  computer from the network user right is required for users to connect to shared  printers and folders.
+- If this user right is assigned to the Everyone group, then anyone  will be able to read the files in those shared folders.

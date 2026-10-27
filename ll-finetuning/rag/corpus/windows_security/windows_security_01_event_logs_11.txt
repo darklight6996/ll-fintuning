@@ -1,0 +1,45 @@
+Event logs are records of discrete events occurring within a system, application, or network device. In the context of security engineering, an event log is a structured or semi-structured data entry that captures a specific action, state change, or error at a precise point in time. Each log entry typically includes a timestamp, a source identifier (e.g., hostname, IP address, process ID), an event type or ID, and a description of the activity. The primary purpose of event logs is to provide an immutable, auditable trail of system behavior for troubleshooting, compliance, and forensic analysis.
+
+**Key Components of Event Logs**
+
+A well-formed event log entry contains several mandatory and optional fields that enable effective parsing, correlation, and analysis. The core components are:
+
+- **Timestamp**: The date and time the event occurred, ideally in a standardized format such as ISO 8601 (e.g., 2025-03-21T14:30:00Z). Time zone normalization is critical for correlating events across distributed systems.
+- **Source Identifier**: The origin of the event, which can be a hostname, IP address, fully qualified domain name (FQDN), or a unique system identifier. This allows an engineer to pinpoint which asset generated the log.
+- **Event ID or Code**: A numeric or alphanumeric code that uniquely identifies the type of event. For example, Windows Event ID 4625 indicates a failed logon attempt. Consistent event IDs are essential for automated alerting and rule-based detection.
+- **Severity Level**: A classification of the event’s impact, such as informational, warning, error, or critical. This field helps prioritize which logs require immediate attention.
+- **Message or Description**: A human-readable string detailing what occurred. This field often contains variable data like usernames, file paths, or error codes.
+- **User or Account Context**: The security principal (e.g., username, SID, or service account) associated with the event. This is vital for tracking privilege escalation, lateral movement, or unauthorized access.
+- **Process or Service Information**: The executable name, PID, or service that triggered the event. This aids in identifying malicious processes or compromised applications.
+- **Network Information**: For network-based events, fields such as source and destination IP addresses, ports, and protocols are included. This is critical for intrusion detection and traffic analysis.
+
+Additional components may include a unique log entry ID, a correlation ID for linking related events, and custom key-value pairs specific to the application or device.
+
+**Real-World Application: Centralized Log Aggregation and Analysis**
+
+In a production environment, event logs are generated at high velocity from hundreds or thousands of sources. A security engineer’s primary task is to aggregate these logs into a centralized platform—commonly a Security Information and Event Management (SIEM) system—for real-time monitoring and historical analysis.
+
+Consider a typical enterprise with Windows domain controllers, Linux web servers, and network firewalls. Each source generates logs in different formats (e.g., Windows Event Log, syslog, JSON). The SIEM normalizes these into a common schema, mapping fields like `EventID` to a standard taxonomy. For example, a failed SSH login on a Linux server (auth.log) and a failed RDP login on a Windows server (Security.evtx) are both normalized to a single event type: “Authentication Failure.”
+
+A practical workflow:
+1. **Ingestion**: Logs are forwarded via agents (e.g., Winlogbeat, rsyslog) or directly via syslog to the SIEM collector.
+2. **Parsing and Normalization**: The SIEM extracts key fields (timestamp, source, user, event type) and discards irrelevant data to reduce storage overhead.
+3. **Correlation Rules**: The engineer writes detection rules. For instance, a rule might trigger an alert if more than 10 authentication failures from the same source IP occur within 5 minutes across multiple servers.
+4. **Alerting and Response**: The alert generates a ticket in the SOAR platform, which may automatically block the offending IP via a firewall API call.
+
+This centralized approach enables an engineer to detect a brute-force attack in progress, trace the attacker’s steps across multiple systems, and initiate a containment action—all within seconds of the first failed logon.
+
+**Security Relevance**
+
+Event logs are the foundational data source for nearly every security control and investigation. Their relevance spans several critical domains:
+
+- **Threat Detection**: Logs enable the identification of known attack patterns, such as pass-the-hash (Event ID 4624 with logon type 3 and a non-interactive session), or anomalous behavior like a service account logging in outside business hours.
+- **Incident Response**: During a breach, logs provide the timeline of events. An engineer can reconstruct the initial compromise vector (e.g., a phishing email attachment executed via PowerShell, logged as Event ID 4688 with a suspicious command line), lateral movement (e.g., multiple remote logons from a compromised workstation), and data exfiltration (e.g., large outbound file transfers logged by a proxy).
+- **Compliance and Auditing**: Regulations such as PCI DSS, HIPAA, and SOX mandate the retention and review of specific event logs. For example, PCI DSS Requirement 10 requires logging all access to cardholder data, with logs retained for at least one year. Failure to produce these logs during an audit can result in fines or loss of certification.
+- **Forensic Integrity**: Logs must be tamper-proof. Security engineers implement log forwarding to a write-once, read-many (WORM) storage or a blockchain-based ledger to prevent an attacker from covering their tracks by deleting local logs. A common technique is to send logs to a remote syslog server that only accepts incoming connections and has no write-back capability.
+- **Baseline and Anomaly Detection**: By analyzing historical logs, an engineer can establish a baseline of normal behavior (e.g., average number of logons per hour, typical process execution patterns). Deviations from this baseline—such as a sudden spike in failed logons or a new process running from a user’s temp directory—trigger alerts for further investigation.
+
+**Key Takeaways**
+- Event logs must contain standardized fields (timestamp, source, event ID, user context) to enable automated correlation and analysis across heterogeneous systems.
+- Centralized log aggregation in a SIEM is essential for real-time threat detection, incident response, and compliance auditing; logs must be forwarded to tamper-proof storage to preserve forensic integrity.
+- Security engineers rely on event logs to reconstruct attack timelines, detect anomalous behavior, and meet regulatory requirements; every log entry should be treated as potential evidence.

@@ -1,0 +1,141 @@
+11.2: Document Traffic Configuration Rules (and related controls)
+
+Overview
+Select this option to have Windows Firewall with Advanced Security display notifications 
+to the user when a program is blocked from receiving inbound connections. 
+The recommended state for this setting is: True. 
+Note: When the Apply local firewall rules setting is configured to No, it's 
+recommended to also configure the Display a notification setting to No. 
+Otherwise, users will continue to receive messages that ask if they want to unblock a 
+restricted inbound connection, but the user's response will be ignored.
+
+Select True (recommended) to have Windows Firewall with Advanced Security use the 
+settings for this profile to filter network traffic. If you select False, Windows Firewall with 
+Advanced Security will not use any of the firewall rules or connection security rules for 
+this profile. 
+The recommended state for this setting is: True (recommended).
+
+Select this option to have Windows Firewall with Advanced Security display notifications 
+to the user when a program is blocked from receiving inbound connections. 
+The recommended state for this setting is: True. 
+Note: When the Apply local firewall rules setting is configured to No, it's 
+recommended to also configure the Display a notification setting to No. 
+Otherwise, users will continue to receive messages that ask if they want to unblock a 
+restricted inbound connection, but the user's response will be ignored.
+
+Select True (recommended) to have Windows Firewall with Advanced Security use the 
+settings for this profile to filter network traffic. If you select False, Windows Firewall with 
+Advanced Security will not use any of the firewall rules or connection security rules for 
+this profile. 
+The recommended state for this setting is: True (recommended).
+
+This setting controls whether local administrators are allowed to create local firewall 
+rules that apply together with firewall rules configured by Group Policy. 
+The recommended state for this setting is: False. 
+Note: When the Allow Local Policy Merge setting is configured to False, it's 
+recommended to also configure the Disable Inbound Notifications setting to True. 
+Otherwise, users will continue to receive messages that ask if they want to unblock a 
+restricted inbound connection, but the user's response will be ignored.
+
+Select this option to have Windows Firewall with Advanced Security display notifications 
+to the user when a program is blocked from receiving inbound connections. 
+The recommended state for this setting is: True.
+
+Why This Matters
+Firewall notifications can be complex and may confuse the end users, who would not be 
+able to address the alert.
+
+If the firewall is turned off all traffic will be able to access the system and an attacker 
+may be more easily able to remotely exploit a weakness in a network service.
+
+Firewall notifications can be complex and may confuse the end users, who would not be 
+able to address the alert.
+
+If the firewall is turned off all traffic will be able to access the system and an attacker 
+may be more easily able to remotely exploit a weakness in a network service.
+
+When in the Public profile, there should be no special local firewall exceptions per 
+computer. These settings should be managed by a centralized policy.
+
+Some organizations may prefer to avoid alarming users when firewall rules block certain 
+types of network activity. However, notifications can be helpful when troubleshooting 
+network issues involving the firewall.
+
+Audit Steps
+For Document Traffic Configuration Rules:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\DomainProfile:DisableNotifications
+
+For Document Traffic Configuration Rules:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\StandardProfile:EnableFirewall
+
+For Document Traffic Configuration Rules:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\StandardProfile:DisableNotifications
+
+For Document Traffic Configuration Rules:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\PublicProfile:EnableFirewall
+
+For Document Traffic Configuration Rules:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\PublicProfile:AllowLocalPolicyMerge
+
+For Document Traffic Configuration Rules:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\PublicProfile:DisableNotifications
+
+Remediation
+For Document Traffic Configuration Rules:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to True: 
+Firewall\Enable Domain Network Firewall: Disable Inbound Notifications
+
+For Document Traffic Configuration Rules:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to True (recommended): 
+Firewall\Enable Private Network Firewall
+
+For Document Traffic Configuration Rules:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to True: 
+Firewall\Enable Private Network Firewall: Disable Inbound Notifications
+
+For Document Traffic Configuration Rules:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to True (recommended): 
+Firewall\Enable Public Network Firewall
+
+For Document Traffic Configuration Rules:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to False: 
+Firewall\Enable Public Network Firewall: Allow Local Policy Merge
+
+For Document Traffic Configuration Rules:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 'True': 
+Firewall\Enable Public Network Firewall: Disable Inbound Notifications
+
+Key Takeaways
+- Firewall notifications can be complex and may confuse the end users, who would not be  able to address the alert.
+- If the firewall is turned off all traffic will be able to access the system and an attacker  may be more easily able to remotely exploit a weakness in a network service.
+- When in the Public profile, there should be no special local firewall exceptions per  computer.

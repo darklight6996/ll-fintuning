@@ -1,0 +1,47 @@
+SCADA (Supervisory Control and Data Acquisition) and ICS (Industrial Control Systems) protocols are the specialized communication languages used to monitor and control industrial processes, such as power generation, water treatment, oil and gas pipelines, and manufacturing. Unlike standard IT protocols (e.g., HTTP, SMTP), these protocols were designed for deterministic, real-time operation, often with minimal overhead and no built-in security. Understanding their structure and behavior is critical for any security engineer tasked with defending OT environments.
+
+**Definition**
+
+SCADA/ICS protocols operate at the application layer of the OSI model, typically over serial links (RS-232/485) or Ethernet (TCP/IP). They define how field devices like PLCs (Programmable Logic Controllers), RTUs (Remote Terminal Units), and IEDs (Intelligent Electronic Devices) exchange data with HMIs (Human-Machine Interfaces) and central control servers. Key characteristics include:
+- **Master/Slave or Client/Server model:** One device (master) initiates requests; others (slaves) respond.
+- **Polling-based communication:** The master periodically queries slaves for data.
+- **Minimal payload size:** Designed for low-bandwidth, high-latency links.
+- **No authentication, encryption, or integrity checks in legacy versions:** This is the primary security concern.
+
+Common protocols include Modbus (serial and TCP), DNP3 (Distributed Network Protocol), IEC 60870-5-101/104, Profibus, Profinet, and OPC (OLE for Process Control). Each has unique framing, addressing, and function code structures.
+
+**Key Components**
+
+- **Function Codes:** The core command set. For example, Modbus function code 03 reads holding registers; code 05 writes a single coil. An attacker can use these to read or alter process values.
+- **Data Objects:** Points or registers that represent sensor readings (e.g., temperature, pressure) or control outputs (e.g., valve position). Each has a specific address and data type (16-bit integer, 32-bit float, etc.).
+- **Addressing Schemes:** Protocols use different methods to identify devices and data points. Modbus uses a device ID (1-247) and register address (0-65535). DNP3 uses a more complex object/point index system.
+- **Transport Layers:**
+    - **Serial:** Often uses RTU (binary) or ASCII framing. No inherent security.
+    - **TCP/IP:** Wraps the protocol in a TCP segment (e.g., Modbus TCP on port 502, DNP3 on port 20000). This exposes the protocol to network-based attacks.
+- **Time Synchronization:** Critical for event logging and sequence-of-events (SOE) analysis. Protocols like DNP3 include time-stamping, but often rely on NTP, which can be spoofed.
+- **Exception Responses:** When a slave cannot process a request, it returns an error code. Attackers can use these to map the network (e.g., a "illegal function" response confirms a device is present).
+
+**Real-World Application**
+
+A typical scenario: a water treatment plant uses Modbus TCP to connect a central SCADA server to multiple PLCs controlling pumps and chemical dosing. The server polls each PLC every 500ms for tank levels and flow rates. An operator can send a write command to open a valve.
+
+- **Normal Operation:** The SCADA server sends a Modbus TCP packet with function code 03, starting register 100, quantity 2. The PLC responds with two 16-bit values (e.g., 450 and 1200). The HMI displays these as "Tank Level: 45.0%" and "Flow: 12.00 GPM".
+- **Attack Scenario:** An attacker with network access sends a crafted Modbus TCP packet with function code 05 (write single coil) to the PLC, targeting coil address 0 (pump start). The PLC, lacking authentication, immediately starts the pump, potentially causing a dry-run condition or overflow.
+- **Defense Implementation:** A security engineer deploys a firewall that only allows Modbus TCP traffic from the SCADA server IP to the PLC IP, and blocks all other sources. Additionally, an IDS (e.g., Snort with Modbus preprocessor) is configured to alert on any function code 05 writes from unauthorized IPs.
+
+**Security Relevance**
+
+The security relevance of SCADA/ICS protocols stems from their inherent lack of security features and the criticality of the processes they control.
+
+- **Lack of Authentication:** Most legacy protocols (Modbus, Profibus) have no mechanism to verify the sender's identity. Any device on the network can send commands.
+- **No Encryption:** All data, including passwords (if used) and process values, is transmitted in cleartext. An attacker can sniff traffic to learn system behavior and credentials.
+- **No Integrity Checks:** Without message authentication codes (MACs), an attacker can modify packets in transit (man-in-the-middle) without detection.
+- **Function Code Abuse:** Attackers can use read functions to map the network and exfiltrate data, or write functions to cause physical damage. For example, a "write multiple registers" command could alter a setpoint, causing a turbine to overspeed.
+- **Protocol-Specific Vulnerabilities:** DNP3 has a "secure authentication" extension (SAv5), but it is not universally deployed. IEC 61850 (used in substations) introduces GOOSE (Generic Object Oriented Substation Events) messages, which are multicast and can be spoofed to trip breakers.
+- **Legacy Device Constraints:** Many PLCs and RTUs have limited processing power and memory, making it impossible to add modern security features (TLS, IPsec) without hardware upgrades.
+- **Network Segmentation Bypass:** Even with firewalls, protocols like OPC (which uses DCOM) can be difficult to secure and may allow lateral movement if not properly configured.
+
+**Key Takeaways**
+1.  Legacy SCADA/ICS protocols (Modbus, DNP3, IEC 60870) lack authentication, encryption, and integrity checks, making them inherently vulnerable to spoofing, replay, and command injection attacks.
+2.  Security engineers must implement defense-in-depth: network segmentation (firewalls, one-way diodes), protocol-aware intrusion detection (e.g., Modbus preprocessors), and strict access control lists (ACLs) to mitigate the absence of protocol-level security.
+3.  When modernizing, prioritize protocols with built-in security extensions (e.g., DNP3 Secure Authentication, OPC UA with TLS) and always validate that legacy devices are isolated from untrusted networks.

@@ -1,0 +1,25 @@
+4.11.35: Push To Install
+
+Overview
+This policy setting controls whether users can push Apps to the device from the 
+Microsoft Store App running on other devices or the web. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+In a high security managed environment, application installations should be managed 
+centrally by IT staff, not by end users.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\PushToInstall:DisablePushToInstall
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Push to Install\Turn off Push To 
+Install service
+
+Key Takeaways
+- In a high security managed environment, application installations should be managed  centrally by IT staff, not by end users.

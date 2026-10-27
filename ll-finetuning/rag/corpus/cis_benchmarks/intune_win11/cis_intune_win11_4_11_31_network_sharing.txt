@@ -1,0 +1,31 @@
+4.11.31: Network Sharing
+
+Overview
+This policy setting determines whether users can share files within their profile. By 
+default, users are allowed to share files within their profile to other users on their 
+network after an administrator opts in the computer. An administrator can opt in the 
+computer by using the sharing wizard to share a file within their profile. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+If not properly configured, a user could accidentally share sensitive data with 
+unauthorized users. In an enterprise managed environment, the company should 
+provide a managed location for file sharing, such as a file server or SharePoint, instead 
+of the user sharing files directly from their own user profile.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKU\[USER 
+SID]\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer:NoInplaceSha ring
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Network Sharing\Prevent users 
+from sharing files within their profile. (User)
+
+Key Takeaways
+- If not properly configured, a user could accidentally share sensitive data with  unauthorized users.
+- In an enterprise managed environment, the company should  provide a managed location for file sharing, such as a file server or SharePoint, instead  of the user sharing files directly from their own user profile.

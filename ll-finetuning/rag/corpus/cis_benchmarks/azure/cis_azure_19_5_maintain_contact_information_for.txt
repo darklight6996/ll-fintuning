@@ -1,0 +1,151 @@
+19.5: Maintain Contact Information For Reporting Security (and related controls)
+
+Overview
+Microsoft Defender for Cloud emails the subscription owners whenever a high-severity 
+alert is triggered for their subscription. You should provide a security contact email 
+address as an additional email address.
+
+Enables emailing security alerts to the subscription owner or other designated security 
+contact.
+
+Why This Matters
+Microsoft Defender for Cloud emails the Subscription Owner to notify them about 
+security alerts. Adding your Security Contact's email address to the 'Additional email 
+addresses' field ensures that your organization's Security Team is included in these 
+alerts. This ensures that the proper people are aware of any potential compromise in 
+order to mitigate the risk in a timely fashion.
+
+Enabling security alert emails ensures that security alert emails are sent by Microsoft. 
+This ensures that the right people are aware of any potential security issues and can 
+mitigate the risk.
+
+Audit Steps
+For Maintain Contact Information For Reporting Security:
+Audit from Azure Portal 
+1. From Azure Home select the Portal Menu. 
+2. Select Microsoft Defender for Cloud. 
+3. Under Management, select Environment Settings. 
+4. Click on the appropriate Management Group, Subscription, or Workspace. 
+5. Click on Email notifications. 
+6. Ensure that a valid security contact email address is listed in the Additional 
+email addresses field. 
+Audit from Azure CLI 
+Ensure the output of the below command is not empty and is set with appropriate email 
+ids: 
+az account get-access-token --query 
+"{subscription:subscription,accessToken:accessToken}" --out tsv | xargs -L1 
+bash -c 'curl -X GET -H "Authorization: Bearer $1" -H "Content-Type: 
+application/json" 
+https://management.azure.com/subscriptions/$0/providers/Microsoft.Security/se curityContacts?api-version=2020-01-01-preview' | jq '.|.[] | 
+select(.name=="default")'|jq '.properties.emails' 
+
+ Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: 4f4f78b8-e367-4b10-a341-d9a4ad5cf1c7 - Name: 'Subscriptions 
+should have a contact email address for security issues'
+
+For Maintain Contact Information For Reporting Security:
+Audit from Azure Portal 
+1. From Azure Home select the Portal Menu. 
+2. Select Microsoft Defender for Cloud. 
+3. Under Management, select Environment settings. 
+4. Click on the appropriate Subscription. 
+5. Click on Email notifications. 
+6. Under Notification types, ensure that the box next to Notify about 
+alerts with the following severity (or higher) is checked, and an 
+appropriate severity level is selected. 
+7. Repeat steps 1-6 for each Subscription. 
+Audit from Azure CLI 
+Including a Subscription ID at the $0 in /subscriptions/$0/providers, ensure the 
+below command returns "state": "On", and that "minimalSeverity" is set to an 
+appropriate severity level: 
+az account get-access-token --query 
+"{subscription:subscription,accessToken:accessToken}" --out tsv | xargs -L1 
+bash -c 'curl -X GET -H "Authorization: Bearer $1" -H "Content-Type: 
+application/json" 
+https://management.azure.com/subscriptions/$0/providers/Microsoft.Security/se curityContacts?api-version=2020-01-01-preview' | jq '.|.[] | 
+select(.name=="default")'|jq '.properties.alertNotifications' 
+Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: 6e2593d9-add6-4083-9c9b-4b7d2188c899 - Name: 'Email notification 
+for high severity alerts should be enabled'
+
+Remediation
+For Maintain Contact Information For Reporting Security:
+Remediate from Azure Portal 
+1. From Azure Home select the Portal Menu. 
+2. Select Microsoft Defender for Cloud. 
+3. Under Management, select Environment Settings. 
+4. Click on the appropriate Management Group, Subscription, or Workspace. 
+5. Click on Email notifications. 
+6. Enter a valid security contact email address (or multiple addresses separated by 
+commas) in the Additional email addresses field. 
+7. Click Save. 
+Remediate from Azure CLI 
+Use the below command to set Security contact emails to On. 
+az account get-access-token --query 
+"{subscription:subscription,accessToken:accessToken}" --out tsv | xargs -L1 
+bash -c 'curl -X PUT -H "Authorization: Bearer $1" -H "Content-Type: 
+application/json" 
+https://management.azure.com/subscriptions/$0/providers/Microsoft.Security/se curityContacts/default?api-version=2020-01-01-preview -d@"input.json"' 
+Where input.json contains the data below, replacing validEmailAddress with a 
+single email address or multiple comma-separated email addresses: 
+ { 
+ "id": 
+"/subscriptions/<Your_Subscription_Id>/providers/Microsoft.Security/securityC
+ontacts/default", 
+ "name": "default", 
+ "type": "Microsoft.Security/securityContacts", 
+ "properties": { 
+ "email": "<validEmailAddress>", 
+ "alertNotifications": "On", 
+ "alertsToAdmins": "On" 
+ } 
+ }
+
+For Maintain Contact Information For Reporting Security:
+Remediate from Azure Portal 
+1. From Azure Home select the Portal Menu. 
+2. Select Microsoft Defender for Cloud. 
+3. Under Management, select Environment settings. 
+4. Click on the appropriate Subscription. 
+5. Click on Email notifications. 
+6. Under Notification types, check box next to Notify about alerts with 
+the following severity (or higher) and select an appropriate severity 
+level from the drop-down menu. 
+7. Click Save. 
+8. Repeat steps 1-7 for each Subscription requiring remediation. 
+Remediate from Azure CLI 
+Use the below command to enable Send email notification for high severity 
+alerts: 
+az account get-access-token --query 
+"{subscription:subscription,accessToken:accessToken}" --out tsv | xargs -L1 
+bash -c 'curl -X PUT -H "Authorization: Bearer $1" -H "Content-Type: 
+application/json" 
+https://management.azure.com/subscriptions/<$0>/providers/Microsoft.Security/
+securityContacts/default1?api-version=2017-08-01-preview -d@"input.json"' 
+Where input.json contains the data below, replacing validEmailAddress with a 
+single email address or multiple comma-separated email addresses: [next page] { 
+ "id": 
+"/subscriptions/<subscriptionId>/providers/Microsoft.Security/securityContact s/default", 
+ "name": "default", 
+ "type": "Microsoft.Security/securityContacts", 
+ "properties": { 
+ "email": "<validEmailAddress>", 
+ "alertNotifications": "On", 
+ "alertsToAdmins": "On" 
+ } 
+}
+
+Key Takeaways
+- Microsoft Defender for Cloud emails the Subscription Owner to notify them about  security alerts.
+- Adding your Security Contact's email address to the 'Additional email  addresses' field ensures that your organization's Security Team is included in these  alerts.
+- This ensures that the proper people are aware of any potential compromise in  order to mitigate the risk in a timely fashion.

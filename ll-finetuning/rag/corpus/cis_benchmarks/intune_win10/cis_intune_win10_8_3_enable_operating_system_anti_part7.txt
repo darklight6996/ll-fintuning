@@ -1,0 +1,37 @@
+8.3: Enable Operating System Anti-Exploitation Features/
+
+Overview
+This policy setting specifies whether Virtualization Based Security (VBS) is enabled. 
+VBS uses the Windows Hypervisor to provide support for security services. 
+The recommended state for this setting is: Turns on VBS with Secure Boot or 
+Turns on VBS with Secure Boot and direct memory access (DMA). DMA 
+requires hardware support. 
+Note: VBS requires a 64-bit version of Windows with Secure Boot enabled, which in 
+turn requires that Windows was installed with a UEFI BIOS configuration, not a Legacy 
+BIOS configuration. In addition, if running Windows on a virtual machine, the hardwareassisted CPU virtualization feature (Intel VT-x or AMD-V) must be exposed by the host 
+to the guest VM. 
+More information on system requirements for this feature can be found at Windows 
+Defender Credential Guard Requirements (Windows 10) | Microsoft Docs 
+Note #2: Credential Guard and Device Guard are not currently supported when using 
+Azure IaaS VMs.
+
+Why This Matters
+Secure Boot can help reduce the risk of bootloader attacks and in conjunction with DMA 
+protections to help protect data from being scraped from memory.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1 or 3. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard:RequirePlatformSecurityF
+eatures
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Turns on VBS with Secure Boot or Turns on VBS with 
+Secure Boot and direct memory access (DMA). DMA requires hardware 
+support: 
+Device Guard\Require Platform Security Features
+
+Key Takeaways
+- Secure Boot can help reduce the risk of bootloader attacks and in conjunction with DMA  protections to help protect data from being scraped from memory.

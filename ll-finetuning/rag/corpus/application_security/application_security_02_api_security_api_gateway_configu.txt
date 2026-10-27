@@ -1,0 +1,40 @@
+An API gateway acts as a single, unified entry point for all client requests to a backend microservices architecture. It handles request routing, composition, and protocol translation, but its most critical function in a security context is enforcing authentication, authorization, rate limiting, and input validation before traffic reaches internal services. Without a properly configured gateway, each microservice must independently implement these controls, leading to inconsistent security postures and increased attack surface.
+
+**Key Components of API Gateway Security Configuration**
+
+The security of an API gateway depends on the correct configuration of several interdependent components. Misconfiguration in any one area can create a bypass vector.
+
+- **Authentication and Authorization:** The gateway must validate the identity of every request. This is typically done via OAuth 2.0, OpenID Connect (OIDC), or API keys. The gateway should verify JWT signatures, check token expiration, and optionally validate scopes or claims before forwarding the request. Never forward unauthenticated requests to backend services. For authorization, the gateway can enforce coarse-grained access control (e.g., "admin" vs. "user") but should not replace fine-grained authorization logic within the service itself.
+
+- **Rate Limiting and Throttling:** Configure rate limits per client (by IP, API key, or user ID) to prevent brute-force attacks, credential stuffing, and denial-of-service (DoS) conditions. Use a sliding window algorithm rather than a fixed window to avoid burst traffic spikes. Set separate limits for authentication endpoints (e.g., `/login`) which are more sensitive to brute-force attempts. Implement a tiered approach: a global limit, a per-route limit, and a per-client limit.
+
+- **Input Validation and Sanitization:** The gateway is the first line of defense against injection attacks (SQLi, XSS, command injection). Configure schema validation for request bodies (e.g., using JSON Schema) and enforce strict content-type headers. Reject requests with unexpected fields, malformed payloads, or excessively large bodies. Do not rely solely on the gateway for deep inspection; it should block obvious malicious patterns, but backend services must still validate business logic.
+
+- **TLS Termination and Certificate Management:** Terminate TLS at the gateway to offload encryption overhead from backend services. Use strong cipher suites (e.g., TLS 1.2 or 1.3) and disable deprecated protocols (SSLv3, TLS 1.0, TLS 1.1). Automate certificate renewal with ACME (e.g., Let's Encrypt) or a corporate CA. Ensure the gateway validates client certificates if mutual TLS (mTLS) is used.
+
+- **Routing and Path Security:** Define explicit, whitelist-based routing rules. Do not use wildcard routes that forward to internal services without validation. For example, a route like `/api/v1/users/{id}` should be explicitly mapped to a specific backend service. Block access to internal endpoints (e.g., `/health`, `/metrics`, `/admin`) unless they are intended for external consumption. Use path normalization to prevent path traversal attacks (e.g., `/../` sequences).
+
+- **Logging and Monitoring:** Configure the gateway to log all authentication failures, rate limit violations, and requests with invalid schemas. Log the client IP, request URI, HTTP method, response status code, and timestamp. Forward logs to a centralized SIEM for correlation and alerting. Do not log sensitive data such as passwords, tokens, or PII. Set up alerts for anomalous patterns, such as a sudden spike in 401 errors from a single IP.
+
+- **CORS Configuration:** If the gateway serves web applications, configure Cross-Origin Resource Sharing (CORS) strictly. Only allow specific origins, methods, and headers. Avoid using the wildcard `*` for `Access-Control-Allow-Origin` in production. Validate the `Origin` header server-side to prevent reflection attacks.
+
+**Real-World Application: Securing a Payment Processing API**
+
+Consider a financial services company that exposes a payment processing API through an API gateway. The gateway is configured with the following security controls:
+
+1.  **Authentication:** All requests must include a JWT issued by the company’s OIDC provider. The gateway validates the JWT signature using the provider’s public key, checks the `exp` claim, and verifies the `scope` claim contains `payment:write` for POST requests to `/payments`.
+2.  **Rate Limiting:** The `/payments` endpoint is limited to 10 requests per minute per API key. The `/auth/token` endpoint is limited to 5 requests per minute per IP to prevent brute-force attacks on the login flow.
+3.  **Input Validation:** The gateway enforces a JSON schema for the payment request body. It rejects requests with missing required fields (e.g., `amount`, `currency`), fields with incorrect data types (e.g., string instead of number), or fields exceeding maximum length (e.g., `description` > 255 characters).
+4.  **TLS:** All traffic is encrypted with TLS 1.3. The gateway terminates TLS and forwards requests to internal services over a private network using HTTP.
+5.  **Logging:** Every rejected request (due to authentication failure, rate limit, or schema validation) is logged with the client IP, timestamp, and reason for rejection. These logs are ingested into a SIEM that triggers an alert if more than 50 authentication failures occur from a single IP within 5 minutes.
+
+In this configuration, the gateway prevents common attack vectors. A credential stuffing attack is blocked by the rate limit on `/auth/token`. A SQL injection attempt in the `description` field is blocked by schema validation. A DoS attempt is mitigated by the per-client rate limit on `/payments`.
+
+**Security Relevance**
+
+The API gateway is a critical security boundary. It enforces the principle of least privilege by ensuring that only authenticated and authorized requests reach internal services. It provides a centralized point for implementing defense-in-depth controls, reducing the attack surface of the entire microservices ecosystem. A misconfigured gateway can expose internal service endpoints, allow unauthenticated access, or fail to throttle malicious traffic, leading to data breaches or service outages. Regular security audits of gateway configuration—including route definitions, rate limit thresholds, and authentication flows—are essential. Use automated tools to scan for common misconfigurations, such as exposed debug endpoints or permissive CORS policies.
+
+**Key Takeaways**
+- An API gateway must enforce authentication, authorization, rate limiting, and input validation at the entry point; never rely on backend services alone for these controls.
+- Configure explicit, whitelist-based routing rules and strict CORS policies to prevent path traversal and cross-origin attacks.
+- Log all security-relevant events (authentication failures, rate limit violations, schema rejections) and forward them to a SIEM for real-time alerting and forensic analysis.

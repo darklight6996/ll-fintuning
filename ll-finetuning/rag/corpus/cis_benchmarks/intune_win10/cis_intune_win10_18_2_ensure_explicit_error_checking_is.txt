@@ -1,0 +1,36 @@
+18.2: Ensure Explicit Error Checking is Performed for All Inhouse Developed Software
+
+Overview
+This policy setting prohibits users from connecting to a computer from across the 
+network, which would allow users to access and potentially modify data remotely. In 
+high security environments, there should be no need for remote users to access data on 
+a computer. Instead, file sharing should be accomplished through the use of network 
+servers. This user right supersedes the Access Computer From Network user right if 
+an account is subject to both policies. 
+The recommended state for this setting is to include: *S-1-5-32-546 and *S-1-5-113 
+(Guests, Local account). 
+Caution: Configuring a standalone (non-domain-joined) workstation as described above 
+may result in an inability to remotely administer the workstation. 
+Note: The security identifier Local account is not available in Windows 7 and 
+Windows 8.0 unless MSKB 2871997 has been installed.
+
+Why This Matters
+Users who can log on to the computer over the network can enumerate lists of account 
+names, group names, and shared resources. Users with permission to access shared 
+folders and files can connect over the network and possibly view or modify data.
+
+Audit Steps
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Deny access to this 
+computer from the network
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-546 and *S-1-5-113 (Guests, Local account). 
+User Rights\Deny Access From Network 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+Key Takeaways
+- Users who can log on to the computer over the network can enumerate lists of account  names, group names, and shared resources.
+- Users with permission to access shared  folders and files can connect over the network and possibly view or modify data.

@@ -1,0 +1,32 @@
+49.1: (L1) Ensure 'Accounts: Enable Guest account status' is set
+
+Overview
+This policy setting determines whether the Guest account is enabled or disabled. The 
+Guest account allows unauthenticated network users to gain access to the system. 
+The recommended state for this setting is: Disabled. 
+Note: This setting will have no impact when applied to the Domain Controllers 
+organizational unit via group policy because Domain Controllers have no local account 
+database. It can be configured at the domain level via group policy, similar to account 
+lockout and password policy settings.
+
+Why This Matters
+The default Guest account allows unauthenticated network users to log on as Guest 
+with no password. These unauthorized users could access any resources that are 
+accessible to the Guest account over the network. This capability means that any 
+network shares with permissions that allow access to the Guest account, the Guests 
+group, or the Everyone group will be accessible over the network, which could lead to 
+the exposure or corruption of data.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed.
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled: 
+Local Policies Security Options\Accounts: Guest account status
+
+Key Takeaways
+- The default Guest account allows unauthenticated network users to log on as Guest  with no password.
+- These unauthorized users could access any resources that are  accessible to the Guest account over the network.
+- This capability means that any  network shares with permissions that allow access to the Guest account, the Guests  group, or the Everyone group will be accessible over the network, which could lead to  the exposure or corruption of data.

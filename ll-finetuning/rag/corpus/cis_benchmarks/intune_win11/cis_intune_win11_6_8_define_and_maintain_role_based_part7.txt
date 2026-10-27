@@ -1,0 +1,107 @@
+6.8: Define and Maintain Role-Based Access Control (and related controls)
+
+Overview
+This policy setting determines which users can use tools to monitor the performance of 
+non-system processes. Typically, you do not need to configure this user right to use the 
+Microsoft Management Console (MMC) Performance snap-in. However, you do need 
+this user right if System Monitor is configured to collect data using Windows 
+Management Instrumentation (WMI). Restricting the Profile single process user right 
+prevents intruders from gaining additional information that could be used to mount an 
+attack on the system. 
+The recommended state for this setting is: *S-1-5-32-544 (Administrators).
+
+This policy setting allows users to use tools to view the performance of different system 
+processes, which could be abused to allow attackers to determine a system's active 
+processes and provide insight into the potential attack surface of the computer. 
+The recommended state for this setting is: *S-1-5-32-544, *S-1-5-80 
+(Administrators, NT SERVICE\WdiServiceHost).
+
+This policy setting allows users to shut down Windows Vista-based or newer computers 
+from remote locations on the network. Anyone who has been assigned this user right 
+can cause a denial of service (DoS) condition, which would make the computer 
+unavailable to service user requests. Therefore, it is recommended that only highly 
+trusted administrators be assigned this user right. 
+The recommended state for this setting is: *S-1-5-32-544 (Administrators).
+
+This policy setting allows one process or service to start another service or process with 
+a different security access token, which can be used to modify the security access token 
+of that sub-process and result in the escalation of privileges. 
+The recommended state for this setting is: *S-1-5-19, *S-1-5-20 (LOCAL SERVICE, 
+NETWORK SERVICE). 
+Note: This user right is considered a "sensitive privilege" for the purposes of auditing.
+
+Why This Matters
+The Profile single process user right presents a moderate vulnerability. An attacker 
+with this user right could monitor a computer's performance to help identify critical 
+processes that they might wish to attack directly. The attacker may also be able to 
+determine what processes run on the computer so that they could identify 
+countermeasures that they may need to avoid, such as antivirus software, an intrusiondetection system, or which other users are logged on to a computer.
+
+The Profile system performance user right poses a moderate vulnerability. Attackers 
+with this user right could monitor a computer's performance to help identify critical 
+processes that they might wish to attack directly. Attackers may also be able to 
+determine what processes are active on the computer so that they could identify 
+countermeasures that they may need to avoid, such as antivirus software or an intrusion 
+detection system.
+
+Any user who can shut down a computer could cause a DoS condition to occur. 
+Therefore, this user right should be tightly restricted.
+
+Users with the Replace a process level token privilege are able to start processes as 
+other users whose credentials they know. They could use this method to hide their 
+unauthorized actions on the computer. (On Windows 2000-based computers, use of the 
+Replace a process level token user right also requires the user to have the Adjust 
+memory quotas for a process user right that is discussed earlier in this section.)
+
+Audit Steps
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Profile single 
+process
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Profile system 
+performance
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Force shutdown from a 
+remote system
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Replace a process 
+level token
+
+Remediation
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 (Administrators). 
+User Rights\Profile single process 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544, *S-1-5-80 (Administrators, NT 
+SERVICE\WdiServiceHost). 
+User Rights\Profile System Performance
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 (Administrators). 
+User Rights\Remote Shutdown 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-19, *S-1-5-20 (LOCAL SERVICE, NETWORK 
+SERVICE). 
+User Rights\Replace Process Level Token
+
+Key Takeaways
+- The Profile single process user right presents a moderate vulnerability.
+- An attacker  with this user right could monitor a computer's performance to help identify critical  processes that they might wish to attack directly.
+- The attacker may also be able to  determine what processes run on the computer so that they could identify  countermeasures that they may need to avoid, such as antivirus software, an intrusiondetection system, or which other users are logged on to a computer.

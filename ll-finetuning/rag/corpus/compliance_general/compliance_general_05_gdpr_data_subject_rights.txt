@@ -1,0 +1,48 @@
+Data subject rights are the individual entitlements granted to natural persons under the General Data Protection Regulation (GDPR) regarding the processing of their personal data. For a security engineer, these rights translate into specific technical and procedural obligations that must be implemented, tested, and maintained within data processing systems. Non-compliance can result in fines up to 4% of annual global turnover or €20 million, whichever is higher, and can trigger mandatory breach notifications.
+
+**Key Components**
+
+The GDPR defines eight core data subject rights, each with distinct technical implications:
+
+- **Right to be Informed (Articles 13-14):** Requires that data subjects receive privacy notices at the point of data collection. Security engineers must ensure that data capture mechanisms (e.g., web forms, API endpoints, IoT sensors) trigger the delivery of a compliant notice before or at the time of collection. This often involves integrating consent management platforms (CMPs) and logging the version of the notice shown to each user.
+
+- **Right of Access (Article 15):** The data subject can request confirmation of whether their data is being processed and obtain a copy. Implementation requires a secure, authenticated portal or API endpoint that can query all data stores (databases, data lakes, backups, logs) for records tied to a specific identifier (e.g., email, user ID). The response must be provided within one month, free of charge, in a commonly used electronic format (e.g., JSON, CSV). Security engineers must ensure this endpoint is rate-limited and logged to prevent abuse (e.g., scraping).
+
+- **Right to Rectification (Article 16):** Allows correction of inaccurate personal data. This requires write-access controls that allow a data subject to update specific fields without granting broader modification rights. The system must propagate the correction to all downstream systems and data processors, including backups and analytics pipelines. A version history or audit log of changes is essential for compliance.
+
+- **Right to Erasure (Right to be Forgotten) (Article 17):** Obligates the controller to delete personal data without undue delay. This is technically complex because data may exist in multiple locations: production databases, caches, logs, backups, archives, and third-party processors. A security engineer must implement a deletion workflow that: (a) identifies all data locations via a data mapping exercise, (b) executes deletion commands (e.g., SQL DELETE, file removal, object lifecycle policies), (c) verifies deletion via checksum or count queries, and (d) logs the entire process. For backups, deletion may require re-encrypting the backup with a new key and destroying the old key, effectively making the data unrecoverable.
+
+- **Right to Restrict Processing (Article 18):** Allows a data subject to temporarily halt processing of their data (e.g., while a rectification request is pending). Implementation requires a flag or state machine on the data subject’s record that prevents any processing operation except storage. All automated workflows (e.g., marketing emails, recommendation engines, credit scoring) must check this flag before acting. Security engineers must ensure this flag is enforced at the application layer and not bypassed by direct database queries.
+
+- **Right to Data Portability (Article 20):** Requires providing the data subject with their data in a structured, commonly used, machine-readable format (e.g., CSV, JSON, XML) and, where technically feasible, transmitting it directly to another controller. This demands a secure export API that extracts all data linked to the subject, transforms it into the required format, and delivers it via an encrypted channel (HTTPS, SFTP). The export must not include data of other subjects (e.g., in a shared document).
+
+- **Right to Object (Article 21):** Allows a data subject to object to processing based on legitimate interests or direct marketing. This requires a mechanism for the subject to submit an objection (e.g., via a preference center) and a system that immediately stops the contested processing. For direct marketing, the objection must be honored without exception. Security engineers must ensure that objection flags are checked in real-time before any processing action.
+
+- **Rights Related to Automated Decision-Making and Profiling (Article 22):** Grants the right not to be subject to a decision based solely on automated processing that produces legal effects. This requires that any automated decision system (e.g., credit scoring, hiring algorithms) provide a human review option. Security engineers must implement a logging system that captures the input data, the algorithm version, the output decision, and the ability to flag the decision for manual review.
+
+**Real-World Application**
+
+Consider a SaaS platform that processes customer data for analytics. A data subject submits a deletion request. The security engineer must:
+
+1.  Authenticate the requestor (e.g., via a verified email link or two-factor authentication).
+2.  Query the data mapping database to identify all tables, S3 buckets, log groups, and third-party APIs containing that subject’s data.
+3.  Execute deletion commands: `DELETE FROM user_profiles WHERE user_id = X`, `DELETE FROM event_logs WHERE user_id = X`, apply an S3 lifecycle policy to delete objects with prefix `user_X/`.
+4.  For backups taken before the deletion, rotate the encryption key used for that backup set and destroy the old key, rendering the data inaccessible.
+5.  Send a deletion confirmation to the subject and log the request ID, timestamp, and actions taken for audit purposes.
+6.  Verify that the subject’s data is no longer returned by any query.
+
+**Security Relevance**
+
+Data subject rights are not just compliance checkboxes; they are security controls. The right of access, if poorly implemented, can become an account enumeration or data exfiltration vector. The right to erasure, if not properly scoped, can lead to incomplete data deletion, leaving residual data vulnerable to breach. The right to data portability, if not rate-limited, can be used to extract large volumes of data in a short time. Security engineers must:
+
+-   Implement strong authentication and authorization for all rights request portals.
+-   Apply rate limiting and anomaly detection to prevent automated abuse.
+-   Ensure that deletion and export workflows are logged and monitored for unauthorized attempts.
+-   Test that data is truly unrecoverable after erasure (e.g., via forensic analysis of storage media).
+-   Validate that third-party processors honor deletion and rectification requests within the required timeframe.
+
+**Key Takeaways**
+
+-   Data subject rights require technical controls that span authentication, data mapping, secure deletion, export, and logging across all data stores and processors.
+-   The right to erasure is the most technically challenging to implement due to data replication in backups, caches, and third-party systems; encryption key rotation is a viable method for backup deletion.
+-   Each rights request endpoint is a potential attack surface; implement rate limiting, authentication, and audit logging to prevent abuse and data exfiltration.

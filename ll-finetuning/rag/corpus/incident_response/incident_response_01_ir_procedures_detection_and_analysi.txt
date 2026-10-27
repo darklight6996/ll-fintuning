@@ -1,0 +1,37 @@
+Detection and analysis of security incidents is the phase within incident response (IR) procedures where raw telemetry, alerts, and logs are systematically evaluated to confirm an incident, determine its scope, and characterize the adversary’s actions. This phase directly follows initial triage and precedes containment, eradication, and recovery. The primary goal is to transform ambiguous signals into actionable intelligence that drives decision-making. Without rigorous detection and analysis, an organization cannot distinguish between a false positive, a low-severity event, and a full-scale compromise.
+
+**Key Components**
+
+Effective detection and analysis relies on several interdependent components:
+
+- **Data Collection and Normalization**: All relevant data sources must be aggregated into a centralized platform, typically a Security Information and Event Management (SIEM) system or a data lake. Critical sources include endpoint detection and response (EDR) logs, network flow records (NetFlow/IPFIX), firewall and proxy logs, DNS query logs, authentication logs (Windows Event ID 4624/4625, Linux auth.log), and cloud API logs (AWS CloudTrail, Azure Activity Log). Data must be normalized to a common schema (e.g., OCSF, ECS) to enable cross-correlation.
+
+- **Alert Triage and Prioritization**: Raw alerts are rarely actionable. Analysts must apply a triage framework that considers the alert’s severity, the asset’s criticality, and the MITRE ATT&CK technique involved. A common approach is to use a priority matrix: high-severity alerts on critical assets receive immediate investigation; low-severity alerts on non-critical assets may be batched for review. Automated enrichment—such as threat intelligence lookups (IPs, hashes, domains) and asset inventory checks—reduces manual effort.
+
+- **Correlation and Context Building**: Single alerts are insufficient. Analysts must correlate events across time and data sources to reconstruct the attack chain. For example, a suspicious outbound connection from a workstation should be correlated with a preceding phishing email, a process launch (e.g., rundll32.exe), and a registry modification. This step often involves pivot queries: searching for the same IP across all logs, or hunting for lateral movement using RDP or SMB event IDs.
+
+- **Indicators of Compromise (IoC) Extraction**: During analysis, specific artifacts are identified and documented. These include file hashes (MD5, SHA-1, SHA-256), IP addresses, domain names, registry keys, mutexes, and YARA rules. IoCs are used for immediate containment (e.g., blocking an IP on a firewall) and for retrospective hunting across historical data.
+
+- **Timeline Reconstruction**: A chronological sequence of events is built to understand the attack lifecycle. This timeline should include initial access, persistence mechanisms, privilege escalation, lateral movement, and data exfiltration or impact. Tools like Plaso (log2timeline) or custom scripts can automate timeline generation from multiple log sources.
+
+- **Root Cause Analysis (RCA)**: The final analytical step identifies the specific vulnerability, misconfiguration, or user action that allowed the incident to occur. RCA is distinct from attribution; it focuses on the technical failure, not the threat actor. Common findings include unpatched software, weak credentials, misconfigured cloud storage, or successful phishing.
+
+**Real-World Application**
+
+Consider a scenario where an EDR alert fires for a PowerShell process executing a base64-encoded command on a domain controller. The detection and analysis process proceeds as follows:
+
+1. **Data Collection**: The SIEM ingests the EDR alert, along with Windows Security logs, DNS logs, and network flow data from the past 72 hours.
+2. **Triage**: The alert is tagged as high severity because the asset is a domain controller. Automated enrichment shows the source IP is internal (no immediate threat intel hit), but the encoded command decodes to a known C2 download cradle.
+3. **Correlation**: The analyst queries for other events from the same source host. They find a successful RDP login from a compromised workstation 10 minutes prior (Event ID 4624 with logon type 10). The workstation shows a previous phishing email with a macro-enabled document.
+4. **IoC Extraction**: The decoded command reveals a URL (evil[.]com/payload.dll) and a SHA-256 hash of the downloaded file. These are added to the blocklist and shared with the threat intel platform.
+5. **Timeline Reconstruction**: The analyst builds a timeline: phishing email received (T0), macro executed (T0+2min), C2 beacon established (T0+5min), lateral movement via RDP to DC (T0+30min), PowerShell execution on DC (T0+35min). This timeline confirms the attack path.
+6. **Root Cause Analysis**: The root cause is identified as the user clicking the phishing link and the absence of application control (e.g., AppLocker) blocking PowerShell on the DC. The RCA report recommends implementing constrained language mode for PowerShell and enabling phishing-resistant MFA.
+
+**Security Relevance**
+
+Detection and analysis directly determines the effectiveness of the entire IR process. Inaccurate analysis leads to missed threats, wasted resources on false positives, and delayed containment. Conversely, thorough analysis enables precise containment (e.g., isolating only the compromised host rather than the entire subnet) and informs long-term security improvements. From a compliance perspective, regulatory frameworks (PCI DSS, HIPAA, NIST SP 800-61) mandate documented detection and analysis procedures. Auditors will examine whether the organization can demonstrate a repeatable process for confirming incidents, preserving evidence, and producing a timeline. Failure to perform adequate analysis can result in regulatory fines, legal liability, and reputational damage. Additionally, the artifacts and intelligence generated during analysis feed into threat hunting and detection engineering, closing the loop on the security operations lifecycle.
+
+**Key Takeaways**
+- Detection and analysis is a structured, data-driven process that transforms raw alerts into a confirmed incident with a reconstructed timeline and root cause.
+- Effective analysis requires centralized log aggregation, cross-source correlation, and automated enrichment to reduce manual effort and improve accuracy.
+- The output of this phase—IoCs, timelines, and RCA findings—directly enables containment, drives security improvements, and satisfies compliance requirements.

@@ -1,0 +1,71 @@
+Analytics rule creation is the process of defining detection logic within a Security Information and Event Management (SIEM) system, specifically using Kusto Query Language (KQL) in Microsoft Sentinel, to identify suspicious activity, policy violations, and potential security incidents. A rule defines the conditions under which an alert is generated from ingested log data. Without properly crafted rules, raw telemetry remains noise; with them, it becomes actionable intelligence.
+
+**Key Components of an Analytics Rule**
+
+Every analytics rule in Sentinel is composed of several mandatory and optional elements that determine its behavior, performance, and reliability.
+
+- **Data Source and Table Selection:** The rule must specify which log tables to query. This is the first line of performance optimization. Querying `SigninLogs` for authentication anomalies is efficient; querying `SecurityEvent` for the same purpose is not. Use the `let` statement to define time ranges and scope variables, but avoid cross-table joins unless absolutely necessary, as they increase latency and cost.
+
+- **Detection Logic (KQL Query):** This is the core of the rule. The query must be deterministic and efficient. Use time-bound filters (`where Timestamp > ago(1h)`) as early as possible. Avoid `extend` and `project` before filtering. For threat detection, common patterns include:
+  - **Threshold-based:** Count of failed logins > 10 in 5 minutes.
+  - **Sequence-based:** A successful login followed by a privileged role assignment within 60 seconds.
+  - **Anomaly-based:** Comparing current behavior to a baseline using `series_decompose` or `percentiles`.
+  - **Lookup-based:** Matching IP addresses against a threat intelligence feed using `lookup` or `join` with a `ThreatIntelligenceIndicator` table.
+
+- **Alert Enrichment:** Each rule can add context to the generated alert. Use `extend` to add custom fields like `AlertName`, `Severity`, and `Description`. Populate `Tactics` and `Techniques` using the MITRE ATT&CK framework (e.g., `Tactic: "InitialAccess"`, `Technique: "T1078"`). This enrichment is critical for automated response playbooks and for analysts triaging alerts.
+
+- **Entity Mapping:** This component links the raw data fields to Sentinel entities (e.g., Account, IP, Host, URL). Proper mapping enables investigation graphs and automated correlation. For example, map `UserPrincipalName` to the `Account` entity and `SourceIP` to the `IP` entity. Incorrect mapping breaks automated workflows.
+
+- **Rule Scheduling and Suppression:** Define how often the rule runs (e.g., every 5 minutes) and the lookback period (e.g., 5 minutes of data). Suppression settings prevent duplicate alerts for the same entity within a defined window. For example, suppress alerts for the same `Account` for 1 hour after the first alert fires. This reduces alert fatigue.
+
+- **Incident Creation:** Choose whether the alert automatically creates an incident. For high-fidelity rules (e.g., known malware beaconing), enable automatic incident creation. For low-fidelity or informational rules, disable it and use the alert only for hunting or enrichment.
+
+**Real-World Application: Detecting Lateral Movement via Pass-the-Hash**
+
+Consider a scenario where an attacker uses a compromised account to move laterally using Pass-the-Hash (PtH) techniques. A single failed login is noise; a pattern of successful logins from a single source to multiple distinct hosts using NTLM authentication is suspicious.
+
+A rule for this would:
+1.  Query `SecurityEvent` (Event ID 4624: Logon Type 3, Logon Process: NtLmSsp).
+2.  Filter for `TargetUserName` not in a predefined list of service accounts (to reduce false positives).
+3.  Aggregate by `TargetUserName` and `IpAddress` over a 1-hour lookback.
+4.  Count distinct `Computer` values. If the count exceeds 3, generate an alert.
+5.  Enrich the alert with MITRE technique T1550.002 (Use Alternate Authentication Material: Pass-the-Hash).
+6.  Map `TargetUserName` to the Account entity and `IpAddress` to the IP entity.
+
+The KQL skeleton:
+
+```kusto
+let threshold = 3;
+let timeframe = 1h;
+let excludeAccounts = dynamic(["svc_backup", "svc_monitor"]);
+SecurityEvent
+| where TimeGenerated > ago(timeframe)
+| where EventID == 4624
+| where LogonType == 3
+| where LogonProcess == "NtLmSsp"
+| where TargetUserName !in (excludeAccounts)
+| summarize dcount(Computer) by TargetUserName, IpAddress
+| where dcount_Computer > threshold
+| extend AlertName = "Potential Pass-the-Hash Lateral Movement"
+| extend Severity = "High"
+| extend Tactics = "LateralMovement"
+| extend Technique = "T1550.002"
+```
+
+This rule is directly useful: it detects a specific attacker behavior, minimizes false positives by excluding known service accounts, and provides context for immediate investigation.
+
+**Security Relevance**
+
+Analytics rules are the primary mechanism for converting raw logs into security incidents. Their relevance spans three critical areas:
+
+- **Detection Coverage:** Rules operationalize the MITRE ATT&CK framework. Without rules mapping to techniques like T1078 (Valid Accounts) or T1059 (Command and Scripting Interpreter), the SIEM is blind to those attack vectors. A rule set must be continuously updated to cover new techniques and threat intelligence.
+
+- **Operational Efficiency:** A well-written rule reduces the time an analyst spends on triage. Enriched alerts with entity mapping allow automated playbooks to quarantine a host or disable an account without human intervention. Poorly written rules (e.g., broad queries with high volume) generate noise that desensitizes the SOC and buries true positives.
+
+- **Compliance and Reporting:** Many compliance frameworks (PCI DSS, HIPAA, NIST 800-53) require automated monitoring and alerting for specific events. Analytics rules provide the audit trail. For example, a rule detecting changes to privileged group membership satisfies the requirement for monitoring administrative account modifications.
+
+**Key Takeaways**
+
+- An analytics rule is only as good as its KQL query: filter early, use specific event IDs, and avoid expensive joins to ensure performance and accuracy.
+- Always map entities and enrich alerts with MITRE ATT&CK tactics and techniques to enable automated response and efficient triage.
+- Regularly review and tune rule thresholds and suppression settings based on false positive rates and evolving threat intelligence to maintain detection fidelity.

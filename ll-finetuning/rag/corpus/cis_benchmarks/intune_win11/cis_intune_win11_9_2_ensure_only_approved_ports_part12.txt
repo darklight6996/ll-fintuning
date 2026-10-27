@@ -1,0 +1,138 @@
+9.2: Ensure Only Approved Ports, Protocols and Services (and related controls)
+
+Overview
+Discovers networked devices and services that use the SSDP discovery protocol, such 
+as UPnP devices. Also announces SSDP devices and services running on the local 
+computer. 
+The recommended state for this setting is: Disabled.
+
+Allows UPnP devices to be hosted on this computer. 
+The recommended state for this setting is: Disabled.
+
+The Web Management Service enables remote and delegated management capabilities 
+for administrators to manage for the Web server, sites and applications present on the 
+machine. 
+The recommended state for this setting is: Disabled or Not Installed. 
+Note: This service is not installed by default. It is supplied with Windows, but is installed 
+by enabling an optional Windows feature (Internet Information Services - Web 
+Management Tools - IIS Management Service).
+
+Allows errors to be reported when programs stop working or responding and allows 
+existing solutions to be delivered. Also allows logs to be generated for diagnostic and 
+repair services. 
+The recommended state for this setting is: Disabled.
+
+This service manages persistent subscriptions to events from remote sources that 
+support WS-Management protocol. This includes Windows Vista event logs, hardware 
+and IPMI-enabled event sources. The service stores forwarded events in a local Event 
+Log. 
+The recommended state for this setting is: Disabled.
+
+Shares Windows Media Player libraries to other networked players and media devices 
+using Universal Plug and Play. 
+The recommended state for this setting is: Disabled or Not Installed.
+
+Why This Matters
+Universal Plug n Play (UPnP) is a real security risk - it allows automatic discovery and 
+attachment to network devices. Note that UPnP is different than regular Plug n Play 
+(PnP). Workstations should not be advertising their services (or automatically 
+discovering and connecting to networked services) in a security-conscious enterprise 
+managed environment.
+
+Universal Plug n Play (UPnP) is a real security risk - it allows automatic discovery and 
+attachment to network devices. Notes that UPnP is different than regular Plug n Play 
+(PnP). Workstations should not be advertising their services (or automatically 
+discovering and connecting to networked services) in a security-conscious enterprise 
+managed environment.
+
+Remote web administration of IIS on a workstation is an increased security risk, as the 
+attack surface of that workstation is then greatly increased. If proper security mitigations 
+are not followed, the chance of successful attack increases significantly.
+
+If a Windows Error occurs in a secure, enterprise managed environment, the error 
+should be reported directly to IT staff for troubleshooting and remediation. There is no 
+benefit to the corporation to report these errors directly to Microsoft, and there is some 
+risk of unknowingly exposing sensitive data as part of the error.
+
+In a high security environment, remote connections to secure workstations should be 
+minimized, and management functions should be done locally.
+
+Network sharing of media from Media Player has no place in an enterprise managed 
+environment.
+
+Audit Steps
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\SSDPSRV:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\upnphost:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4 or that the key does not exist. 
+HKLM\SYSTEM\CurrentControlSet\Services\WMSvc:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\WerSvc:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\Wecsvc:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4 or that the key does not exist. 
+HKLM\SYSTEM\CurrentControlSet\Services\WMPNetworkSvc:Start
+
+Remediation
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration, set the following Custom Configuration 
+Policy to 4: 
+Name: <Enter name>
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration, set the following Custom Configuration 
+Policy to 4: 
+Name: <Enter name>
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration, set the following Custom Configuration 
+Policy to 4 or confirm that the service is Not installed: 
+Name: <Enter name>
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name WerSvc -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name Wecsvc -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration, set the following Custom Configuration 
+Policy to 4 or confirm that the service is Not installed: 
+Name: <Enter name>
+
+Key Takeaways
+- Universal Plug n Play (UPnP) is a real security risk - it allows automatic discovery and  attachment to network devices.
+- Note that UPnP is different than regular Plug n Play  (PnP).
+- Workstations should not be advertising their services (or automatically  discovering and connecting to networked services) in a security-conscious enterprise  managed environment.

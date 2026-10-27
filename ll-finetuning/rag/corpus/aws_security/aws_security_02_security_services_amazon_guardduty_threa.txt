@@ -1,0 +1,47 @@
+Amazon GuardDuty is a managed threat detection service that continuously monitors AWS accounts, workloads, and data stores for malicious activity and unauthorized behavior. It ingests and analyzes multiple data sources—including AWS CloudTrail management and data events, VPC Flow Logs, and DNS query logs—using machine learning, anomaly detection, and integrated threat intelligence. GuardDuty operates without requiring additional software agents or network infrastructure changes, making it a foundational layer for security monitoring in AWS environments.
+
+**Key Components**
+
+GuardDuty’s detection capability is built on three primary data sources, each providing distinct visibility:
+
+- **AWS CloudTrail Events**: GuardDuty analyzes both management events (e.g., IAM role creation, S3 bucket policy changes) and data events (e.g., S3 object-level API calls). This enables detection of suspicious API activity such as credential exfiltration, privilege escalation attempts, or reconnaissance patterns like repeated DescribeInstances calls from an unfamiliar IP.
+
+- **VPC Flow Logs**: By examining network traffic metadata (source/destination IP, ports, protocols), GuardDuty identifies anomalous communication patterns. Examples include traffic to known command-and-control (C2) servers, port scanning from compromised EC2 instances, or data exfiltration attempts via unusual outbound connections.
+
+- **DNS Query Logs**: DNS resolution data reveals domain-based threats such as connections to malicious domains, algorithmically generated domain names (DGA), or DNS tunneling. GuardDuty correlates DNS queries with threat intelligence feeds to flag domains associated with malware, phishing, or cryptomining.
+
+GuardDuty organizes findings into severity levels (Low, Medium, High, Critical) and categories such as Backdoor, Behavior, CryptoCurrency, Pentest, Persistence, PrivilegeEscalation, Recon, ResourceConsumption, Stealth, Trojan, and UnauthorizedAccess. Each finding includes a detailed description, affected resources, evidence, and remediation recommendations.
+
+**Real-World Application**
+
+A common deployment pattern is enabling GuardDuty across all accounts in an AWS Organization using delegated administrator accounts. This centralizes findings into a single dashboard while maintaining per-account detection. Security teams then integrate GuardDuty with AWS Security Hub for aggregated alerting and with AWS Lambda for automated response.
+
+Example scenario: A developer accidentally exposes an AWS access key in a public GitHub repository. An attacker discovers the key and uses it to launch EC2 instances for cryptomining. GuardDuty detects this through multiple signals:
+- CloudTrail events showing RunInstances from an unfamiliar IP with no prior history
+- DNS queries to known cryptomining pool domains
+- VPC Flow Logs showing sustained outbound traffic to mining pool IPs
+
+GuardDuty generates a "CryptoCurrency:EC2/BitcoinTool.B!DNS" finding. The security team’s automated playbook triggers a Lambda function that isolates the compromised instance by modifying the security group and revokes the IAM credentials. The finding is also forwarded to Security Hub and a SIEM for further analysis.
+
+Another common use case is detecting S3 data exfiltration. GuardDuty monitors S3 data events for patterns like "S3ObjectRead" from an anomalous geolocation or "S3ObjectPut" with ACL changes that make objects public. The "Stealth:S3/ServerAccessLoggingDisabled" finding alerts when logging is disabled, which may indicate an attacker covering tracks.
+
+**Security Relevance**
+
+GuardDuty addresses several critical security gaps in cloud environments:
+
+- **Visibility into ephemeral resources**: Traditional perimeter-based monitoring fails for short-lived EC2 instances or Lambda functions. GuardDuty’s agentless approach captures activity regardless of resource lifecycle.
+
+- **Threat intelligence integration**: GuardDuty continuously ingests threat feeds from AWS, CrowdStrike, and Proofpoint, as well as internal AWS threat research. This provides up-to-date coverage for known malicious IPs, domains, and file hashes without manual feed management.
+
+- **Anomaly detection for baseline behavior**: Machine learning models establish normal patterns for each account (e.g., typical API call volume, geolocation of access, time-of-day activity). Deviations trigger findings, catching zero-day or low-and-slow attacks that signature-based tools miss.
+
+- **Compliance support**: GuardDuty findings map to common frameworks like CIS AWS Foundations Benchmark, NIST CSF, and PCI DSS. For example, the "UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration" finding directly maps to CIS control 3.14 (ensure IAM credentials are not used from unexpected locations).
+
+- **Reducing mean time to detect (MTTD)**: Automated, continuous analysis eliminates the lag between threat occurrence and human review. Findings are generated within minutes of suspicious activity, enabling rapid containment.
+
+GuardDuty is not a replacement for host-based detection (e.g., antivirus, EDR) or network firewalls. It complements these tools by providing cloud-layer visibility that on-premises solutions cannot achieve. For maximum effectiveness, enable GuardDuty in all regions and accounts, configure suppression rules for known benign activity (e.g., internal vulnerability scanning), and integrate findings with incident response workflows.
+
+**Key Takeaways**
+- GuardDuty provides agentless, continuous threat detection across AWS accounts by analyzing CloudTrail, VPC Flow Logs, and DNS logs with ML and threat intelligence.
+- Real-world value comes from automated response integration—Lambda functions triggered by findings can isolate compromised resources and revoke credentials in seconds.
+- GuardDuty is essential for compliance and visibility but must be paired with host-level security tools and a defined incident response process to fully close detection gaps.

@@ -1,0 +1,136 @@
+9.2: Ensure Only Approved Ports, Protocols and Services (and related controls)
+
+Overview
+This service manages persistent subscriptions to events from remote sources that 
+support WS-Management protocol. This includes Windows Vista event logs, hardware 
+and IPMI-enabled event sources. The service stores forwarded events in a local Event 
+Log. 
+The recommended state for this setting is: Disabled.
+
+Shares Windows Media Player libraries to other networked players and media devices 
+using Universal Plug and Play. 
+The recommended state for this setting is: Disabled or Not Installed.
+
+Provides the ability to share a cellular data connection with another device. 
+The recommended state for this setting is: Disabled.
+
+This service runs in session 0 and hosts the notification platform and connection 
+provider which handles the connection between the device and WNS server. 
+The recommended state for this setting is: Disabled. 
+Note: In the first two releases of Windows 10 (R1507 & R1511), the display name of 
+this service was initially named Windows Push Notifications Service - but it was 
+renamed to Windows Push Notifications System Service starting with Windows 10 
+R1607.
+
+This service manages Apps that are pushed to the device from the Microsoft Store App 
+running on other devices or the web. 
+The recommended state for this setting is: Disabled.
+
+Windows Remote Management (WinRM) service implements the WS-Management 
+protocol for remote management. WS-Management is a standard web services protocol 
+used for remote software and hardware management. The WinRM service listens on 
+the network for WS-Management requests and processes them. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+In a high security environment, remote connections to secure workstations should be 
+minimized, and management functions should be done locally.
+
+Network sharing of media from Media Player has no place in an enterprise managed 
+environment.
+
+The capability to run a mobile hotspot from a domain-connected computer could easily 
+expose the internal network to wardrivers or other hackers.
+
+Windows Push Notification Services (WNS) is a mechanism to receive third-party 
+notifications and updates from the cloud/Internet. In a high security environment, 
+external systems, especially those hosted outside the organization, should be prevented 
+from having an impact on the secure workstations.
+
+In a high security managed environment, application installations should be managed 
+centrally by IT staff, not by end users.
+
+Features that enable inbound network connections increase the attack surface. In a 
+high security environment, management of secure workstations should be handled 
+locally.
+
+Audit Steps
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\Wecsvc:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4 or that the key does not exist. 
+HKLM\SYSTEM\CurrentControlSet\Services\WMPNetworkSvc:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\icssvc:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\WpnService:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\PushToInstall:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\WinRM:Start
+
+Remediation
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name Wecsvc -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration, set the following Custom Configuration 
+Policy to 4 or confirm that the service is Not installed: 
+Name: <Enter name>
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration, set the following Custom Configuration 
+Policy to 4 or confirm that the service is Not installed: 
+Name: <Enter name>
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name WpnService -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name PushToInstall -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name WinRM -StartupType Disabled
+
+Key Takeaways
+- In a high security environment, remote connections to secure workstations should be  minimized, and management functions should be done locally.
+- Network sharing of media from Media Player has no place in an enterprise managed  environment.
+- The capability to run a mobile hotspot from a domain-connected computer could easily  expose the internal network to wardrivers or other hackers.

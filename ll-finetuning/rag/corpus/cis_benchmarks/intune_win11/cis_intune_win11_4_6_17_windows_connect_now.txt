@@ -1,0 +1,33 @@
+4.6.17: Windows Connect Now
+
+Overview
+This policy setting allows the configuration of wireless settings using Windows Connect 
+Now (WCN). The WCN Registrar enables the discovery and configuration of devices 
+over Ethernet (UPnP) over in-band 802.11 Wi-Fi through the Windows Portable Device 
+API (WPD) and via USB Flash drives. Additional options are available to allow discovery 
+and configuration over a specific medium. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+This setting enhances the security of the environment and reduces the overall risk 
+exposure related to user configuration of wireless settings.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry locations with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WCN\Registrars:EnableRegistrars 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WCN\Registrars:DisableUPnPRegistrar 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WCN\Registrars:DisableInBand802DOT11
+Registrar 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WCN\Registrars:DisableFlashConfigReg istrar 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WCN\Registrars:DisableWPDRegistrar
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Network\Windows Connect Now\Configuration of 
+wireless settings using Windows Connect Now
+
+Key Takeaways
+- This setting enhances the security of the environment and reduces the overall risk  exposure related to user configuration of wireless settings.

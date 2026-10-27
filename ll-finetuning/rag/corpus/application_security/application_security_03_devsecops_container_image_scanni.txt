@@ -1,0 +1,45 @@
+Container image scanning is the automated process of analyzing container images for known vulnerabilities, misconfigurations, embedded secrets, and compliance violations before deployment. It operates by inspecting the image layers, base operating system packages, application dependencies, and configuration files against vulnerability databases (e.g., CVE, NVD, OS-specific advisories) and policy rules. This scanning occurs at multiple stages in the CI/CD pipeline: during development (pre-commit or in registry), at build time (post-image creation), and at runtime (continuous monitoring). The goal is to prevent vulnerable or non-compliant images from reaching production environments.
+
+**Key Components**
+
+- **Vulnerability Database Feeds**: Scanners rely on continuously updated feeds from sources like the National Vulnerability Database (NVD), Red Hat OVAL, Debian Security Tracker, Alpine SecDB, and GitHub Advisory Database. The freshness and coverage of these feeds directly impact detection accuracy. Stale databases miss recent CVEs.
+
+- **Layer Analysis**: Container images are composed of read-only layers. Effective scanning must decompress and inspect each layer individually, identifying the exact package versions installed (e.g., glibc 2.28, OpenSSL 1.1.1k). This requires parsing package managers such as apt, yum, apk, pip, npm, and gem.
+
+- **Policy Engine**: Beyond CVE matching, scanners enforce organizational policies. Examples: block images with critical-severity vulnerabilities, reject images running as root, require a non-empty USER directive, or forbid the inclusion of specific packages (e.g., netcat, telnet). Policies are typically expressed as YAML or JSON rules.
+
+- **Secrets Detection**: Scanners search for hardcoded credentials, API keys, SSH private keys, and tokens within image layers. This uses pattern matching (regex) and entropy analysis. False positives (e.g., example keys in test files) must be handled via allowlists.
+
+- **Software Bill of Materials (SBOM) Generation**: Many scanners produce an SBOM listing every component in the image. This is critical for supply chain transparency and for correlating vulnerabilities to specific dependencies. Formats include SPDX and CycloneDX.
+
+- **Registry Integration**: Scanners integrate with container registries (Docker Hub, Harbor, Amazon ECR, Google Artifact Registry, Azure Container Registry) to automatically scan images upon push. This ensures that even images built outside the pipeline are checked.
+
+- **CI/CD Plugin**: Scanners are invoked as steps in Jenkins, GitLab CI, GitHub Actions, or CircleCI. The build fails if the image violates defined thresholds (e.g., any fixable vulnerability with CVSS >= 7.0). This gates deployment.
+
+**Real-World Application**
+
+Consider a typical microservices deployment using Kubernetes. The security team defines a policy: no image with a critical or high-severity vulnerability that has a known fix may be deployed. The CI pipeline for a Java service does the following:
+
+1. Developer commits code to a feature branch.
+2. CI builds the JAR, then builds a Docker image using a hardened base image (e.g., distroless or Alpine with minimal packages).
+3. The pipeline runs `trivy image myapp:latest` (or `grype`, `clair`, `snyk`, `anchore`). Trivy fetches the latest vulnerability database, decompresses the image layers, and cross-references installed packages (e.g., log4j-core 2.17.0, OpenJDK 11.0.18) against known CVEs.
+4. The scanner finds CVE-2021-44228 (Log4Shell) in log4j-core 2.17.0? No, that version is patched. But it finds CVE-2023-44487 (HTTP/2 rapid reset) in the base image’s libnghttp2. The severity is high, and a fix exists (libnghttp2 1.52.0). The policy blocks the build.
+5. The developer receives a failure notification with the exact package, CVE ID, and remediation (rebuild base image with updated package). The image is never pushed to the registry.
+6. If the scan passes, the image is pushed to a private registry (e.g., Harbor). Harbor’s built-in scanner re-scans the image and tags it as “pass” or “fail”. Only “pass” images are allowed to be pulled by the Kubernetes cluster via admission control (e.g., OPA Gatekeeper or Kyverno).
+
+In a production incident, a new CVE is published (e.g., CVE-2024-XXXX in OpenSSL). The security team triggers a re-scan of all images in the registry. Images that now fail are flagged, and running pods using those images are automatically cordoned or replaced via a rolling update with a patched version.
+
+**Security Relevance**
+
+Container image scanning is a non-negotiable control in DevSecOps because it addresses the fundamental risk of inheriting vulnerabilities from upstream dependencies. A single base image (e.g., `node:18-slim`) can contain hundreds of packages, each with its own vulnerability history. Without scanning, teams deploy blind to known exploits. Scanning directly reduces the attack surface by:
+
+- **Preventing Known Exploits**: The majority of container breaches exploit known, patchable vulnerabilities (e.g., Log4Shell, Dirty Pipe). Scanning catches these before they reach production.
+- **Enforcing Least Privilege**: Policies can reject images that run as root, have unnecessary setuid binaries, or expose sensitive ports (e.g., 22, 3306). This aligns with the principle of least privilege.
+- **Supply Chain Integrity**: By generating and verifying SBOMs, scanning provides a chain of custody for every component. This is essential for compliance with frameworks like NIST SP 800-190, PCI DSS v4.0 (requirement 6.3.3), and SOC 2.
+- **Reducing Mean Time to Remediation (MTTR)**: Automated scanning in CI/CD provides immediate feedback to developers, shifting security left. When a new CVE is published, registry scanning enables rapid identification of all affected images across the fleet.
+- **Compliance Automation**: Auditors require evidence that images are free of critical vulnerabilities. Scan reports serve as that evidence. Automated gates ensure that non-compliant images cannot be deployed, satisfying continuous compliance requirements.
+
+**Key Takeaways**
+- Container image scanning must be integrated at multiple pipeline stages (build, registry, runtime) to catch vulnerabilities early and continuously, not just at a single point.
+- Policy enforcement (e.g., blocking images with critical CVEs or root execution) is as important as vulnerability detection; scanning without gating provides visibility but no protection.
+- SBOM generation and registry re-scanning are critical for supply chain security and rapid incident response when new vulnerabilities are disclosed.

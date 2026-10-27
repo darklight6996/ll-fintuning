@@ -1,0 +1,32 @@
+4.11.55.1: WinRM Client
+
+Overview
+This policy setting allows you to manage whether the Windows Remote Management 
+(WinRM) client uses Basic authentication. 
+The recommended state for this setting is: Disabled. 
+Note: Clients that use Microsoft's Exchange Online service (Office 365) will require an 
+exception to this recommendation, to instead have this setting set to Enabled. 
+Exchange Online uses Basic authentication over HTTPS, and so the Exchange Online 
+authentication traffic will still be safely encrypted.
+
+Why This Matters
+Basic authentication is less robust than other authentication methods available in 
+WinRM because credentials including passwords are transmitted in plain text. An 
+attacker who is able to capture packets on the network where WinRM is running may be 
+able to determine the credentials used for accessing remote hosts via WinRM.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client:AllowBasic
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Windows Components\Windows Remote Management 
+(WinRM)\WinRM Client\Allow Basic authentication
+
+Key Takeaways
+- Basic authentication is less robust than other authentication methods available in  WinRM because credentials including passwords are transmitted in plain text.
+- An  attacker who is able to capture packets on the network where WinRM is running may be  able to determine the credentials used for accessing remote hosts via WinRM.

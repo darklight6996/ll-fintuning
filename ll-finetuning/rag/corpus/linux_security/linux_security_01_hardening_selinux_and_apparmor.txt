@@ -1,0 +1,52 @@
+**Definition**
+
+SELinux (Security-Enhanced Linux) and AppArmor (Application Armor) are mandatory access control (MAC) systems integrated into the Linux kernel. Unlike discretionary access control (DAC), where users control permissions on their own objects, MAC enforces system-wide policies that restrict processes regardless of user identity. Both tools confine programs to the minimal set of resources they require, reducing the blast radius of exploited vulnerabilities. SELinux is native to Red Hat–based distributions (RHEL, CentOS, Fedora), while AppArmor is default on Debian/Ubuntu and SUSE systems. They achieve similar goals through different architectures: SELinux uses a security server with type enforcement and role-based access control (RBAC) on every kernel object; AppArmor uses path-based profiles attached to executables.
+
+**Key Components**
+
+**SELinux**
+- **Security Contexts**: Every process, file, socket, and device is labeled with a context string: `user:role:type:level`. The `type` component is the primary decision point for type enforcement.
+- **Type Enforcement (TE)**: Rules define allowed interactions between types (e.g., `httpd_t` can write to `httpd_log_t` but not to `shadow_t`). Denials are logged to `audit.log`.
+- **Policy Types**: Targeted (default, confines only specific daemons), MLS (Multi-Level Security for classified environments), and strict (confines all processes). Policies are compiled from source files into binary `.pp` modules.
+- **Booleans**: Toggles that adjust policy rules without recompilation (e.g., `httpd_can_network_connect_db`). Use `getsebool -a` to list, `setsebool -P` to persist.
+- **Modes**: Enforcing (deny and log), Permissive (log only, no denial), Disabled. Transition between modes requires a reboot when disabling.
+
+**AppArmor**
+- **Profiles**: Text files in `/etc/apparmor.d/` that define what a program can access. Profiles are named after the executable path (e.g., `/usr/sbin/ntpd`).
+- **Rules**: Include file permissions (r, w, l, k for lock), network access (e.g., `network inet tcp`), capability grants (e.g., `capability net_bind_service`), and path globbing (e.g., `/var/log/syslog w`).
+- **Modes**: Enforce (deny and log), Complain (log only, no denial), Unconfined (no profile). Mode is set per profile.
+- **Profile States**: Profiles can be loaded, unloaded, or set to audit mode. The `aa-status` command shows loaded profiles and their modes.
+- **Hat Mode**: A sub-profile mechanism for programs that change privileges (e.g., Apache CGI scripts), allowing finer-grained confinement within a parent profile.
+
+**Real-World Application**
+
+**SELinux in a Web Server Environment**
+- On a RHEL 9 system running Apache, SELinux labels the httpd process as `httpd_t`. By default, `httpd_t` can only read files labeled `httpd_sys_content_t` and write to `httpd_log_t`. If a developer places content in `/var/www/html` with incorrect context (e.g., `unconfined_u:object_r:user_home_t:s0`), SELinux blocks access. The engineer runs `restorecon -Rv /var/www/html` to reset contexts or uses `semanage fcontext` to define custom labels.
+- When deploying a custom web application that writes to a non-standard directory (e.g., `/opt/app/data`), the engineer creates a new policy module: `semanage fcontext -a -t httpd_sys_rw_content_t '/opt/app/data(/.*)?'` then `restorecon -Rv /opt/app/data`. If the application needs network access to a database on port 5432, the engineer sets `setsebool -P httpd_can_network_connect_db on`.
+
+**AppArmor in a Containerized Environment**
+- On Ubuntu 22.04 running Docker, AppArmor profiles are applied to containers by default. The `docker-default` profile restricts container capabilities (e.g., no `mount`, no `ptrace`). For a custom container running a Node.js application that needs to bind to port 8080, the engineer creates a profile in `/etc/apparmor.d/containers/node-app`:
+  ```
+  profile node-app flags=(attach_disconnected) {
+    /usr/bin/node ix,
+    /etc/ssl/certs/** r,
+    /var/log/node/** rw,
+    network inet tcp,
+    capability net_bind_service,
+  }
+  ```
+  Then loads it with `apparmor_parser -r /etc/apparmor.d/containers/node-app` and runs the container with `--security-opt apparmor=node-app`.
+- For a legacy application that generates false positives in complain mode, the engineer uses `aa-logprof` to scan audit logs and automatically update the profile with allowed accesses, then switches to enforce mode after validation.
+
+**Security Relevance**
+
+Both systems mitigate privilege escalation and data exfiltration by enforcing least privilege at the kernel level. An attacker who compromises a confined process (e.g., a vulnerable CGI script running as `httpd_t`) cannot read `/etc/shadow` (labeled `shadow_t`) or write to `/bin` (labeled `bin_t`) unless explicit rules exist. This containment prevents lateral movement even if the attacker gains code execution.
+
+SELinux’s type enforcement is more granular and covers all kernel objects (files, sockets, IPC, devices), making it suitable for high-security environments like government or finance. However, its complexity leads to frequent misconfigurations—engineers often set SELinux to permissive mode out of frustration, negating its benefits. AppArmor’s path-based model is simpler to audit and debug, but it does not protect against attacks that bypass the filesystem (e.g., raw block device access) because it lacks object labeling.
+
+Both systems log denials to `auditd` (SELinux) or `syslog` (AppArmor). Security engineers must monitor these logs as part of SIEM correlation rules. A sudden spike in denials may indicate an active exploit attempt or a misconfigured application. For compliance frameworks (PCI DSS, HIPAA, FedRAMP), MAC is often required to enforce separation between processes handling sensitive data. SELinux’s MLS mode directly supports multilevel security policies required by classified systems.
+
+**Key Takeaways**
+- SELinux uses label-based type enforcement on all kernel objects, offering finer granularity but higher complexity; AppArmor uses path-based profiles tied to executables, favoring simplicity and easier debugging.
+- Both systems must be in enforcing mode to provide security value—permissive/complain modes are for development only and should never persist in production.
+- Monitor denial logs (audit.log for SELinux, syslog for AppArmor) as part of your incident detection pipeline; unexpected denials often signal exploitation attempts or policy drift.

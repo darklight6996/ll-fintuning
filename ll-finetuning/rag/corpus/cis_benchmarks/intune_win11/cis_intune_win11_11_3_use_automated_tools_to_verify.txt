@@ -1,0 +1,55 @@
+11.3: Use Automated Tools to Verify Standard Device (and related controls)
+
+Overview
+Although this "legacy" setting traditionally applied to the use of Internet Connection 
+Sharing (ICS) in Windows 2000, Windows XP & Server 2003, this setting now freshly 
+applies to the Mobile Hotspot feature in Windows 10 & Server 2016. 
+The recommended state for this setting is: Enabled. 
+Warning: In order for Application Guard to function correctly, ICS must be enabled. If 
+Application Guard is used in the environment, then an exception to this 
+recommendation might be needed. To learn more on how to disable portions of ICS 
+without breaking Application Guard, please visit: FAQ - Microsoft Defender Application 
+Guard | Microsoft Learn.
+
+This setting determines the behavior for inbound connections that do not match an 
+inbound firewall rule. 
+The recommended state for this setting is: Block.
+
+Why This Matters
+Non-administrators should not be able to turn on the Mobile Hotspot feature and open 
+their Internet connectivity up to nearby mobile devices.
+
+If the firewall allows all traffic to access the system then an attacker may be more easily 
+able to remotely exploit a weakness in a network service.
+
+Audit Steps
+For Use Automated Tools to Verify Standard Device:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\Network 
+Connections:NC_ShowSharedAccessUI
+
+For Use Automated Tools to Verify Standard Device:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\PublicProfile:DefaultInboundAction
+
+Remediation
+For Use Automated Tools to Verify Standard Device:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Network\Network Connections\Prohibit use of Internet 
+Connection Sharing on your DNS domain network
+
+For Use Automated Tools to Verify Standard Device:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block: 
+Firewall\Enable Public Network Firewall: Default Inbound Action for Public 
+Profile
+
+Key Takeaways
+- Non-administrators should not be able to turn on the Mobile Hotspot feature and open  their Internet connectivity up to nearby mobile devices.
+- If the firewall allows all traffic to access the system then an attacker may be more easily  able to remotely exploit a weakness in a network service.

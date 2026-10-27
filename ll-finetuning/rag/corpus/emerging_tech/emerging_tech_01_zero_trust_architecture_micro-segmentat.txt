@@ -1,0 +1,48 @@
+Micro-segmentation is a network security technique that divides a data center or cloud environment into distinct, isolated segments down to the individual workload level. Unlike traditional network segmentation, which relies on VLANs and subnets based on IP addresses and physical topology, micro-segmentation enforces security policies based on workload identity, such as a virtual machine’s name, an operating system’s tag, or a container’s label. This approach enables granular control over east-west traffic—communication between servers, containers, and services—which is the primary attack vector once an initial breach occurs. In a zero trust architecture, micro-segmentation is the enforcement mechanism for the principle of “never trust, always verify,” ensuring that no implicit trust is granted based on network location.
+
+**Key Components**
+
+Effective micro-segmentation design rests on several interdependent components. Each must be implemented correctly to achieve the desired security posture.
+
+- **Identity-Based Policy Engine**: The core of micro-segmentation is a policy engine that understands workload identity. This engine maps attributes such as VM names, OS types, application roles, or Kubernetes labels to security groups. Policies are written against these identities, not IP addresses. For example, a policy might state: “All workloads tagged as ‘web-frontend’ can communicate with workloads tagged as ‘app-backend’ on TCP port 443 only.” This decouples security from the underlying network infrastructure, allowing policies to persist across migrations, scaling events, and IP changes.
+
+- **Distributed Firewall Enforcement**: Traditional perimeter firewalls cannot inspect east-west traffic at scale. Micro-segmentation requires a distributed firewall, often implemented as a kernel-level module or a sidecar proxy on each host. This firewall enforces policies at the virtual NIC or container interface level, inspecting every packet regardless of source or destination. The distributed nature eliminates network bottlenecks and single points of failure. Each workload’s traffic is filtered locally before it ever reaches the network fabric.
+
+- **Centralized Policy Management and Orchestration**: A single pane of glass is necessary to define, test, and deploy policies across thousands of workloads. This management plane must integrate with configuration management databases (CMDBs), identity providers (IdPs), and orchestration platforms like Kubernetes or vSphere. It should support policy versioning, audit logging, and automated policy generation based on observed traffic patterns. Without centralized management, micro-segmentation becomes an unmanageable sprawl of rules.
+
+- **Traffic Flow Visibility and Analytics**: You cannot segment what you cannot see. A micro-segmentation solution must provide continuous visibility into all east-west flows. This includes identifying which workloads communicate, on which ports, and with what frequency. This data feeds the policy engine, enabling a “learn and lock” approach: initially observe traffic, generate a baseline of allowed flows, and then enforce a whitelist policy. Analytics also detect anomalous traffic patterns, such as a database server suddenly initiating outbound connections to an unknown IP, which indicates a potential compromise.
+
+- **Integration with Identity and Access Management (IAM)**: For user-to-workload traffic, micro-segmentation must integrate with IAM to enforce user identity and device posture. A policy might require that only users with a specific role and a device that passes compliance checks can access a particular application tier. This extends segmentation beyond machine-to-machine communication to include human access, closing a common gap in zero trust implementations.
+
+**Real-World Application**
+
+Consider a multi-tier web application deployed in a public cloud. The application consists of a load balancer, web servers, application servers, and a database cluster. Without micro-segmentation, a vulnerability in the web server could allow an attacker to pivot laterally to the application server and then to the database, exfiltrating sensitive data.
+
+With micro-segmentation, the design proceeds as follows:
+
+1.  **Discovery and Classification**: The security team uses the visibility tool to map all traffic flows. They discover that the load balancer communicates with web servers on port 443, web servers communicate with application servers on port 8080, and application servers communicate with the database on port 3306. No other east-west traffic exists.
+
+2.  **Policy Definition**: The team creates three policies:
+    - Allow traffic from any source to the load balancer on port 443.
+    - Allow traffic from the load balancer to web servers on port 443.
+    - Allow traffic from web servers to application servers on port 8080.
+    - Allow traffic from application servers to database servers on port 3306.
+    - Deny all other east-west traffic.
+
+3.  **Enforcement**: The distributed firewall on each host enforces these policies. The web server’s firewall blocks any attempt by the web server to initiate a connection to the database directly. The application server’s firewall blocks any inbound connection from an unknown source, even if that source is on the same subnet.
+
+4.  **Incident Response**: An attacker exploits a remote code execution vulnerability in the web server. The attacker’s first action is to scan for other hosts. The distributed firewall on the web server drops all outbound scanning traffic because no policy allows it. The attacker cannot pivot to the application server because the application server’s firewall only accepts connections from the web server’s identity. The attack is contained to the single compromised web server.
+
+This design is applied across hybrid environments. For example, a workload in an on-premises data center can be placed in the same security group as a workload in AWS, with policies enforced consistently by the distributed firewall on both sides. The network topology—whether flat, routed, or using overlay networks—becomes irrelevant to security.
+
+**Security Relevance**
+
+Micro-segmentation directly addresses the lateral movement phase of a cyberattack. In a traditional flat network, a single compromised endpoint gives an attacker access to the entire subnet. Micro-segmentation reduces the blast radius to a single workload or a small group of workloads. This containment is critical for compliance with regulations like PCI DSS, which requires cardholder data environments to be isolated from other networks. It also supports the zero trust principle of least privilege by ensuring that each workload only has the network access necessary for its function.
+
+Furthermore, micro-segmentation provides a defense against zero-day exploits. Since policies are based on identity and expected behavior, an exploit that attempts to use an unexpected protocol or communicate with an unauthorized workload is automatically blocked, even if the exploit is unknown to signature-based detection systems. This makes micro-segmentation a foundational control for reducing the attack surface in modern, dynamic environments.
+
+**Key Takeaways**
+
+- Micro-segmentation enforces security policies based on workload identity, not IP addresses, enabling granular control over east-west traffic and eliminating implicit trust based on network location.
+- Effective implementation requires a distributed firewall, centralized policy management, continuous traffic visibility, and integration with IAM to contain breaches and enforce least privilege.
+- Real-world application reduces the blast radius of an attack to a single workload, blocking lateral movement and providing a critical defense against both known and zero-day exploits.

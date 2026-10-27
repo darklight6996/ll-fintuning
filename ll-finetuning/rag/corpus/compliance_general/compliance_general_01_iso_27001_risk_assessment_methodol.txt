@@ -1,0 +1,48 @@
+**Definition**
+
+Risk assessment methodology within ISO 27001 is the systematic process used to identify, analyze, and evaluate information security risks to the confidentiality, integrity, and availability of assets. It is the core of the risk management process required by Clause 6.1 of the standard. The methodology must be defined by the organization, documented, and consistently applied. It is not a one-time activity; it is a recurring process that drives the selection of controls from Annex A and the creation of the Statement of Applicability (SoA). The output of the risk assessment directly determines which security controls are necessary and justifiable.
+
+**Key Components**
+
+A compliant ISO 27001 risk assessment methodology consists of five mandatory components:
+
+- **Risk Identification:** This involves cataloging assets (information, hardware, software, personnel), identifying threats (e.g., malware, insider error, natural disaster), and identifying existing vulnerabilities (e.g., unpatched systems, weak passwords, lack of encryption). For each asset-threat-vulnerability combination, you must describe the scenario that could lead to a security incident.
+
+- **Risk Analysis:** This is the quantitative or qualitative evaluation of the likelihood and impact of each identified risk scenario. Most organizations use a qualitative scale (e.g., Low, Medium, High) for both likelihood and impact. The analysis must be consistent across all risks. For example, define "High impact" as financial loss exceeding $100k or regulatory fines. The product of likelihood and impact yields the inherent risk level before controls are applied.
+
+- **Risk Evaluation:** This step compares the analyzed risk levels against pre-defined risk acceptance criteria. The criteria must be set by management and documented in the risk management policy. Risks exceeding the acceptance threshold are designated as requiring treatment. Risks below the threshold may be accepted without further action, but this decision must be formally recorded.
+
+- **Risk Treatment:** For risks that are not accepted, you select appropriate controls to mitigate, transfer, or avoid the risk. Mitigation is the most common, typically implemented via controls from Annex A (e.g., access control, encryption, backup). Transfer might involve cyber insurance. Avoidance means discontinuing the activity that creates the risk. Each treatment decision must be documented in the Risk Treatment Plan (RTP).
+
+- **Risk Register:** This is the living document that records all identified risks, their analysis scores, evaluation results, treatment decisions, assigned owners, and residual risk levels after controls are applied. The risk register must be reviewed and updated at planned intervals (e.g., quarterly) and when significant changes occur (e.g., new system deployment, merger).
+
+**Real-World Application**
+
+A security engineer implementing ISO 27001 in a mid-sized SaaS company would execute the methodology as follows:
+
+1.  **Define Scope and Criteria:** The scope is the cloud-based application and its supporting infrastructure (AWS environment, code repositories, employee endpoints). Risk acceptance criteria are set: any risk with a combined score of 15 or higher (on a 5x5 matrix) requires treatment.
+
+2.  **Asset Inventory and Threat Modeling:** Create an asset register listing customer data (PII), database servers, API gateways, and source code. For each asset, identify threats. Example: For the customer database, threats include SQL injection, unauthorized admin access, and ransomware. Vulnerabilities include missing database encryption at rest and weak password policies.
+
+3.  **Risk Analysis:** Use a qualitative 5x5 matrix (Likelihood 1-5, Impact 1-5). For the "unauthorized admin access" scenario: Likelihood = 3 (possible due to weak password policy), Impact = 5 (severe data breach). Inherent risk score = 15. This exceeds the acceptance threshold of 15, so it requires treatment.
+
+4.  **Risk Treatment:** Select controls from Annex A: A.9.2.1 (user registration and de-registration), A.9.4.2 (secure log-on procedures), and A.9.2.4 (management of secret authentication information). Implement multi-factor authentication (MFA) for all admin accounts. Update the Risk Treatment Plan: "Implement MFA for all admin accounts by Q2."
+
+5.  **Residual Risk Re-evaluation:** After MFA is deployed, re-assess the risk. Likelihood drops to 1 (very unlikely), Impact remains 5. Residual risk score = 5. This is below the acceptance threshold, so the risk is accepted. The risk register is updated with the residual score and the acceptance decision.
+
+6.  **Continuous Monitoring:** The risk register is reviewed monthly. If a new vulnerability is discovered (e.g., a zero-day in the database software), the risk is re-analyzed and may require additional treatment.
+
+**Security Relevance**
+
+The risk assessment methodology is the engine that drives the entire ISMS. Without a rigorous, repeatable methodology, security controls are selected arbitrarily, leading to either over-investment in unnecessary controls or under-protection of critical assets. For a security engineer, the methodology provides:
+
+- **Justification for Budget:** The risk register and treatment plan provide data-driven evidence for requesting budget for specific security tools (e.g., SIEM, endpoint detection) by linking them to quantified risks.
+- **Audit Defense:** During certification audits, the auditor will examine the methodology for consistency. They will check that the same criteria were applied to all risks and that treatment decisions are logical. A flawed methodology is a common non-conformity.
+- **Incident Response Prioritization:** The risk register helps prioritize incident response. An incident affecting a high-risk asset (e.g., customer database with a residual risk score of 5) triggers a faster, more aggressive response than one affecting a low-risk asset (e.g., public marketing website).
+- **Compliance Alignment:** The methodology ensures that the organization is not just compliant on paper but is actively managing risk. It aligns security operations with business objectives by focusing resources on the most critical threats.
+
+**Key Takeaways**
+
+- A defined, documented risk assessment methodology with consistent scales for likelihood and impact is mandatory for ISO 27001 compliance and is the basis for all control selection.
+- The risk register must be a living document, updated at planned intervals and whenever significant changes occur, to reflect current residual risk levels.
+- The methodology directly supports audit defense, budget justification, and incident response prioritization by providing a repeatable, data-driven framework for security decisions.

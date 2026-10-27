@@ -1,0 +1,50 @@
+Data onboarding in Splunk refers to the process of ingesting, parsing, indexing, and normalizing machine-generated data from various sources into a Splunk deployment. This is the foundational step that determines the quality, completeness, and usability of data for searching, alerting, and reporting. For security engineers, data onboarding is not a one-time event but a continuous, controlled pipeline that must account for data volume, format, timeliness, and compliance requirements.
+
+**Key Components of Data Onboarding**
+
+The onboarding process can be broken into four distinct stages, each with specific configuration options and security implications.
+
+1.  **Data Inputs and Forwarders**
+    - **Universal Forwarder (UF):** Lightweight agent for collecting and forwarding data. It does not parse or index data locally, minimizing resource overhead. Use for log files, Windows Event Log, and syslog. Security engineers must ensure UF is configured with TLS for transport encryption and that authentication tokens are rotated.
+    - **Heavy Forwarder (HF):** Parses and filters data before forwarding. Useful when you need to reduce data volume at the edge or apply complex routing rules. HFs introduce a larger attack surface and require hardened OS configurations.
+    - **HTTP Event Collector (HEC):** Token-based input for application logs, cloud APIs, and custom scripts. HEC supports JSON and raw endpoints. Critical security controls include token expiration, IP whitelisting, and rate limiting to prevent data injection or denial-of-service.
+    - **TCP/UDP Inputs:** Direct network inputs for syslog, NetFlow, or custom protocols. These are unencrypted by default and should be isolated on a dedicated management VLAN with strict firewall rules.
+
+2.  **Parsing and Indexing**
+    - **Source Type Assignment:** Every data source must be assigned a source type (e.g., `syslog`, `WinEventLog:Security`, `cisco:asa`). This determines how Splunk breaks data into events and extracts timestamps. Incorrect source types lead to unsearchable data and missed alerts.
+    - **Timestamp Extraction:** Splunk uses the `DATETIME_CONFIG` and `TIME_FORMAT` settings to identify event time. Misconfiguration causes events to be indexed with the wrong timestamp, breaking correlation searches and compliance retention policies.
+    - **Line Breaking and Event Segmentation:** The `LINE_BREAKER` and `SHOULD_LINEMERGE` settings control how multi-line events (e.g., stack traces, syslog messages) are handled. Improper segmentation can cause data loss or false positives in detection rules.
+    - **Index Assignment:** Data is routed to specific indexes (e.g., `main`, `security`, `network`). Indexes control retention, access control, and storage costs. Security engineers must map sensitive data (e.g., authentication logs, PII) to restricted indexes with appropriate role-based access.
+
+3.  **Data Normalization and Enrichment**
+    - **Common Information Model (CIM):** Splunk’s CIM defines standard field names and event types (e.g., `Authentication`, `Network_Traffic`, `Endpoint`). Onboarding data to CIM compliance ensures that correlation searches and pre-built apps (e.g., Splunk Enterprise Security) work without custom field extractions.
+    - **Field Extractions:** Inline or report-based extractions (e.g., `EXTRACT-<field> = <regex>`) pull structured fields from raw data. Overly broad regex can cause performance degradation; overly narrow regex can miss critical data.
+    - **Lookups and Subsearches:** Enrich raw data with external context (e.g., threat intelligence feeds, asset inventories). Lookups should be cached and updated on a schedule to avoid stale data in alerts.
+
+4.  **Data Quality and Monitoring**
+    - **Input Validation:** Use `props.conf` and `transforms.conf` to filter out malformed or irrelevant data at the forwarder or indexer level. This reduces storage costs and prevents noise in detection logic.
+    - **Indexer Acknowledgment (ACK):** Enable ACK on forwarders to guarantee delivery. Without ACK, data loss during network interruptions is silent.
+    - **Monitoring Console:** Use Splunk’s Monitoring Console to track indexing volume, license usage, and forwarder health. Set alerts for sudden drops in data volume, which may indicate a compromised forwarder or a network outage.
+
+**Real-World Application: Onboarding Windows Security Events**
+
+A typical security use case is onboarding Windows Security Event Logs (Event ID 4624, 4625, 4688, etc.) from domain controllers and endpoints.
+
+- **Forwarder Configuration:** Deploy Universal Forwarders via Group Policy. Configure `inputs.conf` to monitor `WinEventLog://Security` with a polling interval of 5 seconds. Enable SSL and set `sslVerifyServerCert = true` to prevent man-in-the-middle attacks.
+- **Source Type and Index:** Assign source type `WinEventLog:Security` and route to index `windows_security`. Set retention to 365 days for compliance (e.g., PCI DSS, SOX).
+- **CIM Compliance:** Ensure the Splunk Add-on for Windows is installed. This automatically maps fields like `user`, `src_ip`, `dest`, and `action` to CIM fields. Without the add-on, custom field extractions are required for every detection rule.
+- **Data Quality Checks:** Use `| inputlookup` to verify that all domain controllers are sending logs. Create a scheduled search that alerts if any DC’s log volume drops below a baseline threshold for 15 minutes.
+
+**Security Relevance**
+
+Data onboarding directly impacts the security posture of a Splunk deployment in several ways:
+
+- **Attack Surface Reduction:** Misconfigured forwarders (e.g., open TCP inputs on the internet) are entry points for attackers. Restrict forwarder communication to indexers only, and use firewall rules to block all other inbound traffic.
+- **Data Integrity:** Without transport encryption (TLS) and indexer acknowledgment, an attacker can intercept, modify, or drop logs. This undermines forensic investigations and compliance audits.
+- **Compliance and Retention:** Onboarding must respect data classification. PII, PHI, or PCI data must be routed to indexes with encryption at rest and strict access controls. Retention policies must align with regulatory requirements (e.g., 90 days for SOC 2, 1 year for HIPAA).
+- **Detection Efficacy:** Incomplete or poorly parsed data leads to false negatives in detection rules. For example, if a firewall log’s source IP is not extracted correctly, a correlation search for lateral movement will miss the event. Validate field extractions with `| makeresults` and `| eval` tests before deploying to production.
+
+**Key Takeaways**
+- Data onboarding is a continuous pipeline requiring precise configuration of forwarders, parsing rules, and index assignments to ensure data integrity and searchability.
+- Normalizing data to the Common Information Model (CIM) is non-negotiable for scalable detection and correlation in Splunk Enterprise Security.
+- Security engineers must enforce transport encryption, input validation, and index-level access controls to protect data in transit and at rest, directly impacting compliance and incident response accuracy.

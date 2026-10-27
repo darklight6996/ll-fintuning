@@ -1,0 +1,32 @@
+Snort rules form the detection logic for the Snort intrusion detection and prevention system. A rule is a single, structured statement that defines a specific pattern of network traffic to match, along with an action to take upon that match. Rules are evaluated against packets in real time, and the rule set is the primary mechanism for tuning detection coverage and reducing false positives.
+
+**Key Components of a Snort Rule**
+
+Every Snort rule consists of two main sections: the rule header and the rule options. The header defines the action, protocol, source and destination IP addresses, and ports. The options section, enclosed in parentheses, contains the detection criteria and metadata.
+
+- **Rule Header Structure:**
+    - **Action:** The action to take when the rule matches. Common actions include `alert` (generate an alert and log the packet), `log` (log the packet without alerting), `pass` (ignore the packet), `drop` (for inline mode, drop the packet and log it), `reject` (drop the packet and send a TCP reset or ICMP unreachable), and `sdrop` (drop the packet without logging).
+    - **Protocol:** The IP protocol to inspect. Supported values are `tcp`, `udp`, `icmp`, and `ip` (any IP protocol).
+    - **Source IP and Port:** The originating address and port. Can be a single IP, a CIDR block (e.g., `192.168.1.0/24`), the variable `$HOME_NET`, or `any`. Ports can be specified as a single number, a range (e.g., `1:1024`), or a negation (e.g., `!80`).
+    - **Direction Operator:** Indicates the flow direction. `->` means from source to destination; `<>` means bidirectional.
+    - **Destination IP and Port:** The target address and port, using the same syntax as source fields.
+
+- **Rule Options (Detection and Metadata):**
+    - **Content Matching:** The most critical option. `content:"|hex|"` matches a specific byte sequence. `content:"string"` matches ASCII text. Modifiers like `nocase`, `rawbytes`, `depth`, `offset`, `within`, and `distance` refine the match location and scope.
+    - **PCRE (Perl Compatible Regular Expressions):** Allows complex pattern matching using `pcre:"/pattern/modifiers"`. Use sparingly due to performance cost.
+    - **Flow:** Defines the state of the TCP stream. Common values: `to_client`, `to_server`, `established`, `stateless`.
+    - **Classtype and Priority:** Categorize the severity of the alert. `classtype:attempted-admin` maps to a priority level (default 1-4). This aids in alert triage.
+    - **Sid, Rev, and Reference:** `sid` is a unique rule identifier. `rev` is the revision number. `reference` links to external documentation (e.g., CVE IDs).
+    - **Metadata:** Key-value pairs for tagging rules with additional context, such as `metadata:policy security-ips drop`.
+    - **Detection Filters:** Options like `threshold`, `event_filter`, and `rate_filter` control alert volume by limiting the number of matches per time interval.
+
+**Real-World Application: Writing a Rule for a Known Exploit**
+
+Consider a rule to detect the EternalBlue exploit (MS17-010) targeting SMBv1. The exploit sends a specific SMB transaction payload. A simplified rule might look like this:
+
+```
+alert tcp $HOME_NET 445 -> $EXTERNAL_NET any (
+    msg:"ET EXPLOIT Possible EternalBlue MS17-010 SMBv1 Exploit Attempt";
+    flow:to_server,established;
+    content:"|00 00 00 31 ff 53 4d 42|";
+    content:"|2f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00

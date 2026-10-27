@@ -1,0 +1,42 @@
+Workbook development and visualization in Azure Sentinel (now Microsoft Sentinel) refers to the process of creating interactive, multi-layered analytical documents that combine Kusto Query Language (KQL) queries, visual elements, and textual annotations. Unlike standalone dashboards, workbooks are built on Azure Monitor Workbooks framework and allow security engineers to stitch together multiple data sources, time ranges, and visualizations into a single, shareable canvas. They are used for incident investigation, threat hunting, compliance reporting, and operational monitoring.
+
+**Key Components**
+
+- **KQL Query Steps**: Each visualization in a workbook is backed by one or more KQL queries. These queries define the data source (e.g., `SecurityEvent`, `SigninLogs`, `CommonSecurityLog`), apply filters, aggregations, and time windows. Queries can be parameterized to accept user input (e.g., time range, account name, IP address).
+
+- **Parameters**: Workbook parameters allow dynamic user input that propagates across all queries and visualizations. Common parameter types include time range pickers, text boxes, dropdown lists (populated by KQL queries), and multi-select options. Parameters are essential for creating reusable, interactive workbooks.
+
+- **Visualization Types**: Workbooks support a range of visualizations including time charts, bar charts, pie charts, tables, grids, maps, and markdown text. Each visualization can be configured with custom formatting, thresholds, and conditional coloring.
+
+- **Steps and Groups**: Workbooks are composed of steps (individual query-visualization blocks) that can be arranged vertically or in tabs. Groups allow collapsing sections, enabling engineers to organize complex workbooks into logical sections (e.g., "Authentication Anomalies", "Malware Detections").
+
+- **Advanced Settings**: Each step has advanced settings for conditional visibility (show/hide based on parameter values), export parameters (pass selected row data to subsequent steps), and custom styling via JSON.
+
+- **Templates and Sharing**: Workbooks can be saved as templates and deployed across workspaces via Azure Resource Manager (ARM) templates. They support role-based access control (RBAC) at the workbook level.
+
+**Real-World Application**
+
+A practical example is a "User Account Compromise Investigation" workbook. The workbook begins with a parameter for selecting a user principal name (UPN). The first step runs a KQL query against `SigninLogs` to show all sign-in events for that user in the last 7 days, displayed as a time chart with color-coded risk levels. The second step queries `AuditLogs` for password changes and MFA registration events, shown as a table with conditional formatting (red for suspicious changes). A third step runs a KQL query against `SecurityAlert` to list any alerts involving that user, with a link to the full alert details. A final step uses a map visualization to plot geographic locations of sign-ins, with markers sized by count.
+
+Another example is a "Compliance Dashboard" for PCI DSS. The workbook uses parameters to select a date range and business unit. It then runs KQL queries against `AzureActivity` and `SecurityEvent` to show failed login attempts, privileged account usage, and firewall rule changes. Visualizations include bar charts for trend analysis and a compliance scorecard table that highlights gaps (e.g., missing audit logs). The workbook can be exported to PDF for auditor review.
+
+For threat hunting, a "Lateral Movement Detection" workbook might use a time picker and a text parameter for a suspicious IP. The first step queries `NetworkEvents` for connections from that IP to internal hosts, displayed as a network graph. The second step queries `ProcessEvents` for anomalous process creation on targeted hosts, shown as a timeline. The third step runs a KQL query to correlate with `CommonSecurityLog` for any firewall blocks.
+
+**Security Relevance**
+
+Workbooks directly support the security operations lifecycle:
+
+- **Incident Response**: Workbooks provide a single pane of glass for investigating alerts. By linking multiple data sources (e.g., sign-ins, alerts, network logs), analysts can quickly pivot from an alert to related events without switching contexts. Parameterized workbooks reduce manual query writing during high-pressure incidents.
+
+- **Threat Hunting**: Hunters use workbooks to run hypothesis-driven queries across large datasets. The interactive nature allows them to drill down from high-level trends to specific entities. Conditional visibility can hide irrelevant data until a threshold is met (e.g., show only if more than 10 failed logins).
+
+- **Compliance and Reporting**: Workbooks automate the generation of compliance reports (e.g., SOC 2, HIPAA, PCI DSS). They can be scheduled to run and export results, ensuring continuous monitoring of control effectiveness. The use of KQL ensures queries are reproducible and auditable.
+
+- **Operational Monitoring**: Security engineers use workbooks to monitor the health of Sentinel itself—ingestion latency, data volume, connector status. These workbooks often include alerts (via Azure Monitor) when metrics exceed thresholds.
+
+- **Knowledge Transfer**: Workbooks serve as living documentation. A well-structured workbook with markdown annotations explains the logic behind each query, making it easier for junior analysts to understand investigation workflows. They reduce tribal knowledge by codifying common queries.
+
+**Key Takeaways**
+- Workbooks combine KQL queries with interactive parameters and visualizations to create reusable, dynamic tools for investigation, hunting, and compliance reporting.
+- Parameterization and conditional visibility are critical for building flexible workbooks that adapt to different data inputs and user roles.
+- Workbooks directly enhance security operations by reducing investigation time, automating compliance reporting, and preserving institutional knowledge through shareable, documented query logic.

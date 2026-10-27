@@ -1,0 +1,41 @@
+AWS Network Firewall is a managed, stateful firewall service designed to provide network-layer filtering and threat prevention for Amazon Virtual Private Cloud (VPC) traffic. It operates at the perimeter of a VPC, inspecting both inbound and outbound traffic across all ports and protocols, and integrates with AWS Firewall Manager for centralized policy management across multiple accounts and VPCs. Unlike security groups or network ACLs, which are stateless or limited in inspection depth, AWS Network Firewall can perform deep packet inspection (DPI), protocol detection, and intrusion prevention using Suricata-compatible rule groups.
+
+**Key Components**
+
+The service is built around several core elements that define its operational model:
+
+- **Firewall Policy**: A container that holds the rule groups and default actions (allow, drop, or forward) for traffic that does not match any rule. Policies are versioned and can be applied to multiple firewalls.
+- **Rule Groups**: Collections of stateless or stateful rules. Stateless rules evaluate packets individually (e.g., allow all HTTP traffic from a specific CIDR). Stateful rules track connection state and can inspect application-layer data. Stateful rule groups support Suricata rules for intrusion detection and prevention (IDS/IPS), domain filtering, and protocol detection.
+- **Firewall Endpoints**: Deployed within a VPC subnet, each endpoint represents a single Availability Zone (AZ) for high availability. You must deploy at least two endpoints across different AZs for production workloads. Traffic is routed through these endpoints via VPC route tables.
+- **Firewall Subnet**: A dedicated subnet (typically a /28 or larger) where firewall endpoints reside. This subnet must have a route table that directs traffic to the firewall for inspection.
+- **Logging and Metrics**: Firewall logs can be sent to Amazon S3, CloudWatch Logs, or Kinesis Data Firehose. Metrics include packet counts, dropped bytes, and rule group evaluations, accessible via CloudWatch.
+
+**Real-World Application**
+
+Consider a multi-tier web application hosted in a VPC with public-facing load balancers, application servers in private subnets, and a database layer. Without a network firewall, you rely on security groups and network ACLs, which lack DPI and cannot inspect encrypted traffic or block application-layer attacks like SQL injection or cross-site scripting.
+
+Deploy AWS Network Firewall as follows:
+
+1. **Create a firewall policy** with two rule groups: a stateless group to allow traffic from known IP ranges (e.g., corporate VPN CIDR) and a stateful group with Suricata rules for HTTP/HTTPS inspection. Include rules to block traffic to known malicious domains and to alert on anomalous protocol behavior.
+2. **Provision firewall endpoints** in two AZs, each in a dedicated firewall subnet. Update the VPC route tables so that all traffic from the internet gateway to the application subnets passes through the firewall endpoints. Similarly, route outbound traffic from application subnets through the firewall for egress inspection.
+3. **Configure logging** to CloudWatch Logs for real-time alerting. Set up a CloudWatch metric filter to trigger an SNS notification when the firewall drops packets matching a high-severity Suricata rule (e.g., ET TROJAN).
+4. **Test the deployment** by generating benign HTTP traffic and verifying it passes, then simulating an attack (e.g., using a known test string from the Emerging Threats ruleset) to confirm the firewall blocks it and logs the event.
+
+In this scenario, the firewall provides visibility into traffic that security groups cannot offer. For example, if an application server makes an outbound connection to a command-and-control server, the firewall’s domain filtering rule group can block the DNS request or the HTTP connection, even if the traffic is encrypted. The Suricata engine can also detect non-encrypted payloads, such as SQL injection attempts in HTTP POST bodies.
+
+**Security Relevance**
+
+AWS Network Firewall addresses several gaps in native VPC security controls:
+
+- **Stateful inspection beyond layer 4**: Security groups are stateful but only evaluate IP addresses, ports, and protocols. Network ACLs are stateless. AWS Network Firewall maintains connection state and can inspect application-layer data, including TLS handshake metadata (SNI) and HTTP headers.
+- **Intrusion prevention**: Suricata rule sets (e.g., Emerging Threats, Proofpoint ET Pro) enable real-time blocking of known exploits, malware patterns, and protocol anomalies. This is critical for compliance frameworks like PCI DSS, which require network intrusion detection (Requirement 11.4).
+- **Egress filtering**: Many organizations lack visibility into outbound traffic. AWS Network Firewall can enforce allowlists for outbound domains, block traffic to known bad IPs, and alert on data exfiltration attempts. This is directly relevant to controls like NIST SP 800-53 SC-7 (Boundary Protection).
+- **Centralized management**: Using AWS Firewall Manager, you can deploy a single firewall policy across all VPCs in an AWS Organization. This ensures consistent enforcement and simplifies audit evidence collection for SOC 2 or ISO 27001.
+- **Integration with AWS services**: Firewall logs can feed into Amazon Detective for security investigations, or into SIEM tools via Kinesis. The firewall also supports VPC Traffic Mirroring for additional analysis.
+
+A common pitfall is assuming the firewall replaces all other controls. It does not. Security groups should still be used for least-privilege access between tiers (e.g., allow only port 3306 from app servers to database). Network ACLs provide a stateless backup layer. AWS Network Firewall complements these by adding DPI and threat prevention at the VPC boundary.
+
+**Key Takeaways**
+- AWS Network Firewall provides stateful, application-layer inspection and intrusion prevention that security groups and network ACLs cannot achieve, making it essential for compliance-driven environments.
+- Deploy at least two firewall endpoints across different Availability Zones for high availability, and route traffic through dedicated firewall subnets using VPC route tables.
+- Use Suricata-compatible rule groups for threat detection and domain filtering, and integrate logs with CloudWatch or a SIEM for real-time alerting and forensic analysis.

@@ -1,0 +1,27 @@
+4.11.28.10: .1 (L2) Ensure 'Configure Watson events' is set to
+
+Overview
+This policy setting allows you to configure whether or not Watson events are sent. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+Watson events are the reports that get sent to Microsoft when a program or service 
+crashes or fails, including the possibility of automatic submission. Preventing this 
+information from being sent can help reduce privacy concerns.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows 
+Defender\Reporting:DisableGenericRePorts
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Windows Components\Microsoft Defender 
+Antivirus\Reporting\Configure Watson events
+
+Key Takeaways
+- Watson events are the reports that get sent to Microsoft when a program or service  crashes or fails, including the possibility of automatic submission.
+- Preventing this  information from being sent can help reduce privacy concerns.

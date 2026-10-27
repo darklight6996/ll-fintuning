@@ -1,0 +1,56 @@
+Event ID 4648 is a Windows Security log event that records explicit credential usage. It is generated when a user or process attempts to log on to a remote system using credentials that were explicitly provided, rather than using the current security context. This event is critical for detecting lateral movement, pass-the-hash attacks, and unauthorized credential reuse within a network.
+
+**Definition**
+
+Event 4648: A logon was attempted using explicit credentials. This event is triggered whenever a user or service supplies a username and password (or other credential type) to authenticate to a remote machine, typically via RunAs, scheduled tasks, remote desktop connections, or other tools that allow credential specification. The event is generated on the source machine where the credential is provided, not the target machine. It includes details about the account that supplied the credentials, the target server, and the process that initiated the logon.
+
+**Key Components**
+
+Every 4648 event contains the following fields, each of which is essential for analysis:
+
+- **Subject**: The account that performed the explicit credential logon. This includes:
+  - Security ID (SID)
+  - Account Name
+  - Account Domain
+  - Logon ID (a unique identifier for the current session)
+- **Account Whose Credentials Were Used**: The account whose credentials were explicitly supplied. This field includes:
+  - Account Name
+  - Account Domain
+  - Logon GUID (if available)
+- **Target Server**: The remote system to which the logon was attempted. This includes:
+  - Target Server Name (DNS or NetBIOS)
+  - Additional Information (e.g., IP address if resolved)
+- **Process Information**: The process that initiated the credential usage. This includes:
+  - Process ID
+  - Process Name (full path to the executable)
+- **Network Information**: Details about the network connection, such as:
+  - Workstation Name (source machine name)
+  - Source Network Address (IP address of the source)
+  - Source Port
+
+**Real-World Application**
+
+Event 4648 is a primary indicator of lateral movement techniques used by attackers. In a typical attack chain, an adversary gains initial access to a low-privilege workstation, then uses tools like PsExec, WMI, or scheduled tasks to move laterally to higher-value servers. These tools often require explicit credentials, which will generate a 4648 event on the source machine.
+
+For example, if an attacker uses `runas /user:DOMAIN\Admin cmd.exe` to open a command prompt with administrative privileges, a 4648 event will be logged on that workstation. The Subject will be the attacker’s current user account, and the Account Whose Credentials Were Used will be the administrative account. The Target Server field will be blank or localhost if the credentials are used locally, but if the credentials are used to connect to a remote server, the Target Server will show that server’s name.
+
+Another common scenario is the use of Remote Desktop Protocol (RDP) with saved credentials. When a user connects to a remote desktop and selects “Use a different account,” a 4648 event is generated on the client machine. This allows security teams to track which accounts are being used to access which servers, even if the RDP connection itself is encrypted.
+
+Security Information and Event Management (SIEM) systems can correlate 4648 events with other logon events (e.g., 4624 on the target server) to build a complete picture of authentication flows. For instance, a 4648 on a workstation followed by a 4624 on a domain controller with the same account name and timestamp indicates a successful lateral movement attempt.
+
+**Security Relevance**
+
+Event 4648 is a high-fidelity indicator of credential exposure and misuse. Its primary security relevance lies in detecting:
+
+- **Pass-the-Hash (PtH) and Overpass-the-Hash**: Attackers who extract NTLM hashes and use them to authenticate will generate 4648 events if they explicitly supply those hashes via tools like Mimikatz. The event will show the hash being used as the credential, though the actual hash value is not logged.
+- **Credential Theft and Reuse**: If an attacker compromises a user’s password and uses it to access multiple servers, each explicit logon attempt will generate a 4648 event. A sudden spike in 4648 events from a single workstation using different administrative accounts is a strong indicator of compromise.
+- **Service Account Abuse**: Many service accounts are configured with delegated permissions. If a service account is used to explicitly log on to a server where it should not have interactive access, a 4648 event will be generated. This helps detect unauthorized use of service accounts.
+- **Insider Threats**: Employees who use RunAs to perform privileged actions outside of normal workflows will leave a trail of 4648 events. This can be used to audit administrative activity and enforce least-privilege policies.
+
+It is important to note that 4648 events are generated on the source machine. If an attacker compromises a machine and clears the Security log, these events may be lost. Therefore, centralized log collection (e.g., Windows Event Forwarding or a SIEM) is essential. Additionally, 4648 events do not indicate whether the logon succeeded or failed; they only record the attempt. To determine success, correlate with event 4624 (successful logon) or 4625 (failed logon) on the target server.
+
+**Key Takeaways**
+
+- Event 4648 is generated on the source machine when explicit credentials are used for a remote logon, making it a critical indicator for lateral movement detection.
+- Key fields to analyze include Subject, Account Whose Credentials Were Used, Target Server, and Process Information; correlation with target-side logon events (4624/4625) is necessary for full context.
+- A baseline of normal 4648 activity should be established per workstation and user account; any deviation, especially from non-administrative workstations, warrants immediate investigation.

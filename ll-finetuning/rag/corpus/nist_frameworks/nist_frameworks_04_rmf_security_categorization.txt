@@ -1,0 +1,49 @@
+**Definition**
+
+Security categorization is the initial and foundational step in the Risk Management Framework (RMF) process, as defined by NIST SP 800-60 and FIPS 199. It is the systematic assignment of impact levels (Low, Moderate, or High) to an information system based on the potential adverse effects to organizational operations, organizational assets, or individuals should a loss of confidentiality, integrity, or availability (CIA) occur. This process produces a security categorization (SC) value, typically expressed as a triplet (e.g., (Confidentiality: Moderate, Integrity: High, Availability: Low)). This categorization directly drives the selection of baseline security controls from NIST SP 800-53 and determines the rigor of subsequent RMF steps.
+
+**Key Components**
+
+The security categorization process comprises three essential components: information types, impact analysis, and system boundary definition.
+
+- **Information Types:** The process begins by identifying all information types processed, stored, or transmitted by the system. These are mapped to predefined categories from NIST SP 800-60 (e.g., “Privacy,” “Financial Management,” “Health Information”). Each information type carries a provisional impact level for each CIA objective. For example, personally identifiable information (PII) typically defaults to Moderate or High for confidentiality.
+
+- **Impact Analysis:** For each information type, the security engineer must assess the potential impact of a breach of confidentiality, integrity, or availability. FIPS 199 defines three levels:
+    - **Low:** Limited adverse effect (e.g., minor degradation of mission capability, minor financial loss).
+    - **Moderate:** Serious adverse effect (e.g., significant mission capability degradation, significant financial loss).
+    - **High:** Severe or catastrophic adverse effect (e.g., mission failure, loss of life, major financial loss).
+    The final system-level categorization is the highest impact level across all information types for each CIA objective. This is not an average; it is a worst-case aggregation.
+
+- **System Boundary Definition:** The categorization applies to a defined system boundary. The engineer must clearly delineate what is in scope (hardware, software, data, interfaces, people, and processes) and what is excluded. A poorly defined boundary can lead to under-categorization (missing critical components) or over-categorization (including unrelated systems, inflating control requirements). The boundary must align with the system’s authorization boundary as defined in the system security plan (SSP).
+
+**Real-World Application**
+
+Consider a healthcare organization deploying a new Electronic Health Records (EHR) system. The security engineer begins by listing all information types: patient medical records (PHI), billing data, appointment schedules, and system logs.
+
+- **Patient Medical Records (PHI):** Under HIPAA and NIST SP 800-60, PHI is provisionally High for confidentiality (unauthorized disclosure could cause severe harm to patients), High for integrity (corrupted records could lead to misdiagnosis or death), and Moderate for availability (downtime is serious but not immediately life-threatening if backup procedures exist).
+- **Billing Data:** Confidentiality is Moderate (financial data, not medical), integrity is High (incorrect billing leads to legal/financial issues), availability is Moderate.
+- **Appointment Schedules:** Confidentiality is Low (publicly available times), integrity is Low, availability is Low.
+- **System Logs:** Confidentiality is Low, integrity is High (logs must be tamper-proof for audit), availability is Low.
+
+The engineer then aggregates: for confidentiality, the highest is High (PHI). For integrity, the highest is High (PHI and billing). For availability, the highest is Moderate (PHI). The final security categorization is (Confidentiality: High, Integrity: High, Availability: Moderate). This categorization mandates the use of the High baseline security controls from NIST SP 800-53 for confidentiality and integrity, and the Moderate baseline for availability. The engineer must now select controls like AC-6 (Least Privilege) at the High level, requiring more granular access restrictions than a Moderate system.
+
+In practice, the engineer documents this in the system’s security categorization form (e.g., NIST SP 800-53A Appendix F). This form is reviewed by the authorizing official (AO) and becomes a binding requirement for all subsequent RMF steps—control selection, implementation, assessment, and continuous monitoring.
+
+**Security Relevance**
+
+Security categorization is not a bureaucratic checkbox; it directly determines the security posture of a system. Its relevance to a security engineer is threefold:
+
+- **Control Baseline Selection:** The categorization dictates which subset of NIST SP 800-53 controls must be implemented. A system categorized as Low for all three objectives requires only the Low baseline (approximately 100 controls), while a High system requires the High baseline (over 200 controls). Mis-categorization leads to either insufficient controls (security gaps) or excessive controls (wasted resources and operational friction).
+
+- **Risk Acceptance Threshold:** The categorization sets the risk tolerance for the system. An AO will accept higher residual risk for a Low system than for a High system. This directly impacts the engineer’s ability to accept compensating controls or waivers. For example, a High confidentiality system cannot accept a waiver for encryption at rest; the control must be implemented.
+
+- **Continuous Monitoring Frequency:** The categorization influences the monitoring cadence. High systems typically require more frequent vulnerability scans, log reviews, and control assessments (e.g., monthly vs. annually for Low systems). This affects the engineer’s operational workload and tooling requirements.
+
+- **Interconnection Security Agreements (ISAs):** When connecting to other systems, the categorization determines the minimum security requirements for the interconnection. A High system connecting to a Low system must enforce stricter data protection (e.g., encryption, access controls) at the boundary.
+
+A common pitfall is over-categorization due to fear of missing a requirement. This leads to unnecessary cost and complexity. Conversely, under-categorization due to incomplete information type identification creates exploitable gaps. The engineer must perform a thorough, evidence-based analysis, documenting the rationale for each impact level. The categorization must be reviewed and updated when the system’s mission or data types change (e.g., adding a new module that processes classified data).
+
+**Key Takeaways**
+- Security categorization is the mandatory first step in RMF that determines the baseline controls, risk acceptance level, and monitoring frequency for a system.
+- The categorization is derived from the highest impact level across all information types for confidentiality, integrity, and availability, not an average.
+- Accurate categorization requires precise system boundary definition and complete identification of all information types; errors here cascade into security gaps or resource waste.

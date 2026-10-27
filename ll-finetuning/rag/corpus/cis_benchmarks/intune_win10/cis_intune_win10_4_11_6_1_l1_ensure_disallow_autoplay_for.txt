@@ -1,0 +1,24 @@
+4.11.6.1: (L1) Ensure 'Disallow Autoplay for non-volume devices'
+
+Overview
+This policy setting disallows AutoPlay for MTP devices like cameras or phones. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+An attacker could use this feature to launch a program to damage a client computer or 
+data on the computer.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer:NoAutoplayfornonVolume
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\AutoPlay Policies\Disallow 
+Autoplay for non-volume devices
+
+Key Takeaways
+- An attacker could use this feature to launch a program to damage a client computer or  data on the computer.

@@ -1,0 +1,119 @@
+6.8: Define and Maintain Role-Based Access Control (and related controls)
+
+Overview
+This policy setting allows accounts to log on using the task scheduler service. Because 
+the task scheduler is often used for administrative purposes, it may be needed in 
+enterprise environments. However, its use should be restricted in high security 
+environments to prevent misuse of system resources or to prevent attackers from using 
+the right to launch malicious code after gaining user level access to a computer. 
+The recommended state for this setting is: *S-1-5-32-544 (Administrators).
+
+This policy setting determines which users can change the auditing options for files and 
+directories and clear the Security log. 
+The recommended state for this setting is: *S-1-5-32-544 (Administrators). 
+Note: This user right is considered a "sensitive privilege" for the purposes of auditing.
+
+This policy setting allows users to manage the system's volume or disk configuration, 
+which could allow a user to delete a volume and cause data loss as well as a denial-ofservice condition. 
+The recommended state for this setting is: *S-1-5-32-544 (Administrators). 
+Note: A workstation with Microsoft SQL Server installed will require a special exception 
+to this recommendation for the account that runs the SQL Server service to be granted 
+this user right.
+
+This policy setting allows users to configure the system-wide environment variables that 
+affect hardware configuration. This information is typically stored in the Last Known 
+Good Configuration. Modification of these values and could lead to a hardware failure 
+that would result in a denial of service condition. 
+The recommended state for this setting is: *S-1-5-32-544 (Administrators). 
+Note: This user right is considered a "sensitive privilege" for the purposes of auditing.
+
+This privilege determines which user accounts can modify the integrity label of objects, 
+such as files, registry keys, or processes owned by other users. Processes running 
+under a user account can modify the label of an object owned by that user to a lower 
+level without this privilege. 
+The recommended state for this setting is: No One.
+
+Why This Matters
+The Log on as a batch job user right presents a low-risk vulnerability. For most 
+organizations, the default settings are sufficient.
+
+The ability to manage the Security event log is a powerful user right and it should be 
+closely guarded. Anyone with this user right can clear the Security log to erase 
+important evidence of unauthorized activity.
+
+A user who is assigned the Perform volume maintenance tasks user right could 
+delete a volume, which could result in the loss of data or a DoS condition.
+
+Anyone who is assigned the Modify firmware environment values user right could 
+configure the settings of a hardware component to cause it to fail, which could lead to 
+data corruption or a DoS condition.
+
+By modifying the integrity label of an object owned by another user a malicious user 
+may cause them to execute code at a higher level of privilege than intended.
+
+Audit Steps
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Log on as a batch job
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Manage auditing and 
+security log
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Perform volume 
+maintenance tasks
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Modify firmware 
+environment values
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Modify an object 
+label
+
+Remediation
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 (Administrators). 
+User Rights\Log On As Batch Job
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 (Administrators). 
+User Rights\Manage auditing and security log 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 (Administrators). 
+User Rights\Manage Volume 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen. 
+\
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-544 (Administrators). 
+User Rights\Modify Firmware Environment 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to (<![CDATA[]]>) which equals No One. 
+User Rights\Modify Object Label 
+Note: Using (<![CDATA[]]>) to represent a blank value or No One is recommended 
+by Microsoft. However, there is a known issue where an error occurs in Endpoint 
+Manger (Intune) but does not affect the policy setting from being applied to the system 
+properly.
+
+Key Takeaways
+- The Log on as a batch job user right presents a low-risk vulnerability.
+- For most  organizations, the default settings are sufficient.
+- The ability to manage the Security event log is a powerful user right and it should be  closely guarded.

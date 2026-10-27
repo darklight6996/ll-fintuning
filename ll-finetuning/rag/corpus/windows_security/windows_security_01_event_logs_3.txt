@@ -1,0 +1,41 @@
+**Definition**
+
+Event log ID 3 is a Windows Security Event Log entry generated when a process creates a new process. This event is part of the "Detailed Tracking" audit policy subcategory, specifically under "Audit Process Creation." It records the creation of a child process by a parent process, capturing critical metadata about both the source and target executables. For security engineers, Event ID 3 is one of the most valuable telemetry sources for detecting lateral movement, privilege escalation, code injection, and malicious execution patterns. It is enabled by default in modern Windows versions when process creation auditing is turned on, but it requires explicit configuration in older systems via Group Policy or Advanced Audit Policy.
+
+**Key Components**
+
+Each Event ID 3 entry contains the following fields, all of which are essential for analysis:
+
+- **ProcessID (PID)** : The numeric identifier of the newly created process. This is ephemeral and can be reused, so it must be correlated with other events (e.g., Event ID 1 for process creation in Sysmon) for accurate tracking.
+- **ProcessName**: The full path to the executable file of the new process. This is the primary indicator for identifying known good vs. suspicious binaries.
+- **ParentProcessID (PPID)** : The PID of the process that initiated the creation. This establishes the parent-child relationship, which is critical for detecting anomalous chains (e.g., `winword.exe` spawning `cmd.exe`).
+- **ParentProcessName**: The full path to the parent executable. Discrepancies between the expected parent (e.g., `explorer.exe` for user-launched apps) and the actual parent can indicate process hollowing or DLL side-loading.
+- **CommandLine**: The full command line used to launch the new process. This is the most actionable field for detecting obfuscated commands, base64-encoded payloads, or suspicious arguments (e.g., `-enc`, `-nop`, `-w hidden`).
+- **TokenElevationType**: Indicates whether the new process runs with elevated privileges. Values include `TokenElevationTypeDefault` (no elevation), `TokenElevationTypeFull` (elevated), and `TokenElevationTypeLimited` (UAC virtualization). An unexpected elevation type can signal privilege escalation attempts.
+- **MandatoryLabel**: The integrity level of the new process (e.g., `Low`, `Medium`, `High`, `System`). A process running at a higher integrity level than its parent may indicate a bypass of UAC or a token manipulation attack.
+- **CreatorProcessID and CreatorProcessName**: In some configurations, these fields record the process that actually performed the creation, which may differ from the parent if a process is acting as a proxy (e.g., WMI or scheduled tasks).
+
+**Real-World Application**
+
+Event ID 3 is a cornerstone of endpoint detection and response (EDR) and security information and event management (SIEM) pipelines. Here are concrete use cases:
+
+- **Detecting Office Application Abuse**: A common initial access vector involves macros or exploits in Microsoft Office products. When `winword.exe`, `excel.exe`, or `powerpnt.exe` spawns a child process like `cmd.exe`, `powershell.exe`, or `wscript.exe`, it is highly suspicious. A detection rule can flag any Event ID 3 where the parent process name matches an Office executable and the child process is a scripting interpreter or command shell.
+- **Identifying Lateral Movement via PsExec**: PsExec creates a service on the remote machine, which then spawns `cmd.exe` or `powershell.exe` under the `services.exe` parent. Event ID 3 will show `services.exe` as the parent and `cmd.exe` as the child, with the command line containing the executed command. Correlating this with network logs (e.g., SMB connections) confirms lateral movement.
+- **Detecting Process Hollowing**: In process hollowing, a legitimate process (e.g., `svchost.exe`) is created in a suspended state, its memory is replaced with malicious code, and then it is resumed. Event ID 3 will capture the initial creation of the legitimate binary, but the subsequent memory modification is not logged here. However, the absence of expected child processes or the presence of anomalous parent-child relationships (e.g., `svchost.exe` spawning `rundll32.exe`) can serve as a trigger for deeper investigation.
+- **Monitoring for Credential Dumping**: Tools like `mimikatz` are often launched from a command shell. Event ID 3 will show `cmd.exe` or `powershell.exe` as the parent and `mimikatz.exe` as the child. The command line field may contain arguments like `"sekurlsa::logonpasswords"`. Alerting on the execution of known credential dumping tools by name or hash is straightforward.
+- **Tracking Scheduled Task Abuse**: Attackers often create scheduled tasks to maintain persistence. When a task triggers, `svchost.exe` (specifically the Task Scheduler service) spawns the configured executable. Event ID 3 will show `svchost.exe` as the parent and the malicious binary as the child. This can be correlated with Task Scheduler event IDs (e.g., 106, 140) for full context.
+
+**Security Relevance**
+
+Event ID 3 is indispensable for the following security objectives:
+
+- **Attack Chain Reconstruction**: By chaining multiple Event ID 3 entries, an analyst can reconstruct the full process tree from initial execution to final payload. This is critical for understanding the scope of an incident and identifying all affected hosts.
+- **Baseline Anomaly Detection**: Over time, organizations can build a baseline of normal parent-child process relationships. Deviations—such as `notepad.exe` spawning `powershell.exe` or `wmiprvse.exe` spawning `rundll32.exe`—are strong indicators of compromise.
+- **False Positive Reduction**: The command line and token elevation fields allow for precise filtering. For example, a rule that flags `powershell.exe` launched from `explorer.exe` can be tuned to exclude known administrative scripts by hashing the command line or checking the parent process integrity level.
+- **Compliance and Forensics**: Many regulatory frameworks (e.g., PCI DSS, HIPAA) require logging of process creation events. Event ID 3 provides the necessary audit trail for forensic investigations and compliance audits.
+
+**Key Takeaways**
+
+- Event ID 3 captures every process creation with parent-child relationships, command lines, and integrity levels, making it the single most important Windows security event for detecting malicious execution patterns.
+- The command line field is the highest-fidelity indicator for detecting obfuscated or suspicious commands; always include it in detection rules and SIEM queries.
+- Correlate Event ID 3 with other event IDs (e.g., 4688 for process creation in Security log, 1 for Sysmon, 5156 for network connections) to build a complete picture of an attack and reduce false positives.

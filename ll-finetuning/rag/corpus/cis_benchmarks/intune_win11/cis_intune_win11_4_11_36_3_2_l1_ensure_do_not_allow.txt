@@ -1,0 +1,32 @@
+4.11.36.3: .2 (L1) Ensure 'Do not allow passwords to be saved' is
+
+Overview
+This policy setting helps prevent Remote Desktop clients from saving passwords on a 
+computer. 
+The recommended state for this setting is: Enabled. 
+Note: If this policy setting was previously configured as Disabled or Not configured, any 
+previously saved passwords will be deleted the first time a Remote Desktop client 
+disconnects from any server.
+
+Why This Matters
+An attacker with physical access to the computer may be able to break the protection 
+guarding saved passwords. An attacker who compromises a user's account and 
+connects to their computer could use saved passwords to gain access to additional 
+hosts.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal 
+Services:DisablePasswordSaving
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Remote Desktop Services\Remote 
+Desktop Connection Client\Do not allow passwords to be saved
+
+Key Takeaways
+- An attacker with physical access to the computer may be able to break the protection  guarding saved passwords.
+- An attacker who compromises a user's account and  connects to their computer could use saved passwords to gain access to additional  hosts.

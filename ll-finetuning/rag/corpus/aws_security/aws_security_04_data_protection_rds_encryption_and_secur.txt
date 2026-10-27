@@ -1,0 +1,51 @@
+**Definition**
+
+RDS encryption refers to the use of cryptographic mechanisms to protect data stored in Amazon Relational Database Service (RDS) instances, both at rest and in transit. For security engineers, this means ensuring that data written to disk, automated backups, read replicas, and snapshots are encrypted using AES-256, and that client-server communication uses TLS 1.2 or higher. RDS encryption is not optional for compliance frameworks such as PCI DSS, HIPAA, or SOC 2; it is a mandatory control for protecting sensitive data in the cloud.
+
+**Key Components**
+
+- **Encryption at Rest**: RDS uses AWS Key Management Service (KMS) to manage the master key that encrypts the storage volume, automated backups, and snapshots. Each RDS instance can be assigned a customer managed key (CMK) or use the default AWS managed key for RDS. Once encryption is enabled at instance creation, it cannot be disabled. Encryption applies to the underlying EBS volumes, not just the database files.
+
+- **Encryption in Transit**: RDS supports TLS/SSL connections for all database engines (MySQL, PostgreSQL, Oracle, SQL Server, MariaDB, and Aurora). Security engineers must enforce TLS by configuring the DB instance to require SSL connections and by using the appropriate root certificate bundle on client applications. RDS provides a public certificate bundle that rotates periodically; failing to update client trust stores can cause connection failures.
+
+- **Key Management**: KMS keys are region-specific and can be used across multiple RDS instances. Key rotation is controlled by the customer for CMKs (automatic yearly rotation is available) or by AWS for the default key. Access to the KMS key must be tightly scoped via IAM policies; a common mistake is granting overly permissive kms:Decrypt permissions to RDS service roles.
+
+- **Snapshot and Backup Encryption**: When you take a snapshot of an encrypted RDS instance, the snapshot is automatically encrypted with the same KMS key. You can copy an encrypted snapshot to another region, but you must specify a new KMS key for the destination region. Unencrypted snapshots cannot be converted to encrypted snapshots after creation; you must create a new encrypted instance from the snapshot.
+
+- **Read Replicas**: Read replicas of encrypted instances are also encrypted, but they must use the same KMS key as the source instance if they are in the same region. Cross-region read replicas require a different KMS key in the target region. This is a critical consideration for disaster recovery architectures.
+
+- **Performance Impact**: Enabling encryption at rest on RDS does not introduce measurable latency for most workloads. The encryption and decryption occur at the storage layer, transparent to the database engine. However, using a CMK with automatic key rotation may add a small overhead during key rotation events.
+
+**Real-World Application**
+
+Consider a healthcare organization migrating a PostgreSQL database containing PHI to RDS. The security engineer must:
+
+1. Create a CMK in KMS with a key policy that restricts usage to the RDS service and specific IAM roles used by the application.
+2. Launch the RDS instance with encryption at rest enabled, selecting the CMK.
+3. Configure the DB parameter group to set `rds.force_ssl=1` for PostgreSQL, which rejects non-TLS connections.
+4. Download the latest AWS RDS root certificate and deploy it to all application servers and ETL pipelines.
+5. Enable automated backups and ensure they are encrypted (this happens automatically when the instance is encrypted).
+6. Set up cross-region read replicas for disaster recovery, creating a new CMK in the target region and granting the RDS service permission to use it.
+7. Implement IAM policies that prevent users from launching unencrypted RDS instances or modifying security group rules to allow non-TLS traffic.
+
+A common pitfall is forgetting to encrypt the parameter group or option group settings. For example, Oracle RDS instances may require additional configuration for Transparent Data Encryption (TDE) if using Oracle Advanced Security, but RDS encryption at rest using KMS is separate and should be enabled first.
+
+**Security Relevance**
+
+RDS encryption directly addresses several threat models:
+
+- **Data at rest compromise**: If an attacker gains access to the underlying storage volumes (e.g., through an AWS console misconfiguration or a compromised IAM role), encrypted data is unreadable without the KMS key. This is a critical defense against insider threats and storage-level breaches.
+
+- **Backup exposure**: Automated backups and manual snapshots are stored in S3. Without encryption, a leaked snapshot could expose the entire database. Encryption ensures that even if S3 bucket policies are misconfigured, the data remains confidential.
+
+- **Man-in-the-middle attacks**: Enforcing TLS for client connections prevents interception of queries and result sets. This is especially important for applications that connect over public networks or through VPC peering.
+
+- **Compliance audit evidence**: Most compliance frameworks require documented encryption controls. RDS encryption with KMS provides audit trails via CloudTrail, showing when keys were used, by whom, and for which instances. This satisfies requirements for key management and access logging.
+
+- **Key separation**: Using separate CMKs for different environments (dev, staging, production) limits blast radius. A compromised dev key does not expose production data. This is a fundamental security engineering principle.
+
+**Key Takeaways**
+
+- Enable RDS encryption at rest at instance creation; it cannot be added later without rebuilding the instance from an unencrypted snapshot.
+- Always enforce TLS for client connections by configuring the DB instance and updating client trust stores with the current AWS RDS root certificate.
+- Use separate customer managed KMS keys per environment and region, and restrict key usage via IAM policies to minimize the impact of a key compromise.

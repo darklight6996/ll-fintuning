@@ -1,0 +1,59 @@
+8.5: Configure Devices Not To Auto-run Content (and related controls)
+
+Overview
+This policy setting sets the default behavior for Autorun commands. Autorun commands 
+are generally stored in autorun.inf files. They often launch the installation program or 
+other routines. 
+The recommended state for this setting is: Enabled: Do not execute any autorun 
+commands.
+
+Autoplay starts to read from a drive as soon as you insert media in the drive, which 
+causes the setup file for programs or audio media to start immediately. An attacker 
+could use this feature to launch a program to damage the computer or data on the 
+computer. Autoplay is disabled by default on some removable drive types, such as 
+floppy disk and network drives, but not on CD-ROM drives. 
+Note: You cannot use this policy setting to enable Autoplay on computer drives in which 
+it is disabled by default, such as floppy disk and network drives. 
+The recommended state for this setting is: Enabled: All drives.
+
+Why This Matters
+Prior to Windows Vista, when media containing an autorun command is inserted, the 
+system will automatically execute the program without user intervention. This creates a 
+major security concern as code may be executed without user's knowledge. The default 
+behavior starting with Windows Vista is to prompt the user whether autorun command is 
+to be run. The autorun command is represented as a handler in the Autoplay dialog.
+
+An attacker could use this feature to launch a program to damage a client computer or 
+data on the computer.
+
+Audit Steps
+For Configure Devices Not To Auto-run Content:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer:NoAutorun
+
+For Configure Devices Not To Auto-run Content:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 255. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer:NoDriveTypeA
+utoRun
+
+Remediation
+For Configure Devices Not To Auto-run Content:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: Do not execute any autorun commands. 
+Administrative Templates\Windows Components\AutoPlay Policies\Set the default 
+behavior for AutoRun
+
+For Configure Devices Not To Auto-run Content:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: All drives. 
+Administrative Templates\Windows Components\AutoPlay Policies\Turn off 
+Autoplay
+
+Key Takeaways
+- Prior to Windows Vista, when media containing an autorun command is inserted, the  system will automatically execute the program without user intervention.
+- This creates a  major security concern as code may be executed without user's knowledge.
+- The default  behavior starting with Windows Vista is to prompt the user whether autorun command is  to be run.

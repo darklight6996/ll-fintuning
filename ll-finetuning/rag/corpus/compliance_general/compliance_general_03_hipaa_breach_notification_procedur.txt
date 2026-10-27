@@ -1,0 +1,60 @@
+A breach notification procedure under HIPAA is the mandated sequence of actions a covered entity or business associate must follow upon discovering a breach of unsecured protected health information (PHI). The procedure is defined by the HIPAA Breach Notification Rule, 45 CFR §§ 164.400-414. It applies to all ePHI and paper PHI that has not been rendered unusable, unreadable, or indecipherable through methods such as encryption or destruction per NIST SP 800-88 standards. The core trigger is the discovery of an impermissible use or disclosure that compromises the privacy or security of PHI, with a presumption that any impermissible acquisition, access, use, or disclosure is a breach unless the entity demonstrates a low probability that the PHI has been compromised based on a four-factor risk assessment.
+
+**Key Components**
+
+The procedure is divided into distinct phases, each with specific technical and administrative requirements.
+
+- **Risk Assessment (Four-Factor Analysis):** Within a reasonable timeframe after discovery, the entity must evaluate:
+    1.  The nature and extent of the PHI involved, including identifiers and likelihood of re-identification.
+    2.  The unauthorized person who used the PHI or to whom the disclosure was made.
+    3.  Whether the PHI was actually acquired or viewed.
+    4.  The extent to which the risk to the PHI has been mitigated.
+    This assessment must be documented. If the probability of compromise is low, the breach is not reportable, but the rationale must be retained for six years.
+
+- **Notification Timelines:**
+    - **To Individuals:** Must be provided without unreasonable delay and in no case later than 60 calendar days from discovery of the breach. The notification must include a description of the breach, types of PHI involved, steps individuals should take to protect themselves, actions the entity is taking to investigate and mitigate, and contact information.
+    - **To the Secretary of HHS:**
+        - Breaches affecting 500 or more individuals: Must be reported immediately, but no later than 60 calendar days from discovery. HHS posts these on its public breach portal.
+        - Breaches affecting fewer than 500 individuals: Must be reported to HHS annually, no later than 60 days after the end of the calendar year in which the breach occurred.
+    - **To the Media:** For breaches affecting more than 500 residents of a state or jurisdiction, the covered entity must notify prominent media outlets serving that state or jurisdiction within 60 calendar days.
+
+- **Content of Notification:** The notification must be in plain language and contain:
+    - A brief description of the breach.
+    - The date of the breach and the date of discovery.
+    - A description of the types of unsecured PHI involved (e.g., full name, SSN, diagnosis, treatment dates).
+    - Steps individuals should take to protect themselves from potential harm.
+    - A brief description of what the entity is doing to investigate the breach, mitigate harm, and prevent future occurrences.
+    - Contact procedures for individuals to ask questions or learn additional information (toll-free number, email, website).
+
+- **Methods of Notification:**
+    - **Individual Notification:** Must be sent by first-class mail to the individual’s last known address. If the individual is deceased, notification must be sent to the next of kin. If the entity has insufficient or out-of-date contact information, it must provide substitute notice (e.g., posting on the entity’s website, notification in major print or broadcast media).
+    - **Substitute Notice:** For breaches affecting fewer than 10 individuals, the entity may use an alternative form of written notice, telephone, or other means.
+    - **Media Notification:** Press release to major media outlets in the affected state or jurisdiction.
+
+- **Business Associate Obligations:** A business associate must notify the covered entity of a breach without unreasonable delay and no later than 60 calendar days from discovery. The business associate must provide the covered entity with the identity of each individual whose unsecured PHI has been breached, as well as any other information required for the covered entity to fulfill its notification obligations.
+
+**Real-World Application**
+
+Consider a scenario where a security engineer discovers that an unencrypted laptop containing a database of 1,500 patient records was stolen from a locked vehicle. The procedure would unfold as follows:
+
+1.  **Discovery:** The engineer identifies the laptop as missing during a routine inventory check. The date of discovery is recorded.
+2.  **Risk Assessment:** The engineer and compliance team perform the four-factor analysis. The laptop was password-protected but not encrypted. The database contained full names, SSNs, dates of birth, and clinical notes. The laptop was in a locked vehicle, but the vehicle was broken into. The team determines there is a high probability the PHI was compromised because the data was unencrypted and the attacker had physical access.
+3.  **Notification:** Because the breach affects more than 500 individuals, the entity must:
+    - Notify all 1,500 affected individuals within 60 calendar days via first-class mail.
+    - Notify prominent media outlets in the state where the theft occurred.
+    - Report the breach to HHS within 60 calendar days.
+4.  **Mitigation and Documentation:** The engineer immediately initiates a password reset for all affected patients, deploys remote wipe capabilities (if available), and begins a forensic investigation. All steps, including the risk assessment, notification letters sent, and media notifications, are documented and retained for six years.
+
+**Security Relevance**
+
+Breach notification procedures are not merely a compliance checkbox; they are a critical feedback loop for security operations. The requirement to perform a risk assessment within a short timeframe forces security teams to maintain accurate asset inventories, data classification schemas, and incident response playbooks. The 60-day notification deadline imposes a hard constraint on forensic analysis, requiring that root cause determination and containment happen in parallel with notification preparation. For security engineers, the procedure directly impacts:
+
+- **Logging and Monitoring:** You must have systems in place to detect unauthorized access or disclosure quickly. Without robust logging, you cannot establish the date of discovery, which starts the notification clock.
+- **Encryption and De-identification:** The Breach Notification Rule only applies to unsecured PHI. Properly encrypting data at rest and in transit (per NIST SP 800-111 or FIPS 140-2) eliminates the notification requirement entirely if the encryption key is not compromised.
+- **Incident Response Integration:** The notification procedure must be embedded into your incident response plan. The same team that handles containment and eradication must also prepare notification content, identify affected individuals, and coordinate with legal and communications.
+- **Business Associate Management:** You must have contractual agreements and technical controls to ensure business associates can detect and report breaches within the required timeframe. This includes verifying their logging capabilities and incident response maturity.
+
+**Key Takeaways**
+- The 60-calendar-day notification clock starts at discovery, not at confirmation of compromise; security teams must have automated detection and a documented risk assessment process to avoid missing deadlines.
+- Encryption or proper destruction of PHI at rest and in transit is the single most effective technical control to eliminate breach notification obligations under the rule.
+- Every breach notification must be documented and retained for six years, including the rationale for any determination that a breach did not occur, making audit trails and incident reports essential for compliance.

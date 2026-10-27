@@ -1,0 +1,138 @@
+0.0: Explicitly Not Mapped (and related controls)
+
+Overview
+This policy setting changes the operational behavior of the Responder network protocol 
+driver. 
+The Responder allows a computer to participate in Link Layer Topology Discovery 
+requests so that it can be discovered and located on the network. It also allows a 
+computer to participate in Quality-of-Service activities such as bandwidth estimation and 
+network health analysis. 
+The recommended state for this setting is: Disabled.
+
+This policy setting controls which protocol and protocol settings to use for outgoing 
+Remote Procedure Call (RPC) connections to a remote print spooler. 
+The recommended state for this setting is: Enabled: Default
+
+This policy setting controls which protocols incoming Remote Procedure Call (RPC) 
+connections to the print spooler are allowed to use. 
+The recommended state for this setting is: Enabled: Negotiate or higher.
+
+This policy setting controls which protocols incoming Remote Procedure Call (RPC) 
+connections to the print spooler are allowed to use. 
+The recommended state for this setting is: Enabled: RPC over TCP.
+
+This policy setting controls which port is used for RPC over TCP for incoming 
+connections to the print spooler and outgoing connections to remote print spoolers. 
+The recommended state for this setting is: Enabled: 0.
+
+This policy setting controls whether users who aren't Administrators can install print 
+drivers on the system. 
+The recommended state for this setting is: Enabled. 
+Note: On August 10, 2021, Microsoft announced a Point and Print Default Behavior 
+Change which modifies the default Point and Print driver installation and update 
+behavior to require Administrator privileges. This is documented in KB5005652—
+Manage new Point and Print default driver installation behavior (CVE-2021-34481).
+
+Why This Matters
+To help protect from potentially discovering and connecting to unauthorized devices, 
+this setting should be disabled to prevent responding to network traffic for network 
+topology discovery.
+
+This setting can prevent the use of named pipes for RPC connections to the print 
+spooler and forces the use of TCP which is a more secure communication method.
+
+This setting can prevent the use of named pipes for RPC connections to the print 
+spooler and forces the use of TCP which is a more secure communication method.
+
+This setting can prevent the use of named pipes for RPC connections to the print 
+spooler and forces the use of TCP which is a more secure communication method.
+
+Using dynamic ports for printing makes it more difficult for an attacker to know which 
+port is being used and therefore which port to attack.
+
+Restricting the installation of print drives to Administrators can help mitigate the 
+PrintNightmare vulnerability (CVE-2021-34527) and other Print Spooler attacks.
+
+Audit Steps
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry locations with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\LLTD:AllowRspndrOnDomain 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\LLTD:AllowRspndrOnPublicNet 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\LLTD:EnableRspndr 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\LLTD:ProhibitRspndrOnPrivateNet
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\RPC:RpcAuthentication
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0 or 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\RPC:ForceKerberosForRpc
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 5. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\RPC:RpcProtocols
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\RPC:RpcTcpPort
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows 
+NT\Printers\PointAndPrint:RestrictDriverInstallationToAdministrators
+
+Remediation
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Network\Link-Layer Topology Discovery\Turn on 
+Responder
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: Default: 
+Administrative Templates\Printers\Configure RPC connection settings: Use 
+authentication for outgoing RPC connections
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: Negotiate or higher: 
+Administrative Templates\Printers\Configure RPC listener settings: Configure 
+protocol options for incoming RPC connections
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: RCP over TCP: 
+Administrative Templates\Printers\Configure RPC listener settings: Configure 
+protocol options for incoming RPC connections
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 
+Enabled: 0: 
+Administrative Templates\Printers\Configure RPC over TCP port: RPC over TCP 
+port
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Printers\Limits print driver installation to 
+Administrators
+
+Key Takeaways
+- To help protect from potentially discovering and connecting to unauthorized devices,  this setting should be disabled to prevent responding to network traffic for network  topology discovery.
+- This setting can prevent the use of named pipes for RPC connections to the print  spooler and forces the use of TCP which is a more secure communication method.
+- Using dynamic ports for printing makes it more difficult for an attacker to know which  port is being used and therefore which port to attack.

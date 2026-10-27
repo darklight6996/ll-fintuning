@@ -1,0 +1,61 @@
+In cloud networking, specifically within Amazon Web Services (AWS), traffic control at the virtual private cloud (VPC) level is enforced by two distinct but complementary constructs: Security Groups and Network Access Control Lists (NACLs). Both act as virtual firewalls, but they operate at different layers of the OSI model and with fundamentally different rule evaluation logic. Understanding these differences is critical for designing a defense-in-depth strategy.
+
+**Definition**
+
+A Security Group is a stateful virtual firewall that controls inbound and outbound traffic at the elastic network interface (ENI) level. It acts as a host-based firewall for instances, containers, or other resources attached to a VPC. Security Groups operate at Layer 3 (network) and Layer 4 (transport) of the OSI model. Their stateful nature means that if you allow an inbound request, the outbound response is automatically permitted, regardless of outbound rules. Conversely, if you deny an inbound request, the response is also blocked.
+
+A Network Access Control List (NACL) is a stateless firewall that operates at the subnet level. It acts as a perimeter firewall for an entire subnet. NACLs operate at Layer 3 and Layer 4. Their stateless nature means that inbound and outbound rules must be explicitly defined for both directions of traffic. A response to an allowed inbound request will be blocked unless a corresponding outbound rule explicitly permits it.
+
+**Key Components**
+
+**Security Groups:**
+- **Stateful:** Automatically tracks connection state. No need to define return traffic rules.
+- **ENI-level enforcement:** Applied directly to individual resources (EC2, RDS, Lambda, etc.).
+- **Default deny all:** No inbound rules are allowed by default. All outbound traffic is allowed by default (can be changed).
+- **Allow rules only:** You cannot create explicit deny rules. To block traffic, you simply do not include an allow rule.
+- **Rule evaluation:** All rules are evaluated together; the most permissive rule applies. There is no priority order.
+- **Maximum rules:** Up to 60 inbound and 60 outbound rules per security group (soft limit, adjustable).
+- **Reference by ID or CIDR:** Rules can reference other security groups (e.g., allow traffic from sg-12345) or IP CIDR blocks.
+
+**Network Access Control Lists (NACLs):**
+- **Stateless:** No connection tracking. Return traffic must be explicitly allowed.
+- **Subnet-level enforcement:** Applied to all resources within a subnet. A subnet can only be associated with one NACL at a time, but a NACL can be associated with multiple subnets.
+- **Default allow all (custom NACLs default deny all):** The default VPC NACL allows all inbound and outbound traffic. Custom NACLs deny all traffic until rules are added.
+- **Allow and deny rules:** You can create explicit allow and explicit deny rules.
+- **Rule evaluation:** Rules are evaluated in numerical order, from lowest to highest number. The first rule that matches the traffic (allow or deny) is applied. Lower numbers have higher priority.
+- **Maximum rules:** Up to 20 inbound and 20 outbound rules per NACL (soft limit, adjustable).
+- **Reference by CIDR only:** Rules can only reference IP CIDR blocks, not security group IDs.
+
+**Real-World Application**
+
+**Defense-in-Depth Architecture:**
+A common pattern is to use NACLs as a coarse, subnet-level barrier and Security Groups as a fine-grained, instance-level control. For example, in a three-tier web application:
+- **Web Tier (public subnet):** NACL allows inbound HTTP/HTTPS (TCP 80, 443) from 0.0.0.0/0 and outbound ephemeral ports (1024-65535) to the web subnet’s CIDR. Security Group on web instances allows HTTP/HTTPS from 0.0.0.0/0 and outbound traffic to the app tier Security Group.
+- **App Tier (private subnet):** NACL allows inbound traffic only from the web subnet’s CIDR on the application port (e.g., TCP 8080) and outbound ephemeral ports to the app subnet’s CIDR. Security Group on app instances allows inbound traffic only from the web Security Group on port 8080.
+- **Database Tier (private subnet):** NACL allows inbound traffic only from the app subnet’s CIDR on the database port (e.g., TCP 3306). Security Group on database instances allows inbound traffic only from the app Security Group on port 3306.
+
+**Bastion Host Access:**
+To restrict SSH access to a bastion host in a public subnet, use a Security Group that allows SSH (TCP 22) only from a specific corporate IP range. The NACL for that subnet should also allow inbound SSH from that same IP range and outbound ephemeral ports back to the client. The NACL acts as a second layer of defense, blocking traffic even if the Security Group is misconfigured.
+
+**Blocking Known Bad Actors:**
+Use NACLs to explicitly deny traffic from known malicious IP ranges (e.g., from threat intelligence feeds). Because NACLs support deny rules, you can place a high-priority deny rule (rule number 100) for a specific CIDR block, followed by a lower-priority allow rule (rule number 200) for legitimate traffic. Security Groups cannot achieve this because they lack explicit deny capabilities.
+
+**Security Relevance**
+
+**Security Groups are the primary control for least-privilege access.** They should be the first line of defense for any resource. Because they are stateful and support security group references, they allow for granular, identity-based access control (e.g., allowing only the app tier to talk to the database tier). Misconfigurations in Security Groups are a leading cause of data breaches.
+
+**NACLs provide a stateless, subnet-level safety net.** They are critical for:
+- **Blocking specific IP ranges** that cannot be blocked by Security Groups (e.g., entire geographic regions).
+- **Protecting against accidental Security Group misconfigurations** that might allow traffic from unintended sources.
+- **Enforcing compliance requirements** that mandate explicit deny rules for certain traffic types (e.g., blocking all traffic from non-corporate IPs at the subnet boundary).
+- **Mitigating DDoS attacks** by dropping traffic at the subnet level before it reaches instance-level firewalls.
+
+**Key Considerations for Security Engineers:**
+- **Ephemeral ports:** When configuring NACLs, you must account for ephemeral ports (typically 1024-65535) for return traffic. For example, if a client on the internet connects to a web server on port 443, the response will come from a random ephemeral port on the server. The outbound NACL rule must allow that ephemeral port range to the client’s IP.
+- **Logging and monitoring:** Both Security Groups and NACLs can be logged via VPC Flow Logs. Analyze these logs to detect anomalous traffic patterns and validate rule effectiveness.
+- **Change management:** Treat Security Group and NACL changes as high-risk. Use Infrastructure as Code (IaC) tools like Terraform or AWS CloudFormation to enforce version control and peer review.
+
+**Key Takeaways**
+1. **Security Groups are stateful, ENI-level firewalls that support allow rules only and should be used for granular, least-privilege access control between resources.**
+2. **NACLs are stateless, subnet-level firewalls that support both allow and deny rules, evaluated in priority order, and are essential for blocking specific IP ranges and providing a defense-in-depth safety net.**
+3. **Always pair Security Groups with NACLs in a layered architecture, and explicitly account for ephemeral ports in NACL rules to avoid blocking legitimate return traffic.**

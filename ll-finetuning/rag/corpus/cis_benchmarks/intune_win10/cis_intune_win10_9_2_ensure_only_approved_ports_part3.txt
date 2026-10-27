@@ -1,0 +1,128 @@
+9.2: Ensure Only Approved Ports, Protocols and Services (and related controls)
+
+Overview
+This policy setting allows you to turn on or turn off Solicited (Ask for) Remote Assistance 
+on this computer. 
+The recommended state for this setting is: Disabled.
+
+This policy setting allows you to join Microsoft Active Protection Service (MAPS), which 
+Microsoft renamed to Windows Defender Antivirus Cloud Protection Service and then 
+Microsoft Defender Antivirus Cloud Protection Service. Microsoft MAPS / Microsoft 
+Defender Antivirus Cloud Protection Service is the online community that helps you 
+choose how to respond to potential threats. The community also helps stop the spread 
+of new malicious software infections. You can choose to send basic or additional 
+information about detected software. Additional information helps Microsoft create new 
+definitions and help it to protect your computer. 
+Possible options are: 
+• 
+(0x0) Disabled (default) 
+• 
+(0x1) Basic membership 
+• 
+(0x2) Advanced membership 
+Basic membership will send basic information to Microsoft about software that has 
+been detected including where the software came from the actions that you apply or 
+that are applied automatically and whether the actions were successful. 
+Advanced membership in addition to basic information will send more information to 
+Microsoft about malicious software spyware and potentially unwanted software including 
+the location of the software file names how the software operates and how it has 
+impacted your computer. 
+The recommended state for this setting is: Disabled. 
+Note: In Windows 10 and above, Basic membership is no longer available, so setting 
+the value to 1 Basic, or 2 Advanced, enrolls the device into Advanced membership. For 
+more information, please visit: Turn on cloud protection in Microsoft Defender Antivirus - 
+Microsoft Defender for Endpoint | Microsoft Learn.
+
+This policy setting prevents users from sharing the local drives on their client computers 
+to Remote Desktop Servers that they access. Mapped drives appear in the session 
+folder tree in Windows Explorer in the following format: 
+\\TSClient\<driveletter>$ 
+If local drives are shared they are left vulnerable to intruders who want to exploit the 
+data that is stored on them. 
+The recommended state for this setting is: Enabled.
+
+This policy setting specifies whether to prevent the redirection of data to client LPT ports 
+during a Remote Desktop Services session. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+There is slight risk that a rogue administrator will gain access to another user's desktop 
+session, however, they cannot connect to a user's computer unannounced or control it 
+without permission from the user. When an expert tries to connect, the user can still 
+choose to deny the connection or give the expert view-only privileges. The user must 
+explicitly click the Yes button to allow the expert to remotely control the workstation.
+
+The information that would be sent can include things like location of detected items on 
+your computer if harmful software was removed. The information would be automatically 
+collected and sent. In some instances personal information might unintentionally be sent 
+to Microsoft. However, Microsoft states that it will not use this information to identify you 
+or contact you. 
+For privacy reasons in high security environments, it is best to prevent these data 
+submissions altogether.
+
+Data could be forwarded from the user's Remote Desktop Services session to the user's 
+local computer without any direct user interaction. Malicious software already present 
+on a compromised server would have direct and stealthy disk access to the user's local 
+computer during the Remote Desktop session.
+
+In a more security-sensitive environment, it is desirable to reduce the possible attack 
+surface. The need for LPT port redirection within a Remote Desktop session is very 
+rare, so makes sense to reduce the number of unexpected avenues for data exfiltration 
+and/or malicious code transfer.
+
+Audit Steps
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services:fAllowToGetHelp
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is in effect when the following registry value does not 
+exist, or when it exists with a value of 0: 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet:SpynetReporting
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services:fDisableCdm
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services:fDisableLPT
+
+Remediation
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\System\Remote Assistance\Configure Solicited Remote 
+Assistance
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Windows Components\Microsoft Defender 
+Antivirus\MAPS\Join Microsoft MAPS
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Remote Desktop Services\Remote 
+Desktop Session Host\Device and Resource Redirection\Do not allow drive 
+redirection
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Remote Desktop Services\Remote 
+Desktop Session Host\Device and Resource Redirection\Do not allow LPT port 
+redirection
+
+Key Takeaways
+- There is slight risk that a rogue administrator will gain access to another user's desktop  session, however, they cannot connect to a user's computer unannounced or control it  without permission from the user.
+- When an expert tries to connect, the user can still  choose to deny the connection or give the expert view-only privileges.
+- The user must  explicitly click the Yes button to allow the expert to remotely control the workstation.

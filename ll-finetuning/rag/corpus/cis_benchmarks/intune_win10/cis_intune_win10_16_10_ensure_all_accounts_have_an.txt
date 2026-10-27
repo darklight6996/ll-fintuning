@@ -1,0 +1,112 @@
+16.10: Ensure All Accounts Have An Expiration Date (and related controls)
+
+Overview
+This policy setting determines the type of PIN or password this is required on a system. 
+The recommended state for this setting is: Password or Alphanumeric PIN 
+required. 
+Note: This policy only applies if the DevicePasswordEnabled policy is set to 1. This is a 
+pre-requisite for Alphanumeric Device Password Required in the settings catalog.
+
+This policy setting determines the number of renewed, unique passwords that have to 
+be associated with a user account before you can reuse an old password. In an Intune 
+managed environment this setting applies to local user accounts and not Entra ID 
+accounts. 
+The value includes the user's current password. This value denotes that with a setting of 
+1, the user can't reuse their current password when choosing a new password, while a 
+setting of 5 means that a user can't set their new password to their current password or 
+any of their previous four passwords. 
+The recommended state for this setting is: 24 or more password(s).
+
+This policy setting configures the Windows LAPS Password Settings policy for 
+password complexity. 
+Each additional character in a password increases its complexity exponentially. For 
+instance, a seven-character, all lower-case alphabetic password would have 26 to the 
+power of 7 (approximately 8 x 10 to the power of 9 or 8 billion) possible combinations. 
+At 1,000,000 attempts per second (a capability of many password-cracking utilities), it 
+would only take 133 minutes to crack. A seven-character alphabetic password with case 
+sensitivity has 52 to the power of 7 combinations. A seven-character case-sensitive 
+alphanumeric password without punctuation has 627 combinations. An eight-character 
+password has 26 to the power of 8 (or 2 x 10 to the power of 11) possible combinations. 
+Although this might seem to be a large number, at 1,000,000 attempts per second it 
+would take only 59 hours to try all possible passwords. Remember, these times will 
+significantly increase for passwords that use ALT characters and other special keyboard 
+characters such as "!" or "@". Proper use of the password settings can help make it 
+difficult to mount a brute force attack. 
+The recommended state for this setting is: Large letters + small letters + 
+numbers + special characters. 
+Note: Organizations that utilize third-party commercial software to manage unique & 
+complex local Administrator passwords on domain members may opt to disregard these 
+LAPS recommendations. 
+Note #2: Windows LAPS does not support standalone computers - they must be joined 
+to an Active Directory domain or Entra ID (formerly Azure Active Directory).
+
+Why This Matters
+This is a pre-requisite for Min Device Password Complex Characters, which enforces a 
+more complex local user and Microsoft account passwords. 
+Note: This setting has no impact on Entra ID accounts.
+
+The longer a user uses the same password, the greater the chance that an attacker can 
+determine the password through brute force attacks. Also, any accounts that may have 
+been compromised will remain exploitable for as long as the password is left 
+unchanged. If password changes are required but password reuse is not prevented, or if 
+users continually reuse a small number of passwords, the effectiveness of a good 
+password policy is greatly reduced. 
+If you specify a low number for this policy setting, users will be able to use the same 
+small number of passwords repeatedly. If you do not also configure the Minimum 
+password age setting, users might repeatedly change their passwords until they can 
+reuse their original password.
+
+Due to the difficulty in managing local Administrator passwords, many organizations 
+choose to use the same password on all workstations and/or Member Servers when 
+deploying them. This creates a serious attack surface security risk because if an 
+attacker manages to compromise one system and learn the password to its local 
+Administrator account, then they can leverage that account to instantly gain access to 
+all other computers that also use that password for their local Administrator account.
+
+Audit Steps
+For Ensure All Accounts Have An Expiration Date:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\DeviceLock:AlphanumericD
+evicePasswordRequired_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\DeviceL
+ock:AlphanumericDevicePasswordRequired
+
+For Ensure All Accounts Have An Expiration Date:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\DeviceLock:DevicePasswor dHistory_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 2. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\DeviceL
+ock:DevicePasswordHistory
+
+For Ensure All Accounts Have An Expiration Date:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SOFTWARE\Microsoft\Policies\LAPS:PasswordComplexity
+
+Remediation
+For Ensure All Accounts Have An Expiration Date:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Password or Alphanumeric PIN required: 
+Device Lock\Device Password Enabled: Alphanumeric Device Password Required
+
+For Ensure All Accounts Have An Expiration Date:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 24 or more password(s): 
+Device Lock\Device Password Enabled: Device Password History
+
+For Ensure All Accounts Have An Expiration Date:
+To establish the recommended configuration from Microsoft Intune Admin Center: 
+1. Navigate to Endpoint security > Account protection. 
+2. Create or edit a LAPS policy type Local admin password solution (Windows 
+LAPS). 
+3. Set Password Complexity to Large letters + small letters + numbers 
++ special characters.
+
+Key Takeaways
+- This is a pre-requisite for Min Device Password Complex Characters, which enforces a  more complex local user and Microsoft account passwords.
+- Note: This setting has no impact on Entra ID accounts.
+- The longer a user uses the same password, the greater the chance that an attacker can  determine the password through brute force attacks.

@@ -1,0 +1,150 @@
+9.2: Ensure Only Approved Ports, Protocols and Services (and related controls)
+
+Overview
+This policy setting allows you to control the redirection of supported Plug and Play 
+devices, such as Windows Portable Devices, to the remote computer in a Remote 
+Desktop Services session. 
+The recommended state for this setting is: Enabled.
+
+This policy setting specifies whether to require the use of a specific security layer to 
+secure communications between clients and RD Session Host servers during Remote 
+Desktop Protocol (RDP) connections. 
+The recommended state for this setting is: Enabled: SSL. 
+Note: In spite of this setting being labeled SSL, it is actually enforcing Transport Layer 
+Security (TLS), not the older and less secure, Secure Socket Layer (SSL) protocol.
+
+This policy setting allows you to specify whether to require user authentication for 
+remote connections to the RD Session Host server by using Network Level 
+Authentication. 
+The recommended state for this setting is: Enabled.
+
+This policy setting specifies whether to require the use of a specific encryption level to 
+secure communications between client computers and RD Session Host servers during 
+Remote Desktop Protocol (RDP) connections. This policy only applies when you are 
+using native RDP encryption. However, native RDP encryption (as opposed to SSL 
+encryption) is not recommended. This policy does not apply to SSL encryption. 
+The recommended state for this setting is: Enabled: High Level.
+
+This policy setting allows you to manage whether the Windows Remote Management 
+(WinRM) service sends and receives unencrypted messages over the network. 
+The recommended state for this setting is: Disabled.
+
+This policy setting determines whether the all Windows Spotlight features are turned 
+on/off (together). 
+The recommended state for this setting is: Block. 
+Note: Per Microsoft TechNet, this policy setting only applies to Windows 10 Enterprise 
+and Windows 10 Education editions. 
+Note #2: Setting this recommendation to Block also disables the Recommendation 
+Allow Tailored Experiences With Diagnostic Data which was is included in the onprem Workstation Benchmarks. It was not included in the Intune version since this 
+setting is automatically disabled.
+
+Why This Matters
+In a more security-sensitive environment, it is desirable to reduce the possible attack 
+surface. The need for Plug and Play device redirection within a Remote Desktop 
+session is very rare, so makes sense to reduce the number of unexpected avenues for 
+data exfiltration and/or malicious code transfer.
+
+The native RDP encryption is now considered a weak protocol, so enforcing the use of 
+stronger TLS encryption for all RDP communications between clients and RD Session 
+Host servers is preferred.
+
+Requiring that user authentication occur earlier in the remote connection process 
+enhances security.
+
+If Remote Desktop client connections that use low level encryption are allowed, it is 
+more likely that an attacker will be able to decrypt any captured Remote Desktop 
+Services network traffic.
+
+Encrypting WinRM network traffic reduces the risk of an attacker viewing or modifying 
+WinRM messages as they transit the network.
+
+Disabling this setting will help ensure your data is not shared with any third party. The 
+Windows Spotlight feature collects data and uses that data to display suggested apps 
+as well as images from the internet.
+
+Audit Steps
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal 
+Services:fDisablePNPRedir
+
+For Ensure Only Approved Ports, Protocols and:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 2. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services:SecurityLayer
+
+For Ensure Only Approved Ports, Protocols and:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal 
+Services:UserAuthentication
+
+For Ensure Only Approved Ports, Protocols and:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 3. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal 
+Services:MinEncryptionLevel
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service:AllowUnencryptedTraffi c
+
+For Ensure Only Approved Ports, Protocols and Services:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\(USER 
+SID)\Experience:AllowWindowsSpotlight_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\(USER 
+SID)\Experience:AllowWindowsSpotlight
+
+Remediation
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Remote Desktop Services\Remote 
+Desktop Session Host\Device and Resource Redirection\Do not allow supported 
+Plug and Play device redirection
+
+For Ensure Only Approved Ports, Protocols and:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: SSL. 
+Administrative Templates\Windows Components\Remote Desktop Services\Remote 
+Desktop Session Host\Security\Require use of specific security layer for 
+remote (RDP) connections
+
+For Ensure Only Approved Ports, Protocols and:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Remote Desktop Services\Remote 
+Desktop Session Host\Security\Require user authentication for remote 
+connections by using Network Level Authentication
+
+For Ensure Only Approved Ports, Protocols and:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: High Level. 
+Administrative Templates\Windows Components\Remote Desktop Services\Remote 
+Desktop Session Host\Security\Set client connection encryption level
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Windows Components\Windows Remote Management 
+(WinRM)\WinRM Service\Allow unencrypted traffic
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block: 
+Experience\Allow Windows Spotlight (User)
+
+Key Takeaways
+- In a more security-sensitive environment, it is desirable to reduce the possible attack  surface.
+- The need for Plug and Play device redirection within a Remote Desktop  session is very rare, so makes sense to reduce the number of unexpected avenues for  data exfiltration and/or malicious code transfer.
+- The native RDP encryption is now considered a weak protocol, so enforcing the use of  stronger TLS encryption for all RDP communications between clients and RD Session  Host servers is preferred.

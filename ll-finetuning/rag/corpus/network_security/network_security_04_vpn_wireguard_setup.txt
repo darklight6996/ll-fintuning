@@ -1,0 +1,51 @@
+WireGuard is a modern, high-performance VPN protocol that operates in the Linux kernel and is also available on other platforms. It aims to be simpler, faster, and more secure than legacy protocols like IPsec and OpenVPN. Its design minimizes attack surface by using a small codebase (approximately 4,000 lines of code) and relies on state-of-the-art cryptographic primitives. WireGuard is not a framework; it is a protocol with a specific, audited implementation.
+
+**Key Components**
+
+WireGuard’s architecture is built around a few core concepts that differ significantly from traditional VPNs.
+
+- **Cryptographic Key Routing:** Each WireGuard interface has a private key and a public key. Peers are identified solely by their public key. There are no usernames, passwords, or certificates. Access control is enforced by associating a public key with an allowed IP range (AllowedIPs). This eliminates the complexity of PKI and certificate revocation lists.
+
+- **Noise Protocol Framework:** WireGuard uses the Noise_IK handshake from the Noise Protocol Framework. This provides mutual authentication, forward secrecy, and resistance to key-compromise impersonation. The handshake is a single round trip (1-RTT), after which data packets are encrypted using a symmetric session key derived from the handshake.
+
+- **Curve25519, ChaCha20, Poly1305, BLAKE2s:** The protocol mandates specific, modern cryptographic primitives. Curve25519 is used for ECDH key exchange. ChaCha20 is the stream cipher for encryption, with Poly1305 for authentication. BLAKE2s is used for hashing. This fixed set of primitives eliminates negotiation and downgrade attacks.
+
+- **UDP Only:** WireGuard operates exclusively over UDP. It does not support TCP encapsulation natively. This avoids TCP-over-TCP performance issues and simplifies firewall rules. The default port is 51820, but this is configurable.
+
+- **Roaming and Persistent Keepalives:** WireGuard handles IP address changes seamlessly. If a peer’s endpoint IP changes, the next valid packet from that peer updates the endpoint automatically. Persistent keepalives can be configured to maintain NAT/firewall state for peers behind NAT.
+
+- **AllowedIPs:** This is the routing and access control list. For each peer, you specify which IP ranges (IPv4 and/or IPv6) are reachable through that peer. Traffic destined for an IP in AllowedIPs is encrypted and sent to that peer. Traffic not matching any AllowedIPs is dropped unless a default route is configured. This acts as a cryptographically enforced firewall.
+
+**Real-World Application**
+
+WireGuard is deployed in production environments for site-to-site connectivity, remote access, and cloud networking. Its simplicity makes it suitable for automation and infrastructure-as-code workflows.
+
+- **Site-to-Site VPN:** Two or more networks can be connected by configuring each site’s WireGuard interface with the public keys and AllowedIPs of the other sites. For example, a branch office (10.0.1.0/24) can connect to headquarters (10.0.0.0/24) by setting AllowedIPs = 10.0.0.0/24 on the branch’s peer config. No dynamic routing protocol is required for simple topologies, but WireGuard can be integrated with BGP or OSPF via tools like Bird or FRRouting for more complex routing.
+
+- **Remote Access for Engineers:** A security engineer can set up a WireGuard server on a cloud instance with a public IP. Each engineer’s laptop generates a key pair. The server’s config lists each engineer’s public key and assigns a unique virtual IP (e.g., 10.0.0.2/32). The engineer’s client config points to the server’s public IP and port, and sets AllowedIPs = 0.0.0.0/0 (for full tunnel) or specific subnets (for split tunnel). This replaces SSH tunnels or OpenVPN for low-latency, high-throughput access.
+
+- **Kubernetes Pod Networking:** WireGuard can be used as a CNI plugin (e.g., Flannel with WireGuard backend) to encrypt pod-to-pod traffic across nodes. This provides a simple, high-performance overlay network without the overhead of IPsec tunnels.
+
+- **IoT and Edge Devices:** Due to its small codebase and low resource consumption, WireGuard is suitable for embedded Linux devices. A sensor gateway can maintain a persistent WireGuard tunnel to a central server, ensuring all telemetry is encrypted.
+
+**Security Relevance**
+
+WireGuard’s design choices directly address common VPN security weaknesses.
+
+- **Minimal Attack Surface:** The codebase is orders of magnitude smaller than OpenVPN or IPsec implementations. Fewer lines of code mean fewer potential vulnerabilities. The kernel implementation in Linux reduces context switches and memory corruption risks compared to userspace VPNs.
+
+- **No Cryptographic Negotiation:** By fixing the set of primitives, WireGuard eliminates downgrade attacks and protocol confusion. There is no option to use weak ciphers or outdated algorithms.
+
+- **Perfect Forward Secrecy (PFS):** The Noise_IK handshake ensures that compromise of a long-term private key does not allow decryption of past session traffic. Each session uses ephemeral keys derived from the handshake.
+
+- **Denial of Service Resistance:** WireGuard has built-in mechanisms to mitigate DoS attacks. It uses a cookie-based mechanism for unauthenticated peers and rate-limits handshake attempts. The kernel implementation can handle high packet rates without user-space bottlenecks.
+
+- **Auditability:** The protocol has been formally verified and audited by multiple third-party firms. The fixed, simple design makes it easier to audit than complex, configurable protocols.
+
+- **No Logging or State Leakage:** WireGuard does not log connection events by default. It does not store session keys to disk. When a peer is removed from the config, all associated state is immediately invalidated.
+
+**Key Takeaways**
+
+1. WireGuard’s cryptographic key routing and fixed primitive set eliminate entire classes of vulnerabilities common in legacy VPNs, such as downgrade attacks and certificate management errors.
+2. For production deployments, use AllowedIPs as a strict access control list; misconfiguration here can expose internal networks or route traffic incorrectly.
+3. WireGuard is not a drop-in replacement for all VPN use cases; it lacks built-in support for TCP encapsulation, dynamic routing, and user authentication, requiring additional tooling for enterprise features like LDAP integration or multi-factor authentication.

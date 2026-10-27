@@ -1,0 +1,28 @@
+101.1: (L1) Ensure 'Allow Clipboard Redirection' is set to 'Not
+
+Overview
+This policy setting enables or disables clipboard sharing with the Windows Sandbox. 
+The recommended state for this setting is: Not allowed. 
+Note: The Windows Sandbox feature was first introduced in Windows 10 R1903, and 
+allows a temporary "clean install" virtual instance of Windows to be run inside the host, 
+for the ostensible purpose of testing applications without making changes to the host.
+
+Why This Matters
+Disabling copy and paste decreases the attack surface exposed by the Windows 
+Sandbox and possible exposure of untrusted applications to the internal network.
+
+Audit Steps
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\WindowsSandbox:AllowClip boardRedirection_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Windows
+Sandbox:AllowClipboardRedirection
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Not allowed. 
+Windows Sandbox\Allow Clipboard Redirection
+
+Key Takeaways
+- Disabling copy and paste decreases the attack surface exposed by the Windows  Sandbox and possible exposure of untrusted applications to the internal network.

@@ -1,0 +1,74 @@
+Bitbucket audit logging records a chronological trail of user actions, system events, and configuration changes within a Bitbucket instance. These logs are essential for security monitoring, incident response, and compliance with frameworks such as SOC 2, PCI DSS, and GDPR. Audit logs provide an immutable record of who did what, when, and from which IP address, enabling forensic analysis and accountability.
+
+**Key Components of Bitbucket Audit Logging**
+
+- **Event Types Captured**  
+  Bitbucket audit logs cover a wide range of activities, including:  
+  - Authentication events: successful and failed logins, password changes, two-factor authentication (2FA) enrollment or removal.  
+  - Repository operations: creation, deletion, forking, and permission changes.  
+  - Branch and pull request actions: branch creation/deletion, merge approvals, and pull request merges.  
+  - Admin actions: user provisioning, group membership modifications, global permission changes, and system configuration updates.  
+  - Webhook and integration changes: creation, modification, or deletion of webhooks and app links.  
+  - SSH key and access token management: addition, removal, or rotation of keys and tokens.
+
+- **Log Structure and Fields**  
+  Each audit log entry typically contains:  
+  - Timestamp (UTC)  
+  - Actor (username or system account)  
+  - Action (e.g., “repository.create”, “user.login.failed”)  
+  - Target resource (e.g., repository name, project key, user ID)  
+  - Source IP address  
+  - Session ID or correlation ID  
+  - Additional context (e.g., old and new values for permission changes)
+
+- **Storage and Retention**  
+  - Bitbucket Server/Data Center stores audit logs in the database and can be exported to external systems via syslog or custom plugins.  
+  - Bitbucket Cloud provides audit logs via the admin console and API, with retention periods varying by plan (typically 90 days for standard plans, longer for enterprise).  
+  - Logs can be forwarded to a Security Information and Event Management (SIEM) system for centralized analysis and long-term retention.
+
+- **Access Control**  
+  Only users with system administrator privileges can view and export audit logs in Bitbucket Server/Data Center. In Bitbucket Cloud, audit logs are accessible to organization owners and billing administrators. This restriction prevents tampering and ensures log integrity.
+
+**Real-World Application**
+
+- **Incident Investigation**  
+  When a security incident occurs, such as unauthorized repository access or a suspicious pull request merge, audit logs provide the exact sequence of events. For example, if a developer’s account is compromised, logs show the IP addresses used, the time of the breach, and which repositories were accessed. This data enables rapid containment and remediation.
+
+- **Compliance Auditing**  
+  Organizations subject to regulatory frameworks must demonstrate control over code access and changes. Audit logs serve as evidence that:  
+  - Only authorized users performed sensitive actions (e.g., merging to production branches).  
+  - Access permissions were reviewed and modified according to policy.  
+  - Failed login attempts were monitored and escalated.  
+  - Configuration changes (e.g., disabling 2FA) were logged and approved.
+
+- **Insider Threat Detection**  
+  Anomalous patterns in audit logs can indicate insider threats. For instance, a user downloading an entire repository outside of normal working hours, or an admin granting themselves elevated permissions without a ticket, can be flagged. Automated alerting rules in a SIEM can trigger on events like “admin.role.granted” combined with “repository.clone” from a new IP.
+
+- **Change Management Verification**  
+  Audit logs confirm that infrastructure-as-code changes (e.g., webhook updates, branch permissions) were executed by the correct personnel. This is critical for maintaining a secure software supply chain and preventing misconfigurations that could lead to data leaks.
+
+**Security Relevance**
+
+- **Non-Repudiation**  
+  Audit logs provide irrefutable evidence of actions, preventing users from denying they performed a specific operation. This is vital for legal proceedings and internal disciplinary actions.
+
+- **Detection of Privilege Escalation**  
+  Monitoring for unexpected changes to group memberships or global permissions helps detect privilege escalation attacks. For example, a user added to the “admin” group without a corresponding ticket should trigger an immediate alert.
+
+- **Forensic Integrity**  
+  To maintain the integrity of audit logs, they must be stored in a write-once, read-many (WORM) format or forwarded to an immutable external system. Bitbucket Server/Data Center supports syslog forwarding, which can be directed to a dedicated log collector with strict access controls. Bitbucket Cloud logs are stored in a tamper-resistant backend, but exporting to a SIEM adds an extra layer of protection.
+
+- **Integration with Security Tools**  
+  Audit logs can be ingested by SIEM platforms (e.g., Splunk, Elastic Security, Azure Sentinel) to correlate Bitbucket events with other security data. For example, a failed login followed by a successful password reset and a repository clone from a foreign IP can be correlated to identify a credential stuffing attack.
+
+- **Regulatory Compliance**  
+  Many compliance standards require logging of access to sensitive data and changes to system configurations. Bitbucket audit logs directly support:  
+  - SOC 2: Monitoring of logical access and change management.  
+  - PCI DSS: Tracking of cardholder data environment access.  
+  - GDPR: Demonstrating data processing activities and access controls.  
+  - SOX: Ensuring integrity of financial reporting systems.
+
+**Key Takeaways**  
+1. Bitbucket audit logs capture authentication, repository, admin, and integration events with detailed fields (actor, action, target, IP, timestamp) essential for forensic analysis and compliance.  
+2. Forward audit logs to an immutable SIEM or log management system to ensure non-repudiation, enable automated alerting, and meet regulatory retention requirements.  
+3. Monitor for privilege escalation, anomalous access patterns, and configuration changes in audit logs to detect insider threats and compromised accounts in real time.

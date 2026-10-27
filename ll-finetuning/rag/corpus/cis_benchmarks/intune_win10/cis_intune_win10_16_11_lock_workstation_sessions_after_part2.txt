@@ -1,0 +1,69 @@
+16.11: Lock Workstation Sessions After Inactivity (and related controls)
+
+Overview
+This policy setting specifies a text message that displays to users when they log on. Set 
+the following group policy to a value that is consistent with the security and operational 
+requirements of your organization.
+
+This policy setting determines whether packet signing is required by the SMB client 
+component. 
+Note: When Windows Vista-based computers have this policy setting enabled and they 
+connect to file or print shares on remote servers, it is important that the setting is 
+synchronized with its companion setting, Microsoft network server: Digitally sign 
+communications (always), on those servers. For more information about these 
+settings, see the "Microsoft network client and server: Digitally sign communications 
+(four related settings)" section in Chapter 5 of the Threats and Countermeasures guide. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+Displaying a warning message before logon may help prevent an attack by warning the 
+attacker about the consequences of their misconduct before it happens. It may also help 
+to reinforce corporate policy by notifying employees of the appropriate policy during the 
+logon process. This text is often used for legal reasons—for example, to warn users 
+about the ramifications of misusing company information or to warn them that their 
+actions may be audited. 
+Note: Any warning that you display should first be approved by your organization's legal 
+and human resources representatives.
+
+Session hijacking uses tools that allow attackers who have access to the same network 
+as the client or server to interrupt, end, or steal a session in progress. Attackers can 
+potentially intercept and modify unsigned SMB packets and then modify the traffic and 
+forward it so that the server might perform undesirable actions. Alternatively, the 
+attacker could pose as the server or client after legitimate authentication and gain 
+unauthorized access to data. 
+SMB is the resource sharing protocol that is supported by many Windows operating 
+systems. It is the basis of NetBIOS and many other protocols. SMB signatures 
+authenticate both users and the servers that host the data. If either side fails the 
+authentication process, data transmission will not take place.
+
+Audit Steps
+For Lock Workstation Sessions After Inactivity:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a REG_SZ 
+value of text. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System:LegalNoticeTex t
+
+For Lock Workstation Sessions After Inactivity:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters:RequireSe curitySignature
+
+Remediation
+For Lock Workstation Sessions After Inactivity:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to a value that is consistent with the security and operational 
+requirements of your organization: 
+Local Policies Security Options\Interactive logon: Message text for users 
+attempting to log on
+
+For Lock Workstation Sessions After Inactivity:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+Local Policies Security Options\Microsoft network client: Digitally sign 
+communications (always)
+
+Key Takeaways
+- Displaying a warning message before logon may help prevent an attack by warning the  attacker about the consequences of their misconduct before it happens.
+- It may also help  to reinforce corporate policy by notifying employees of the appropriate policy during the  logon process.
+- This text is often used for legal reasons—for example, to warn users  about the ramifications of misusing company information or to warn them that their  actions may be audited.

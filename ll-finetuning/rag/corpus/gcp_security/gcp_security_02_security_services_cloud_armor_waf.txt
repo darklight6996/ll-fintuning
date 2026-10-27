@@ -1,0 +1,66 @@
+**Definition**
+
+Cloud Armor is Google Cloud’s web application firewall (WAF) and DDoS mitigation service. It operates at the edge of Google’s network, inspecting incoming traffic to Google Cloud Load Balancers, including HTTP(S), TCP/SSL proxy, and external HTTPS load balancers. Cloud Armor uses a rules engine to allow or deny requests based on configurable conditions, such as IP addresses, geographic regions, request headers, and URI paths. It integrates with Google Cloud’s global infrastructure to provide low-latency, scalable protection against Layer 3 through Layer 7 attacks.
+
+**Key Components**
+
+- **Security Policies:** A security policy is a set of rules that define which traffic is allowed or denied. Each rule has a priority (lower numbers evaluated first), a match condition, and an action (allow or deny). Policies are attached to backend services or load balancers. You can create multiple policies for different environments (e.g., production vs. staging).
+
+- **Rules:** Rules are the atomic units of a security policy. They can match on:
+  - Source IP ranges (CIDR blocks)
+  - Geographic region (geo-based blocking)
+  - Request headers, cookies, or query parameters
+  - URI paths or hostnames
+  - HTTP methods (GET, POST, etc.)
+  - TLS fingerprint (JA3) for bot detection
+  - Predefined or custom signatures (WAF rules)
+
+- **Preconfigured WAF Rules:** Cloud Armor includes managed rule sets for common attack vectors:
+  - **OWASP Top 10:** Rules for SQL injection (SQLi), cross-site scripting (XSS), local file inclusion (LFI), remote file inclusion (RFI), and command injection.
+  - **Known Attack Signatures:** Rules for scanners, bots, and exploit kits.
+  - **Stable vs. Beta Rule Sets:** Stable rules are production-ready; beta rules are newer and may have higher false-positive rates.
+
+- **Custom Rules:** You can write custom rules using Common Expression Language (CEL). CEL allows complex logic, such as combining multiple conditions (e.g., block requests from a specific country that also contain a suspicious header). Custom rules are evaluated after preconfigured rules.
+
+- **Rate Limiting:** Cloud Armor supports rate limiting at the rule level. You can define a threshold (e.g., 100 requests per minute per client IP) and an action (deny or throttle). Rate limiting uses a token bucket algorithm and can be applied globally or per-rule.
+
+- **Adaptive Protection:** This machine learning-based feature learns normal traffic patterns for your application and automatically generates rules to block anomalous requests. It requires a training period (typically 24–48 hours) and can detect zero-day attacks that match no existing signature.
+
+- **Edge Security Policy:** A separate policy type that applies at the edge, before traffic reaches the load balancer. Edge policies are useful for blocking known bad actors (e.g., IP reputation lists) before they consume load balancer resources.
+
+- **Logging and Monitoring:** Cloud Armor integrates with Cloud Logging and Cloud Monitoring. Each rule evaluation generates a log entry (if logging is enabled) showing the rule ID, action taken, and request metadata. You can export logs to BigQuery for analysis or set up alerts for blocked traffic spikes.
+
+**Real-World Application**
+
+- **Protecting a Public API:** A financial services company exposes a REST API for mobile banking. They attach a Cloud Armor security policy that:
+  - Denies traffic from countries where the bank does not operate (geo-blocking).
+  - Enables OWASP SQLi and XSS rules to prevent injection attacks.
+  - Adds a custom rule to block requests missing a required `X-API-Key` header.
+  - Implements rate limiting at 50 requests per second per IP to prevent credential stuffing.
+  - Uses adaptive protection to detect unusual query patterns that might indicate a new attack vector.
+
+- **Mitigating a Layer 7 DDoS Attack:** An e-commerce site experiences a sudden spike in HTTP GET requests to the checkout endpoint. Cloud Armor’s rate limiting rule kicks in, throttling traffic from the attacking IPs. Simultaneously, the security team analyzes logs in BigQuery to identify the attack pattern (e.g., repeated requests with a specific User-Agent). They then create a custom CEL rule to block that User-Agent string, reducing the attack surface within minutes.
+
+- **Compliance with PCI DSS:** A payment processor must ensure that only authorized traffic reaches their cardholder data environment. They use Cloud Armor to:
+  - Block all traffic except from approved IP ranges (e.g., corporate VPNs).
+  - Enable logging for all rule evaluations to provide an audit trail.
+  - Regularly review and update WAF rules to align with the latest OWASP guidelines.
+  - Use edge security policies to drop traffic from known malicious IPs before it reaches the load balancer.
+
+**Security Relevance**
+
+- **Defense in Depth:** Cloud Armor is one layer in a multi-layered security strategy. It should be combined with IAM, VPC firewall rules, and identity-aware proxy (IAP) for comprehensive protection. Cloud Armor cannot replace host-level security (e.g., OS patching) or application-level authentication.
+
+- **False Positive Management:** Preconfigured WAF rules can block legitimate traffic. Security engineers must monitor logs, tune rules (e.g., switching from deny to log-only mode), and use exclusion rules to whitelist specific requests. Adaptive protection helps reduce false positives by learning normal behavior.
+
+- **Latency and Performance:** Cloud Armor evaluates rules at Google’s edge, adding minimal latency (typically <1ms). However, complex CEL expressions or large IP lists can increase evaluation time. Test custom rules in a staging environment before deploying to production.
+
+- **Cost Considerations:** Cloud Armor pricing is based on the number of security policies, rules, and requests processed. Rate limiting and adaptive protection incur additional charges. Estimate costs based on expected traffic volume and rule complexity.
+
+- **Integration with Other Services:** Cloud Armor works with Cloud CDN, Cloud Load Balancing, and Cloud Interconnect. It does not protect traffic that bypasses the load balancer (e.g., direct VM access via public IP). Ensure all external-facing endpoints are behind a load balancer to benefit from Cloud Armor.
+
+**Key Takeaways**
+
+- Cloud Armor is a scalable, edge-based WAF that uses security policies with preconfigured and custom rules to block Layer 3–7 attacks, including OWASP Top 10 and DDoS.
+- Real-world deployment requires careful tuning of rules, monitoring of logs, and integration with rate limiting and adaptive protection to balance security with legitimate traffic.
+- Cloud Armor is not a standalone solution; it must be part of a defense-in-depth strategy that includes IAM, VPC firewalls, and application-level controls.

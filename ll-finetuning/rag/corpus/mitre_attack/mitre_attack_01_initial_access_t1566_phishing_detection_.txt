@@ -1,0 +1,43 @@
+Phishing (T1566) is a social engineering technique where an adversary masquerades as a trusted entity to deceive a target into divulging sensitive information, executing a malicious payload, or authorizing a fraudulent transaction. In the MITRE ATT&CK framework, T1566 is categorized under Initial Access because a single successful phish can bypass network perimeter controls and grant the attacker a foothold inside the environment. Detection and prevention of T1566 require a layered defense that addresses both the technical indicators of phishing and the human factors that attackers exploit.
+
+**Key Components of Phishing Detection and Prevention**
+
+Effective defense against T1566 is built on three pillars: technical controls, user awareness, and incident response readiness. Each pillar must be implemented with specific, measurable actions.
+
+*Technical Controls*
+- **Email Security Gateways (ESG):** Deploy gateways that perform real-time analysis of sender reputation, SPF/DKIM/DMARC authentication, URL reputation, and attachment sandboxing. Configure policies to quarantine messages with a high phishing confidence score and flag internal-to-internal spoofing attempts.
+- **URL and Attachment Analysis:** Use sandboxing solutions that detonate links and attachments in a controlled environment. Block known malicious domains via threat intelligence feeds (e.g., from MISP, AlienVault OTX, or commercial feeds). Implement time-of-click URL inspection to catch links that were benign at delivery but later weaponized.
+- **Multi-Factor Authentication (MFA):** Enforce MFA for all remote access, email access, and privileged account logins. MFA is the single most effective control against credential theft from phishing, as a stolen password alone becomes insufficient for account takeover.
+- **DMARC Enforcement:** Publish a strict DMARC policy (p=reject) for your primary domains. This prevents attackers from spoofing your domain in phishing emails targeting your employees or partners. Monitor DMARC aggregate reports to detect unauthorized sending sources.
+- **Browser Security Extensions:** Deploy enterprise-managed browser extensions that block known phishing sites and warn users when they enter credentials on lookalike domains. Integrate with your threat intelligence to maintain a dynamic blocklist.
+
+*User Awareness and Training*
+- **Simulated Phishing Campaigns:** Conduct monthly or quarterly simulations that mirror current real-world tactics (e.g., credential harvesting, business email compromise, spear-phishing with context). Track click rates, credential submission rates, and reporting rates. Use results to target additional training for high-risk users.
+- **Just-in-Time Training:** When a user reports a suspicious email or clicks a simulated phish, deliver a brief, contextual training module immediately. This reinforces the correct behavior at the moment of decision.
+- **Reporting Mechanisms:** Provide a single-click "Report Phishing" button in the email client. Ensure reported emails are automatically routed to the security operations center (SOC) for triage and, if confirmed malicious, used to update detection rules.
+
+*Incident Response Readiness*
+- **Automated Triage:** Integrate the phishing reporting button with your SOAR platform. Automatically extract indicators (sender address, subject, URLs, attachments) and cross-reference them with threat intelligence. If a match is found, automatically quarantine the email from all recipients and block the indicators at the gateway.
+- **Credential Reset Workflow:** Define a playbook for when a user confirms they entered credentials on a phishing page. The playbook must include immediate password reset, revocation of session tokens, and review of recent account activity for unauthorized access.
+- **Forensic Collection:** When a phishing email bypasses controls, preserve the full email header, attachment, and any logs from the email gateway and endpoint. Analyze the header for routing anomalies (e.g., mismatched Return-Path and From) and the attachment for payload characteristics.
+
+**Real-World Application**
+
+Consider a targeted spear-phishing campaign against a financial controller. The attacker researches the controller’s name, recent vendor interactions, and internal project codes. They send an email spoofing the CEO’s display name, requesting an urgent wire transfer to a new vendor account. The email passes SPF because the attacker uses a compromised third-party email service with a valid SPF record.
+
+Detection in this scenario relies on multiple layers:
+- The ESG flags the email because the sending domain’s DMARC policy is not aligned with the CEO’s domain (p=reject would have blocked it entirely).
+- The user, trained to verify unusual payment requests via a secondary channel, calls the CEO to confirm. This human check prevents the transfer.
+- If the user had clicked a link in the email, the browser extension would have blocked the lookalike domain (e.g., ceo-approval[.]com vs. company.com).
+- If credentials were entered, MFA would have blocked the attacker from logging in, and the SOC would have received an alert from the identity provider about a failed MFA attempt from an unusual location.
+
+In a different scenario, a bulk phishing campaign distributes a malicious Excel attachment with a macro that downloads Cobalt Strike. The ESG sandbox detonates the attachment, observes the outbound HTTP request to a known command-and-control IP, and blocks the email for all recipients. The SOC receives an alert and updates the blocklist.
+
+**Security Relevance**
+
+Phishing remains the most common initial access vector in breaches, as documented in Verizon’s Data Breach Investigations Report. A single successful phish can lead to ransomware deployment, data exfiltration, or lateral movement to critical systems. The relevance to a security engineer is direct: you must assume that a phishing email will eventually reach a user, and your controls must be designed to fail safely. Over-reliance on any single control (e.g., only user training or only a gateway) creates a brittle defense. The layered approach ensures that if one control fails, another catches the threat. Additionally, phishing detection is not a set-and-forget activity. Threat actors continuously evolve their tactics—using QR codes, encrypted attachments, or AI-generated text—so your detection rules, training content, and threat intelligence feeds must be updated at least weekly.
+
+**Key Takeaways**
+1. Deploy a layered defense combining email security gateways, DMARC enforcement, MFA, and browser extensions; no single control is sufficient against T1566.
+2. Implement automated triage for reported phishing emails and a credential reset playbook to contain successful attacks within minutes.
+3. Conduct frequent, realistic phishing simulations and use the results to refine both user training and technical detection rules.

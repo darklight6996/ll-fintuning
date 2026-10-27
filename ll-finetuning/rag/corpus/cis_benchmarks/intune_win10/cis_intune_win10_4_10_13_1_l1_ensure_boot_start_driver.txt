@@ -1,0 +1,44 @@
+4.10.13.1: (L1) Ensure 'Boot-Start Driver Initialization Policy' is set
+
+Overview
+This policy setting allows you to specify which boot-start drivers are initialized based on 
+a classification determined by an Early Launch Antimalware boot-start driver. The Early 
+Launch Antimalware boot-start driver can return the following classifications for each 
+boot-start driver: 
+• 
+Good: The driver has been signed and has not been tampered with. 
+• 
+Bad: The driver has been identified as malware. It is recommended that you do 
+not allow known bad drivers to be initialized. 
+• 
+Bad, but required for boot: The driver has been identified as malware, but 
+the computer cannot successfully boot without loading this driver. 
+• 
+Unknown: This driver has not been attested to by your malware detection 
+application and has not been classified by the Early Launch Antimalware bootstart driver. 
+If you enable this policy setting you will be able to choose which boot-start drivers to 
+initialize the next time the computer is started. 
+If your malware detection application does not include an Early Launch Antimalware 
+boot-start driver or if your Early Launch Antimalware boot-start driver has been 
+disabled, this setting has no effect and all boot-start drivers are initialized. 
+The recommended state for this setting is: Enabled: Good, unknown and bad but 
+critical.
+
+Why This Matters
+This policy setting helps reduce the impact of malware that has already infected your 
+system.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 3. 
+HKLM\SYSTEM\CurrentControlSet\Policies\EarlyLaunch:DriverLoadPolicy
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: `Good, unknown and bad but critical. 
+Administrative Templates\System\Early Launch Antimalware\Boot-Start Driver 
+Initialization Policy
+
+Key Takeaways
+- This policy setting helps reduce the impact of malware that has already infected your  system.

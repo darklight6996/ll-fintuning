@@ -1,0 +1,46 @@
+Event ID 4624 is the Windows Security log event that records a successful account logon. It is one of the most frequently audited events in enterprise environments because it provides the foundational data for authentication monitoring, user behavior analytics, and incident response. Every time a user or service authenticates to a Windows system—whether locally, over the network, or via a remote desktop session—a 4624 event is generated, provided the appropriate audit policy is enabled. The audit policy setting that controls this is "Audit Logon Events" under Advanced Audit Policy Configuration, or the legacy "Audit account logon events" setting.
+
+**Key Components of Event ID 4624**
+
+The event contains several fields that are critical for analysis. Understanding each field is necessary to distinguish normal activity from malicious behavior.
+
+- **Subject**: Identifies the account that initiated the logon. This is typically the SYSTEM account for interactive logons or the computer account for network logons. The fields are Security ID, Account Name, Account Domain, and Logon ID.
+- **Logon Type**: An integer that specifies the method of authentication. The most relevant types are:
+  - 2 (Interactive): Logon at the keyboard and screen of the system (console).
+  - 3 (Network): Logon over the network, such as connecting to a file share or using a service like SMB.
+  - 4 (Batch): Used by scheduled tasks or batch jobs.
+  - 5 (Service): Logon by a service account.
+  - 7 (Unlock): Unlocking a workstation after a screen lock.
+  - 8 (NetworkCleartext): Network logon where credentials were sent in cleartext (e.g., Basic authentication over HTTP).
+  - 9 (NewCredentials): Logon with explicit credentials, such as using `runas` or secondary logon.
+  - 10 (RemoteInteractive): Remote Desktop Services (RDP) logon.
+  - 11 (CachedInteractive): Logon using cached domain credentials when the domain controller is unreachable.
+- **New Logon**: The account that successfully logged on. This includes Security ID, Account Name, Account Domain, and Logon ID. This is the account you are most interested in.
+- **Process Information**: The Process ID and Process Name of the process that requested the logon. For interactive logons, this is typically `winlogon.exe`. For network logons, it is often `svchost.exe` or `lsass.exe`.
+- **Network Information**: The source network address (IP address) and port from which the logon originated. This field is populated for network logons (type 3) and remote interactive logons (type 10). For local logons, this field is typically empty or shows the local machine address.
+- **Detailed Authentication Information**: Contains the Logon Process (e.g., `User32` for interactive, `Kerberos` for network), Authentication Package (e.g., `Kerberos`, `NTLM`, `Negotiate`), and Transited Services. This helps identify the authentication protocol used.
+- **Elevated Token**: A "Yes" or "No" value indicating whether the logon session has administrative privileges. This is derived from the user's group memberships at logon time.
+
+**Real-World Application**
+
+Security engineers use 4624 events for several core monitoring and investigation tasks.
+
+- **Baseline User Behavior**: Collect 4624 events from domain controllers and workstations to build a baseline of normal logon patterns. This includes typical logon times, source IP ranges, and logon types for each user. Deviations from this baseline can indicate credential theft or lateral movement.
+- **Detecting Lateral Movement**: An attacker who compromises a workstation will often use stolen credentials to log on to other systems. A 4624 event with Logon Type 3 (Network) from a non-admin workstation to a server, especially if the source IP is unexpected, is a strong indicator of lateral movement. Correlate this with Event ID 4648 (explicit credential logon) to see if the attacker used `runas`.
+- **RDP Brute-Force Detection**: A high volume of 4624 events with Logon Type 10 (RemoteInteractive) from a single external IP address, especially if accompanied by many 4625 (failed logon) events, indicates an RDP brute-force attack. Thresholds should be set based on your environment's normal RDP usage.
+- **Service Account Monitoring**: Service accounts should only log on with Logon Type 4 (Batch) or 5 (Service). A 4624 event showing a service account using Logon Type 2 (Interactive) or 10 (RemoteInteractive) is a red flag that the account may be compromised or misconfigured.
+- **Pass-the-Hash Detection**: While not directly detectable from a single 4624 event, patterns such as a 4624 with Logon Type 3 and Authentication Package NTLM from a source IP that is not a domain controller, combined with a subsequent 4624 with Logon Type 2 on the same target, can indicate pass-the-hash or pass-the-ticket attacks.
+
+**Security Relevance**
+
+Event ID 4624 is a double-edged sword. It is essential for visibility, but it also generates a high volume of data. The security relevance lies in its ability to provide the "who, what, when, where, and how" of every successful authentication.
+
+- **Account Compromise**: A single 4624 event from an unusual location or time can be the first sign of a compromised account. For example, a user logging in from a foreign IP address while they are physically in the office.
+- **Privilege Escalation**: The Elevated Token field is critical. If a standard user account logs on and the Elevated Token field is "Yes," this indicates the account has administrative rights. This should be investigated to ensure it is authorized.
+- **Kerberos vs. NTLM**: The Authentication Package field reveals whether Kerberos (more secure) or NTLM (less secure, vulnerable to relay attacks) was used. A sudden increase in NTLM authentications for a service that normally uses Kerberos can indicate a downgrade attack or misconfiguration.
+- **Logon Type Analysis**: The Logon Type field is the most important discriminator. For example, a Logon Type 2 (Interactive) on a domain controller from a non-admin workstation is almost certainly malicious. A Logon Type 7 (Unlock) from a user who is not at their desk could indicate an attacker who locked the workstation to prevent the user from noticing their session was hijacked.
+
+**Key Takeaways**
+- Event ID 4624 is the definitive record of successful logons in Windows, and its Logon Type field is the primary discriminator for distinguishing normal user activity from malicious lateral movement or remote access.
+- The Elevated Token, Authentication Package, and Source Network Address fields are critical for detecting privilege escalation, protocol downgrade attacks, and credential theft, respectively.
+- Effective use of 4624 requires baselining normal logon patterns and correlating with failed logon events (4625) and explicit credential events (4648) to build a complete picture of authentication activity.

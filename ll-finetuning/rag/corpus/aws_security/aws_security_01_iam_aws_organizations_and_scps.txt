@@ -1,0 +1,46 @@
+AWS Organizations is a service that enables centralized management and governance of multiple AWS accounts. It allows you to create a hierarchy of accounts organized into organizational units (OUs) and apply policies to enforce controls across those accounts. Service Control Policies (SCPs) are a critical feature of AWS Organizations that define the maximum permissions available to accounts within an organization. SCPs do not grant permissions; they act as a guardrail, restricting what actions principals (IAM users, roles, and root users) in member accounts can perform. SCPs are evaluated before IAM policies, meaning any action denied by an SCP cannot be allowed by an IAM policy.
+
+**Key Components**
+
+- **Organization Root**: The top-level container for all accounts in the organization. Policies applied here affect all accounts unless overridden by a deny policy at a lower level.
+- **Organizational Units (OUs)**: Logical groupings of accounts that share similar security or compliance requirements. OUs can be nested to create a hierarchy (e.g., Production OU, Development OU, with sub-OUs for specific workloads).
+- **Member Accounts**: Individual AWS accounts that belong to the organization. Each account can only belong to one organization at a time.
+- **Management Account**: The account used to create the organization. It has full administrative control and is not subject to SCPs by default. This account should be tightly controlled and used only for administrative tasks.
+- **Service Control Policies (SCPs)**: JSON-based policies that specify the services, actions, and resources that are allowed or denied for accounts in the organization. SCPs use an allow list or deny list model. The default behavior is to allow all actions unless explicitly denied. When multiple SCPs apply, the effective permissions are the intersection of all allow statements minus any deny statements. Deny statements always override allow statements.
+- **FullAWSAccess**: A default SCP attached to the root and all OUs that allows all actions. If you remove this policy, you must explicitly allow every action you want to permit. This is a common pattern for implementing a least-privilege baseline.
+- **Policy Inheritance**: SCPs applied at a higher level (e.g., root) are inherited by all child OUs and accounts. Policies applied at an OU level apply only to that OU and its children. You can attach multiple SCPs to a single entity, and the effective policy is the union of all allow statements minus any deny statements.
+
+**Real-World Application**
+
+A common use case is enforcing data residency and compliance requirements. For example, an organization must ensure that no EC2 instances are launched outside of the US East (N. Virginia) region. You can create an SCP that denies the `ec2:RunInstances` action if the `aws:RequestedRegion` condition key is not `us-east-1`. This SCP is attached to the root or a specific OU containing accounts that must comply. This prevents any user or role in those accounts from launching instances in other regions, even if their IAM policies allow it.
+
+Another example is restricting access to sensitive services. If you want to prevent all accounts in a development OU from using AWS Lambda, you can attach an SCP that denies all Lambda actions. This ensures that developers cannot accidentally or intentionally create Lambda functions that might incur costs or introduce security risks. The SCP would look like:
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Deny",
+      "Action": "lambda:*",
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+SCPs are also used to enforce the use of specific IAM roles. For instance, you can require that all EC2 instances launched in an account must use an instance profile with a specific role. This is done by denying `ec2:RunInstances` unless the `iam:InstanceProfile` condition is met. This prevents developers from launching instances with overly permissive roles.
+
+**Security Relevance**
+
+SCPs are a foundational control for implementing a defense-in-depth strategy in AWS. They provide a centralized mechanism to enforce security baselines across all accounts, reducing the risk of misconfiguration or privilege escalation. Without SCPs, each account’s IAM policies are the sole line of defense, and a single misconfigured policy in one account could lead to a data breach. SCPs act as a safety net, ensuring that even if an IAM policy is overly permissive, the SCP will block dangerous actions.
+
+SCPs are particularly important for preventing root user actions. By default, the root user in a member account can perform any action. However, you can attach an SCP that denies specific actions to the root user, such as leaving the organization or modifying billing information. This is critical for maintaining organizational control.
+
+SCPs also help with compliance frameworks like PCI DSS, HIPAA, and SOC 2. For example, you can create an SCP that denies the ability to disable CloudTrail logging or delete encryption keys. This ensures that audit trails and data protection mechanisms cannot be bypassed by individual account administrators.
+
+It is important to note that SCPs do not apply to the management account. Therefore, the management account must be secured with strict IAM policies, multi-factor authentication, and limited access. Additionally, SCPs do not affect actions performed by AWS services on behalf of a user (e.g., AWS Config recording changes). They only apply to actions initiated by a principal within the account.
+
+**Key Takeaways**
+- SCPs define a maximum permission boundary for all accounts in an AWS Organization; they deny actions even if IAM policies allow them, making them a critical guardrail for security.
+- Use SCPs to enforce region restrictions, block dangerous services, and prevent root user actions across your entire organization or specific OUs.
+- Always test SCPs in a non-production OU first, and remember that the management account is exempt from SCPs, requiring separate, stringent controls.

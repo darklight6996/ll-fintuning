@@ -1,0 +1,52 @@
+13.8: Manage System's External Removable Media's (and related controls)
+
+Overview
+This policy setting configures whether the computer will be able to write data to 
+BitLocker-protected removable drives that were configured in another organization. 
+The recommended state for this setting is: Enabled: False.
+
+This policy setting determines which encryption method should be used for fixed data 
+drives. 
+The recommended state for this setting is: XTS-AES 128-bit (default) or XTS-AES 
+256-bit
+
+Why This Matters
+Restricting write access to BitLocker-protected removable drives that were configured in 
+another organization can hinder legitimate business operations where encrypted data 
+sharing is necessary.
+
+Enforcing the default value of XTS-AES 128-bit (default) or higher helps ensure 
+that a weaker cipher is not used to protect data on fixed data drives.
+
+Audit Steps
+For Manage System's External Removable Media's:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\FVE:RDVDenyCrossOrg
+
+For Manage System's External Removable Media's:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 6 or 7. 
+HKLM\SOFTWARE\Policies\Microsoft\FVE:EncryptionMethodWithXtsFdv
+
+Remediation
+For Manage System's External Removable Media's:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: False. 
+Administrative Templates\Windows Components\BitLocker Drive 
+Encryption\Removable Data Drives\Deny write access to removable drives not 
+protected by BitLocker: Do not allow write access to devices configured in 
+another organization
+
+For Manage System's External Removable Media's:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to XTS-AES 128-bit (default) or XTS-AES 256-bit. 
+Administrative Templates\Windows Components\BitLocker Drive Encryption\Choose 
+drive encryption method and cipher strength (Windows 10 [Version 1511] and 
+later)\Select the encryption method for fixed data drives
+
+Key Takeaways
+- Restricting write access to BitLocker-protected removable drives that were configured in  another organization can hinder legitimate business operations where encrypted data  sharing is necessary.
+- Enforcing the default value of XTS-AES 128-bit (default) or higher helps ensure  that a weaker cipher is not used to protect data on fixed data drives.

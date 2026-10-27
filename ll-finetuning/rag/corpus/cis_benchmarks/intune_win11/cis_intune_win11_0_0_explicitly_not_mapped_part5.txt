@@ -1,0 +1,105 @@
+0.0: Explicitly Not Mapped (and related controls)
+
+Overview
+This policy setting controls how the RPC server runtime handles unauthenticated RPC 
+clients connecting to RPC servers. 
+This policy setting impacts all RPC applications. In a domain environment this policy 
+setting should be used with caution as it can impact a wide range of functionality 
+including group policy processing itself. Reverting a change to this policy setting can 
+require manual intervention on each affected machine. This policy setting should 
+never be applied to a Domain Controller. 
+A client will be considered an authenticated client if it uses a named pipe to 
+communicate with the server or if it uses RPC Security. RPC Interfaces that have 
+specifically requested to be accessible by unauthenticated clients may be exempt from 
+this restriction, depending on the selected value for this policy setting. 
+-- "None" allows all RPC clients to connect to RPC Servers running on the machine on 
+which the policy setting is applied. 
+-- "Authenticated" allows only authenticated RPC Clients (per the definition above) to 
+connect to RPC Servers running on the machine on which the policy setting is applied. 
+Exemptions are granted to interfaces that have requested them. 
+-- "Authenticated without exceptions" allows only authenticated RPC Clients (per the 
+definition above) to connect to RPC Servers running on the machine on which the policy 
+setting is applied. No exceptions are allowed. This value has the potential to cause 
+serious problems and is not recommended. 
+Note: This policy setting will not be applied until the system is rebooted. 
+The recommended state for this setting is: Enabled: Authenticated.
+
+This policy setting manages the behavior for notifying registered antivirus programs. If 
+multiple programs are registered, they will all be notified. 
+The recommended state for this setting is: Enabled. 
+Note: An updated antivirus program must be installed for this policy setting to function 
+properly.
+
+This policy setting allows you to configure whether BitLocker requires additional 
+authentication each time the computer starts. This policy setting is applied when you 
+turn on BitLocker. 
+Note: Only one of the additional authentication options can be required at startup, 
+otherwise a policy error occurs. 
+On a computer with a compatible TPM, four types of authentication methods can be 
+used at startup to provide added protection for encrypted data. When the computer 
+starts, it can use only the TPM for authentication, or it can also require insertion of a 
+USB flash drive containing a startup key, the entry of a 4-digit to 20-digit personal 
+identification number (PIN), or both. 
+Note #2: If you want to require the use of a startup PIN and a USB flash drive, you must 
+configure BitLocker settings using the command-line tool manage-bde instead of the 
+BitLocker Drive Encryption setup wizard. 
+The recommended state for this setting is: Enabled: Do not allow startup key 
+and PIN with TPM.
+
+Why This Matters
+Unauthenticated RPC communication can create a security vulnerability.
+
+Antivirus programs that do not perform on-access checks may not be able to scan 
+downloaded files.
+
+TPM without use of a PIN will only validate early boot components and does not require 
+a user to enter any additional authentication information. If a computer is lost or stolen 
+in this configuration, BitLocker will not provide any additional measure of protection 
+beyond what is provided by native Windows authentication unless the early boot 
+components are tampered with or the encrypted drive is removed from the machine.
+
+Audit Steps
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Rpc:RestrictRemoteClients
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 3. 
+HKU\[USER 
+SID]\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments:ScanWithA
+ntiVirus
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\FVE:UseTPMKeyPIN
+
+Remediation
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: Authenticated. 
+Administrative Templates\System\Remote Procedure Call\Restrict 
+Unauthenticated RPC clients
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Attachment Manager\Notify 
+antivirus programs when opening attachments (User)
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: Do not allow startup key and PIN with TPM. 
+Administrative Templates\Windows Components\BitLocker Drive 
+Encryption\Operating System Drives\Require additional authentication at 
+startup: Configure TPM startup key and PIN:
+
+Key Takeaways
+- Unauthenticated RPC communication can create a security vulnerability.
+- Antivirus programs that do not perform on-access checks may not be able to scan  downloaded files.
+- TPM without use of a PIN will only validate early boot components and does not require  a user to enter any additional authentication information.

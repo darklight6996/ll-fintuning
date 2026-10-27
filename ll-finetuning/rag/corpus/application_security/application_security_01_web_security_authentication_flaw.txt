@@ -1,0 +1,46 @@
+Authentication flaws represent a class of vulnerabilities that allow an attacker to impersonate a legitimate user, bypass access controls, or escalate privileges within a web application. These flaws undermine the entire security model of an application, as authentication is the gatekeeper for all subsequent authorization decisions. A failure at this layer renders other security controls, such as input validation or encryption, largely irrelevant.
+
+**Definition**
+
+An authentication flaw is any weakness in the design, implementation, or configuration of a system’s identity verification process that enables an attacker to gain unauthorized access. This includes, but is not limited to, credential theft, session hijacking, brute-force attacks, and logic errors in multi-factor authentication (MFA) flows. The Open Web Application Security Project (OWASP) consistently ranks broken authentication among the top web application security risks, reflecting its prevalence and impact.
+
+**Key Components of Authentication Flaws**
+
+Authentication flaws can be categorized into several distinct areas, each with specific attack vectors and mitigations.
+
+- **Weak Credential Policies**: The most common entry point. Systems that allow short, common, or dictionary-based passwords are trivially compromised via brute-force or credential stuffing attacks. Mitigation requires enforcing minimum length (12+ characters), complexity requirements, and checking passwords against known breach databases (e.g., Have I Been Pwned API).
+
+- **Insecure Credential Storage**: Storing passwords in plaintext, using weak hashing algorithms (MD5, SHA-1), or omitting salts makes a database breach catastrophic. The standard is to use a strong, adaptive one-way hashing algorithm such as bcrypt, scrypt, or Argon2. These algorithms include a work factor that slows down brute-force attempts.
+
+- **Session Management Failures**: After successful authentication, the application issues a session token. Flaws include predictable token generation, failure to invalidate tokens on logout, long session timeouts, or transmitting tokens over unencrypted channels (HTTP). Attackers can perform session fixation or session hijacking. Mitigations include using cryptographically random session identifiers, setting the `HttpOnly`, `Secure`, and `SameSite` flags on cookies, and enforcing short expiration times.
+
+- **Multi-Factor Authentication (MFA) Bypass**: MFA adds a second layer, but implementation flaws can bypass it. Common bypasses include: allowing fallback to single-factor authentication, not requiring MFA for API endpoints, using weak second factors (e.g., SMS-based codes vulnerable to SIM swapping), or failing to enforce MFA re-authentication for sensitive actions (e.g., changing email or password). Proper MFA requires time-based one-time passwords (TOTP) or hardware security keys (FIDO2/WebAuthn) and must be enforced consistently across all authentication paths.
+
+- **Logic Flaws in Authentication Flow**: These are subtle errors in the application’s business logic. Examples include: password reset flows that allow an attacker to guess the reset token, “remember me” functionality that stores credentials insecurely, or race conditions during login that allow an attacker to bypass checks. Each flow must be threat-modeled and tested for edge cases.
+
+- **Credential Stuffing and Brute-Force Protection**: Without rate limiting, account lockout, or CAPTCHA, attackers can automate login attempts. Credential stuffing uses lists of usernames and passwords leaked from other breaches. Mitigations include progressive delays, IP-based rate limiting, and device fingerprinting. Account lockout must be balanced to prevent denial-of-service against legitimate users.
+
+**Real-World Application**
+
+Consider a typical enterprise web application with a login page, a password reset flow, and an API for mobile clients.
+
+- **Scenario 1: Weak Password Reset Logic**: A user requests a password reset. The application sends an email with a link containing a token generated using `md5(user_id + timestamp)`. An attacker can enumerate user IDs, guess the timestamp within a window, and compute the token. This flaw allows account takeover without ever knowing the original password. The fix is to use a cryptographically random token (e.g., 128 bits from `secrets.token_urlsafe()`) stored hashed in the database, with a short expiration (e.g., 15 minutes).
+
+- **Scenario 2: API Authentication Bypass**: The mobile API uses a JSON Web Token (JWT) for authentication. The server fails to validate the JWT signature, or uses a weak secret (e.g., “secret”). An attacker can craft a JWT with any user ID and gain full access. The fix is to use a strong, randomly generated secret (256 bits minimum), validate the signature on every request, and enforce token expiration.
+
+- **Scenario 3: Session Fixation**: The application accepts a session ID from a URL parameter before login. An attacker sends a victim a link with a known session ID. After the victim logs in, the attacker uses the same session ID to hijack the session. The fix is to regenerate the session ID on every successful authentication.
+
+**Security Relevance**
+
+For a security engineer, authentication flaws are a top priority because they directly enable account takeover (ATO), which can lead to data breaches, financial fraud, and reputational damage. The relevance is amplified by modern attack patterns:
+
+- **Automated Attacks**: Bots perform credential stuffing at scale. Without robust rate limiting and anomaly detection, even a small percentage of valid credentials from a breach can lead to thousands of compromised accounts.
+- **Supply Chain Risk**: Third-party authentication libraries (e.g., OAuth, SAML) can introduce flaws if misconfigured. For example, accepting unsigned SAML assertions or not validating redirect URIs in OAuth flows.
+- **Compliance Requirements**: Regulations like PCI DSS, HIPAA, and GDPR mandate strong authentication controls. A flaw can result in non-compliance, fines, and mandatory breach notifications.
+
+The security relevance also extends to defense-in-depth. Even with perfect authorization logic, a single authentication flaw renders those controls moot. Engineers must treat authentication as a critical control point, subject to rigorous testing, including penetration testing, code review, and automated scanning for common weaknesses (e.g., using OWASP ZAP or Burp Suite).
+
+**Key Takeaways**
+1. Authentication flaws are the most direct path to account takeover; prioritize enforcing strong password policies, adaptive hashing (bcrypt/Argon2), and cryptographically secure session management.
+2. Every authentication flow—login, password reset, MFA, API token validation—must be threat-modeled and tested for logic errors, as bypasses often exist in edge cases.
+3. Implement defense-in-depth by combining rate limiting, MFA with hardware keys, and continuous monitoring for anomalous login patterns to mitigate automated attacks.

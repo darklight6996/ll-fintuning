@@ -1,0 +1,57 @@
+The Protect Function (PR) is the second core function of the NIST Cybersecurity Framework (CSF) 2.0. It defines the safeguards necessary to limit or contain the impact of a potential cybersecurity event. While the Identify function (ID) establishes context and risk awareness, Protect operationalizes that knowledge into controls that prevent, deter, and delay attacks. For a security engineer, the Protect function is where policy meets configuration; it translates risk appetite into technical and administrative barriers.
+
+**Key Components of the Protect Function**
+
+The Protect function is subdivided into six categories, each containing specific subcategories that map to actionable controls. These are not a checklist but a set of outcomes to achieve.
+
+1.  **Identity Management, Authentication, and Access Control (PR.AA):** This is the most granular and technically demanding category. It covers:
+    - **Digital Identity:** Managing the full lifecycle of identities (users, devices, services) including provisioning, de-provisioning, and credential management.
+    - **Authentication:** Enforcing multi-factor authentication (MFA) for all privileged and remote access. For critical systems, consider phishing-resistant MFA (e.g., FIDO2/WebAuthn).
+    - **Authorization:** Implementing least privilege and separation of duties. This includes Role-Based Access Control (RBAC) and Attribute-Based Access Control (ABAC) for fine-grained permissions.
+    - **Physical Access:** Controls for data centers, server rooms, and network closets (e.g., badge readers, biometrics, mantraps).
+
+2.  **Awareness and Training (PR.AT):** Human error remains a primary vector. This category focuses on:
+    - **Role-Based Training:** Tailored content for executives, developers, and general users. Developers need secure coding training; executives need incident response tabletop exercises.
+    - **Phishing Simulations:** Regular, controlled campaigns to measure susceptibility and reinforce reporting behavior.
+    - **Policy Acknowledgment:** Documented proof that personnel have read and understood security policies (e.g., acceptable use, data handling).
+
+3.  **Data Security (PR.DS):** Protecting data at rest, in transit, and in use.
+    - **Encryption:** Full-disk encryption for endpoints, TLS 1.3 for data in transit, and column-level or application-layer encryption for sensitive data in databases.
+    - **Data Loss Prevention (DLP):** Monitoring and blocking unauthorized exfiltration of sensitive data via email, cloud storage, or USB devices.
+    - **Integrity Checks:** File integrity monitoring (FIM) and checksums to detect unauthorized modification of critical files and configurations.
+    - **Data Classification:** Automated tools to tag data based on sensitivity (e.g., PII, PHI, IP) and apply corresponding controls.
+
+4.  **Information Protection Processes and Procedures (PR.IP):** The operational backbone of the Protect function.
+    - **Configuration Management:** Baseline configurations for all assets (e.g., CIS Benchmarks, DISA STIGs). Automated enforcement via tools like Ansible, Puppet, or Group Policy.
+    - **Patch Management:** A risk-based patching cadence. Critical vulnerabilities (CVSS >= 9.0) should be patched within 48 hours; high within 30 days. Automated scanning and deployment are essential.
+    - **Backup and Recovery:** The 3-2-1 rule (3 copies, 2 different media, 1 offsite). Immutable backups are critical to defend against ransomware.
+    - **Change Management:** Formal process for any change to production systems, including security review and rollback plans.
+
+5.  **Maintenance (PR.MA):** Ensuring the security of maintenance and repair activities.
+    - **Remote Maintenance:** Strictly controlled via VPN and jump boxes. All remote sessions must be logged and monitored.
+    - **Vendor Access:** Temporary, least-privilege accounts for third-party maintenance. Revoke immediately upon completion.
+    - **Physical Maintenance:** Escort requirements for on-site technicians. Verify credentials and scope of work before granting access.
+
+6.  **Protective Technology (PR.PT):** The technical controls that enforce policy at the network and endpoint level.
+    - **Network Segmentation:** Micro-segmentation using VLANs, firewalls, and software-defined networking (SDN). Critical assets (e.g., domain controllers, databases) should reside in isolated zones with strict east-west traffic rules.
+    - **Endpoint Protection:** Next-Generation Antivirus (NGAV), Endpoint Detection and Response (EDR), and application allowlisting (e.g., Windows AppLocker, macOS XProtect).
+    - **Web and Email Filtering:** Block known malicious domains, scan attachments in sandboxes, and enforce DMARC/DKIM/SPF.
+    - **Logging and Monitoring:** Centralized logging (SIEM) with alerts for anomalous behavior (e.g., failed logins, privilege escalation, unusual outbound traffic).
+
+**Real-World Application**
+
+Consider a mid-sized financial services firm implementing the Protect function.
+
+- **PR.AA:** They deploy a Privileged Access Management (PAM) solution to vault admin credentials and rotate them after each use. MFA is enforced for all VPN and cloud console access. RBAC is configured in Active Directory so that a junior analyst cannot modify firewall rules.
+- **PR.DS:** All customer PII in the database is encrypted using AES-256. A DLP policy blocks any email containing a credit card number from leaving the corporate domain. File integrity monitoring is enabled on all critical servers.
+- **PR.IP:** A Configuration Management Database (CMDB) tracks all assets. A weekly automated scan checks all servers against the CIS benchmark. Critical patches are deployed via a patch management tool within 24 hours of release.
+- **PR.PT:** The network is segmented into three zones: User, Server, and DMZ. A firewall rule explicitly denies all traffic from the User zone to the Server zone except for specific ports (e.g., 443 to a web server). EDR agents on all endpoints alert on any attempt to disable security services.
+
+**Security Relevance**
+
+The Protect function is the primary barrier between an adversary and your critical assets. Without it, the Identify function is merely an academic exercise. A mature Protect implementation directly reduces the attack surface and increases the cost of an attack for the adversary. For example, MFA stops credential theft; network segmentation contains lateral movement; immutable backups negate ransomware extortion. The Protect function also satisfies regulatory requirements (e.g., PCI DSS, HIPAA, SOX) that mandate specific controls like encryption, access control, and logging. In an incident, a well-documented Protect posture provides evidence of due care, which is critical for legal and compliance defense.
+
+**Key Takeaways**
+- The Protect function operationalizes risk decisions into concrete technical controls across identity, data, technology, and processes.
+- Effective implementation requires automation (patching, configuration enforcement, logging) to maintain consistency at scale.
+- Without robust Protect controls, the entire CSF framework collapses, as prevention and containment are prerequisites for detection and response.

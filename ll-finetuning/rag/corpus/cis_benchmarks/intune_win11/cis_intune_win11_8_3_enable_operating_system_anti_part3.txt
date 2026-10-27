@@ -1,0 +1,139 @@
+8.3: Enable Operating System Anti-Exploitation Features/ (and related controls)
+
+Overview
+This rule blocks email opened within the Microsoft Outlook application, or Outlook.com 
+and other popular webmail providers from propagating the following file types: 
+• 
+Executable files (such as .exe, .dll, or .scr) 
+• 
+Script files (such as a PowerShell .ps1, Visual Basic .vbs, or JavaScript .js file) 
+The recommended state for this setting is: Block.
+
+This rule blocks executable files, such as .exe, .dll, or .scr, from launching. Thus, 
+launching untrusted or unknown executable files can be risky, as it might not be initially 
+clear if the files are malicious. 
+The recommended state for this setting is: Audit. Configuring this setting to Block also 
+conforms to the benchmark. 
+Note: Cloud-delivered protection must be enabled to use this rule.
+
+This rule blocks Office apps from creating child processes. Office apps include Word, 
+Excel, PowerPoint, OneNote, and Access. 
+Creating malicious child processes is a common malware strategy. Malware that 
+abuses Office as a vector often runs VBA macros and exploit code to download and 
+attempt to run more payloads. However, some legitimate line-of-business applications 
+might also generate child processes for benign purposes; such as spawning a 
+command prompt or using PowerShell to configure registry settings. 
+The recommended state for this setting is: Audit. Configuring this setting to Block also 
+conforms to the benchmark.
+
+This rule prevents scripts from launching potentially malicious downloaded content. 
+Malware written in JavaScript or VBScript often acts as a downloader to fetch and 
+launch other malware from the Internet. Although not common, line-of-business 
+applications sometimes use scripts to download and launch installers. 
+The recommended state for this setting is: Block.
+
+Why This Matters
+Attack surface reduction helps prevent actions and apps that are typically used by 
+exploit-seeking malware to infect machines.
+
+Organizations may find implementing Block to be too strict, however in Audit mode 
+there is still valuable information that can be logged for threat hunters to sift through and 
+analyze.
+
+Attack surface reduction helps prevent actions and apps that are typically used by 
+exploit-seeking malware to infect machines.
+
+Attack surface reduction helps prevent actions and apps that are typically used by 
+exploit-seeking malware to infect machines.
+
+Audit Steps
+For Enable Operating System Anti-Exploitation Features/:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Defender:AttackSurfaceRe ductionRules_WinningProvider 
+2. Navigate to the following registry location and confirm the value contains 
+be9ba2d9-53ea-4cdc-84e5-9b1eeee46550=1 (Block). 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\default\Device\Defende r:AttackSurfaceReductionRules 
+Note: The following key can also be queried for the requisite value, however if Tamper 
+Protection is enabled it will only be readable by SYSTEM 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:ASRRules 
+Note #2: The contents of ASRRules is a single large string containing the GUID of each 
+ASR rule separated with a pipe delimiter. Below is an example of what the Registry 
+would display if all recommendations that allow Audit or Block are set to Block. 
+56a863a9-875e-4185-98a7-b882c64b5ce5=1|7674ba52-37eb-4a4f-a9a1f0f9a1619a2c=1|D4F940AB-401B-4EFC-AADC-AD5F3C50688A=1|9e6c4e1f-7d60-472fba1a-a39ef669e4b2=1|BE9BA2D9-53EA-4CDC-84E5-9B1EEEE46550=1|5BEB7EFE-FD9A4556-801D-275E5FFC04CC=1|D3E037E1-3EB8-44C8-A917-57927947596D=1|3B576869A4EC-4529-8536-B80A7769E899=1|75668C1F-73B5-4CF0-BB933ECF5CB7CC84=1|26190899-1602-49e8-8b27-eb1d0a1ce869=1|e6db77e5-3df2-4cf1b95a-636979351e5b=1|b2b3f03d-6a65-4f7b-a9c7-1c7ef74a9ba4=1|92E97FA1-2EDF4476-BDD6-9DD0B4DDDC7B=1
+
+For Enable Operating System Anti-Exploitation Features/:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Defender:AttackSurfaceRe ductionRules_WinningProvider 
+2. Navigate to the following registry location and confirm the value contains 
+01443614-cd74-433a-b99e-2ecdc07bfc25=1 (Block) or 01443614-cd74433a-b99e-2ecdc07bfc25=2 (Audit). 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\default\Device\Defende r:AttackSurfaceReductionRules 
+Note: The following key can also be queried for the requisite value, however if Tamper 
+Protection is enabled it will only be readable by SYSTEM 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:ASRRules 
+Note #2: The contents of ASRRules is a single large string containing the GUID of each 
+ASR rule separated with a pipe delimiter. Below is an example of what the Registry 
+would display if all recommendations that allow Audit or Block are set to Block. 
+56a863a9-875e-4185-98a7-b882c64b5ce5=1|7674ba52-37eb-4a4f-a9a1f0f9a1619a2c=1|D4F940AB-401B-4EFC-AADC-AD5F3C50688A=1|9e6c4e1f-7d60-472fba1a-a39ef669e4b2=1|BE9BA2D9-53EA-4CDC-84E5-9B1EEEE46550=1|5BEB7EFE-FD9A4556-801D-275E5FFC04CC=1|D3E037E1-3EB8-44C8-A917-57927947596D=1|3B576869A4EC-4529-8536-B80A7769E899=1|75668C1F-73B5-4CF0-BB933ECF5CB7CC84=1|26190899-1602-49e8-8b27-eb1d0a1ce869=1|e6db77e5-3df2-4cf1b95a-636979351e5b=1|b2b3f03d-6a65-4f7b-a9c7-1c7ef74a9ba4=1|92E97FA1-2EDF4476-BDD6-9DD0B4DDDC7B=1
+
+For Enable Operating System Anti-Exploitation Features/:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Defender:AttackSurfaceRe ductionRules_WinningProvider 
+2. Navigate to the following registry location and confirm the value contains 
+5beb7efe-fd9a-4556-801d-275e5ffc04cc=1 (Block) or 5beb7efe-fd9a4556-801d-275e5ffc04cc=2 (Audit). 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\default\Device\Defende r:AttackSurfaceReductionRules 
+Note: The following key can also be queried for the requisite value, however if Tamper 
+Protection is enabled it will only be readable by SYSTEM 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:ASRRules 
+Note #2: The contents of ASRRules is a single large string containing the GUID of each 
+ASR rule separated with a pipe delimiter. Below is an example of what the Registry 
+would display if all recommendations that allow Audit or Block are set to Block. 
+56a863a9-875e-4185-98a7-b882c64b5ce5=1|7674ba52-37eb-4a4f-a9a1f0f9a1619a2c=1|D4F940AB-401B-4EFC-AADC-AD5F3C50688A=1|9e6c4e1f-7d60-472fba1a-a39ef669e4b2=1|BE9BA2D9-53EA-4CDC-84E5-9B1EEEE46550=1|5BEB7EFE-FD9A4556-801D-275E5FFC04CC=1|D3E037E1-3EB8-44C8-A917-57927947596D=1|3B576869A4EC-4529-8536-B80A7769E899=1|75668C1F-73B5-4CF0-BB933ECF5CB7CC84=1|26190899-1602-49e8-8b27-eb1d0a1ce869=1|e6db77e5-3df2-4cf1b95a-636979351e5b=1|b2b3f03d-6a65-4f7b-a9c7-1c7ef74a9ba4=1|92E97FA1-2EDF4476-BDD6-9DD0B4DDDC7B=1
+
+For Enable Operating System Anti-Exploitation Features/:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Defender:AttackSurfaceRe ductionRules_WinningProvider 
+2. Navigate to the following registry location and confirm the value contains 
+d3e037e1-3eb8-44c8-a917-57927947596d=1 (Block). 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\default\Device\Defende r:AttackSurfaceReductionRules 
+Note: The following key can also be queried for the requisite value, however if Tamper 
+Protection is enabled it will only be readable by SYSTEM 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:ASRRules 
+Note #2: The contents of ASRRules is a single large string containing the GUID of each 
+ASR rule separated with a pipe delimiter. Below is an example of what the Registry 
+would display if all recommendations that allow Audit or Block are set to Block. 
+56a863a9-875e-4185-98a7-b882c64b5ce5=1|7674ba52-37eb-4a4f-a9a1f0f9a1619a2c=1|D4F940AB-401B-4EFC-AADC-AD5F3C50688A=1|9e6c4e1f-7d60-472fba1a-a39ef669e4b2=1|BE9BA2D9-53EA-4CDC-84E5-9B1EEEE46550=1|5BEB7EFE-FD9A4556-801D-275E5FFC04CC=1|D3E037E1-3EB8-44C8-A917-57927947596D=1|3B576869A4EC-4529-8536-B80A7769E899=1|75668C1F-73B5-4CF0-BB933ECF5CB7CC84=1|26190899-1602-49e8-8b27-eb1d0a1ce869=1|e6db77e5-3df2-4cf1b95a-636979351e5b=1|b2b3f03d-6a65-4f7b-a9c7-1c7ef74a9ba4=1|92E97FA1-2EDF4476-BDD6-9DD0B4DDDC7B=1
+
+Remediation
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block. 
+Defender\Block executable content from email client and webmail
+
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Audit or Block. 
+Defender\Block executable files from running unless they meet a prevalence, 
+age, or trusted list criterion
+
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Audit or Block. 
+Defender\Block execution of potentially obfuscated scripts
+
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block. 
+Defender\Block JavaScript or VBScript from launching downloaded executable 
+content
+
+Key Takeaways
+- Attack surface reduction helps prevent actions and apps that are typically used by  exploit-seeking malware to infect machines.
+- Organizations may find implementing Block to be too strict, however in Audit mode  there is still valuable information that can be logged for threat hunters to sift through and  analyze.

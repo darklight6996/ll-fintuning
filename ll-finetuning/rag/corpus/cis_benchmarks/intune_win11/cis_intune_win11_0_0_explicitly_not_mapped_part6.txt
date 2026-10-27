@@ -1,0 +1,128 @@
+0.0: Explicitly Not Mapped (and related controls)
+
+Overview
+This policy setting allows you to configure whether BitLocker requires additional 
+authentication each time the computer starts. This policy setting is applied when you 
+turn on BitLocker. 
+Note: Only one of the additional authentication options can be required at startup, 
+otherwise a policy error occurs. 
+On a computer with a compatible TPM, four types of authentication methods can be 
+used at startup to provide added protection for encrypted data. When the computer 
+starts, it can use only the TPM for authentication, or it can also require insertion of a 
+USB flash drive containing a startup key, the entry of a 4-digit to 20-digit personal 
+identification number (PIN), or both. 
+Note #2: If you want to require the use of a startup PIN and a USB flash drive, you must 
+configure BitLocker settings using the command-line tool manage-bde instead of the 
+BitLocker Drive Encryption setup wizard. 
+The recommended state for this setting is: Enabled: Do not allow startup key 
+with TPM.
+
+This policy setting allows you to configure whether BitLocker requires additional 
+authentication each time the computer starts. This policy setting is applied when you 
+turn on BitLocker. 
+Note: Only one of the additional authentication options can be required at startup, 
+otherwise a policy error occurs. 
+On a computer with a compatible TPM, four types of authentication methods can be 
+used at startup to provide added protection for encrypted data. When the computer 
+starts, it can use only the TPM for authentication, or it can also require insertion of a 
+USB flash drive containing a startup key, the entry of a 4-digit to 20-digit personal 
+identification number (PIN), or both. 
+The recommended state for this setting is: Enabled: Require startup PIN with 
+TPM. 
+Warning: If silent encryption is desired, this setting must be configured to Do not 
+allow startup PIN with TPM and an exception to this recommendation will be 
+needed. Please also see recommendation Require additional authentication at startup: 
+Configure TPM startup:' is set to 'Enabled: Do not allow TPM' for needed configuration 
+change for silent encryption.
+
+This policy setting configures the encryption type (space only and whole) used by 
+BitLocker Drive Encryption. 
+The recommended state for this setting is: Enabled: Used Space Only encryption 
+or Enabled: Full encryption. 
+Note: Changing the encryption type does not affect drives that are already encrypted or 
+if encryption is in progress. 
+Note #2: If the option full encryption is selected, the entire drive be encrypted. If the 
+option used space only encryption is selected, only the portion of the drive used to store 
+data will be encrypted.
+
+This policy setting controls whether administrator accounts are displayed when a user 
+attempts to elevate a running application. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+TPM without use of a PIN will only validate early boot components and does not require 
+a user to enter any additional authentication information. If a computer is lost or stolen 
+in this configuration, BitLocker will not provide any additional measure of protection 
+beyond what is provided by native Windows authentication unless the early boot 
+components are tampered with or the encrypted drive is removed from the machine.
+
+TPM without use of a PIN will only validate early boot components and does not require 
+a user to enter any additional authentication information. If a computer is lost or stolen 
+in this configuration, BitLocker will not provide any additional measure of protection 
+beyond what is provided by native Windows authentication unless the early boot 
+components are tampered with or the encrypted drive is removed from the machine.
+
+The type of encryption (space only or whole) used by BitLocker should be an 
+organizational decision and not an end user decision.
+
+Users could see the list of administrator accounts, making it slightly easier for a 
+malicious user who has logged onto a console session to try to crack the passwords of 
+those accounts.
+
+Audit Steps
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\FVE:UseTPMKey
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\FVE:UseTPMPIN
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1 or 2. 
+HKLM\SOFTWARE\Policies\Microsoft\FVE:OSEncryptionType
+
+For Explicitly Not Mapped:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\CredUI:EnumerateAdmin istrators
+
+Remediation
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: Do not allow startup key with TPM. 
+Administrative Templates\Windows Components\BitLocker Drive 
+Encryption\Operating System Drives\Require additional authentication at 
+startup: Configure TPM startup key:
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: Require startup PIN with TPM. 
+Administrative Templates\Windows Components\BitLocker Drive 
+Encryption\Operating System Drives\Require additional authentication at 
+startup: Configure TPM startup PIN:
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Used Space Only Encryption or Full encryption 
+Administrative Templates\Windows Components\BitLocker Drive 
+Encryption\Operating System Drives\Enforce drive encryption type on operating 
+system drives: Select the encryption type: (Device)
+
+For Explicitly Not Mapped:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Windows Components\Credential User 
+Interface\Enumerate administrator accounts on elevation
+
+Key Takeaways
+- TPM without use of a PIN will only validate early boot components and does not require  a user to enter any additional authentication information.
+- If a computer is lost or stolen  in this configuration, BitLocker will not provide any additional measure of protection  beyond what is provided by native Windows authentication unless the early boot  components are tampered with or the encrypted drive is removed from the machine.
+- The type of encryption (space only or whole) used by BitLocker should be an  organizational decision and not an end user decision.

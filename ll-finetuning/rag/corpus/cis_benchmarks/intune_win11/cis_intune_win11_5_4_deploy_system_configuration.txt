@@ -1,0 +1,31 @@
+5.4: Deploy System Configuration Management Tools
+
+Overview
+This policy setting determines how often MDM policies are refreshed on the system. 
+The recommended state for this setting is: 90 (or less).
+
+Why This Matters
+Policy CSP settings should be set to refresh at regular intervals to ensure constant 
+compliance and to reduce policy drift. This helps to ensure systems stay in compliance.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 90 (or less). 
+HKLM\SOFTWARE\Microsoft\Enrollments\{ProviderGUID}\ConfigRefresh:Cadence 
+The ProviderGUID can be determined manually or programmatically by inspecting 
+each subkey in HKLM\SOFTWARE\Microsoft\Enrollments\. The Intune provider will 
+have a ValueName of ProviderID with a value of MS DM Server. The parent key GUID 
+is the ProviderGUID needed for the audit section above. 
+Note: The Cadence ValueName might not appear in the registry when setting the Value 
+to 90 within Settings Catalog.
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 90 (or less). 
+Config Refresh\Refresh cadence 
+Note: The shortest configurable refresh interval is 30 minutes.
+
+Key Takeaways
+- Policy CSP settings should be set to refresh at regular intervals to ensure constant  compliance and to reduce policy drift.
+- This helps to ensure systems stay in compliance.

@@ -1,0 +1,37 @@
+2.4: Track Software Inventory Information
+
+Overview
+This policy settings controls when Quality Updates are received. 
+The recommended state for this setting is: Enabled: 0 days. 
+Note: If the "Allow Telemetry" policy is set to 0, this policy will have no effect. 
+Note #2: Starting with Windows 10 R1607, Microsoft introduced a new Windows 
+Update (WU) client behavior called Dual Scan, with an eye to cloud-based update 
+management. In some cases, this Dual Scan feature can interfere with Windows 
+Updates from Windows Server Update Services (WSUS) and/or manual WU updates. If 
+you are using WSUS in your environment, you may need to set the above setting to Not 
+Configured or configure the setting Do not allow update deferral policies to cause 
+scans against Windows Update (added in the Windows 10 Release 1709 Administrative 
+Templates) in order to prevent the Dual Scan feature from interfering. More information 
+on Dual Scan is available at these links: 
+• 
+Demystifying “Dual Scan” – WSUS Product Team Blog 
+• 
+Improving Dual Scan on 1607 – WSUS Product Team Blog
+
+Why This Matters
+Quality Updates can contain important bug fixes and/or security patches, and should be 
+installed as soon as possible.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Update:DeferQualityUpdat esPeriodInDays
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled:0 days. 
+Windows Update for Business\Defer Quality Updates Period (Days)
+
+Key Takeaways
+- Quality Updates can contain important bug fixes and/or security patches, and should be  installed as soon as possible.

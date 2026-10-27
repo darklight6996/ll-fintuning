@@ -1,0 +1,48 @@
+Google Kubernetes Engine (GKE) security policies are a set of cluster-level and workload-level controls that enforce security standards for containerized applications. They are distinct from Kubernetes native Pod Security Standards (PSS) or Pod Security Admission (PSA), as GKE security policies integrate with Google Cloud’s Identity and Access Management (IAM), Binary Authorization, and the GKE Dataplane V2 to provide a defense-in-depth layer. These policies govern how pods are configured, what privileges they can request, and which container images are allowed to run.
+
+**Key Components**
+
+GKE security policies are composed of several interrelated mechanisms that operate at different layers of the stack.
+
+- **Pod Security Policies (PSP) Deprecation and Migration Path:** GKE originally supported Kubernetes PodSecurityPolicy (PSP), which is now deprecated in Kubernetes 1.25+. GKE now recommends using the built-in Pod Security Admission (PSA) controller with enforced Pod Security Standards (PSS). PSA applies three profiles: *privileged*, *baseline*, and *restricted*. For GKE clusters, you configure PSA via the `--pod-security` flag during cluster creation or by applying a `PodSecurity` admission configuration resource. The *restricted* profile is the most secure, blocking privileged containers, host network access, and hostPath volumes.
+
+- **Binary Authorization:** This is a Google Cloud service that enforces deployment-time policies on container images. You can require that all images deployed to a GKE cluster be signed by a trusted authority (e.g., via Cloud Key Management Service). Binary Authorization integrates with GKE by acting as an admission webhook. A policy can be set to “block all images unless signed” or “allow only images from a specific registry with a valid attestation.” This prevents supply chain attacks where a compromised image is pushed to a registry.
+
+- **Workload Identity:** This is the recommended method for GKE workloads to access Google Cloud APIs. Instead of using static service account keys, Workload Identity binds a Kubernetes service account to a Google Cloud IAM service account. A GKE security policy can enforce that only specific Kubernetes service accounts are allowed to use Workload Identity, preventing privilege escalation. This is configured via the `iam.gke.io/gcp-service-account` annotation on the Kubernetes service account.
+
+- **GKE Dataplane V2 and Network Policies:** GKE Dataplane V2 uses eBPF (extended Berkeley Packet Filter) to enforce Kubernetes Network Policies at the kernel level. Security policies can define ingress and egress rules that restrict pod-to-pod communication. For example, a policy can block all traffic to a database pod except from a specific frontend service. This is critical for microsegmentation and limiting lateral movement.
+
+- **GKE Sandbox:** This is a runtime security layer that uses gVisor, a user-space kernel, to isolate pods from the host kernel. GKE Sandbox is not a policy per se, but it is enforced by a security policy that requires certain workloads to run in a sandboxed environment. You can apply a `RuntimeClass` of `gvisor` to a pod, and a policy can mandate that all untrusted workloads use this RuntimeClass.
+
+- **Node Auto-Repair and Auto-Upgrade:** While not a policy in the traditional sense, these GKE features are security controls. Node Auto-Repair automatically replaces nodes that fail health checks (e.g., kernel panics). Node Auto-Upgrade ensures nodes run the latest security patch level. A security policy can enforce that these features are enabled, preventing drift from a secure baseline.
+
+**Real-World Application**
+
+Consider a multi-tier e-commerce application deployed on GKE. The application consists of a public-facing web frontend, an internal API service, and a PostgreSQL database.
+
+1.  **Cluster-Level Policy:** The GKE cluster is created with the `--pod-security=restricted` flag. This immediately blocks any pod that attempts to run as root, mount host paths, or use host networking. The frontend and API pods must be configured with `securityContext.runAsNonRoot: true` and `securityContext.capabilities.drop: ["ALL"]`.
+
+2.  **Image Supply Chain:** Binary Authorization is configured with a policy that requires all images to be signed by the organization’s CI/CD pipeline. The pipeline uses Cloud Build to build images, signs them with a key stored in Cloud KMS, and pushes them to Artifact Registry. Any attempt to deploy an unsigned image (e.g., from a developer’s local machine) is blocked at admission time.
+
+3.  **Workload Identity:** The API service needs to write logs to Cloud Logging. A Kubernetes service account `api-sa` is created in the `api` namespace. This service account is bound to a Google Cloud IAM service account `api-logger@project.iam.gserviceaccount.com` via Workload Identity. A security policy (implemented as a validating admission webhook) ensures that only `api-sa` can use this binding. If a malicious pod tries to impersonate `api-sa`, the policy blocks it.
+
+4.  **Network Segmentation:** A Kubernetes NetworkPolicy is applied to the `database` namespace. It allows ingress traffic only from pods with the label `app: api` on port 5432. All other ingress traffic is dropped. This prevents the frontend (which is compromised in a hypothetical scenario) from directly accessing the database.
+
+5.  **Untrusted Workloads:** The frontend processes user-uploaded images. This is considered an untrusted workload. A security policy mandates that any pod with the label `untrusted: true` must use the `gvisor` RuntimeClass. The frontend deployment is annotated accordingly, and GKE Sandbox isolates it from the host kernel.
+
+**Security Relevance**
+
+GKE security policies directly address the most common attack vectors in containerized environments: container breakout, lateral movement, and supply chain compromise.
+
+- **Container Breakout Prevention:** By enforcing the *restricted* PSS profile and using GKE Sandbox, you prevent a container from escaping to the host kernel. Even if an attacker gains code execution inside a container, they cannot modify the host filesystem or run privileged syscalls.
+
+- **Lateral Movement Mitigation:** Network Policies enforced by GKE Dataplane V2 provide microsegmentation. An attacker who compromises the frontend cannot directly reach the database or the API service unless the policy explicitly allows it. This limits the blast radius of a breach.
+
+- **Supply Chain Integrity:** Binary Authorization ensures that only signed, approved images are deployed. This prevents an attacker from pushing a malicious image to a registry and having it automatically deployed. Combined with Workload Identity, it also prevents an attacker from using a stolen service account key to deploy unauthorized workloads.
+
+- **Compliance and Auditing:** GKE security policies produce audit logs via Cloud Audit Logs. Every admission request (allowed or denied) is logged. This provides a tamper-evident record for compliance frameworks like SOC 2, PCI DSS, or FedRAMP. You can also use these logs to detect policy violations and tune rules.
+
+**Key Takeaways**
+- GKE security policies combine Kubernetes-native controls (Pod Security Admission, Network Policies) with Google Cloud-specific services (Binary Authorization, Workload Identity, GKE Sandbox) to enforce a defense-in-depth posture.
+- The most critical policies to implement are the *restricted* Pod Security Standard profile, Binary Authorization for image signing, and Network Policies for microsegmentation.
+- All policies must be tested in a non-production environment first, as overly restrictive policies can break legitimate workloads; use audit mode (warn/audit) before enforcing.

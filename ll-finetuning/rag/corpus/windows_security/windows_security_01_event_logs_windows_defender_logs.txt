@@ -1,0 +1,51 @@
+Windows Defender logs are a subset of Windows Event Logs that record the operational activity of Microsoft Defender Antivirus, Defender for Endpoint, and related security components. These logs are essential for detecting malware infections, investigating suspicious file activity, and auditing the health of endpoint protection. They are stored primarily in the Windows Event Log under two channels: **Microsoft-Windows-Windows Defender/Operational** (Event ID range 1000-2000) and **Microsoft-Windows-Windows Defender/WHC** (for cloud-delivered protection events). Security engineers rely on these logs to correlate detection events with system changes, network connections, and user behavior.
+
+**Key Components**
+
+The most critical event IDs and their meanings are:
+
+- **Event ID 1000** – Malware detected. Contains the threat name, detection type (e.g., real-time, on-demand), action taken (quarantine, remove, allow), and the file path. This is the primary event for incident response.
+- **Event ID 1001** – Malware remediation completed. Indicates the final disposition (e.g., cleaned, deleted, or failed). Useful for verifying that remediation actions succeeded.
+- **Event ID 1002** – Malware remediation failed. Requires immediate investigation, as the threat may still be active.
+- **Event ID 1003** – Malware detection by cloud-delivered protection. Indicates that the detection relied on cloud-based machine learning or behavioral analysis, not just local signatures.
+- **Event ID 1004** – Malware detection by network inspection service. Logs threats blocked at the network level (e.g., malicious URLs or IPs).
+- **Event ID 1005** – Scan started. Records the scan type (quick, full, custom) and the initiating user or system process.
+- **Event ID 1006** – Scan completed. Includes the scan duration, number of files scanned, and number of threats found.
+- **Event ID 1013** – Threat history removal. Logs when a threat record is deleted from the quarantine or history. Useful for auditing administrative actions.
+- **Event ID 1116** – Defender for Endpoint detection (advanced). Contains detailed telemetry such as process tree, file hashes, and network connections. This is the primary event for EDR investigations.
+- **Event ID 1117** – Defender for Endpoint remediation action. Records the automated or manual response (e.g., isolate device, kill process, remove file).
+- **Event ID 2000** – Real-time protection state change. Logs when real-time scanning is enabled or disabled. Critical for compliance monitoring.
+- **Event ID 2001** – Real-time protection configuration change. Records modifications to exclusions, scan settings, or signature update intervals.
+- **Event ID 2002** – Signature update failure. Indicates that antivirus definitions failed to download. Persistent failures reduce protection effectiveness.
+- **Event ID 2003** – Signature update success. Confirms that definitions are current. Useful for monitoring update health across endpoints.
+
+**Real-World Application**
+
+A security engineer investigating a suspected ransomware outbreak would follow this workflow:
+
+1. Query the **Operational** log for Event ID 1000 across all endpoints in the affected subnet. Filter by threat name containing “Ransom” or “Filecoder”.
+2. For each detection, extract the file path and SHA256 hash. Cross-reference with the **Microsoft-Windows-Windows Defender/WHC** log to see if cloud-based analysis flagged the file before local signatures.
+3. Check Event ID 1116 in the **Defender for Endpoint** log (if deployed) to obtain the full process ancestry. This reveals how the ransomware was launched (e.g., via a macro in a phishing email or a drive-by download).
+4. Review Event ID 1002 to identify any remediation failures. If a file was not removed, immediately isolate the endpoint using Event ID 1117 (isolate device action).
+5. Audit Event ID 2000 and 2001 to ensure real-time protection was enabled and exclusions were not maliciously added. A sudden change to exclusions often indicates attacker tampering.
+6. Correlate with Sysmon or Windows Security Auditing logs (Event ID 4688) to see if the ransomware process was spawned by a legitimate application that was later compromised.
+
+For proactive threat hunting, security teams can create scheduled queries that alert on:
+- Multiple Event ID 1000 from the same host within 5 minutes (indicates rapid file encryption).
+- Event ID 2001 where an exclusion is added for a suspicious path (e.g., C:\Users\Public\* or C:\Windows\Temp\*).
+- Event ID 1002 occurring more than 3 times per hour (indicates persistent malware that bypasses remediation).
+- Absence of Event ID 2003 for more than 24 hours on any endpoint (indicates stale definitions).
+
+**Security Relevance**
+
+Windows Defender logs are a primary data source for:
+- **Incident response**: They provide the first indication of malware activity and the exact files involved. Without these logs, detection relies on network traffic or user reports, which are slower.
+- **Compliance auditing**: Regulations like PCI DSS, HIPAA, and NIST 800-53 require logging of antivirus detections and protection status. Event IDs 1000, 1001, 2000, and 2003 directly satisfy these requirements.
+- **Threat intelligence enrichment**: The file hashes and threat names in these logs can be fed into a SIEM or TIP to correlate with known IOCs from external feeds.
+- **Endpoint health monitoring**: Continuous monitoring of Event ID 2002 and 2003 ensures that all endpoints have up-to-date signatures. A single endpoint with outdated definitions can be the entry point for a breach.
+- **Forensic analysis**: The process tree in Event ID 1116 allows investigators to reconstruct the attack chain, even if the original dropper was deleted.
+
+**Key Takeaways**
+- Windows Defender logs are stored in two primary channels: Operational (Event IDs 1000-2000) and WHC (cloud detection), plus Defender for Endpoint events (1116-1117) for advanced telemetry.
+- The most actionable events are 1000 (detection), 1002 (remediation failure), 1116 (EDR detection), and 2000/2001 (protection state changes).
+- These logs are essential for incident response, compliance auditing, and proactive threat hunting; missing or incomplete logs should be treated as a security incident.

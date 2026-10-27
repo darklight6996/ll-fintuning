@@ -1,0 +1,47 @@
+Attack surface reduction (ASR) rules are a set of Microsoft Defender for Endpoint (MDE) controls that block specific behaviors and file executions commonly associated with malware, ransomware, and other attack techniques. They are a component of endpoint hardening focused on reducing the number of entry points and execution vectors available to an adversary.
+
+**Definition**
+
+ASR rules are policy-driven, host-based intrusion prevention rules. They operate by monitoring process creation, script execution, and other system events. When a rule detects a behavior that matches a known malicious pattern—such as a script attempting to download content from the internet or an Office application spawning a child process—the rule blocks the action and optionally generates an alert. Unlike traditional antivirus signatures, ASR rules target *techniques* rather than specific file hashes. This makes them effective against fileless attacks, living-off-the-land binaries (LOLBins), and novel malware that has not yet been signatured.
+
+Each ASR rule is identified by a globally unique identifier (GUID). Microsoft provides a set of built-in rules, and administrators can enable them individually. Rules can be configured in three modes: **Block** (prevent the action and log it), **Audit** (log the action but allow it), and **Warn** (prompt the user for confirmation). For production hardening, Block mode is the goal; Audit mode is used for testing and impact assessment.
+
+**Key Components**
+
+The effectiveness of ASR rules depends on understanding their scope and dependencies.
+
+- **Rule GUIDs and their targets:** Each rule addresses a specific attack vector. Common examples include:
+    - `b2b3f03d-6a4c-4b7b-9c6b-8b5b9b4b3b2b` – Block Office applications from creating child processes.
+    - `d4f5e6a7-8b9c-0d1e-2f3a-4b5c6d7e8f9a` – Block executable content from email client and webmail.
+    - `c1d2e3f4-5a6b-7c8d-9e0f-1a2b3c4d5e6f` – Block JavaScript or VBScript from launching downloaded executable content.
+    - `9e6c4e1f-7d3c-4b5a-8f2e-1a2b3c4d5e6f` – Block credential stealing from the Windows local security authority subsystem (lsass.exe).
+- **Dependencies:** ASR rules require Windows Defender Antivirus (real-time protection enabled) and cloud-delivered protection. They also depend on the MDE sensor to be active. Without these prerequisites, rules will not enforce.
+- **Exclusions:** Administrators can define file paths, file extensions, or process names to exclude from specific ASR rules. Exclusions should be used sparingly and only after confirming the blocked action is legitimate and necessary for business operations. Overuse of exclusions weakens the protection.
+- **Reporting and monitoring:** ASR rule events are logged in the Microsoft 365 Defender portal under "Incidents & alerts" and in the Windows Event Log (Event ID 1121 for blocked, 1122 for audited). Integration with SIEM systems is standard via the MDE API.
+
+**Real-World Application**
+
+Deploying ASR rules requires a phased approach to avoid breaking legitimate applications.
+
+1.  **Assessment:** Begin by enabling all available ASR rules in Audit mode across a representative pilot group. Monitor the generated events for 7–14 days. Identify any false positives—actions that are legitimate but match a rule. Document the affected processes, users, and business functions.
+2.  **Remediation:** For each false positive, determine if the behavior can be modified (e.g., updating a legacy script to use a different execution method) or if a narrow exclusion is required. Engage application owners to understand the business need. Avoid broad exclusions like entire drive letters.
+3.  **Gradual enforcement:** Once false positives are addressed, switch rules to Block mode in waves. Start with low-risk rules (e.g., blocking Office child processes) and monitor for incidents. Then enable higher-risk rules (e.g., blocking credential theft from lsass). Use the "Warn" mode only as a transitional step if user disruption is a concern.
+4.  **Ongoing tuning:** ASR rules are not set-and-forget. New applications, updates, or changes in user behavior can introduce new false positives. Schedule quarterly reviews of audit events and adjust exclusions as needed. Monitor the MDE portal for rule-related alerts and investigate each one.
+
+**Security Relevance**
+
+ASR rules directly address several techniques in the MITRE ATT&CK framework, including:
+
+- **T1055.001 (Process Injection: DLL Injection)** – Blocking Office child processes prevents injection via macro-enabled documents.
+- **T1059.001 (Command and Scripting Interpreter: PowerShell)** – Rules that block script execution from untrusted sources reduce the risk of PowerShell-based attacks.
+- **T1003.001 (OS Credential Dumping: LSASS Memory)** – The rule blocking credential theft from lsass.exe is a direct countermeasure against tools like Mimikatz.
+- **T1204.002 (User Execution: Malicious File)** – Blocking executable content from email prevents users from inadvertently launching malware.
+
+From a compliance perspective, ASR rules are a measurable control. Frameworks such as NIST SP 800-53 (e.g., CM-6, SI-3) and CIS Controls (e.g., Control 8: Audit Log Management, Control 10: Malware Defenses) can be satisfied by demonstrating that ASR rules are enabled, monitored, and tuned. Audit logs from ASR rules provide evidence of proactive threat prevention.
+
+The primary limitation of ASR rules is that they are Windows-specific and require MDE licensing (E5 or standalone). They do not cover Linux or macOS endpoints. Additionally, they are not a replacement for application whitelisting or endpoint detection and response (EDR); they are a complementary layer that reduces the attack surface before EDR detection is needed.
+
+**Key Takeaways**
+- ASR rules block attack techniques, not just known malware, making them effective against fileless and novel threats.
+- Deploy ASR rules in Audit mode first, remediate false positives, then switch to Block mode gradually to minimize business disruption.
+- ASR rules provide direct coverage for MITRE ATT&CK techniques and serve as auditable controls for compliance frameworks like NIST and CIS.

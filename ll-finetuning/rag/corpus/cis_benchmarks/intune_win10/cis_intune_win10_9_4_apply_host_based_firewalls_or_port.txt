@@ -1,0 +1,69 @@
+9.4: Apply Host-based Firewalls or Port Filtering (and related controls)
+
+Overview
+This setting determines the behavior for inbound connections that do not match an 
+inbound firewall rule. 
+The recommended state for this setting is: Block.
+
+This setting determines the behavior for inbound connections that do not match an 
+inbound firewall rule. 
+The recommended state for this setting is: Block.
+
+This setting controls whether local administrators are allowed to create connection 
+security rules that apply together with connection security rules configured by Group 
+Policy. 
+The recommended state for this setting is: False.
+
+Why This Matters
+If the firewall allows all traffic to access the system then an attacker may be more easily 
+able to remotely exploit a weakness in a network service.
+
+If the firewall allows all traffic to access the system then an attacker may be more easily 
+able to remotely exploit a weakness in a network service.
+
+Users with administrative privileges might create firewall rules that expose the system to 
+remote attack.
+
+Audit Steps
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\DomainProfile:DefaultInboundAction
+
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\StandardProfile:DefaultInboundAction
+
+For Apply Host-based Firewalls or Port Filtering:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy
+\Mdm\PublicProfile:AllowLocalIPsecPolicyMerge
+
+Remediation
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block: 
+Firewall\Enable Domain Network Firewall: Default Inbound Action for Domain 
+Profile
+
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block: 
+Firewall\Enable Private Network Firewall: Default Inbound Action for Private 
+Profile
+
+For Apply Host-based Firewalls or Port Filtering:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to False: 
+Firewall\Enable Public Network Firewall: Allow Local Ipsec Policy Merge
+
+Key Takeaways
+- If the firewall allows all traffic to access the system then an attacker may be more easily  able to remotely exploit a weakness in a network service.
+- Users with administrative privileges might create firewall rules that expose the system to  remote attack.

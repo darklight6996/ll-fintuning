@@ -1,0 +1,53 @@
+AWS WAF and AWS Shield form a layered defense for web applications against common exploits and distributed denial-of-service (DDoS) attacks. AWS WAF operates at Layer 7 (application layer) to inspect HTTP/HTTPS requests, while AWS Shield provides protection at Layers 3 and 4 (network and transport layers) against volumetric DDoS attacks. Together, they are deployed on Amazon CloudFront, Application Load Balancers (ALB), API Gateway, and AWS AppSync.
+
+**Key Components**
+
+**AWS WAF**
+- **Web ACLs (Access Control Lists):** The primary resource that contains rules. Each Web ACL is associated with one or more AWS resources (e.g., CloudFront distribution, ALB). Rules are evaluated in order; the default action is to allow or block traffic.
+- **Rules:** Define conditions to inspect requests. Conditions include:
+  - **IP sets:** Allow or block traffic from specific IP addresses or CIDR ranges.
+  - **String and regex matching:** Inspect headers, query strings, URI paths, and body content.
+  - **Size constraints:** Block requests exceeding a defined byte size (e.g., to prevent buffer overflow attacks).
+  - **SQL injection (SQLi) and cross-site scripting (XSS) match conditions:** Predefined rule sets that detect common injection patterns.
+  - **Rate-based rules:** Track request rates from a single source IP. If the rate exceeds a threshold (e.g., 2000 requests per 5 minutes), the rule triggers a block action. This mitigates brute-force login attempts and application-layer DDoS.
+- **Managed Rule Groups:** Pre-configured rule sets maintained by AWS or third-party vendors (e.g., Fortinet, F5). Examples include:
+  - **AWSManagedRulesCommonRuleSet:** Blocks known vulnerabilities like Log4j exploitation, directory traversal, and command injection.
+  - **AWSManagedRulesSQLiRuleSet:** Blocks SQL injection patterns.
+  - **AWSManagedRulesAmazonIpReputationList:** Blocks IPs with known malicious reputations.
+- **Logging and Metrics:** WAF logs full request metadata to Amazon S3, CloudWatch Logs, or Kinesis Data Firehose. CloudWatch metrics track blocked/allowed requests, rule matches, and rate-based rule triggers.
+
+**AWS Shield**
+- **Shield Standard:** Enabled by default at no additional cost. Protects against common Layer 3/4 DDoS attacks (e.g., SYN floods, UDP reflection attacks) up to a certain threshold. Provides visibility into attack traffic via CloudWatch metrics (e.g., DDoSDetected, DDoSAttackBitsPerSecond).
+- **Shield Advanced:** A paid service that provides enhanced protection against larger, more sophisticated DDoS attacks. Key features:
+  - **Cost protection:** AWS automatically applies credits for scaling costs incurred during a Shield Advanced-attributed attack.
+  - **DDoS Response Team (DRT):** 24/7 access to AWS DDoS experts who can create custom mitigations.
+  - **Attack diagnostics:** Detailed post-attack reports showing attack vectors, source IPs, and traffic patterns.
+  - **Proactive engagement:** Shield Advanced can automatically escalate to the DRT when attack thresholds are exceeded.
+  - **Application-layer (L7) protection:** Integrates with WAF to provide additional rate limiting and web ACL-based blocking during attacks.
+
+**Real-World Application**
+
+A typical deployment for a critical web application handling sensitive user data (e.g., a financial services portal) would include:
+
+1. **Front-end:** CloudFront distribution with Shield Advanced enabled. This absorbs volumetric DDoS attacks at the edge, preventing them from reaching origin servers.
+2. **Web ACL attached to CloudFront:** Contains the following rule groups in order:
+   - **AWSManagedRulesAmazonIpReputationList** (first, to block known bad actors).
+   - **AWSManagedRulesCommonRuleSet** (second, to block common exploits).
+   - **Custom rate-based rule:** Limits any single IP to 100 requests per 5 minutes on the login endpoint to prevent credential stuffing.
+   - **Custom SQLi rule:** A regex pattern matching `UNION SELECT` in the URI or body.
+3. **ALB behind CloudFront:** A second Web ACL on the ALB provides defense-in-depth. This ACL includes stricter rules, such as blocking requests with non-standard HTTP methods (e.g., TRACE, CONNECT) and enforcing a maximum request body size of 128 KB.
+4. **Logging:** WAF logs are streamed to a centralized S3 bucket with server-side encryption (SSE-S3 or SSE-KMS). A separate CloudWatch alarm triggers if the rate of blocked requests exceeds 1000 per minute, indicating a potential attack.
+5. **Shield Advanced proactive engagement:** Configured to notify the DRT if traffic exceeds 10 Gbps or 1 million packets per second. The DRT can then apply custom mitigations, such as blocking entire geographic regions or specific protocols.
+
+**Security Relevance**
+
+- **Defense in depth:** WAF and Shield operate at different layers. Shield handles volumetric attacks that would overwhelm a WAF, while WAF blocks application-layer attacks that bypass network-level filters. Relying on only one layer leaves gaps.
+- **Reducing attack surface:** Managed rule groups automatically update to cover new CVEs (e.g., CVE-2021-44228 for Log4j). Without WAF, a security engineer must manually patch every application instance.
+- **Compliance alignment:** Many compliance frameworks (PCI DSS, SOC 2, HIPAA) require web application firewalls for public-facing applications. WAF logging provides audit trails for rule changes and blocked requests.
+- **Cost management:** Shield Advanced’s cost protection prevents unexpected AWS bills during a DDoS attack. Without it, auto-scaling triggered by attack traffic can incur significant charges.
+- **Operational efficiency:** Rate-based rules and managed rule groups reduce the need for custom signature development. Security engineers can focus on tuning thresholds and reviewing logs rather than writing detection logic from scratch.
+
+**Key Takeaways**
+- AWS WAF provides application-layer inspection (Layer 7) using customizable rules and managed rule groups, while AWS Shield protects against network-layer DDoS attacks (Layers 3/4); both are essential for comprehensive web application security.
+- Deploy WAF Web ACLs on both CloudFront and ALB for defense in depth, and enable Shield Advanced for cost protection, DRT access, and proactive attack mitigation.
+- Use rate-based rules to mitigate brute-force and application-layer DDoS, and rely on managed rule groups to automatically block known vulnerabilities without manual signature updates.

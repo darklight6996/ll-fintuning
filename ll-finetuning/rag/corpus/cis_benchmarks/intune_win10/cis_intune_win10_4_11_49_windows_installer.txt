@@ -1,0 +1,25 @@
+4.11.49: Windows Installer
+
+Overview
+This policy setting controls whether Web-based programs are allowed to install software 
+on the computer without notifying the user. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+Suppressing the system warning can pose a security risk and increase the attack 
+surface on the system.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer:SafeForScripting
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Windows Components\Windows Installer\Prevent 
+Internet Explorer security prompt for Windows Installer scripts
+
+Key Takeaways
+- Suppressing the system warning can pose a security risk and increase the attack  surface on the system.

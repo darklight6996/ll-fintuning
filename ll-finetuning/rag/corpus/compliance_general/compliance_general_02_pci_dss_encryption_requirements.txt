@@ -1,0 +1,44 @@
+Encryption requirements within PCI DSS govern how cardholder data must be protected at rest and in transit. These requirements are codified primarily in Requirement 3 (Protect Stored Cardholder Data) and Requirement 4 (Encrypt Transmission of Cardholder Data Across Open, Public Networks). The core objective is to render stored data unreadable if accessed by an unauthorized party and to prevent interception during network communication. Non-compliance with encryption requirements is a leading cause of data breaches and results in significant fines, increased assessment costs, and potential loss of card acceptance privileges.
+
+**Key Components**
+
+The encryption mandates are not monolithic; they break down into specific technical controls and policy requirements.
+
+- **Encryption at Rest (Requirement 3.4, 3.5, 3.6)**
+    - **Primary Methods:** The standard explicitly allows one-way hashing (for PAN truncation or rendering), truncation (removing a segment of the PAN), tokenization (replacing the PAN with a non-reversible token), or strong cryptography (e.g., AES-256, RSA-2048). Strong cryptography is the only method that preserves the ability to decrypt the original PAN.
+    - **Key Management (Requirement 3.5, 3.6):** This is the most critical sub-component. Encryption is useless if keys are compromised. Requirements mandate:
+        - Restricting access to cryptographic keys to the fewest number of custodians necessary.
+        - Storing keys securely, preferably in a hardware security module (HSM) or a dedicated key management system (KMS), not in the same database as the encrypted data.
+        - Rotating keys at least annually or whenever a key’s integrity is in doubt.
+        - Documenting and implementing a formal key management lifecycle (generation, distribution, storage, rotation, retirement, destruction).
+    - **Scope:** Encryption must apply to the Primary Account Number (PAN) wherever it is stored. This includes databases, log files, backup tapes, archives, and even memory dumps if they persist.
+
+- **Encryption in Transit (Requirement 4.1, 4.2)**
+    - **Network Segmentation:** The requirement applies to cardholder data traversing any open, public network (e.g., the internet, wireless networks, cellular networks, GPRS). Internal networks that are not open or public are not exempt, but the primary focus is on external boundaries.
+    - **Accepted Protocols:** TLS 1.2 or higher is the current standard. SSH, IPSec, and VPNs (using strong ciphers) are also acceptable for specific use cases. SSL and early TLS versions (1.0, 1.1) are explicitly prohibited due to known vulnerabilities (e.g., POODLE, BEAST).
+    - **Certificate Validation:** It is not enough to enable TLS. The entity must verify the certificate chain, validate the hostname, and ensure the certificate is not expired or revoked. Weak cipher suites (e.g., those using RC4, DES, or export-grade ciphers) must be disabled.
+    - **Wireless Networks:** If cardholder data is transmitted over a wireless network (e.g., a point-of-sale terminal on Wi-Fi), it must be encrypted using WPA2 or WPA3 with a strong pre-shared key or enterprise authentication. WEP is forbidden.
+
+**Real-World Application**
+
+A security engineer implementing these requirements must move beyond checkbox compliance to operational security.
+
+- **Architecture Decision:** For a new payment application, the engineer must decide between tokenization (outsourcing PAN storage to a token provider) and encryption (storing encrypted PANs locally). Tokenization reduces scope dramatically but introduces dependency on an external service. Encryption keeps data internal but requires a robust key management infrastructure (KMS or HSM).
+- **Key Rotation Automation:** Manually rotating keys annually is error-prone. A real-world implementation uses a KMS to automate key rotation. For example, a script runs monthly to generate a new data encryption key (DEK), re-encrypts all PANs with the new DEK, and then securely deletes the old DEK. The KMS itself uses a master key (KEK) stored in an HSM.
+- **TLS Configuration:** On a web server handling payment redirects, the engineer must configure the web server (e.g., Nginx, Apache, IIS) to enforce TLS 1.2 only, disable all SSL versions, and specify a strong cipher suite (e.g., `ECDHE-RSA-AES256-GCM-SHA384`). They must also implement HTTP Strict Transport Security (HSTS) to prevent downgrade attacks.
+- **Logging and Monitoring:** Encryption does not stop at data storage. Logs containing PANs must be encrypted or truncated. A common mistake is to encrypt the database but leave plaintext PANs in application logs. The engineer must implement log scrubbing or encryption at the log generation point.
+- **Backup Encryption:** Backups are a frequent point of failure. If a backup tape containing encrypted data is lost, the encryption renders it useless. However, the key used to encrypt that backup must be stored separately and securely. A common practice is to use a different key for backup encryption than for production encryption.
+
+**Security Relevance**
+
+Encryption is a fundamental security control, but it is not a panacea. Its relevance in PCI DSS is twofold: it provides a strong technical barrier against data theft, and it significantly reduces the scope of the assessment.
+
+- **Data Breach Mitigation:** If an attacker exfiltrates a database of encrypted PANs but does not obtain the decryption keys, the data is effectively useless. This is the primary security benefit. Without encryption, a single SQL injection can lead to a massive breach.
+- **Scope Reduction (SAQ Eligibility):** For many merchants, using a validated point-to-point encryption (P2PE) solution or tokenization can reduce the number of Self-Assessment Questionnaire (SAQ) requirements. For example, a merchant using a P2PE solution may qualify for SAQ B-IP, which has far fewer requirements than SAQ D. This reduces the compliance burden and the attack surface.
+- **Defense in Depth:** Encryption is one layer. It must be combined with access controls (who can see the keys), network segmentation (limiting where encrypted data flows), and monitoring (detecting anomalous access to keys or encrypted data). Relying solely on encryption without key management is a critical vulnerability.
+- **Regulatory and Legal Liability:** In the event of a breach, a company that can prove cardholder data was encrypted at rest and in transit may avoid the most severe fines and legal liabilities. The PCI Security Standards Council and acquiring banks view encryption as a sign of due diligence.
+
+**Key Takeaways**
+1.  Encryption at rest is only as strong as the key management process; storing keys alongside encrypted data is equivalent to having no encryption.
+2.  For data in transit, TLS 1.2 or higher with strong cipher suites and proper certificate validation is mandatory; SSL and early TLS are prohibited.
+3.  Encryption reduces breach impact and can lower compliance scope (e.g., via P2PE or tokenization), but it must be implemented as part of a layered security strategy, not as a standalone solution.

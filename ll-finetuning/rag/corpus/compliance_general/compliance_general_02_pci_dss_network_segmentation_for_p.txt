@@ -1,0 +1,36 @@
+Network segmentation is a fundamental control for reducing the scope of PCI DSS compliance. It isolates systems that store, process, or transmit cardholder data (the CDE) from the rest of the corporate network. Without effective segmentation, the entire network is considered in-scope for PCI DSS, dramatically increasing the cost and complexity of audits and security controls. The core principle is that any network component that can communicate with the CDE must be assessed against all applicable PCI DSS requirements.
+
+**Key Components of PCI Network Segmentation**
+
+Effective segmentation relies on a combination of architectural design, technical controls, and rigorous validation.
+
+- **Defined CDE Boundary:** The first step is to clearly identify and document the exact network perimeter of the CDE. This includes all systems, applications, and network devices that handle cardholder data. The boundary must be unambiguous and mapped to specific IP addresses, VLANs, or subnet ranges.
+- **Access Control Lists (ACLs) and Firewall Rules:** Segmentation is enforced at the network layer. Firewalls or routers with ACLs must be configured to deny all traffic from non-CDE zones to the CDE by default. Only explicitly required traffic—such as management access from a jump box or outbound updates from CDE servers—should be permitted. Rules must be specific, using source/destination IPs and ports, and never use "any" for the source or destination.
+- **Logical Isolation (VLANs and Subnets):** The CDE should reside in its own dedicated VLAN or set of subnets. This prevents Layer 2 broadcast traffic from leaking between the CDE and untrusted zones. Trunk ports connecting to the CDE should be configured with a native VLAN that is not used for the CDE, and pruning should remove unnecessary VLANs.
+- **Network Access Control (NAC) and 802.1X:** For environments with dynamic endpoints (e.g., employee laptops, POS terminals), NAC can enforce segmentation at the port level. Devices that fail authentication or posture checks can be placed into a quarantine VLAN that has no access to the CDE.
+- **Segmentation of Management and Out-of-Band Networks:** Administrative access to CDE devices must be isolated. A dedicated management network or jump box should be used for SSH, RDP, or console access. This prevents lateral movement from a compromised admin workstation directly into the CDE.
+- **Wireless Network Isolation:** Any wireless network that connects to the CDE must be segmented from all other wireless networks. PCI DSS requires that wireless networks handling cardholder data use strong encryption (WPA2 or WPA3) and be firewalled from the corporate LAN. Guest Wi-Fi must be completely separate, with no route to the CDE.
+
+**Real-World Application: A Retail Environment**
+
+Consider a retail organization with a central data center, a corporate office, and 50 physical stores. The CDE consists of point-of-sale (POS) terminals, the payment application server in the data center, and the database storing transaction logs.
+
+1.  **Data Center:** The payment server and database reside in a dedicated VLAN (e.g., VLAN 100) with a firewall that only allows inbound traffic from the store POS VLANs on port 443 (HTTPS) and outbound to a patch management server in a separate, isolated management VLAN. All other traffic is denied.
+2.  **Stores:** Each store has a local switch. POS terminals are placed in a dedicated store-level VLAN (e.g., VLAN 200). This VLAN has a single default route to the data center firewall, which only permits traffic to the payment server IP on port 443. The store’s back-office PC, used for inventory and email, is on a different VLAN (e.g., VLAN 201) with no route to VLAN 200.
+3.  **Corporate Office:** The corporate network (VLAN 300) has no direct route to any CDE VLAN. Employees access the payment application only through a web portal that is proxied through a DMZ, which is itself segmented from the CDE.
+4.  **Validation:** During a PCI assessment, the Qualified Security Assessor (QSA) will request firewall rule sets, network diagrams, and may perform network scans from non-CDE zones to confirm that no CDE IP addresses are reachable. A penetration test from the corporate network should fail to reach the payment server.
+
+**Security Relevance**
+
+Network segmentation is not merely a compliance checkbox; it is a critical security control that limits the blast radius of a breach.
+
+- **Reduces Attack Surface:** By isolating the CDE, an attacker who compromises a corporate workstation or a store’s back-office PC cannot directly pivot to cardholder data. They must first compromise the segmentation controls (e.g., a firewall or a jump box), which is a significantly harder task.
+- **Minimizes PCI Scope:** Only systems within the CDE boundary require the full suite of PCI DSS controls (e.g., quarterly scans, file integrity monitoring, strict logging). This reduces audit effort, patching overhead, and the number of systems that must be hardened to PCI standards.
+- **Prevents Lateral Movement:** Segmentation stops an attacker from using a low-value asset (e.g., a printer or an employee laptop) as a stepping stone to reach the payment environment. This is a direct defense against common attack patterns like ransomware spreading from a user’s machine to critical servers.
+- **Enables Incident Response:** A segmented network allows security teams to contain an incident quickly. If a CDE system is compromised, the firewall rules can be tightened to block all traffic to that segment, isolating the threat without affecting the rest of the business.
+- **Supports Compliance with Other Standards:** The same segmentation architecture often satisfies requirements from other frameworks (e.g., NIST, ISO 27001) for protecting sensitive data, making it a multi-purpose security investment.
+
+**Key Takeaways**
+- Network segmentation for PCI DSS must be enforced by stateful firewalls or equivalent technologies that deny all traffic by default, with only explicitly permitted rules between the CDE and non-CDE zones.
+- Proper segmentation reduces PCI scope to only the systems that directly handle cardholder data, drastically lowering audit and maintenance costs.
+- Segmentation is a security control that limits lateral movement and contains breaches; it must be validated annually through network scans and penetration testing, not just documented in a diagram.

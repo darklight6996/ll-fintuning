@@ -1,0 +1,61 @@
+**Definition**
+
+Recovery steps and system restoration refer to the structured process of returning affected IT systems, applications, and data to a known-good operational state following a security incident. This phase of incident response (IR) begins after containment and eradication are complete. The goal is not simply to bring systems online, but to restore them with verified integrity, minimal data loss, and no residual attacker access. Restoration must be executed according to a pre-defined recovery plan that accounts for dependencies, data consistency, and business continuity requirements.
+
+**Key Components**
+
+A robust recovery and restoration process consists of several interdependent components:
+
+- **Recovery Point Objective (RPO) and Recovery Time Objective (RTO) validation**  
+  Before any restoration begins, confirm that the chosen backup or snapshot meets the organization’s RPO (maximum acceptable data loss) and RTO (maximum acceptable downtime). If the most recent backup is compromised or incomplete, you may need to restore from an earlier clean copy, accepting higher data loss.
+
+- **Clean system baseline verification**  
+  Every system to be restored must be rebuilt from a known-clean source. This means using verified OS images, application binaries, and configuration files that have been scanned for malware and compared against integrity hashes. Never restore from a backup that was taken after the initial compromise was suspected.
+
+- **Data restoration and integrity checks**  
+  Restore data from offline or immutable backups. After restoration, run checksum comparisons (e.g., SHA-256) against original known-good values. For databases, verify transaction log consistency and perform integrity checks (e.g., DBCC CHECKDB for SQL Server). For file systems, use tools like tripwire or AIDE to detect unauthorized modifications.
+
+- **Application and service dependency mapping**  
+  Restore systems in the correct order based on dependencies. For example, restore domain controllers before member servers, and database servers before application servers that rely on them. Document the sequence in the recovery plan to avoid cascading failures.
+
+- **Credential and access token rotation**  
+  After restoration, immediately rotate all service accounts, local administrator passwords, and any secrets that were in use at the time of the incident. This includes API keys, certificates, and SSH keys. Assume all credentials were compromised.
+
+- **Post-restoration validation and monitoring**  
+  Once systems are online, run a battery of validation tests: application functionality tests, network connectivity checks, and security control verification (e.g., antivirus, EDR, firewall rules). Enable enhanced logging and monitoring for at least 72 hours post-restoration to detect any lingering malicious activity.
+
+**Real-World Application**
+
+Consider a ransomware incident where an organization’s file servers and database servers were encrypted. The IR team has contained the outbreak by isolating affected network segments and eradicating the ransomware binary from all endpoints. Recovery proceeds as follows:
+
+1. **Validate backup integrity**  
+   The team retrieves the most recent offline backup from a tape library that was disconnected during the incident. They verify the backup’s hash against a pre-incident manifest. The backup is from 12 hours before the encryption event, meeting the RPO of 24 hours.
+
+2. **Rebuild clean servers**  
+   Using a hardened OS image from a secure build server, the team provisions new virtual machines for the file server and database server. They apply all security patches and install the latest EDR agent.
+
+3. **Restore data**  
+   Data is restored from the offline backup to the new VMs. For the database, they restore the full backup and then apply transaction log backups up to the point of the last clean log. They run DBCC CHECKDB and confirm no corruption.
+
+4. **Restore dependencies**  
+   The database server is brought online first. The file server comes next, and then the application server that queries the database. Each service is tested individually before opening access to users.
+
+5. **Rotate credentials**  
+   All service account passwords are changed. The domain admin account used during recovery is disabled and a new one created. The backup system’s access keys are rotated.
+
+6. **Monitor post-restoration**  
+   The SOC sets up alerts for any anomalous outbound connections, new scheduled tasks, or registry modifications. After 48 hours of clean monitoring, the incident is formally closed.
+
+**Security Relevance**
+
+Recovery and restoration are the most critical phases for ensuring that an incident does not recur. Common mistakes include restoring from a backup that still contains the attacker’s persistence mechanisms, failing to rotate credentials, or skipping integrity checks. These errors can lead to re-infection, data exfiltration, or prolonged downtime.
+
+From a compliance perspective, restoration must be documented and auditable. Regulations such as PCI DSS, HIPAA, and NIST SP 800-61 require evidence that recovery was performed from clean sources and that data integrity was verified. In forensic contexts, the restoration process must preserve chain of custody for any evidence that may be needed for legal proceedings.
+
+Security engineers must also consider the risk of “restoration fatigue” — the tendency to rush recovery to meet business deadlines, skipping validation steps. A disciplined, checklist-driven approach is non-negotiable. Automated recovery orchestration tools (e.g., Ansible, Terraform, or commercial IR platforms) can reduce human error, but they must be tested regularly in tabletop exercises.
+
+**Key Takeaways**
+
+- Always restore from a known-clean, offline backup and verify data integrity using cryptographic hashes before bringing systems into production.
+- Rotate all credentials and secrets immediately after restoration, assuming they were compromised during the incident.
+- Validate system functionality and monitor aggressively for at least 72 hours post-restoration to detect any residual attacker activity.

@@ -1,0 +1,112 @@
+16.11: Lock Workstation Sessions After Inactivity (and related controls)
+
+Overview
+This setting controls the number of times that TCP retransmits an individual data 
+segment (non-connect segment) before the connection is aborted. The retransmission 
+time-out is doubled with each successive retransmission on a connection. It is reset 
+when responses resume. The base time-out value is dynamically determined by the 
+measured round-trip time on the connection. 
+The recommended state for this setting is: Enabled: 3.
+
+This policy setting allows you to control whether a domain user can sign in using a 
+picture password. 
+The recommended state for this setting is: Enabled. 
+Note: If the picture password feature is permitted, the user's domain password is 
+cached in the system vault when using it.
+
+Windows notices inactivity of a logon session, and if the amount of inactive time 
+exceeds the inactivity limit, then the screen saver will run, locking the session. 
+The recommended state for this setting is: 15 or fewer minutes, but not 0. 
+Note: A value of 0 does not conform to the benchmark as it disables the machine 
+inactivity limit.
+
+This policy setting determines the least number of characters that make up a password 
+for a local user account. There are many different theories about how to determine the 
+best password length for an organization, but perhaps "passphrase" is a better term 
+than "password." In Microsoft Windows 2000 or newer, passphrases can be quite long 
+and can include spaces. Therefore, a phrase such as "I want to drink a $5 milkshake" is 
+a valid passphrase; it is a considerably stronger password than an 8 or 10 character 
+string of random numbers and letters, and yet is easier to remember. Users must be 
+educated about the proper selection and maintenance of passwords, especially around 
+password length. In enterprise environments, the ideal value for the Minimum password 
+length setting is 14 characters, however you should adjust this value to meet your 
+organization's business requirements. 
+The recommended state for this setting is: 14 or more character(s).
+
+Why This Matters
+A malicious user could exhaust a target computer's resources if it never sent any 
+acknowledgment messages for data that was transmitted by the target computer.
+
+Picture passwords bypass the requirement for a typed complex password. In a shared 
+work environment, a simple shoulder surf where someone observed the on-screen 
+gestures would allow that person to gain access to the system without the need to know 
+the complex password. Vertical monitor screens with an image are much more visible at 
+a distance than horizontal key strokes, increasing the likelihood of a successful 
+observation of the mouse gestures.
+
+If a user forgets to lock their computer when they walk away it's possible that a 
+passerby will hijack it.
+
+Types of password attacks include dictionary attacks (which attempt to use common 
+words and phrases) and brute force attacks (which try every possible combination of 
+characters). Also, attackers sometimes try to obtain the account database so they can 
+use tools to discover the accounts and passwords.
+
+Audit Steps
+For Lock Workstation Sessions After Inactivity:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 3. 
+HKLM\SYSTEM\CurrentControlSet\Services\TCPIP6\Parameters:TcpMaxDataRetransmis sions
+
+For Lock Workstation Sessions After Inactivity:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\System:BlockDomainPicturePassword
+
+For Lock Workstation Sessions After Inactivity:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\DeviceLock:MaxInactivity
+TimeDeviceLock_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 15 or 
+fewer, but not 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\DeviceL
+ock:MaxInactivityTimeDeviceLock
+
+For Lock Workstation Sessions After Inactivity:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\DeviceLock:MinDevicePass wordLength_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 14 (or 
+higher). 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\DeviceL
+ock:MinDevicePasswordLength
+
+Remediation
+For Lock Workstation Sessions After Inactivity:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 3. 
+Administrative Templates\MSS (Legacy)\MSS:(TcpMaxDataRetransmissions IPv6) 
+How many times unacknowledged data is retransmitted
+
+For Lock Workstation Sessions After Inactivity:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Logon\Turn off picture password sign-in
+
+For Lock Workstation Sessions After Inactivity:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 15 or fewer minutes, but not 0: 
+Device Lock\Device Password Enabled: Max Inactivity Time Device Lock
+
+For Lock Workstation Sessions After Inactivity:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 14 or more character(s): 
+Device Lock\Device Password Enabled: Min Device Password Length
+
+Key Takeaways
+- A malicious user could exhaust a target computer's resources if it never sent any  acknowledgment messages for data that was transmitted by the target computer.
+- Picture passwords bypass the requirement for a typed complex password.
+- In a shared  work environment, a simple shoulder surf where someone observed the on-screen  gestures would allow that person to gain access to the system without the need to know  the complex password.

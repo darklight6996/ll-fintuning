@@ -1,0 +1,49 @@
+AWS Systems Manager Patch Manager automates the process of patching managed nodes (EC2 instances and on-premises servers) with both security-related and other types of updates. It operates as a native AWS service, requiring no additional infrastructure, and integrates with Systems Manager Agent (SSM Agent) installed on each target node. Patch Manager supports Windows, Amazon Linux, Ubuntu, Red Hat Enterprise Linux, SUSE Linux Enterprise Server, and CentOS. It can patch operating systems and, on Windows, can also patch applications like Microsoft Office and SQL Server.
+
+**Key Components**
+
+- **Patch Baselines**: Define which patches are approved for installation. Baselines include rules for auto-approval (e.g., approve all patches classified as "Critical" within 7 days) and explicit lists of approved or rejected patches. AWS provides pre-defined baselines for each OS, but you must create custom baselines to enforce organizational compliance policies. Baselines can specify patch sources (e.g., Windows Server Update Services or custom repositories) and include exception windows.
+
+- **Patch Groups**: Logical groupings of nodes (e.g., "Production", "Development") that map to specific baselines. A node can belong to only one patch group at a time. This allows different patching cadences and approval rules per environment. Patch groups are defined via a tag key "Patch Group" on the node.
+
+- **Maintenance Windows**: Schedule when patching operations can run. Each maintenance window defines a time window, duration, and target nodes. You can assign multiple tasks (e.g., patch, reboot, post-patch validation) to a single window. Maintenance windows enforce rate limits and concurrency controls to avoid overwhelming systems.
+
+- **Runbooks and Automation**: Patch Manager uses SSM documents (runbooks) to orchestrate patching. The default runbook `AWS-RunPatchBaseline` performs scanning or installation. You can customize runbooks to add pre-patch checks (e.g., verify disk space, stop application services) or post-patch steps (e.g., restart services, run health checks). Automation workflows can chain multiple runbooks for complex scenarios.
+
+- **Compliance Reporting**: Patch Manager generates compliance data per node, showing which patches are installed, missing, or failed. This data is stored in AWS Config and Systems Manager Inventory. You can query compliance via AWS CLI, SDK, or the console. Compliance statuses include "Compliant", "Non-compliant", and "Failed". The service also supports snapshot reports for auditing.
+
+- **Reboot Management**: Patch Manager can automatically reboot nodes after patching if required. You can configure reboot behavior (e.g., no reboot, reboot if needed, always reboot). For Windows, it uses the built-in reboot mechanism; for Linux, it uses `shutdown -r`. Reboots are coordinated within maintenance windows.
+
+**Real-World Application**
+
+Consider a multi-account AWS environment with 500 EC2 instances across development, staging, and production accounts. Each account has its own patching requirements.
+
+1. **Baseline Creation**: Create three custom patch baselines: one for production (approve only "Critical" and "Security" patches after 14 days of testing), one for staging (approve all patches after 7 days), and one for development (approve all patches within 2 days). Each baseline includes explicit rejections for known problematic patches (e.g., KB that breaks legacy applications).
+
+2. **Node Tagging**: Tag all production instances with `Patch Group: Production`, staging with `Patch Group: Staging`, and development with `Patch Group: Development`. Use AWS Organizations to enforce tagging policies across accounts.
+
+3. **Maintenance Windows**: Schedule production patching for the first Saturday of each month from 2:00 AM to 4:00 AM UTC. Staging patching runs every Wednesday from 1:00 AM to 3:00 AM. Development patching runs nightly from 12:00 AM to 1:00 AM. Each window includes a rate limit of 10 nodes at a time and a concurrency limit of 20%.
+
+4. **Automation**: Create a custom runbook that first checks disk space (fail if < 10% free), then runs `AWS-RunPatchBaseline` with the "Install" operation, then reboots if required, and finally runs a health check script. If the health check fails, the runbook triggers an SNS notification to the security team and rolls back the patch by restoring from an AMI backup.
+
+5. **Compliance Monitoring**: Set up AWS Config rules to flag any node that is more than 30 days out of compliance. Use Amazon EventBridge to trigger a Lambda function that sends a weekly compliance summary to the security team via email. For critical vulnerabilities (e.g., CVE with CVSS score > 9.0), create an automated workflow that immediately applies the patch outside the maintenance window using a separate emergency runbook.
+
+**Security Relevance**
+
+Patch management is a fundamental control for reducing attack surface. Unpatched vulnerabilities are a primary vector for ransomware and exploitation. From a security engineering perspective:
+
+- **Attack Surface Reduction**: Timely patching closes known vulnerabilities. Patch Manager allows you to enforce a maximum patch latency (e.g., 30 days for critical patches) across all nodes. Without automation, manual patching leads to drift and missed updates.
+
+- **Compliance Enforcement**: Regulatory frameworks (PCI DSS, HIPAA, SOC 2) require documented patch management. Patch Manager provides audit trails via CloudTrail and compliance snapshots. You can demonstrate that all nodes in scope are patched within defined SLAs.
+
+- **Least Privilege**: Patch Manager uses IAM roles (e.g., `AmazonSSMManagedInstanceCore`) to grant only the permissions needed for patching. Nodes do not require SSH/RDP access or direct internet connectivity for patch downloads—they use AWS Systems Manager endpoints. This reduces lateral movement risk.
+
+- **Isolation and Testing**: Patch groups and maintenance windows allow you to test patches in lower environments before production. This prevents widespread outages from bad patches. You can also use runbooks to validate that patching does not break security controls (e.g., antivirus, endpoint detection).
+
+- **Incident Response**: In the event of a zero-day exploit, Patch Manager enables rapid deployment of emergency patches across thousands of nodes. You can create a temporary baseline that approves only the specific patch and target all nodes via a maintenance window or on-demand execution.
+
+**Key Takeaways**
+
+- Patch Manager enforces consistent patching across hybrid environments using baselines, groups, and maintenance windows, reducing manual error and drift.
+- Custom runbooks and automation enable pre-patch validation, post-patch health checks, and rollback, which are critical for maintaining system availability and security.
+- Compliance reporting and integration with AWS Config provide auditable evidence for regulatory requirements and enable automated remediation of non-compliant nodes.

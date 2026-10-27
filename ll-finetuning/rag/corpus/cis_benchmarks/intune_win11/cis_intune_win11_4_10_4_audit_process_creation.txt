@@ -1,0 +1,30 @@
+4.10.4: Audit Process Creation
+
+Overview
+This policy setting controls whether the process creation command line text is logged in 
+security audit events when a new process has been created. 
+The recommended state for this setting is: Enabled. 
+Note: This feature that this setting controls was not originally supported in workstation 
+OSes older than Windows 8.1. However, in February 2015 Microsoft added support for 
+the feature to Windows 7 and Windows 8.0 via an update - KB3004375. Therefore, this 
+setting is also important to set on those older OSes.
+
+Why This Matters
+Capturing process command line information in event logs can be very valuable when 
+performing forensic investigations of attack incidents.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit:ProcessC
+reationIncludeCmdLine_Enabled
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Audit Process Creation\Include command line 
+in process creation events
+
+Key Takeaways
+- Capturing process command line information in event logs can be very valuable when  performing forensic investigations of attack incidents.

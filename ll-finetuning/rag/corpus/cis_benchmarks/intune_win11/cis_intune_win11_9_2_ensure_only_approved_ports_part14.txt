@@ -1,0 +1,131 @@
+9.2: Ensure Only Approved Ports, Protocols and Services (and related controls)
+
+Overview
+Provides Web connectivity and administration through the Internet Information Services 
+Manager. 
+The recommended state for this setting is: Disabled or Not Installed. 
+Note: This service is not installed by default. It is supplied with Windows, but is installed 
+by enabling an optional Windows feature (Internet Information Services - World Wide 
+Web Services). 
+Note #2: An organization may choose to selectively grant exceptions to web developers 
+to allow IIS (or another web server) on their workstation, in order for them to locally test 
+& develop web pages. However, the organization should track those machines and 
+ensure the security controls and mitigations are kept up to date, to reduce risk of 
+compromise.
+
+This service manages connected Xbox Accessories. 
+The recommended state for this setting is: Disabled.
+
+Provides authentication and authorization services for interacting with Xbox Live. 
+The recommended state for this setting is: Disabled.
+
+This service syncs save data for Xbox Live save enabled games. 
+The recommended state for this setting is: Disabled.
+
+This service supports the Windows.Networking.XboxLive application programming 
+interface. 
+The recommended state for this setting is: Disabled.
+
+This policy setting allows a process to assume the identity of any user and thus gain 
+access to the resources that the user is authorized to access. 
+The recommended state for this setting is: No One. 
+Note: This user right is considered a "sensitive privilege" for the purposes of auditing.
+
+Why This Matters
+Hosting a website from a workstation is an increased security risk, as the attack surface 
+of that workstation is then greatly increased. If proper security mitigations are not 
+followed, the chance of successful attack increases significantly. 
+Note: This security concern applies to any web server application installed on a 
+workstation, not just IIS.
+
+Xbox Live is a gaming service and has no place in an enterprise managed environment 
+(perhaps unless it is a gaming company).
+
+Xbox Live is a gaming service and has no place in an enterprise managed environment 
+(perhaps unless it is a gaming company).
+
+Xbox Live is a gaming service and has no place in an enterprise managed environment 
+(perhaps unless it is a gaming company).
+
+Xbox Live is a gaming service and has no place in an enterprise managed environment 
+(perhaps unless it is a gaming company).
+
+The Act as part of the operating system user right is extremely powerful. Anyone with 
+this user right can take complete control of the computer and erase evidence of their 
+activities.
+
+Audit Steps
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4 or that the key does not exist. 
+HKLM\SYSTEM\CurrentControlSet\Services\W3SVC:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\XboxGipSvc:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\XblAuthManager:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\XblGameSave:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\XboxNetApiSvc:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Act as part of the 
+operating system
+
+Remediation
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration, set the following Custom Configuration 
+Policy to 4 or confirm that the service is Not installed: 
+Name: <Enter name>
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+System Services\Xbox Accessory Management Service
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+System Services\Xbox Live Auth Manager
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+System Services\Xbox Live Game Save
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+System Services\Xbox Live Networking Service
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to (<![CDATA[]]>) which equals No One. 
+User Rights\Act As Part Of The Operating System 
+Note: Using (<![CDATA[]]>) to represent a blank value or No One is recommended 
+by Microsoft. However, there is a known issue where an error occurs in Endpoint 
+Manger (Intune) but does not affect the policy setting from being applied to the system 
+properly.
+
+Key Takeaways
+- Hosting a website from a workstation is an increased security risk, as the attack surface  of that workstation is then greatly increased.
+- If proper security mitigations are not  followed, the chance of successful attack increases significantly.
+- Note: This security concern applies to any web server application installed on a  workstation, not just IIS.

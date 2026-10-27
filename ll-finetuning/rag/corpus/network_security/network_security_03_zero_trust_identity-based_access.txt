@@ -1,0 +1,40 @@
+Identity-based access is a security model that grants or denies resource access based on the verified identity of a user, device, or workload, rather than relying solely on network location or static credentials. In a zero trust architecture, identity becomes the primary control plane; every access request is authenticated, authorized, and encrypted before any resource is reached. This shifts the perimeter from the network edge to the identity itself, making identity-based access the foundational enforcement point for all zero trust policies.
+
+**Key Components**
+
+- **Identity Provider (IdP)**: The authoritative source for user, device, and service identities. The IdP issues tokens (e.g., SAML, OIDC, JWT) after successful authentication. It must support multi-factor authentication (MFA) and integrate with directory services like Active Directory or LDAP. The IdP must be hardened against compromise, as it is the root of trust for all access decisions.
+
+- **Policy Decision Point (PDP)**: The engine that evaluates access policies against the identity, device posture, and context. The PDP does not enforce access; it returns a decision (allow, deny, or require step-up). Policies are defined using attributes such as user role, group membership, device compliance status, geolocation, and time of day. The PDP must be stateless and horizontally scalable to handle real-time evaluation.
+
+- **Policy Enforcement Point (PEP)**: The component that intercepts access requests and enforces the PDP’s decision. Common PEPs include reverse proxies, API gateways, and VPN concentrators. The PEP must be placed inline with all traffic to the protected resource and must not trust any request that bypasses it. It logs all decisions for audit and anomaly detection.
+
+- **Just-in-Time (JIT) and Just-Enough-Access (JEA)**: JIT provisions temporary credentials or elevated privileges only when a specific action is requested. JEA limits permissions to the minimum required for that action. Together, they reduce the attack surface from standing privileges. Implementation requires integration with the IdP and resource APIs to dynamically grant and revoke access.
+
+- **Continuous Verification**: Identity-based access in zero trust is not a one-time check. The PDP re-evaluates access throughout the session based on changes in risk indicators (e.g., device posture change, anomalous behavior, session duration). This requires telemetry from endpoints, network sensors, and the IdP to feed into a risk engine that can trigger re-authentication or session termination.
+
+**Real-World Application**
+
+A common deployment is for a cloud-native application accessed by remote employees. The organization deploys a reverse proxy as the PEP in front of the application. The proxy is configured to redirect all unauthenticated requests to the IdP. When a user attempts to access the app, the proxy intercepts the request and initiates an OIDC flow. The user authenticates with the IdP using MFA (e.g., a hardware token and biometric). The IdP issues a JWT containing the user’s identity, group memberships, and a session ID.
+
+The proxy sends this JWT to the PDP, which evaluates the policy: is the user in the “engineering” group? Is the device compliant (e.g., antivirus active, OS patched)? Is the request coming from a trusted IP range? The PDP returns an allow decision with a time-bound session token. The proxy then forwards the request to the application, injecting the user identity into the HTTP headers for the application to use for fine-grained authorization.
+
+During the session, the endpoint agent reports a change: the device’s disk encryption status becomes non-compliant. The PDP receives this telemetry, updates the risk score, and sends a command to the proxy to revoke the session token. The user is prompted to re-authenticate or is blocked until the device is remediated. All access events are logged to a SIEM for analysis.
+
+This pattern is also applied to machine-to-machine (M2M) communication. A CI/CD pipeline uses a service account identity. The pipeline requests a short-lived token from the IdP, which includes the service’s role and allowed actions. The target API’s PEP validates the token against the PDP before processing the request. The token expires after 15 minutes, preventing reuse if compromised.
+
+**Security Relevance**
+
+Identity-based access directly addresses the core zero trust principle of “never trust, always verify.” By decoupling access from network location, it eliminates the implicit trust that attackers exploit after breaching the perimeter. Even if an attacker gains network access, they cannot access resources without a valid, verified identity and a policy decision that matches the current context.
+
+This model mitigates several attack vectors:
+- **Credential theft**: MFA and JIT access limit the window of opportunity for stolen credentials. Even if a password is compromised, the attacker cannot authenticate without the second factor.
+- **Privilege escalation**: JEA ensures that even legitimate users cannot exceed their authorized scope. An attacker who compromises a user account is confined to that user’s minimal permissions.
+- **Lateral movement**: Continuous verification and session revocation prevent an attacker from maintaining a foothold. If a device is compromised, the session is terminated, and the attacker cannot pivot to other resources.
+- **Insider threats**: Policies based on identity and context (e.g., “only allow access to HR data from HR team members during business hours”) reduce the risk of data exfiltration by authorized users.
+
+For compliance, identity-based access provides granular audit trails. Every access event is tied to a specific identity, device, and context. This satisfies requirements for access control logging under frameworks like SOC 2, PCI DSS, and HIPAA. The ability to enforce MFA and JIT access directly maps to control requirements for authentication and least privilege.
+
+**Key Takeaways**
+- Identity-based access replaces network perimeter trust with per-request authentication and authorization, enforced by a PDP and PEP decoupled from the resource.
+- Implement JIT and JEA to minimize standing privileges, and use continuous verification to detect and respond to risk changes in real time.
+- Deploy identity-based access for both user and machine identities to prevent lateral movement and credential-based attacks across all access paths.

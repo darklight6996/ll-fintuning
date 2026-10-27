@@ -1,0 +1,146 @@
+9.2: Ensure Only Approved Ports, Protocols and Services (and related controls)
+
+Overview
+The DLL search order can be configured to search for DLLs that are requested by 
+running processes in one of two ways: 
+• 
+Search folders specified in the system path first, and then search the current 
+working folder. 
+• 
+Search current working folder first, and then search the folders specified in the 
+system path. 
+When enabled, the registry value is set to 1. With a setting of 1, the system first 
+searches the folders that are specified in the system path and then searches the current 
+working folder. When disabled the registry value is set to 0 and the system first 
+searches the current working folder and then searches the folders that are specified in 
+the system path. 
+Applications will be forced to search for DLLs in the system path first. For applications 
+that require unique versions of these DLLs that are included with the application, this 
+entry could cause performance or stability problems. 
+The recommended state for this setting is: Enabled. 
+Note: More information on how Safe DLL search mode works is available at this link: 
+Dynamic-Link Library Search Order - Windows applications | Microsoft Docs
+
+This policy setting determines whether to require domain users to elevate when setting 
+a network's location. 
+The recommended state for this setting is: Enabled.
+
+This policy setting prevents Group Policy from being updated while the computer is in 
+use. This policy setting applies to Group Policy for computers, users and Domain 
+Controllers. 
+The recommended state for this setting is: Disabled.
+
+This policy setting controls whether the computer can download print driver packages 
+over HTTP. To set up HTTP printing, printer drivers that are not available in the 
+standard operating system installation might need to be downloaded over HTTP. 
+The recommended state for this setting is: Enabled.
+
+This policy setting specifies whether the Internet Connection Wizard can connect to 
+Microsoft to download a list of Internet Service Providers (ISPs). 
+The recommended state for this setting is: Enabled.
+
+This policy setting controls whether Windows will download a list of providers for the 
+Web publishing and online ordering wizards. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+If a user unknowingly executes hostile code that was packaged with additional files that 
+include modified versions of system DLLs, the hostile code could load its own versions 
+of those DLLs and potentially increase the type and degree of damage the code can 
+render.
+
+Allowing regular users to set a network location increases the risk and attack surface.
+
+This setting ensures that group policy changes take effect more quickly, as compared to 
+waiting until the next user logon or system restart.
+
+Users might download drivers that include malicious code.
+
+In an enterprise managed environment we want to lower the risk of a user unknowingly 
+exposing sensitive data.
+
+Although the risk is minimal, enabling this setting will reduce the possibility of a user 
+unknowingly downloading malicious content through this feature.
+
+Audit Steps
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Control\Session Manager:SafeDllSearchMode
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\Network 
+Connections:NC_StdDomainUserSetLocation
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with the key 
+not existing. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System:DisableBkGndGr oupPolicy
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers:DisableWebPnPDownload
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\Internet Connection 
+Wizard:ExitOnMSICW
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer:NoWebService s
+
+Remediation
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\MSS (Legacy)\MSS: (SafeDllSearchMode) Enable Safe 
+DLL search mode (recommended)
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Network\Network Connections\Require domain users to 
+elevate when setting a network's location
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\System\Group Policy\Turn off background refresh of 
+Group
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Internet Communication Management\Internet 
+Communication settings\Turn off downloading of print drivers over HTTP
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Internet Communication Management\Internet 
+Communication settings\Turn off Internet Connection Wizard if URL connection 
+is referring to Microsoft.com
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Internet Communication Management\Internet 
+Communication settings\Turn off Internet download for Web publishing and 
+online ordering wizards
+
+Key Takeaways
+- If a user unknowingly executes hostile code that was packaged with additional files that  include modified versions of system DLLs, the hostile code could load its own versions  of those DLLs and potentially increase the type and degree of damage the code can  render.
+- Allowing regular users to set a network location increases the risk and attack surface.
+- This setting ensures that group policy changes take effect more quickly, as compared to  waiting until the next user logon or system restart.

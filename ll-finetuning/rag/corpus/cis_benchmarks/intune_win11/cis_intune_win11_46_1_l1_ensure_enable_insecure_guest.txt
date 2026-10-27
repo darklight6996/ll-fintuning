@@ -1,0 +1,25 @@
+46.1: (L1) Ensure 'Enable insecure guest logons' is set to
+
+Overview
+This policy setting determines if the SMB client will allow insecure guest logons to an 
+SMB server. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+Insecure guest logons are used by file servers to allow unauthenticated access to 
+shared folders.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\LanmanWorkstation:AllowInsecureGuest
+Auth
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled: 
+Lanman Workstation\Enable insecure guest logons
+
+Key Takeaways
+- Insecure guest logons are used by file servers to allow unauthenticated access to  shared folders.

@@ -1,0 +1,114 @@
+14.4: Encrypt All Sensitive Information in Transit (and related controls)
+
+Overview
+NOTE: This recommendation assumes that the Public network access parameter is 
+set to Enabled from selected virtual networks and IP addresses. Please 
+ensure the prerequisite recommendation has been implemented before proceeding: 
+• 
+Ensure Default Network Access Rule for Storage Accounts is Set to Deny 
+Some Azure services that interact with storage accounts operate from networks that 
+can't be granted access through network rules. To help this type of service work as 
+intended, allow the set of trusted Azure services to bypass the network rules. These 
+services will then use strong authentication to access the storage account. If the Allow 
+Azure services on the trusted services list to access this storage 
+account exception is enabled, the following services are granted access to the storage 
+account: Azure Backup, Azure Data Box, Azure DevTest Labs, Azure Event Grid, Azure 
+Event Hubs, Azure File Sync, Azure HDInsight, Azure Import/Export, Azure Monitor, 
+Azure Networking Services, and Azure Site Recovery (when registered in the 
+subscription).
+
+Cross Tenant Replication in Azure allows data to be replicated across multiple Azure 
+tenants. While this feature can be beneficial for data sharing and availability, it also 
+poses a significant security risk if not properly managed. Unauthorized data access, 
+data leakage, and compliance violations are potential risks. Disabling Cross Tenant 
+Replication ensures that data is not inadvertently replicated across different tenant 
+boundaries without explicit authorization.
+
+Why This Matters
+Turning on firewall rules for a storage account will block access to incoming requests for 
+data, including from other Azure services. We can re-enable this functionality by 
+allowing access to trusted Azure services through networking exceptions.
+
+Disabling Cross Tenant Replication minimizes the risk of unauthorized data access and 
+ensures that data governance policies are strictly adhered to. This control is especially 
+critical for organizations with stringent data security and privacy requirements, as it 
+prevents the accidental sharing of sensitive information.
+
+Audit Steps
+For Encrypt All Sensitive Information in Transit:
+Audit from Azure Portal 
+1. Go to Storage Accounts. 
+2. For each storage account, under Security + networking, click Networking. 
+3. Click on the Firewalls and virtual networks heading. 
+4. Under Exceptions, ensure that Allow Azure services on the trusted 
+services list to access this storage account is checked. 
+Audit from Azure CLI 
+Ensure bypass contains AzureServices 
+az storage account list --query '[*].networkRuleSet' 
+Audit from PowerShell 
+Connect-AzAccount 
+Set-AzContext -Subscription <subscription ID> 
+Get-AzStorageAccountNetworkRuleset -ResourceGroupName <resource group> -Name 
+<storage account name> |Select-Object Bypass 
+If the response from the above command is None, the storage account configuration is 
+out of compliance with this check. If the response is AzureServices, the storage 
+account configuration is in compliance with this check. 
+
+Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: c9d007d0-c057-4772-b18c-01e546713bcd - Name: 'Storage accounts 
+should allow access from trusted Microsoft services'
+
+For Encrypt All Sensitive Information in Transit:
+Audit from Azure Portal 
+1. Go to Storage Accounts. 
+2. For each storage account, under Data management, click Object replication. 
+3. Click Advanced settings. 
+4. Ensure Allow cross-tenant replication is not checked. 
+Audit from Azure CLI 
+az storage account list --query "[*].[name,allowCrossTenantReplication]" 
+The value of false should be returned for each storage account listed. 
+
+Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: 92a89a79-6c52-4a7e-a03f-61306fc49312 - Name: 'Storage accounts 
+should prevent cross tenant object replication'
+
+Remediation
+For Encrypt All Sensitive Information in Transit:
+Remediate from Azure Portal 
+1. Go to Storage Accounts. 
+2. For each storage account, under Security + networking, click Networking. 
+3. Click on the Firewalls and virtual networks heading. 
+4. Under Exceptions, check the box next to Allow Azure services on the 
+trusted services list to access this storage account. 
+5. Click Save. 
+Remediate from Azure CLI 
+Use the below command to update bypass to Azure services. 
+az storage account update --name <StorageAccountName> --resource-group 
+<resourceGroupName> --bypass AzureServices
+
+For Encrypt All Sensitive Information in Transit:
+Remediate from Azure Portal 
+1. Go to Storage Accounts. 
+2. For each storage account, under Data management, click Object replication. 
+3. Click Advanced settings. 
+4. Uncheck Allow cross-tenant replication. 
+5. Click OK. 
+Remediate from Azure CLI 
+Replace the information within <> with appropriate values: 
+az storage account update --name <storageAccountName> --resource-group 
+<resourceGroupName> --allow-cross-tenant-replication false
+
+Key Takeaways
+- Turning on firewall rules for a storage account will block access to incoming requests for  data, including from other Azure services.
+- We can re-enable this functionality by  allowing access to trusted Azure services through networking exceptions.
+- Disabling Cross Tenant Replication minimizes the risk of unauthorized data access and  ensures that data governance policies are strictly adhered to.

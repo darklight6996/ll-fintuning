@@ -1,0 +1,26 @@
+80.1: (L2) Ensure 'Allow Font Providers' is set to 'Not allowed'
+
+Overview
+This policy setting determines whether Windows is allowed to download fonts and font 
+catalog data from an online font provider. 
+The recommended state for this setting is: Not allowed.
+
+Why This Matters
+In an enterprise managed environment the IT department should be managing the 
+changes to the system configuration, to ensure all changes are tested and approved.
+
+Audit Steps
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\System:AllowFontProvider s_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\System:
+AllowFontProviders
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Not allowed: 
+System\Allow Font Providers
+
+Key Takeaways
+- In an enterprise managed environment the IT department should be managing the  changes to the system configuration, to ensure all changes are tested and approved.

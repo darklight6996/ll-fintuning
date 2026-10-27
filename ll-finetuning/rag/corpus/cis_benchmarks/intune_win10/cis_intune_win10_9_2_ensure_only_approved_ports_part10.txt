@@ -1,0 +1,135 @@
+9.2: Ensure Only Approved Ports, Protocols and Services (and related controls)
+
+Overview
+Provides identity services for the Peer Name Resolution Protocol (PNRP) and Peer-toPeer Grouping services. 
+The recommended state for this setting is: Disabled.
+
+This service publishes a machine name using the Peer Name Resolution Protocol. 
+Configuration is managed via the netsh context ‘p2p pnrp peer’. 
+The recommended state for this setting is: Disabled.
+
+This service spools print jobs and handles interaction with printers. 
+The recommended state for this setting is: Disabled.
+
+This service provides support for viewing, sending and deletion of system-level problem 
+reports for the Problem Reports and Solutions control panel. 
+The recommended state for this setting is: Disabled.
+
+Creates a connection to a remote network whenever a program references a remote 
+DNS or NetBIOS name or address. 
+The recommended state for this setting is: Disabled.
+
+Remote Desktop Configuration service (RDCS) is responsible for all Remote Desktop 
+related configuration and session maintenance activities that require SYSTEM context. 
+These include per-session temporary folders, RD themes, and RD certificates. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+Peer Name Resolution Protocol is a distributed and (mostly) serverless way to handle 
+name resolution of clients with each other. In a high security environment, it is more 
+secure to rely on centralized name resolution methods maintained by authorized staff.
+
+Peer Name Resolution Protocol is a distributed and (mostly) serverless way to handle 
+name resolution of clients with each other. In a high security environment, it is more 
+secure to rely on centralized name resolution methods maintained by authorized staff.
+
+In a high security environment, unnecessary services especially those with known 
+vulnerabilities should be disabled. 
+Disabling the Print Spooler (Spooler) service mitigates the PrintNightmare vulnerability 
+(CVE-2021-34527) and other attacks against the service.
+
+This service is involved in the process of displaying/reporting issues & solutions to/from 
+Microsoft. In a high security environment, preventing this information from being sent 
+can help reduce privacy concerns for sensitive corporate information.
+
+The function of this service is to provide a "demand dial" type of functionality. In a high 
+security environment, it is preferred that any remote "dial" connections (whether they be 
+legacy dial-in POTS or VPN) are initiated by the user, not automatically by the system.
+
+In a high security environment, Remote Desktop access is an increased security risk. 
+For these environments, only local console access should be permitted.
+
+Audit Steps
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\p2pimsvc:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\PNRPAutoReg:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\Spooler:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\wercplsupport:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\RasAuto:Start
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 4. 
+HKLM\SYSTEM\CurrentControlSet\Services\SessionEnv:Start
+
+Remediation
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name p2pimsvc -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name PNRPAutoReg -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name Spooler -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name wercplsupport -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name RasAuto -StartupType Disabled
+
+For Ensure Only Approved Ports, Protocols and Services:
+Remediation of this service is currently not possible through Settings Catalog or a 
+custom profile OMA-URI. Instead, it can be scripted and deployed through the Intune 
+Scripts or Remediations blade or by other means. 
+To establish the recommended configuration via PowerShell, run the following cmdlet: 
+Set-Service -Name SessionEnv -StartupType Disabled
+
+Key Takeaways
+- Peer Name Resolution Protocol is a distributed and (mostly) serverless way to handle  name resolution of clients with each other.
+- In a high security environment, it is more  secure to rely on centralized name resolution methods maintained by authorized staff.
+- In a high security environment, unnecessary services especially those with known  vulnerabilities should be disabled.

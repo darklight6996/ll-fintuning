@@ -1,0 +1,58 @@
+EC2 instance hardening is the process of systematically reducing the attack surface of an Amazon Elastic Compute Cloud (EC2) virtual machine by applying security controls at the operating system, application, network, and AWS service configuration layers. It is a fundamental responsibility of the customer under the AWS Shared Responsibility Model, where AWS secures the hypervisor and physical infrastructure, and the customer secures everything inside the instance.
+
+**Key Components**
+
+**1. Base Image Selection and Hardening**
+- Use official, minimal AMIs from trusted sources (e.g., Amazon Linux 2, Ubuntu LTS, or hardened images from AWS Marketplace).
+- Apply CIS (Center for Internet Security) benchmarks or DISA STIGs (Security Technical Implementation Guides) to the base OS. Automate this with tools like Ansible, Chef, or Packer.
+- Remove unnecessary packages, services, and default credentials. Disable root SSH login and password-based authentication.
+- Enable automatic security patching via systems like `yum-cron`, `unattended-upgrades`, or AWS Systems Manager Patch Manager.
+
+**2. Identity and Access Management (IAM) Integration**
+- Never store long-term AWS credentials (access keys) on the instance. Use IAM roles attached to the EC2 instance profile to grant temporary, least-privilege permissions.
+- Restrict the instance’s IAM role to only the actions and resources required (e.g., read from S3 bucket X, write logs to CloudWatch).
+- Rotate any application secrets using AWS Secrets Manager or Parameter Store, not environment variables or config files.
+
+**3. Network Security Controls**
+- Place instances in private subnets unless a public-facing service is explicitly required. Use a NAT gateway or instance for outbound internet access.
+- Attach security groups that allow only the minimum necessary inbound traffic (e.g., port 443 from a specific CIDR or security group). Default-deny all inbound, allow only required outbound.
+- Use network ACLs as a stateless second layer of defense at the subnet level.
+- For sensitive workloads, enable VPC Flow Logs to monitor traffic patterns and detect anomalies.
+
+**4. Operating System and Application Hardening**
+- Configure a host-based firewall (e.g., `iptables`, `nftables`, or `firewalld`) as a defense-in-depth measure, even if security groups are in place.
+- Enable and configure `auditd` to log security-relevant events (e.g., file access, privilege escalation). Ship logs to CloudWatch Logs or a SIEM.
+- Harden SSH: disable root login, use key-based authentication only, change default port (optional but adds obscurity), and implement `AllowUsers` or `AllowGroups`.
+- For web servers: disable directory listing, remove default pages, enforce HTTPS with TLS 1.2+, and use security headers (HSTS, CSP).
+- Regularly scan for vulnerabilities using tools like Amazon Inspector or third-party agents (e.g., Qualys, Tenable).
+
+**5. Data Protection**
+- Encrypt the root and data volumes using AWS KMS-managed keys (EBS encryption). Enable encryption by default at the account level.
+- Use instance store volumes only for ephemeral data; never store sensitive data on them without encryption.
+- Implement file-level encryption for application data at rest (e.g., LUKS for Linux, BitLocker for Windows).
+- Ensure data in transit is encrypted using TLS for all inter-service communication, including between instances in the same VPC.
+
+**6. Monitoring and Incident Response**
+- Enable detailed CloudWatch metrics and alarms for CPU, memory, disk, and network anomalies.
+- Install the CloudWatch Agent to collect OS-level logs (syslog, auth.log, application logs) and custom metrics.
+- Configure AWS Config rules to detect non-compliant configurations (e.g., security group changes, public IP assignment).
+- Use AWS Systems Manager Session Manager for interactive shell access instead of SSH, which eliminates the need for bastion hosts and reduces exposure.
+
+**Real-World Application**
+
+A financial services company deploys a payment processing application on EC2. They start with a hardened Amazon Linux 2 AMI that has been CIS Level 1 benchmarked and stripped of compilers, development tools, and unused services. The instance is launched in a private subnet with a security group that only allows inbound HTTPS traffic from an internal Application Load Balancer (ALB) and outbound traffic to a specific RDS database and an S3 bucket for logs.
+
+The instance’s IAM role grants `s3:PutObject` on the logs bucket and `rds-db:connect` to the database. No SSH access is allowed; instead, engineers use Systems Manager Session Manager with IAM policies requiring multi-factor authentication. The root EBS volume is encrypted with a KMS key that has automatic rotation enabled. The application runs as a non-root user, and `auditd` logs all `execve` system calls. Amazon Inspector runs weekly scans, and any critical findings trigger an automated Lambda function that isolates the instance by modifying its security group.
+
+This configuration reduces the attack surface by eliminating unnecessary network exposure, credential leakage, and privilege escalation paths. It also provides a clear audit trail for compliance with PCI DSS and SOC 2.
+
+**Security Relevance**
+
+EC2 instance hardening directly addresses the most common attack vectors in cloud environments: misconfigured IAM roles, unpatched software, exposed management ports, and weak network segmentation. Without hardening, an instance is vulnerable to lateral movement, data exfiltration, and privilege escalation. For example, an unpatched web server with an IAM role that has `s3:*` permissions can be exploited to read sensitive data from any S3 bucket in the account. Hardening ensures that even if an application vulnerability is exploited, the blast radius is limited by least-privilege IAM, network segmentation, and host-based controls.
+
+From a compliance perspective, hardening is required by frameworks such as PCI DSS (Requirement 2.2), HIPAA (Security Rule §164.312), and NIST SP 800-53 (CM-6, SC-7). Automated hardening through infrastructure-as-code (e.g., Terraform, CloudFormation) ensures consistency across environments and prevents configuration drift.
+
+**Key Takeaways**
+- EC2 instance hardening must be applied at the OS, application, network, and IAM layers, with automation to prevent drift and enforce compliance.
+- Never store credentials on instances; use IAM roles and Secrets Manager, and eliminate SSH in favor of Session Manager for access.
+- Encrypt data at rest and in transit, and continuously monitor for vulnerabilities and anomalous behavior using AWS-native tools.

@@ -1,0 +1,29 @@
+4.10.26.1: (L1) Ensure 'Block user from showing account details
+
+Overview
+This policy prevents the user from showing account details (email address or user 
+name) on the sign-in screen. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+An attacker with access to the console (for example, someone with physical access or 
+someone who is able to connect to the workstation through Remote Desktop Services) 
+could view the name of the last user who logged on to the server. The attacker could 
+then try to guess the password, use a dictionary, or use a brute-force attack to try and 
+log on.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\System:BlockUserFromShowingAccountDe tailsOnSignin
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\System\Logon\Block user from showing account details 
+on sign-in
+
+Key Takeaways
+- An attacker with access to the console (for example, someone with physical access or  someone who is able to connect to the workstation through Remote Desktop Services)  could view the name of the last user who logged on to the server.
+- The attacker could  then try to guess the password, use a dictionary, or use a brute-force attack to try and  log on.

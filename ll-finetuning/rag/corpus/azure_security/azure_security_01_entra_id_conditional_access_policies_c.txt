@@ -1,0 +1,59 @@
+Conditional Access is the policy engine within Microsoft Entra ID that evaluates signals from authentication requests and enforces access controls before granting access to resources. Unlike static allow/deny rules, Conditional Access policies operate on a set of conditions—user identity, device state, location, application, and risk level—and apply granular controls such as requiring multi-factor authentication, blocking access, or enforcing device compliance. Every policy is evaluated at runtime during the authentication process, and all policies must be satisfied for access to be granted.
+
+**Key Components of a Conditional Access Policy**
+
+A Conditional Access policy consists of three mandatory sections: assignments, conditions, and access controls.
+
+- **Assignments** define the scope of the policy. This includes users and groups (including guest users and directory roles), cloud apps or actions (specific applications or user actions like registering security info), and conditions (sign-in risk, device platforms, locations, client apps, and filter for devices). You can include or exclude specific entities within each assignment.
+
+- **Conditions** are the signals that trigger policy evaluation. The most commonly used conditions are:
+  - **Sign-in risk**: Based on real-time risk detection from Entra ID Protection. Levels include low, medium, high, and no risk.
+  - **Device platforms**: iOS, Android, Windows, macOS, or Linux.
+  - **Locations**: Named locations (IP ranges, countries) or trusted/untrusted networks.
+  - **Client apps**: Browser, mobile apps, desktop clients, Exchange ActiveSync, or legacy authentication.
+  - **Filter for devices**: Allows targeting specific device attributes like compliance state or enrollment status.
+
+- **Access controls** define the enforcement action. Two types exist:
+  - **Grant controls**: Require MFA, require device to be marked as compliant, require hybrid Azure AD joined device, require approved client app, or require app protection policy. You can require all selected controls or one of them.
+  - **Session controls**: Control session behavior, such as enforcing app-enforced restrictions, using Conditional Access app control (via Microsoft Defender for Cloud Apps), or requiring sign-in frequency and persistent browser session.
+
+**Real-World Application: Configuration Steps**
+
+A typical configuration for a high-security environment follows this sequence:
+
+1. **Create a Named Location** – Define trusted IP ranges for your corporate offices. This allows you to exclude trusted locations from MFA prompts or block access from untrusted countries.
+
+2. **Create a Baseline Policy** – Start with a policy that requires MFA for all users accessing sensitive applications like Microsoft 365 Admin Center or Azure Portal. Assign all users, select the target app, and under conditions, exclude trusted locations. Set grant control to require MFA.
+
+3. **Add Device Compliance** – For organizations with Intune, create a policy that requires a compliant device for access to corporate email. Under conditions, select device platforms (iOS, Android, Windows). Under grant controls, select "Require device to be marked as compliant" and "Require multi-factor authentication."
+
+4. **Block Legacy Authentication** – Create a policy that blocks all client apps using legacy authentication protocols (POP, IMAP, SMTP, ActiveSync). Under conditions, select client apps and check "Exchange ActiveSync clients" and "Other clients." Under grant controls, select "Block access."
+
+5. **Risk-Based Policy** – Integrate with Entra ID Protection. Create a policy targeting all users, with conditions set to sign-in risk level "High." Grant control is "Require multi-factor authentication" and "Require password change." This forces a password reset when a high-risk sign-in is detected.
+
+6. **Session Control for Sensitive Data** – For applications containing sensitive data (e.g., SharePoint sites with confidential documents), add a session control to use Conditional Access app control. This allows monitoring and restricting download, copy, and print actions in real time.
+
+**Troubleshooting Conditional Access**
+
+When a user is unexpectedly blocked or prompted for MFA, follow this systematic approach:
+
+- **Check the Sign-in Logs** – Navigate to Entra ID > Monitoring > Sign-in logs. Select the specific sign-in event. Under the "Conditional Access" tab, you will see which policies were evaluated and whether they were applied, not applied, or failed. The "Policy Details" section shows the exact grant controls that were required.
+
+- **Review Policy Exclusions** – Ensure the user or group is not inadvertently excluded from a policy that should apply. Also verify that the user is not included in a policy that blocks access due to location or device platform.
+
+- **Validate Named Locations** – If location-based policies are not working as expected, confirm that the user’s IP address falls within the defined named location. Use the "What If" tool in Conditional Access to simulate a sign-in with the user’s IP and device.
+
+- **Check Device Compliance** – If a policy requires a compliant device, verify the device is enrolled in Intune and shows a compliant status in the Microsoft Intune admin center. A device that is not compliant will trigger a block or MFA prompt.
+
+- **Use the What If Tool** – This is the most effective troubleshooting tool. Enter the user, application, IP address, device platform, and client app. The tool evaluates all active policies and shows which would apply and what controls would be enforced.
+
+- **Inspect Conditional Access Insights and Reporting** – The "Insights and Reporting" workbook provides a summary of policy impacts, including how many users were affected and which policies are most commonly triggered. This helps identify misconfigurations or overly restrictive policies.
+
+**Security Relevance**
+
+Conditional Access is the primary mechanism for enforcing Zero Trust principles in Entra ID. It ensures that every access request is evaluated dynamically based on the current context, not just static credentials. By requiring MFA for risky sign-ins, blocking legacy authentication, and enforcing device compliance, Conditional Access directly reduces the attack surface. It prevents lateral movement by limiting access to sensitive applications based on device health and location. Without Conditional Access, an organization relies solely on password policies and manual access reviews, which are insufficient against modern threats like credential theft and session hijacking. Properly configured policies also satisfy compliance requirements such as NIST 800-53, ISO 27001, and SOC 2 by enforcing access controls based on risk.
+
+**Key Takeaways**
+- Conditional Access policies must be configured with explicit assignments, conditions, and access controls; always test new policies in report-only mode before enabling them.
+- The What If tool and sign-in logs are the primary resources for diagnosing unexpected access denials or MFA prompts.
+- Enforcing device compliance and blocking legacy authentication are two of the highest-impact policies for reducing security risk in any Entra ID environment.

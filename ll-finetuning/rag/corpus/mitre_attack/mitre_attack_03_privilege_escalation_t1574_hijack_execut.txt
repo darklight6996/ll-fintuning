@@ -1,0 +1,61 @@
+T1574 Hijack Execution Flow is a MITRE ATT&CK technique that enables an adversary to subvert the normal execution path of a trusted process or binary. The attacker achieves this by redirecting the target’s execution flow to malicious code, often at load time or during runtime. This technique is classified under privilege escalation because it can allow a low-integrity process to execute code in the context of a higher-integrity process, or to bypass application control mechanisms. The core mechanism involves manipulating the order in which the operating system searches for and loads executable modules, configuration files, or dynamic-link libraries (DLLs).
+
+**Key Components**
+
+The technique relies on several underlying mechanisms that an attacker can exploit:
+
+- **DLL Search Order Hijacking**: Windows uses a defined search order to locate DLLs required by an application. If an attacker places a malicious DLL earlier in the search path (e.g., in the application’s current working directory or the system PATH), the operating system will load the attacker’s DLL instead of the legitimate one. Common targets include missing DLLs that the application attempts to load, or DLLs that can be replaced in a user-writable directory.
+
+- **DLL Side-Loading**: This variant exploits the WinSxS or side-by-side assembly mechanism. An attacker places a malicious DLL in a location that is searched before the legitimate system directory, often by leveraging a legitimate executable that is known to load a specific DLL from its own directory. The attacker copies the legitimate executable to a user-controlled location and places the malicious DLL alongside it.
+
+- **Executable Search Order Hijacking**: Similar to DLL hijacking, but targets executables. If a process calls `CreateProcess` with a relative path or relies on the system PATH, an attacker can place a malicious executable earlier in the search order. This is less common but effective when an application uses `ShellExecute` or `CreateProcess` with a partial path.
+
+- **Service File Association Hijacking**: Attackers modify file associations (e.g., `.txt` files opening with `notepad.exe`) or service binary paths to point to their own executable. When the system or user invokes the associated action, the attacker’s code runs with the privileges of the calling process.
+
+- **Path Interception by Environment Variable Manipulation**: Attackers modify environment variables such as `PATH`, `LD_LIBRARY_PATH` (Linux), or `DYLD_INSERT_LIBRARIES` (macOS) to inject malicious libraries or executables into the search order of a privileged process.
+
+- **Cornering via COM Hijacking**: Component Object Model (COM) objects are instantiated by CLSID. An attacker can register a malicious COM object under a CLSID that a high-integrity process expects to load, or modify the InprocServer32 registry key to point to a malicious DLL. This is particularly effective for persistence and privilege escalation.
+
+**Real-World Application**
+
+A typical attack chain using T1574 might proceed as follows:
+
+1. **Initial Access**: The attacker gains a foothold on a workstation as a standard user, perhaps through a phishing email or drive-by download.
+
+2. **Discovery**: The attacker enumerates the system for applications that run with elevated privileges (e.g., scheduled tasks, services, or common software like Microsoft Office or Adobe Reader). They identify a service that loads a DLL from a user-writable directory.
+
+3. **DLL Placement**: The attacker places a malicious DLL (e.g., `wlbsctrl.dll`) in the service’s working directory or in a directory that appears earlier in the DLL search order than the legitimate system directory. The malicious DLL contains code to spawn a reverse shell or create a new user with administrative privileges.
+
+4. **Trigger**: The attacker restarts the service or waits for the system to reboot. When the service starts, it loads the attacker’s DLL instead of the legitimate one. The malicious code executes in the context of the service account, which is often `SYSTEM` or `LOCAL SERVICE`.
+
+5. **Privilege Escalation**: The attacker now has code execution at a higher integrity level. They can then proceed to lateral movement or credential dumping.
+
+Another common scenario involves side-loading into a signed Microsoft binary. For example, an attacker copies `rundll32.exe` to a user-writable directory and places a malicious `version.dll` in the same directory. When the attacker executes the copied `rundll32.exe`, it loads the malicious `version.dll` because the binary searches its own directory first. Since `rundll32.exe` is signed, it may bypass application whitelisting controls.
+
+**Security Relevance**
+
+T1574 is a persistent threat because it exploits fundamental OS design choices—search order and trust in signed binaries. For security engineers, the relevance is threefold:
+
+- **Bypass of Application Control**: Many application whitelisting solutions (e.g., AppLocker, Windows Defender Application Control) allow execution of signed Microsoft binaries. T1574 allows an attacker to execute arbitrary code under the guise of a trusted binary, rendering these controls ineffective if not configured to also restrict DLL loading paths.
+
+- **Privilege Escalation Vector**: The technique is a primary method for moving from a low-privilege user context to SYSTEM or administrator. It does not require exploiting a memory corruption vulnerability; it only requires the ability to write files to disk.
+
+- **Persistence Mechanism**: Once a DLL hijack is established, it can survive reboots and software updates if the targeted application or service is persistent. Attackers often combine T1574 with persistence techniques like T1543 (Create or Modify System Process) to maintain access.
+
+**Mitigation Strategies**
+
+- **Secure DLL Loading**: Enable the `SafeDllSearchMode` registry key and enforce the use of absolute paths in application manifests. Use the `SetDefaultDllDirectories` API to restrict DLL search to known system directories.
+
+- **Restrict Write Access**: Ensure that application directories, service binary paths, and system PATH directories are not writable by standard users. Use file system ACLs to prevent non-administrators from writing to directories where executables or DLLs are loaded.
+
+- **Monitor for Anomalous Loads**: Deploy endpoint detection and response (EDR) sensors to alert on DLL loads from unusual paths, especially for processes that normally load from `C:\Windows\System32`. Track `CreateProcess` calls with relative paths.
+
+- **Application Control Hardening**: Configure AppLocker or WDAC to also enforce rules for DLLs, not just executables. Use publisher rules to allow only signed DLLs from trusted vendors.
+
+- **Audit Service Configurations**: Regularly review service binary paths and file associations for unauthorized modifications. Use tools like Sysinternals Autoruns to detect hijacked entries.
+
+**Key Takeaways**
+
+- T1574 Hijack Execution Flow exploits OS search order mechanisms to load malicious code in place of legitimate executables or DLLs, enabling privilege escalation and bypass of application controls.
+- Real-world attacks commonly target missing DLLs in services, side-load into signed Microsoft binaries, or manipulate environment variables and COM registrations.
+- Mitigation requires a combination of secure coding practices (absolute paths, SafeDllSearchMode), strict file system ACLs, and monitoring for anomalous DLL loads from non-standard directories.

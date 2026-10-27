@@ -1,0 +1,109 @@
+8.3: Enable Operating System Anti-Exploitation Features/ (and related controls)
+
+Overview
+This policy setting specifies whether Virtualization Based Security (VBS) is enabled. 
+VBS uses the Windows Hypervisor to provide support for security services. 
+The recommended state for this setting is: Turns on VBS with Secure Boot or 
+Turns on VBS with Secure Boot and direct memory access (DMA). DMA 
+requires hardware support. 
+Note: VBS requires a 64-bit version of Windows with Secure Boot enabled, which in 
+turn requires that Windows was installed with a UEFI BIOS configuration, not a Legacy 
+BIOS configuration. In addition, if running Windows on a virtual machine, the hardwareassisted CPU virtualization feature (Intel VT-x or AMD-V) must be exposed by the host 
+to the guest VM. 
+More information on system requirements for this feature can be found at Windows 
+Defender Credential Guard Requirements (Windows 10) | Microsoft Docs 
+Note #2: Credential Guard and Device Guard are not currently supported when using 
+Azure IaaS VMs.
+
+This policy setting determines whether Enhanced Phishing Protection in Microsoft 
+Defender SmartScreen warns users if they reuse their work or school password. 
+The recommended state for this setting is: Enabled. 
+Note: This setting only applies to Microsoft Accounts (computer or browser login) while 
+using Microsoft Windows 11 and not on prem domain-joined accounts.
+
+This policy setting determines whether Enhanced Phishing Protection in Microsoft 
+Defender SmartScreen warns users if they type their work or school passwords in 
+Notepad, WordPad, or M365 Office apps like OneNote, Word, Excel, etc. 
+The recommended state for this setting is: Enabled. 
+Note: This setting only applies to Microsoft Accounts (computer or browser login) while 
+using Microsoft Windows 11 and not on prem domain-joined accounts.
+
+This policy setting determines whether Enhanced Phishing Protection is in audit mode. 
+This allows notifications to be sent to users regarding unsafe password events. 
+Additionally, Enhanced Phishing Protection captures unsafe password entry events and 
+sends diagnostic data through Microsoft Defender. 
+The recommended state for this setting is: Enabled. 
+Note: This setting only applies to Microsoft accounts (computer or browser login) while 
+using Microsoft Windows 11 and not on-prem domain-joined accounts.
+
+Why This Matters
+Secure Boot can help reduce the risk of bootloader attacks and in conjunction with DMA 
+protections to help protect data from being scraped from memory.
+
+Users will be alerted if they try to use a password that has been exposed in a known 
+data breach. This can help reduce the risk of password-related security incidents, such 
+as unauthorized access to online accounts, and can encourage users to choose strong 
+and unique passwords.
+
+Users will be warned if they store their password in Notepad or Microsoft 365 Office 
+Apps. This can help reduce the risk of security incidents, such as data theft or data loss. 
+Storing credentials in plain text allows for anyone who has authorized or unauthorized 
+access to the system to obtain them.
+
+Allowing Enhanced Phishing Protection the ability to warn users about unsafe password 
+use could prevent phishing attempts and (credential) data loss. In addition, the Microsoft 
+365 Defender Portal provides valuable phishing sensor data found in the environment.
+
+Audit Steps
+For Enable Operating System Anti-Exploitation Features/:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1 or 3. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard:RequirePlatformSecurityF
+eatures
+
+For Enable Operating System Anti-Exploitation Features/:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WTDS\Components:NotifyPasswordReuse
+
+For Enable Operating System Anti-Exploitation Features/:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WTDS\Components:NotifyUnsafeApp
+
+For Enable Operating System Anti-Exploitation Features/:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WTDS\Components:ServiceEnabled
+
+Remediation
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Turns on VBS with Secure Boot or Turns on VBS with 
+Secure Boot and direct memory access (DMA). DMA requires hardware 
+support: 
+Device Guard\Require Platform Security Features
+
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+Smart Screen\Enhanced Phishing Protection\Notify Password Reuse
+
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+Smart Screen\Enhanced Phishing Protection\Notify Unsafe App
+
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+Smart Screen\Enhanced Phishing Protection\Service Enabled
+
+Key Takeaways
+- Secure Boot can help reduce the risk of bootloader attacks and in conjunction with DMA  protections to help protect data from being scraped from memory.
+- Users will be alerted if they try to use a password that has been exposed in a known  data breach.
+- This can help reduce the risk of password-related security incidents, such  as unauthorized access to online accounts, and can encourage users to choose strong  and unique passwords.

@@ -1,0 +1,49 @@
+The Azure Security Benchmark (ASB) provides a set of prescriptive security best practices and implementation guidance for securing workloads, data, and services on Azure. It is not a compliance standard like ISO 27001 or SOC 2, but a framework that maps controls to common regulatory baselines (e.g., NIST SP 800-53, CIS Controls, PCI DSS). For a security engineer, ASB is the primary reference for configuring Azure services to meet security requirements and for validating posture against industry-accepted benchmarks.
+
+**Definition**
+
+The ASB is a collection of high-impact security recommendations organized into control domains. Each control domain addresses a specific aspect of security (e.g., network security, identity management, data protection). Within each domain, individual controls define specific actions or configurations. For example, the "Network Security" domain includes a control for "Restrict inbound traffic from the internet to network security groups." Each control has a unique identifier (e.g., NS-1) and is accompanied by guidance, Azure Policy definitions, and references to Microsoft Defender for Cloud recommendations. The benchmark is versioned; as of early 2025, the current stable version is ASB v3, which aligns with the Microsoft Cloud Security Benchmark (MCSB).
+
+**Key Components**
+
+The ASB is structured into the following control domains. Each domain contains multiple controls that are directly actionable.
+
+- **Network Security (NS):** Controls for segmentation, traffic filtering, and secure connectivity. Examples include NS-1 (establish network segmentation boundaries) and NS-2 (secure cloud native network controls). Implementation typically involves Azure Firewall, Network Security Groups (NSGs), Azure Virtual Network Manager, and private endpoints.
+- **Identity Management (IM):** Controls for authentication, authorization, and identity governance. Examples include IM-1 (use centralized identity and authentication system) and IM-3 (manage application identities securely). This domain relies on Microsoft Entra ID, managed identities, and Conditional Access policies.
+- **Privileged Access (PA):** Controls for securing administrative access. Examples include PA-1 (separate and limit highly privileged users) and PA-2 (avoid standing access). Implementation uses Privileged Identity Management (PIM), just-in-time (JIT) access, and Azure RBAC.
+- **Data Protection (DP):** Controls for encryption, key management, and data classification. Examples include DP-1 (discovery, classify, and label sensitive data) and DP-4 (encrypt data in transit). This involves Azure Key Vault, Azure Policy for encryption enforcement, and Microsoft Purview.
+- **Asset Management (AM):** Controls for inventory, tracking, and governance of Azure resources. Examples include AM-1 (ensure tools and processes are in place for asset inventory) and AM-2 (use only approved services). Implementation uses Azure Resource Graph, Azure Policy, and management groups.
+- **Logging and Threat Detection (LT):** Controls for collecting, analyzing, and responding to security events. Examples include LT-1 (enable threat detection capabilities) and LT-4 (enable logging for Azure resources). This domain is directly tied to Microsoft Defender for Cloud, Log Analytics workspaces, and Sentinel.
+- **Incident Response (IR):** Controls for preparation, detection, analysis, and containment. Examples include IR-1 (prepare incident response plan) and IR-4 (detect and analyze incidents). Implementation uses automation runbooks, playbooks in Sentinel, and Defender for Cloud alerts.
+- **Posture and Vulnerability Management (PV):** Controls for continuous assessment and remediation. Examples include PV-1 (establish secure configurations) and PV-4 (remediate vulnerabilities). This is where Defender for Cloud’s Secure Score and vulnerability assessment tools (e.g., for VMs, containers, SQL) are applied.
+- **Endpoint Security (ES):** Controls for securing virtual machines and containers. Examples include ES-1 (use Endpoint Detection and Response) and ES-3 (ensure antimalware and vulnerability management). Implementation uses Microsoft Defender for Endpoint, Defender for Servers, and Defender for Containers.
+- **Backup and Recovery (BR):** Controls for data resilience. Examples include BR-1 (ensure regular automated backups) and BR-2 (protect backup data). Implementation uses Azure Backup, geo-redundant storage, and soft delete.
+
+**Real-World Application**
+
+A security engineer operationalizes ASB controls through two primary mechanisms: Azure Policy and Microsoft Defender for Cloud.
+
+1.  **Azure Policy:** Each ASB control has a corresponding built-in Azure Policy initiative (e.g., "Azure Security Benchmark"). You assign this initiative at the management group or subscription scope. Policies automatically audit or enforce configurations. For example, to implement control NS-1 (network segmentation), you assign a policy that audits whether subnets have an NSG attached. Non-compliant resources are flagged in the compliance dashboard. This provides continuous, automated validation.
+
+2.  **Microsoft Defender for Cloud:** Defender for Cloud ingests ASB controls and maps them to its security recommendations. The Secure Score is calculated based on compliance with ASB controls. For example, control IM-1 (use centralized identity) maps to a recommendation to enable Microsoft Entra ID for Azure resources. A security engineer uses the Defender for Cloud dashboard to prioritize remediation. The "Regulatory Compliance" dashboard in Defender for Cloud allows you to track compliance against ASB and other standards simultaneously.
+
+**Example Workflow:**
+- **Step 1:** Assign the ASB initiative via Azure Policy to all subscriptions.
+- **Step 2:** Review Defender for Cloud recommendations filtered by ASB control ID (e.g., PV-4).
+- **Step 3:** For each non-compliant resource, apply the remediation script provided in the recommendation (e.g., enable automatic VM patching).
+- **Step 4:** Use Azure Resource Graph to query compliance state across the entire environment: `where policySetDefinitionName == 'Azure Security Benchmark'`.
+- **Step 5:** Configure automated remediation for high-severity controls using Azure Policy's "deployIfNotExists" effect.
+
+**Security Relevance**
+
+The ASB is the foundational security baseline for Azure. Its relevance to a security engineer is threefold:
+
+- **Risk Reduction:** Implementing ASB controls directly mitigates common attack vectors. For example, enforcing network segmentation (NS-1) limits lateral movement. Enforcing encryption (DP-4) prevents data exposure during transit. The controls are derived from real-world incident data and Microsoft’s threat intelligence.
+- **Compliance Acceleration:** Many regulatory frameworks (e.g., FedRAMP, SOC 2, PCI DSS) share control objectives with ASB. Using ASB as a baseline reduces the effort required to map to these standards. Defender for Cloud provides pre-built compliance views that show how ASB controls map to other standards.
+- **Operational Consistency:** ASB provides a single, authoritative source of truth for security configuration. Without it, teams may implement inconsistent controls across subscriptions. The benchmark ensures that every resource, from a single VM to a complex AKS cluster, is evaluated against the same criteria. This is critical for maintaining a secure posture at scale.
+
+**Key Takeaways**
+
+- The Azure Security Benchmark is a prescriptive framework of controls that maps directly to Azure Policy and Defender for Cloud recommendations, enabling automated compliance validation and remediation.
+- Implementation requires assigning the ASB policy initiative and using Defender for Cloud’s Secure Score and regulatory compliance dashboard to prioritize and track remediation of non-compliant resources.
+- ASB controls reduce risk by addressing common attack vectors, accelerate compliance mapping to multiple regulatory standards, and enforce consistent security configurations across all Azure subscriptions.

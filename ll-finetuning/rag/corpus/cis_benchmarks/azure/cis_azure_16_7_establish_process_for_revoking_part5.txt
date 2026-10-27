@@ -1,0 +1,70 @@
+16.7: Establish Process for Revoking Access
+
+Overview
+Every secure request to an Azure Storage account must be authorized. By default, 
+requests can be authorized with either Microsoft Entra credentials or by using the 
+account access key for Shared Key authorization.
+
+Why This Matters
+Microsoft Entra ID provides superior security and ease of use compared to Shared Key 
+and is recommended by Microsoft. To require clients to use Microsoft Entra ID for 
+authorizing requests, you can disallow requests to the storage account that are 
+authorized with Shared Key.
+
+Audit Steps
+Audit from Azure Portal 
+1. Go to Storage accounts. 
+2. Click on a storage account. 
+3. Under Settings, click Configuration. 
+4. Under Allow storage account key access, ensure that the radio button next 
+to Disabled is selected. 
+5. Repeat steps 1-4 for each storage account. 
+Audit from Azure CLI 
+Run the following command to list storage accounts: 
+az storage account list 
+For each storage account, run the following command: 
+az storage account show --resource-group <resource-group> --name <storageaccount> 
+Ensure that allowSharedKeyAccess is set to false. 
+
+Audit from PowerShell 
+Run the following command to list storage accounts: 
+Get-AzStorageAccount 
+Run the following command to get the storage account in a resource group with a given 
+name: 
+$storageAccount = Get-AzStorageAccount -ResourceGroupName <resource-group> -
+Name <storage-account> 
+Run the following command to get the shared key access setting for the storage 
+account: 
+$storageAccount.allowSharedKeyAccess 
+Ensure that the command returns False. 
+Repeat for each storage account. 
+Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: 8c6a50c6-9ffd-4ae7-986f-5fa6111f9a54 - Name: 'Storage accounts 
+should prevent shared key access'
+
+Remediation
+Remediate from Azure Portal 
+1. Go to Storage accounts. 
+2. Click on a storage account. 
+3. Under Settings, click Configuration. 
+4. Under Allow storage account key access, click the radio button next to 
+Disabled. 
+5. Click Save. 
+6. Repeat steps 1-5 for each storage account requiring remediation. 
+Remediate from Azure CLI 
+For each storage account requiring remediation, run the following command to disallow 
+shared key authorization: 
+az storage account update --resource-group <resource-group> --name <storageaccount> --allow-shared-key-access false 
+Remediate from PowerShell 
+For each storage account requiring remediation, run the following command to disallow 
+shared key authorization: 
+Set-AzStorageAccount -ResourceGroupName <resource-group> -Name <storageaccount> -AllowSharedKeyAccess $false
+
+Key Takeaways
+- Microsoft Entra ID provides superior security and ease of use compared to Shared Key  and is recommended by Microsoft.
+- To require clients to use Microsoft Entra ID for  authorizing requests, you can disallow requests to the storage account that are  authorized with Shared Key.

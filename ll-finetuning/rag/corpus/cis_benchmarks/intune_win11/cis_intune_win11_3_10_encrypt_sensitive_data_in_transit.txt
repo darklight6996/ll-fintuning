@@ -1,0 +1,121 @@
+3.10: Encrypt Sensitive Data in Transit (and related controls)
+
+Overview
+This policy setting determines whether the SMB client will attempt to negotiate SMB 
+packet signing. 
+Note: Enabling this policy setting on SMB clients on your network makes them fully 
+effective for packet signing with all clients and servers in your environment. 
+The recommended state for this setting is: Enabled.
+
+This policy setting determines whether the SMB redirector will send plaintext passwords 
+during authentication to third-party SMB servers that do not support password 
+encryption. 
+It is recommended that you disable this policy setting unless there is a strong business 
+case to enable it. If this policy setting is enabled, unencrypted passwords will be allowed 
+across the network. 
+The recommended state for this setting is: Disabled.
+
+This policy setting determines whether the SMB server will negotiate SMB packet 
+signing with clients that request it. If no signing request comes from the client, a 
+connection will be allowed without a signature if the Microsoft network server: 
+Digitally sign communications (always) setting is not enabled. 
+Note: Enable this policy setting on SMB clients on your network to make them fully 
+effective for packet signing with all clients and servers in your environment. 
+The recommended state for this setting is: Enabled.
+
+This policy setting controls the ability of anonymous users to enumerate the accounts in 
+the Security Accounts Manager (SAM). If you enable this policy setting, users with 
+anonymous connections will not be able to enumerate domain account user names on 
+the systems in your environment. This policy setting also allows additional restrictions 
+on anonymous connections. 
+The recommended state for this setting is: Enabled. 
+Note: This policy has no effect on Domain Controllers.
+
+Why This Matters
+Session hijacking uses tools that allow attackers who have access to the same network 
+as the client or server to interrupt, end, or steal a session in progress. Attackers can 
+potentially intercept and modify unsigned SMB packets and then modify the traffic and 
+forward it so that the server might perform undesirable actions. Alternatively, the 
+attacker could pose as the server or client after legitimate authentication and gain 
+unauthorized access to data. 
+SMB is the resource sharing protocol that is supported by many Windows operating 
+systems. It is the basis of NetBIOS and many other protocols. SMB signatures 
+authenticate both users and the servers that host the data. If either side fails the 
+authentication process, data transmission will not take place.
+
+If you enable this policy setting, the server can transmit passwords in plaintext across 
+the network to other computers that offer SMB services, which is a significant security 
+risk. These other computers may not use any of the SMB security mechanisms that are 
+included with Windows Server 2003.
+
+Session hijacking uses tools that allow attackers who have access to the same network 
+as the client or server to interrupt, end, or steal a session in progress. Attackers can 
+potentially intercept and modify unsigned SMB packets and then modify the traffic and 
+forward it so that the server might perform undesirable actions. Alternatively, the 
+attacker could pose as the server or client after legitimate authentication and gain 
+unauthorized access to data. 
+SMB is the resource sharing protocol that is supported by many Windows operating 
+systems. It is the basis of NetBIOS and many other protocols. SMB signatures 
+authenticate both users and the servers that host the data. If either side fails the 
+authentication process, data transmission will not take place.
+
+An unauthorized user could anonymously list account names and use the information to 
+attempt to guess passwords or perform social engineering attacks. (Social engineering 
+attacks try to deceive users in some way to obtain passwords or some form of security 
+information.)
+
+Audit Steps
+For Encrypt Sensitive Data in Transit:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters:EnableSec uritySignature
+
+For Encrypt Sensitive Data in Transit:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters:EnablePla inTextPassword
+
+For Encrypt Sensitive Data in Transit:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Services\LanManServer\Parameters:EnableSecurity
+Signature
+
+For Encrypt Sensitive Data in Transit:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SYSTEM\CurrentControlSet\Control\Lsa:RestrictAnonymousSAM
+
+Remediation
+For Encrypt Sensitive Data in Transit:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+Local Policies Security Options\Microsoft network client: Digitally sign 
+communications (if server agrees)
+
+For Encrypt Sensitive Data in Transit:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled: 
+Local Policies Security Options\Microsoft network client: Send unencrypted 
+password to third-party SMB servers
+
+For Encrypt Sensitive Data in Transit:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+Local Policies Security Options\Microsoft network server: Digitally sign 
+communications (if client agrees)
+
+For Encrypt Sensitive Data in Transit:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+Local Policies Security Options\Network access: Do not allow anonymous 
+enumeration of SAM accounts
+
+Key Takeaways
+- Session hijacking uses tools that allow attackers who have access to the same network  as the client or server to interrupt, end, or steal a session in progress.
+- Attackers can  potentially intercept and modify unsigned SMB packets and then modify the traffic and  forward it so that the server might perform undesirable actions.
+- Alternatively, the  attacker could pose as the server or client after legitimate authentication and gain  unauthorized access to data.

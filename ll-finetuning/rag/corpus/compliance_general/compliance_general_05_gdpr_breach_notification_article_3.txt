@@ -1,0 +1,51 @@
+**Definition**
+
+Article 33 of the General Data Protection Regulation (GDPR) mandates that a data controller notify the relevant supervisory authority of a personal data breach without undue delay and, where feasible, no later than 72 hours after becoming aware of the breach. This obligation applies to any breach likely to result in a risk to the rights and freedoms of natural persons. The notification must include specific information about the nature of the breach, categories and approximate number of data subjects and records concerned, contact details of the data protection officer (DPO) or other point of contact, likely consequences, and measures taken or proposed to address the breach and mitigate its adverse effects. The 72-hour window is a hard deadline; failure to notify can result in administrative fines up to 10 million EUR or 2% of annual global turnover, whichever is higher.
+
+**Key Components**
+
+- **Triggering Event**: A "personal data breach" is defined as a breach of security leading to the accidental or unlawful destruction, loss, alteration, unauthorized disclosure of, or access to, personal data transmitted, stored, or otherwise processed. This includes incidents such as ransomware attacks, database exfiltration, insider data theft, or accidental email exposure.
+
+- **Awareness Threshold**: The controller is considered "aware" when it has a reasonable degree of certainty that a breach has occurred. This is not tied to formal confirmation; a credible report from a security tool, user complaint, or third-party notification triggers the clock. The burden is on the controller to demonstrate that it acted promptly once awareness was established.
+
+- **Notification Content**: The notification must include:
+  - Description of the nature of the breach (e.g., exfiltration of customer names and email addresses via SQL injection).
+  - Categories and approximate number of data subjects affected (e.g., 15,000 EU residents).
+  - Categories and approximate number of personal data records concerned (e.g., 50,000 records including hashed passwords and billing addresses).
+  - Name and contact details of the DPO or other contact point.
+  - Description of likely consequences (e.g., identity theft, financial fraud, reputational damage).
+  - Description of measures taken or proposed to address the breach and mitigate possible adverse effects (e.g., password resets, system patching, enhanced logging).
+
+- **Documentation Requirement**: Even if the breach is not notifiable (i.e., no risk to rights and freedoms), the controller must document the facts, effects, and remedial actions taken. This documentation must be available to the supervisory authority upon request.
+
+- **Processor Obligations**: Data processors must notify the controller without undue delay after becoming aware of a breach. The processor has no direct obligation to notify the supervisory authority, but its contract must specify notification timelines and procedures.
+
+- **Exceptions**: No notification is required if the breach is unlikely to result in a risk to rights and freedoms. This typically applies to breaches involving pseudonymized data that cannot be re-identified, or data already publicly available.
+
+**Real-World Application**
+
+A security engineer at a SaaS company detects anomalous outbound traffic from a database server at 14:00 UTC on a Friday. Logs confirm that an attacker exfiltrated a table containing 20,000 customer records (names, email addresses, and hashed passwords). The engineer escalates to the DPO and legal team. The 72-hour clock starts at 14:00 UTC. The team must assess risk: hashed passwords (using a strong algorithm like bcrypt) reduce risk, but email addresses alone can enable phishing. The likely consequence is phishing attacks targeting customers. The notification must be drafted and submitted to the lead supervisory authority (e.g., ICO in the UK, CNIL in France) by 14:00 UTC on Monday. The notification includes the approximate number of records, the nature of the breach (exfiltration via SQL injection), contact details of the DPO, and measures taken (password reset for all affected users, database firewall rules, and a forensic investigation). If the breach also involves high-risk data (e.g., financial information), the controller must also communicate directly to affected data subjects under Article 34.
+
+In practice, many organizations pre-draft notification templates and maintain incident response playbooks that include Article 33 checklists. Automated monitoring and alerting systems (e.g., SIEM, DLP) are configured to trigger incident response workflows that include a mandatory notification assessment step. Security engineers must ensure that logging and monitoring systems capture sufficient metadata to determine the scope and timing of the breach, as the supervisory authority may request evidence of the timeline.
+
+**Security Relevance**
+
+Article 33 directly impacts security operations in several ways:
+
+- **Incident Response Timelines**: The 72-hour deadline forces security teams to accelerate triage, containment, and forensic analysis. This requires pre-established incident response plans, clear escalation paths, and 24/7 on-call capabilities. Delays in detection or analysis can result in non-compliance.
+
+- **Logging and Monitoring**: To meet the awareness threshold, organizations must have robust logging and monitoring that can detect breaches in near real-time. This includes network intrusion detection, endpoint detection and response (EDR), and database activity monitoring. Without these, the organization may not become aware of a breach until days or weeks later, making compliance impossible.
+
+- **Data Classification and Inventory**: Accurate notification requires knowing what data was affected, how many records, and which categories. This demands a mature data inventory and classification system. Security engineers must implement data loss prevention (DLP) and data discovery tools to maintain this visibility.
+
+- **Risk Assessment Skills**: Determining whether a breach is "likely to result in a risk" requires a risk assessment that considers the nature of the data, the context of processing, and the potential harm. Security engineers must be able to evaluate encryption strength, pseudonymization techniques, and the likelihood of re-identification.
+
+- **Documentation as Evidence**: The requirement to document all breaches (even non-notifiable ones) creates a paper trail that supervisory authorities can audit. Security teams must maintain a breach register that includes timestamps, root cause analysis, and remediation steps. This register is often reviewed during GDPR audits.
+
+- **Processor Management**: Security engineers must ensure that contracts with processors (e.g., cloud providers, payment gateways) include explicit breach notification obligations and SLAs. The processor’s failure to notify the controller in time can cascade into the controller’s non-compliance.
+
+**Key Takeaways**
+
+1. The 72-hour notification clock starts at the moment of "awareness," not at the moment of confirmation; security teams must have incident detection and escalation processes that can trigger a formal assessment within minutes of a credible alert.
+2. Even if a breach is not notifiable, it must be documented in an internal breach register with full details; this documentation is subject to supervisory authority inspection and can be used to demonstrate due diligence.
+3. The notification must include specific, quantitative data (approximate number of records, categories of data, and contact information); security engineers must ensure that monitoring and data inventory systems can produce this information rapidly and accurately.

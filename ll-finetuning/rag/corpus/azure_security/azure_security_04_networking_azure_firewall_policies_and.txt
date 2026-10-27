@@ -1,0 +1,48 @@
+Azure Firewall policies provide a centralized, rule-based mechanism for controlling egress, ingress, and intra-virtual-network traffic in Azure. Unlike classic rules defined directly on a firewall instance, a policy is a top-level Azure resource that can be associated with one or more Azure Firewall instances, enabling consistent enforcement across multiple virtual networks and subscriptions. This separation of policy from the firewall instance is critical for organizations that require a hub-and-spoke architecture with a shared firewall service.
+
+**Key Components of Azure Firewall Policies**
+
+A policy is composed of rule collections, which are logical groupings of individual rules. Each rule collection has a defined type, priority, and action. The three rule collection types are:
+
+- **NAT Rule Collection:** Used to translate destination IP addresses and ports (DNAT). This is primarily for inbound traffic from the internet to internal resources. Rules in this collection are evaluated first.
+- **Network Rule Collection:** Handles non-HTTP/S traffic based on source IP, destination IP, port, and protocol (TCP, UDP, ICMP). This is for Layer 3/Layer 4 filtering.
+- **Application Rule Collection:** Controls outbound HTTP/S traffic based on fully qualified domain names (FQDNs), URL paths, and TLS inspection settings. This is for Layer 7 filtering.
+
+Each rule collection has a priority value (100 to 65000) that determines evaluation order. Lower numbers are evaluated first. Within a collection, rules are evaluated in order of their defined sequence. The first matching rule determines the action: Allow, Deny, or (for NAT) DNAT. If no rule matches, traffic is denied by default.
+
+Additional policy components include:
+
+- **Threat Intelligence:** A policy can be configured to alert or deny traffic from/to known malicious IP addresses and domains, based on Microsoft’s threat intelligence feeds.
+- **DNS Settings:** Policies can specify custom DNS servers and DNS proxy settings to control name resolution for outbound traffic.
+- **TLS Inspection:** Policies can enable TLS termination and inspection for outbound HTTPS traffic, allowing the firewall to decrypt, inspect, and re-encrypt traffic.
+- **IDPS (Intrusion Detection and Prevention System):** A policy can enable signature-based inspection for network and application traffic, with modes for alert-only, deny, or alert-and-deny.
+- **Web Categories:** Application rules can reference predefined web categories (e.g., social media, malware) to allow or deny entire categories of websites.
+- **IP Groups and FQDN Tags:** These are reusable objects that can be referenced in rules to simplify management. IP Groups hold collections of IP addresses; FQDN Tags represent well-known Azure services (e.g., AzureUpdateDelivery).
+
+**Real-World Application: Multi-Tier Segmentation**
+
+Consider a scenario where a security team manages three environments: production, staging, and development, each in separate virtual networks. A single Azure Firewall in a central hub virtual network routes traffic for all three. Without a policy, you would configure rules directly on the firewall instance, leading to a flat, hard-to-audit rule set.
+
+With Azure Firewall policies, you create one parent policy for the entire organization. Within that policy, you define rule collections for each environment:
+
+- **Production Network Rule Collection (Priority 200):** Allows traffic from production subnets to specific database IPs on port 1433. Denies all other outbound traffic.
+- **Staging Network Rule Collection (Priority 300):** Allows staging subnets to access a specific API endpoint on port 443. Denies all other outbound.
+- **Development Application Rule Collection (Priority 400):** Allows development subnets to access *.github.com and *.nuget.org on HTTPS. Denies all other outbound.
+
+Each collection uses IP Groups for source addresses (e.g., "Prod-Subnets-IPGroup") and destination addresses (e.g., "Prod-DB-IPGroup"). This modular approach allows the security team to update IP Groups without modifying rule collections, and to apply the same policy to multiple firewall instances across regions.
+
+**Security Relevance**
+
+Azure Firewall policies directly address several security engineering requirements:
+
+- **Centralized Governance:** A single policy can enforce consistent rules across all firewalls in an organization. This eliminates configuration drift and ensures that a rule approved for one environment is automatically applied to others.
+- **Least Privilege Enforcement:** By using rule collections with explicit Allow rules and a default Deny, you can precisely control which traffic is permitted. Application rules with FQDNs prevent IP-based bypasses (e.g., using a CDN IP to reach a blocked domain).
+- **Auditability and Change Management:** Policies are Azure Resource Manager resources, meaning all changes are logged in Azure Activity Log. You can use Azure Policy to enforce that only approved policies are associated with firewalls. Role-based access control (RBAC) can restrict who can modify specific rule collections.
+- **Threat Protection Integration:** Enabling threat intelligence and IDPS within the policy adds a layer of defense against known malicious patterns without requiring separate security appliances. TLS inspection ensures that encrypted traffic is not a blind spot.
+- **Compliance Mapping:** For frameworks like PCI DSS or SOC 2, policies provide a clear, auditable record of firewall rules. You can tag rule collections with compliance metadata and generate reports showing which rules apply to which environments.
+
+**Key Takeaways**
+
+1.  Azure Firewall policies decouple rule management from firewall instances, enabling consistent, scalable enforcement across multiple virtual networks and subscriptions.
+2.  Rule collections (NAT, Network, Application) with explicit priorities and a default-deny model are the core mechanism for implementing least-privilege network segmentation.
+3.  Integrating threat intelligence, IDPS, and TLS inspection within a policy provides a unified, auditable security control plane that supports compliance and reduces operational overhead.

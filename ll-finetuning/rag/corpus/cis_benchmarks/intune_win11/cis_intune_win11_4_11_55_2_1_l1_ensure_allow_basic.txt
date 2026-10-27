@@ -1,0 +1,28 @@
+4.11.55.2: .1 (L1) Ensure 'Allow Basic authentication' is set to
+
+Overview
+This policy setting allows you to manage whether the Windows Remote Management 
+(WinRM) service accepts Basic authentication from a remote client. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+Basic authentication is less robust than other authentication methods available in 
+WinRM because credentials including passwords are transmitted in plain text. An 
+attacker who is able to capture packets on the network where WinRM is running may be 
+able to determine the credentials used for accessing remote hosts via WinRM.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service:AllowBasic
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Windows Components\Windows Remote Management 
+(WinRM)\WinRM Service\Allow Basic authentication
+
+Key Takeaways
+- Basic authentication is less robust than other authentication methods available in  WinRM because credentials including passwords are transmitted in plain text.
+- An  attacker who is able to capture packets on the network where WinRM is running may be  able to determine the credentials used for accessing remote hosts via WinRM.

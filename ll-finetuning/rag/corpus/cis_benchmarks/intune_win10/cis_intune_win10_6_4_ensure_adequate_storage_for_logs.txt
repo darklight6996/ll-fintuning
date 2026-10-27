@@ -1,0 +1,89 @@
+6.4: Ensure adequate storage for logs (and related controls)
+
+Overview
+This policy setting specifies the maximum size of the log file in kilobytes. The maximum 
+log file size can be configured between 1 megabyte (1,024 kilobytes) and 4 terabytes 
+(4,194,240 kilobytes) in kilobyte increments. 
+The recommended state for this setting is: Enabled: 32,768 or greater.
+
+This policy setting specifies the maximum size of the log file in kilobytes. The maximum 
+log file size can be configured between 1 megabyte (1,024 kilobytes) and 4 terabytes 
+(4,194,240 kilobytes) in kilobyte increments. 
+The recommended state for this setting is: Enabled: 196,608 or greater.
+
+This policy setting specifies the maximum size of the log file in kilobytes. The maximum 
+log file size can be configured between 1 megabyte (1,024 kilobytes) and 4 terabytes 
+(4,194,240 kilobytes) in kilobyte increments. 
+The recommended state for this setting is: Enabled: 32,768 or greater.
+
+This policy setting specifies the maximum size of the log file in kilobytes. The maximum 
+log file size can be configured between 1 megabyte (1,024 kilobytes) and 4 terabytes 
+(4,194,240 kilobytes) in kilobyte increments. 
+The recommended state for this setting is: Enabled: 32,768 or greater.
+
+Why This Matters
+If events are not recorded it may be difficult or impossible to determine the root cause of 
+system problems or the unauthorized activities of malicious users.
+
+If events are not recorded it may be difficult or impossible to determine the root cause of 
+system problems or the unauthorized activities of malicious users.
+
+If events are not recorded it may be difficult or impossible to determine the root cause of 
+system problems or the unauthorized activities of malicious users
+
+If events are not recorded it may be difficult or impossible to determine the root cause of 
+system problems or the unauthorized activities of malicious users
+
+Audit Steps
+For Ensure adequate storage for logs:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 32768 or greater. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\EventLog\Application:MaxSize
+
+For Ensure adequate storage for logs:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 196608 or greater. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\EventLog\Security:MaxSize
+
+For Ensure adequate storage for logs:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 32768 or greater. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\EventLog\Setup:MaxSize
+
+For Ensure adequate storage for logs:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 32768 or greater. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\EventLog\System:MaxSize
+
+Remediation
+For Ensure adequate storage for logs:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 32,768 or greater. 
+Administrative Templates\Windows Components\Event Log 
+Service\Application\Specify the maximum log file size (KB)
+
+For Ensure adequate storage for logs:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 196,608 or greater. 
+Administrative Templates\Windows Components\Event Log 
+Service\Security\Specify the maximum log file size (KB)
+
+For Ensure adequate storage for logs:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 32,768 or greater. 
+Administrative Templates\Windows Components\Event Log Service\Setup\Specify 
+the maximum log file size (KB)
+
+For Ensure adequate storage for logs:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 32,768 or greater. 
+Administrative Templates\Windows Components\Event Log Service\System\Specify 
+the maximum log file size (KB)
+
+Key Takeaways
+- If events are not recorded it may be difficult or impossible to determine the root cause of  system problems or the unauthorized activities of malicious users.
+- If events are not recorded it may be difficult or impossible to determine the root cause of  system problems or the unauthorized activities of malicious users If events are not recorded it may be difficult or impossible to determine the root cause of  system problems or the unauthorized activities of malicious users.

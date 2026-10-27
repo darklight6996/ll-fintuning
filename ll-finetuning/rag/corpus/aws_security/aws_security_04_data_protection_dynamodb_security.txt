@@ -1,0 +1,55 @@
+DynamoDB security encompasses the controls, configurations, and practices required to protect data stored in Amazon DynamoDB, a fully managed NoSQL key-value and document database. For a security engineer, the primary concerns are access control, encryption at rest and in transit, network isolation, and monitoring for unauthorized activity. DynamoDB operates on a shared responsibility model: AWS secures the underlying infrastructure, while the customer is responsible for data classification, identity management, and configuration of security features.
+
+**Key Components**
+
+**1. Identity and Access Management (IAM)**
+- IAM policies are the primary mechanism for controlling access to DynamoDB tables, indexes, and streams.
+- Use least-privilege policies that grant only the required actions (e.g., `dynamodb:GetItem`, `dynamodb:PutItem`) on specific table ARNs.
+- Avoid using wildcard resources (`"Resource": "*"`) in production. Instead, specify table ARNs and condition keys like `aws:SourceIp` or `aws:RequestedRegion`.
+- For cross-account access, use IAM roles with trust policies rather than sharing long-term access keys.
+- Implement attribute-based access control (ABAC) using IAM tags to dynamically restrict access based on resource tags or principal tags.
+
+**2. Encryption**
+- **Encryption at Rest:** DynamoDB supports two modes: AWS-owned CMK (default), AWS managed KMS key, and customer managed KMS key. For compliance with standards like PCI DSS or HIPAA, use a customer managed KMS key to control key rotation, access auditing, and key deletion.
+- **Encryption in Transit:** All DynamoDB API calls are encrypted using TLS 1.2 or higher. Enforce TLS by using condition keys in IAM policies (e.g., `"aws:SecureTransport": "true"`). Disable older TLS versions at the application level.
+- **Client-Side Encryption:** For additional protection, encrypt sensitive attributes (e.g., PII) before sending to DynamoDB. Use the AWS Encryption SDK or a custom library. This ensures data is encrypted before it reaches the service, mitigating risks from compromised AWS credentials.
+
+**3. Network Security**
+- **VPC Endpoints:** Use AWS PrivateLink (interface VPC endpoints) to access DynamoDB without traversing the public internet. This reduces exposure to network-based attacks and allows you to apply VPC security groups and network ACLs.
+- **Gateway Endpoints:** For DynamoDB, gateway endpoints are also available but do not support security groups. Prefer interface endpoints for granular control.
+- **AWS Network Firewall or Web Application Firewall (WAF):** Not directly applicable to DynamoDB API calls, but you can use WAF with API Gateway or ALB if DynamoDB is accessed through a REST API layer.
+
+**4. Monitoring and Auditing**
+- **AWS CloudTrail:** Enable CloudTrail to log all DynamoDB API calls (e.g., `CreateTable`, `GetItem`, `Query`). Monitor for anomalous patterns like repeated `Scan` operations or unauthorized `DeleteTable` attempts.
+- **Amazon CloudWatch:** Set alarms on metrics like `ThrottledRequests`, `SystemErrors`, and `UserErrors`. High throttling may indicate a misconfigured IAM policy or an ongoing denial-of-service attempt.
+- **AWS Config:** Use Config rules to enforce encryption settings, such as requiring customer managed KMS keys or ensuring point-in-time recovery is enabled.
+- **VPC Flow Logs:** If using VPC endpoints, analyze flow logs to detect unexpected traffic to DynamoDB from unauthorized sources.
+
+**5. Data Backup and Recovery**
+- **Point-in-Time Recovery (PITR):** Enable PITR to restore tables to any point within the last 35 days. This protects against accidental data deletion or corruption.
+- **On-Demand Backups:** Use AWS Backup for automated, cross-region backup policies. Encrypt backups with the same KMS key as the source table.
+- **Cross-Region Replication:** Use DynamoDB Global Tables for disaster recovery, but be aware that replication introduces additional IAM permissions and latency considerations.
+
+**Real-World Application**
+
+Consider a healthcare application storing patient records in DynamoDB. The security engineer must:
+- Create a customer managed KMS key with automatic annual rotation and restrict key usage to specific IAM roles.
+- Write IAM policies that allow `GetItem` and `Query` only for authenticated users with a matching `patient_id` attribute, using IAM condition keys like `dynamodb:LeadingKeys`.
+- Enable CloudTrail and set up a CloudWatch alarm for any `DeleteTable` or `UpdateTable` API calls.
+- Use VPC endpoints with a security group that only allows traffic from the application’s private subnets.
+- Implement client-side encryption for the `ssn` and `diagnosis` attributes using the AWS Encryption SDK, so even database administrators cannot read raw sensitive data.
+
+In a multi-tenant SaaS environment, the engineer would further isolate tenant data by using separate tables per tenant or by implementing a partition key that includes the tenant ID, combined with IAM policies that enforce `dynamodb:LeadingKeys` to restrict access to only the tenant’s data.
+
+**Security Relevance**
+
+DynamoDB is a common target for data exfiltration due to its scalability and ease of use. Misconfigured IAM policies are the leading cause of data breaches. For example, a policy that grants `dynamodb:*` on all resources allows any compromised credential to read or delete every table. Similarly, failing to enforce encryption in transit can expose data to man-in-the-middle attacks if the application uses HTTP instead of HTTPS.
+
+Network isolation via VPC endpoints reduces the attack surface by keeping traffic within the AWS network. Without this, DynamoDB traffic traverses the internet, increasing exposure to packet sniffing and IP spoofing.
+
+Monitoring is critical because DynamoDB does not natively support row-level security or fine-grained audit logs for individual items. CloudTrail logs the API calls but not the data returned. Therefore, any unauthorized read of sensitive data must be detected through behavioral anomalies, such as a sudden spike in `GetItem` requests from an unfamiliar IP.
+
+**Key Takeaways**
+- Enforce least-privilege IAM policies with resource-level and condition key restrictions, and always use customer managed KMS keys for encryption at rest to maintain control over key lifecycle.
+- Isolate DynamoDB traffic using VPC endpoints and enforce TLS 1.2+ to prevent network-based data exposure.
+- Enable CloudTrail and CloudWatch alarms for all data plane operations, and implement client-side encryption for sensitive attributes to protect data even if AWS credentials are compromised.

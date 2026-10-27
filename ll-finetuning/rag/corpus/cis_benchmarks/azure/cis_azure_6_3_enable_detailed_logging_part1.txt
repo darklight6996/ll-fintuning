@@ -1,0 +1,142 @@
+6.3: Enable Detailed Logging (and related controls)
+
+Overview
+Storage accounts with the activity log exports can be configured to use Customer 
+Managed Keys (CMK).
+
+Ensure that network flow logs are captured and fed into a central log analytics 
+workspace. 
+Retirement Notice 
+On September 30, 2027, network security group (NSG) flow logs will be retired. Starting 
+June 30, 2025, it will no longer be possible to create new NSG flow logs. Azure 
+recommends migrating to virtual network flow logs. Review 
+https://azure.microsoft.com/en-gb/updates?id=Azure-NSG-flow-logs-Retirement for 
+more information. 
+For virtual network flow logs, consider applying the recommendation Ensure that 
+virtual network flow logs are captured and sent to Log Analytics in this 
+section.
+
+Why This Matters
+Configuring the storage account with the activity log export container to use CMKs 
+provides additional confidentiality controls on log data, as a given user must have read 
+permission on the corresponding storage account and must be granted decrypt 
+permission by the CMK.
+
+Network Flow Logs provide valuable insight into the flow of traffic around your network 
+and feed into both Azure Monitor and Azure Sentinel (if in use), permitting the 
+generation of visual flow diagrams to aid with analyzing for lateral movement, etc.
+
+Audit Steps
+For Enable Detailed Logging:
+Audit from Azure Portal 
+1. Go to Monitor. 
+2. Select Activity log. 
+3. Select Export Activity Logs. 
+4. Select a Subscription. 
+5. Note the name of the Storage Account for the diagnostic setting. 
+6. Navigate to Storage accounts. 
+7. Click on the storage account name noted in Step 5. 
+8. Under Security + networking, click Encryption. 
+9. Ensure Customer-managed keys is selected and a key is set. 
+Audit from Azure CLI 
+1. Get storage account id configured with log profile: 
+az monitor diagnostic-settings subscription list --subscription <subscription 
+id> --query 'value[*].storageAccountId' 
+2. Ensure the storage account is encrypted with CMK: 
+az storage account list --query "[?name=='<Storage Account Name>']" 
+In command output ensure keySource is set to Microsoft.Keyvault and 
+keyVaultProperties is not set to null 
+
+Audit from PowerShell 
+Get-AzStorageAccount -ResourceGroupName <resource group name> -Name <storage 
+account name>|select-object -ExpandProperty encryption|format-list 
+Ensure the value of KeyVaultProperties is not null or empty, and ensure KeySource 
+is not set to Microsoft.Storage. 
+
+Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: fbb99e8e-e444-4da0-9ff1-75c92f5a85b2 - Name: 'Storage account 
+containing the container with activity logs must be encrypted with BYOK'
+
+For Enable Detailed Logging:
+Audit from Azure Portal 
+1. Navigate to Network Watcher. 
+2. Under Logs, select Flow logs. 
+3. Click Add filter. 
+4. From the Filter drop-down, select Flow log type. 
+5. From the Value drop-down, check Network security group only. 
+6. Click Apply. 
+7. Ensure that at least one network security group flow log is listed and is 
+configured to send logs to a Log Analytics Workspace. 
+Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: 27960feb-a23c-4577-8d36-ef8b5f35e0be - Name: 'All flow log 
+resources should be in enabled state' 
+• 
+Policy ID: c251913d-7d24-4958-af87-478ed3b9ba41 - Name: 'Flow logs should 
+be configured for every network security group' 
+• 
+Policy ID: 4c3c6c5f-0d47-4402-99b8-aa543dd8bcee - Name: 'Flow logs should 
+be configured for every virtual network'
+
+Remediation
+For Enable Detailed Logging:
+Remediate from Azure Portal 
+1. Go to Monitor. 
+2. Select Activity log. 
+3. Select Export Activity Logs. 
+4. Select a Subscription. 
+5. Note the name of the Storage Account for the diagnostic setting. 
+6. Navigate to Storage accounts. 
+7. Click on the storage account. 
+8. Under Security + networking, click Encryption. 
+9. Next to Encryption type, select Customer-managed keys. 
+10. Complete the steps to configure a customer-managed key for encryption of the 
+storage account. 
+Remediate from Azure CLI 
+az storage account update --name <name of the storage account> --resourcegroup <resource group for a storage account> --encryption-keysource=Microsoft.Keyvault --encryption-key-vault <Key Vault URI> --
+encryption-key-name <KeyName> --encryption-key-version <Key Version> 
+Remediate from PowerShell 
+Set-AzStorageAccount -ResourceGroupName <resource group name> -Name <storage 
+account name> -KeyvaultEncryption -KeyVaultUri <key vault URI> -KeyName <key 
+name>
+
+For Enable Detailed Logging:
+Remediate from Azure Portal 
+1. Navigate to Network Watcher. 
+2. Under Logs, select Flow logs. 
+3. Select + Create. 
+4. Select the desired Subscription. 
+5. For Flow log type, select Network security group. 
+6. Select + Select target resource. 
+7. Select Network security group. 
+8. Select a network security group. 
+9. Click Confirm selection. 
+10. Select or create a new Storage Account. 
+11. If using a v2 storage account, input the retention in days to retain the log. 
+12. Click Next. 
+13. Under Analytics, for Flow log version, select Version 2. 
+14. Check the box next to Enable traffic analytics. 
+15. Select a processing interval. 
+16. Select a Log Analytics Workspace. 
+17. Select Next. 
+18. Optionally add Tags. 
+19. Select Review + create. 
+20. Select Create. 
+Warning 
+The remediation policy creates remediation deployment and names them by 
+concatenating the subscription name and the resource group name. The MAXIMUM 
+permitted length of a deployment name is 64 characters. Exceeding this will cause the 
+remediation task to fail.
+
+Key Takeaways
+- Configuring the storage account with the activity log export container to use CMKs  provides additional confidentiality controls on log data, as a given user must have read  permission on the corresponding storage account and must be granted decrypt  permission by the CMK.
+- Network Flow Logs provide valuable insight into the flow of traffic around your network  and feed into both Azure Monitor and Azure Sentinel (if in use), permitting the  generation of visual flow diagrams to aid with analyzing for lateral movement, etc.

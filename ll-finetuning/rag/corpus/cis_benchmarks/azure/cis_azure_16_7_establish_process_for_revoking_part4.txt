@@ -1,0 +1,127 @@
+16.7: Establish Process for Revoking Access (and related controls)
+
+Overview
+Key Vaults contain object keys, secrets, and certificates. Deletion of a Key Vault can 
+cause immediate data loss or loss of security functions (authentication, validation, 
+verification, non-repudiation, etc.) supported by the Key Vault objects. 
+It is recommended the Key Vault be made recoverable by enabling the "Do Not Purge" 
+and "Soft Delete" functions. This is in order to prevent loss of encrypted data, including 
+storage accounts, SQL databases, and/or dependent services provided by Key Vault 
+objects (Keys, Secrets, Certificates) etc. This may happen in the case of accidental 
+deletion by a user or from disruptive activity by a malicious user. 
+NOTE: In February 2025, Microsoft will enable soft-delete protection on all key vaults, 
+and users will no longer be able to opt out of or turn off soft-delete. 
+WARNING: A current limitation is that role assignments disappearing when Key Vault is 
+deleted. All role assignments will need to be recreated after recovery.
+
+Azure Key Vault Managed HSM is a fully managed, highly available, single-tenant cloud 
+service that safeguards cryptographic keys using FIPS 140-2 Level 3 validated HSMs. 
+Note: This recommendation to use Managed HSM applies only to scenarios where 
+specific regulatory and compliance requirements mandate the use of a dedicated 
+hardware security module.
+
+Why This Matters
+Users may accidentally run delete/purge commands on a Key Vault, or an attacker or 
+malicious user may do so deliberately in order to cause disruption. Deleting or purging a 
+Key Vault leads to immediate data loss, as keys encrypting data and secrets/certificates 
+allowing access/services will become non-accessible. 
+Setting enablePurgeProtection to "true" for a Key Vault ensures that even if Key 
+Vault is deleted, Key Vault itself or its objects remain recoverable for the next 90 days. 
+Key Vault/objects can either be recovered or purged (permanent deletion) during those 
+90 days. If no action is taken, the key vault and its objects will subsequently be purged. 
+Enabling the enablePurgeProtection parameter on Key Vaults ensures that Key Vaults 
+and their objects cannot be deleted/purged permanently.
+
+Managed HSM is a fully managed, highly available, single-tenant service that ensures 
+FIPS 140-2 Level 3 compliance. It provides centralized key management, isolated 
+access control, and private endpoints for secure access. Integrated with Azure services, 
+it supports migration from Key Vault, ensures data residency, and offers monitoring and 
+auditing for enhanced security.
+
+Audit Steps
+For Establish Process for Revoking Access:
+Audit from Azure Portal 
+1. Go to Key Vaults. 
+2. Click the name of a Key Vault. 
+3. Under Settings, click Properties. 
+4. Next to Purge protection, ensure that Enable purge protection (enforce 
+a mandatory retention period for deleted vaults and vault 
+objects) is selected. 
+5. Repeat steps 1-4 for each Key Vault. 
+Audit from Azure CLI 
+List all Key Vaults: 
+az resource list --query "[?type=='Microsoft.KeyVault/vaults']" 
+For each Key Vault, ensure enablePurgeProtection is set to true: 
+az resource show --id /subscriptions/xxxxxx-xxxx-xxxx-xxxxxxxxxxxxxxxx/resourceGroups/<resourceGroupName>/providers/Microsoft.KeyVault 
+/vaults/<keyVaultName> 
+Audit from PowerShell 
+List all Key Vaults: 
+Get-AzKeyVault 
+For each Key Vault run the following command: 
+Get-AzKeyVault -VaultName <Vault Name> 
+Ensure EnablePurgeProtection is set to True. 
+
+Audit from Azure Policy 
+If referencing a digital copy of this Benchmark, clicking a Policy ID will open a link to the 
+associated Policy definition in Azure. 
+If referencing a printed copy, you can search Policy IDs from this URL: 
+https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyMenuBlade/~/Definitions 
+• 
+Policy ID: 0b60c0b2-2dc2-4e1c-b5c9-abbed971de53 - Name: 'Key vaults should 
+have deletion protection enabled'
+
+For Establish Process for Revoking Access:
+Audit from Azure CLI 
+Run the following command to list key vaults: 
+az keyvault list --query [*].[name,type] 
+Ensure that at least one key vault with type Microsoft.KeyVault/managedHSMs exists.
+
+Remediation
+For Establish Process for Revoking Access:
+To enable "Do Not Purge" and "Soft Delete" for a Key Vault: 
+Remediate from Azure Portal 
+1. Go to Key Vaults. 
+2. Click the name of a Key Vault. 
+3. Under Settings, click Properties. 
+4. Select the radio button next to Enable purge protection (enforce a 
+mandatory retention period for deleted vaults and vault objects). 
+Note: Once enabled, this option cannot be disabled. 
+5. Click Save. 
+6. Repeat steps 1-5 for each Key Vault requiring remediation. 
+Remediate from Azure CLI 
+az resource update --id /subscriptions/xxxxxx-xxxx-xxxx-xxxxxxxxxxxxxxxx/resourceGroups/<resourceGroupName>/providers/Microsoft.KeyVault 
+/vaults/<keyVaultName> --set properties.enablePurgeProtection=true 
+Remediate from PowerShell 
+Update-AzKeyVault -VaultName <vaultName -ResourceGroupName <resourceGroupName 
+-EnablePurgeProtection
+
+For Establish Process for Revoking Access:
+Remediate from Azure CLI 
+Run the following command to set oid to be the OID of the signed-in user: 
+$oid = az ad signed-in-user show --query id -o tsv 
+Alternatively, prepare a space-separated list of OIDs to be provided as the 
+administrators of the HSM. 
+Run the following command to create a Managed HSM: 
+az keyvault create --resource-group <resource-group> --hsm-name <hsm-name> --
+retention-days <retention-days> --administrators $oid 
+
+The command can take several minutes to complete. 
+After the HSM has been created, it must be activated before it can be used. Activation 
+requires providing a minimum of three and a maximum of ten RSA key pairs, as well as 
+the minimum number of keys required to decrypt the security domain (called a quorum). 
+OpenSSL can be used to generate the self-signed certificates, for example: 
+openssl req -newkey rsa:2048 -nodes -keyout cert_1.key -x509 -days 365 -out 
+cert_1.cer 
+Run the following command to download the security domain and activate the Managed 
+HSM: 
+az keyvault security-domain download --hsm-name <managed-hsm> --sd-wrappingkeys <key-1> <key-2> <key-3> --sd-quorum <quorum> --security-domain-file 
+<managed-hsm-security-domain>.json 
+Store the security domain file and the RSA key pairs securely. They will be required for 
+disaster recovery or for creating another Managed HSM that shares the same security 
+domain so that the two can share keys. 
+The Managed HSM will now be in an active state and ready for use.
+
+Key Takeaways
+- Users may accidentally run delete/purge commands on a Key Vault, or an attacker or  malicious user may do so deliberately in order to cause disruption.
+- Deleting or purging a  Key Vault leads to immediate data loss, as keys encrypting data and secrets/certificates  allowing access/services will become non-accessible.
+- Setting enablePurgeProtection to "true" for a Key Vault ensures that even if Key  Vault is deleted, Key Vault itself or its objects remain recoverable for the next 90 days.

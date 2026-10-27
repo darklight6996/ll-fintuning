@@ -1,0 +1,138 @@
+9.2: Ensure Only Approved Ports, Protocols and (and related controls)
+
+Overview
+This setting enables or disables the Windows Game Recording and Broadcasting 
+features. 
+The recommended state for this setting is: Block.
+
+Manages a Windows app's ability to share data between users who have installed the 
+app. Data is shared through the SharedLocal folder. This folder is available through the 
+Windows.Storage API. 
+The recommended state for this setting is: Block.
+
+This setting controls whether users are permitted to change installation options that 
+typically are available only to system administrators. The security features of Windows 
+Installer normally prevent users from changing installation options that are typically 
+reserved for system administrators, such as specifying the directory to which files are 
+installed. If Windows Installer detects that an installation package has permitted the 
+user to change a protected option, it stops the installation and displays a message. 
+These security features operate only when the installation program is running in a 
+privileged security context in which it has access to directories denied to the user. 
+The recommended state for this setting is: Disabled.
+
+This policy setting specifies whether Windows apps can be activated by voice (apps and 
+Cortana) while the system is locked. 
+The recommended state for this setting is: Enabled: Force Deny.
+
+This policy setting controls whether encrypted items are allowed to be indexed. When 
+this setting is changed, the index is rebuilt completely. Full volume encryption (such as 
+BitLocker Drive Encryption or a non-Microsoft solution) must be used for the location of 
+the index to maintain security for encrypted files. 
+The recommended state for this setting is: Block.
+
+This policy setting controls search highlights in the start menu search box and in search 
+home. 
+The recommended state for this setting is: 0. 
+Note: As of February 2024 this setting does not deploy correctly on Windows 10 via 
+Intune and only applies to Windows 11.
+
+Why This Matters
+If this setting is allowed, users could record and broadcast session info to external sites, 
+which is both a risk of accidentally exposing sensitive company data (on-screen) outside 
+the company as well as a privacy concern.
+
+Users of a system could accidentally share sensitive data with other users on the same 
+system.
+
+In an enterprise managed environment, only IT staff with administrative rights should be 
+installing or changing software on a system. Allowing users the ability to have any 
+control over installs can risk unapproved software from being installed or removed from 
+a system, which could cause the system to become vulnerable to compromise.
+
+Access to any computer resource should not be allowed when the device is locked.
+
+Indexing and allowing users to search encrypted files could potentially reveal 
+confidential data stored within the encrypted files.
+
+In a high security environment, data should never be sent to or received by any thirdparty since this data could contain sensitive information.
+
+Audit Steps
+For Ensure Only Approved Ports, Protocols and:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\ApplicationManagement:Al lowGameDVR_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Applica tionManagement:AllowGameDVR
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\AppModel\StateManager
+:AllowSharedLocalAppData
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer:EnableUserControl
+
+For Ensure Only Approved Ports, Protocols and Services:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Privacy:LetAppsActivateW
+ithVoiceAboveLock_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 2. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Privacy
+:LetAppsActivateWithVoiceAboveLock
+
+For Ensure Only Approved Ports, Protocols and Services:
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Search:AllowIndexingEncr yptedStoresOrItems_WinningProvider 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Search:
+AllowIndexingEncryptedStoresOrItems
+
+For Ensure Only Approved Ports, Protocols and Services:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows 
+Search:EnableDynamicContentInWSB
+
+Remediation
+For Ensure Only Approved Ports, Protocols and:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block: 
+Microsoft App Store\Allow Game DVR
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block. 
+Microsoft App Store\Allow Shared User App Data
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled: 
+Microsoft App Store\MSI Allow user control over installs
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: Force Deny: 
+Privacy\Let Apps Activate With Voice Above Lock
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block: 
+Search\Allow Indexing Encrypted Stores Or Items
+
+For Ensure Only Approved Ports, Protocols and Services:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to 0: 
+Search\Allow search highlights
+
+Key Takeaways
+- If this setting is allowed, users could record and broadcast session info to external sites,  which is both a risk of accidentally exposing sensitive company data (on-screen) outside  the company as well as a privacy concern.
+- Users of a system could accidentally share sensitive data with other users on the same  system.
+- In an enterprise managed environment, only IT staff with administrative rights should be  installing or changing software on a system.

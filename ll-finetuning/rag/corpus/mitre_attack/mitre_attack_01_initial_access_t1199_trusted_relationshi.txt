@@ -1,0 +1,38 @@
+**Definition**
+
+T1199, "Trusted Relationship," is a technique in the MITRE ATT&CK framework under the Initial Access tactic. It describes the process where an adversary leverages an existing, legitimate trust relationship between an organization and an external entity to gain initial access to the target network. The trust relationship can be technical (e.g., VPN connections, federated identity, inter-organizational network links) or non-technical (e.g., contractual agreements, shared support staff). The adversary does not need to compromise the external entity's core infrastructure; instead, they exploit the access path that the trust relationship provides. This is distinct from techniques like spearphishing because the attacker may not need to trick an internal user—they can simply use a compromised partner's credentials or network path.
+
+**Key Components**
+
+- **Trusted Third Party**: The external entity that holds a legitimate trust relationship with the target. Examples include managed service providers (MSPs), cloud service providers, business partners, vendors, or subsidiaries. The adversary must first compromise this third party, often through other means (e.g., phishing, credential theft, or exploiting vulnerabilities in the third party's environment).
+- **Trust Boundary**: The technical or administrative boundary that the trust relationship crosses. This can be a VPN tunnel, a federated identity provider (IdP) trust, a direct network link (e.g., MPLS or site-to-site VPN), or a shared application interface (e.g., API keys for a SaaS platform).
+- **Access Vector**: The specific mechanism used to cross the trust boundary. Common vectors include:
+    - **Stolen credentials** from the third party that are valid for the target's systems (e.g., a vendor's support account with domain admin rights).
+    - **Compromised VPN client** or remote access software that is pre-configured to connect to the target.
+    - **Abuse of federated trust** (e.g., SAML assertion manipulation or token theft) to impersonate a user from the trusted entity.
+    - **Exploitation of inter-organizational network links** (e.g., a direct network connection between a parent company and a subsidiary).
+- **Lateral Movement Potential**: Once inside via the trust relationship, the adversary often gains a foothold that is not heavily monitored because the traffic originates from a "trusted" source. This can allow them to move laterally with reduced scrutiny.
+
+**Real-World Application**
+
+The most documented real-world application of T1199 is the 2020 SolarWinds attack. In that incident, the adversary (APT29/Cozy Bear) compromised the software build environment of SolarWinds, a trusted IT management software vendor. SolarWinds had a trusted relationship with thousands of customers, including U.S. government agencies and Fortune 500 companies. By injecting malicious code into the Orion software update, the adversary gained initial access to those customer networks. The trust relationship was not a direct network link but a software supply chain trust—customers trusted that updates from SolarWinds were safe.
+
+Another common example involves Managed Service Providers (MSPs). An attacker compromises an MSP's remote monitoring and management (RMM) tool. Because the MSP has agent software installed on multiple client networks, the attacker can use the MSP's administrative credentials or the RMM's remote access capability to directly connect to client environments. This bypasses the client's perimeter defenses because the traffic originates from the MSP's known IP addresses and uses legitimate administrative tools.
+
+A third scenario involves federated identity. An attacker compromises a partner organization's Active Directory and then forges a SAML token to authenticate to the target's cloud applications (e.g., Office 365, Salesforce). If the target has configured a federation trust with the partner, the attacker can impersonate any user from that partner, including users with privileged access. This technique was notably used in attacks against cloud service providers where the attacker exploited weak SAML signing practices.
+
+**Security Relevance**
+
+For security engineers, T1199 is critical because it undermines the traditional perimeter-based security model. The traffic from a trusted partner often bypasses network segmentation, VPN requirements, and multi-factor authentication (MFA) if the trust relationship is not properly scoped. The following are direct security implications:
+
+- **Visibility Gaps**: Most organizations do not monitor traffic from trusted partners with the same rigor as external traffic. An attacker using a partner's VPN or RMM tool will appear as legitimate internal traffic. Security teams must implement network detection and response (NDR) sensors that can analyze east-west traffic, even from known partner IP ranges.
+- **Credential Hygiene**: The attack surface includes the third party's credential management. If a partner uses weak passwords or does not enforce MFA on their administrative accounts, those accounts become a vector into your network. You must enforce contractual requirements for MFA and privileged access management (PAM) on any account that can cross the trust boundary.
+- **Federation Hardening**: For federated identity trusts, you must validate the IdP's token signing certificate, enforce strict audience restrictions, and implement token replay detection. Use conditional access policies that require device compliance or location checks even for federated users.
+- **Supply Chain Risk**: Software update channels and vendor remote access tools are high-value targets. Implement code signing verification, use isolated build environments, and require vendors to provide signed manifests for all updates. For remote access, use just-in-time (JIT) access and session recording.
+- **Zero Trust Architecture**: T1199 is a strong argument for adopting a zero trust model. Never trust traffic based solely on its source IP or the identity of the connecting entity. Enforce continuous verification, micro-segmentation, and least-privilege access for all cross-organization connections.
+
+**Key Takeaways**
+
+1.  **Trusted relationships are a primary initial access vector** because they bypass perimeter defenses and often lack the same monitoring as external threats; prioritize auditing all third-party connections and enforce strict access controls.
+2.  **Compromise of a third party is the prerequisite**; your security posture is only as strong as your partners' security. Implement contractual security requirements and regularly assess their compliance.
+3.  **Mitigation requires a zero-trust approach** to all cross-boundary traffic, including continuous authentication, session monitoring, and network segmentation, regardless of the source's trust level.

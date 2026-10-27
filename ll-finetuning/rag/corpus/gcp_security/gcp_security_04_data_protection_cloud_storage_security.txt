@@ -1,0 +1,56 @@
+**Definition**
+
+Cloud storage security encompasses the policies, controls, and technologies used to protect data stored in cloud environments from unauthorized access, data breaches, data loss, and compliance violations. It addresses both the infrastructure layer managed by the cloud service provider (CSP) and the data layer managed by the customer under the shared responsibility model. Unlike on-premises storage, cloud storage introduces unique attack surfaces including multi-tenancy risks, API exposure, and internet-facing endpoints.
+
+**Key Components**
+
+**1. Encryption at Rest and in Transit**
+- At-rest encryption: Data is encrypted using AES-256 or stronger algorithms before being written to disk. CSPs offer server-side encryption (SSE) with either provider-managed keys (SSE-S3), customer-managed keys (SSE-KMS), or customer-provided keys (SSE-C). Client-side encryption ensures the CSP never has access to plaintext.
+- In-transit encryption: All data transfers must use TLS 1.2 or higher. Enforce HTTPS-only access policies and disable legacy protocols like SSL 3.0 and TLS 1.0.
+
+**2. Access Control and Identity Management**
+- Implement least privilege using IAM roles and policies. Avoid using root credentials or long-term access keys for storage operations.
+- Use bucket policies, ACLs, and object-level permissions to restrict access. For sensitive data, enforce conditions such as source IP, VPC endpoint, or MFA.
+- Enable S3 Block Public Access or equivalent settings to prevent accidental exposure.
+
+**3. Data Integrity and Versioning**
+- Enable versioning to protect against accidental deletion or overwrite. Combine with lifecycle policies to manage storage costs.
+- Use object lock or retention policies to enforce write-once-read-many (WORM) compliance for regulated data.
+- Implement checksums and integrity verification (e.g., AWS S3 checksum SHA-256) to detect corruption during transfer or storage.
+
+**4. Logging and Monitoring**
+- Enable access logging (e.g., AWS CloudTrail, Azure Monitor) for all storage operations. Logs must be stored in a separate, immutable bucket.
+- Configure alerts for anomalous patterns: mass deletions, unusual geographic access, or repeated authentication failures.
+- Use CSP-native tools like AWS Macie or Azure Defender for Storage to detect sensitive data exposure and potential misconfigurations.
+
+**5. Network Security**
+- Restrict access to storage endpoints using VPC endpoints or Private Link. Never expose storage directly to the internet unless absolutely necessary.
+- Implement IP-based or CIDR-based bucket policies. Use AWS WAF or Azure Front Door to filter malicious traffic at the edge.
+- Enable S3 Transfer Acceleration or equivalent only when required, and monitor for abuse.
+
+**Real-World Application**
+
+Consider a healthcare organization migrating patient records (PHI) to AWS S3. The security engineer must:
+
+- Enable default encryption with AWS KMS using a customer-managed key (CMK) rotated every 90 days.
+- Configure S3 Block Public Access at the account level.
+- Create an IAM role for the application that grants only GetObject and PutObject on a specific prefix, with a condition requiring MFA for delete operations.
+- Enable S3 Versioning and set a lifecycle policy to transition older versions to Glacier after 90 days, with a 7-day non-deletable retention period using S3 Object Lock.
+- Enable CloudTrail data events for S3 and send logs to a centralized SIEM. Set up CloudWatch alarms for any PutBucketPolicy or DeleteBucket operations.
+- Restrict access to the bucket via a VPC endpoint, ensuring the application EC2 instances use an instance profile with the least-privilege role.
+- Run AWS Macie to scan for any inadvertently stored PHI in non-compliant locations.
+
+This configuration meets HIPAA requirements for access controls, audit controls, integrity controls, and transmission security.
+
+**Security Relevance**
+
+Cloud storage misconfigurations remain the leading cause of data breaches in cloud environments. The 2023 Verizon DBIR reported that 82% of cloud storage breaches involved data stored in publicly accessible buckets. Attackers routinely scan for open S3 buckets, Azure Blob containers, and Google Cloud Storage buckets using automated tools.
+
+The shared responsibility model means the CSP secures the infrastructure, but the customer is responsible for configuring access, encryption, and logging. A single misconfigured bucket policy or an overly permissive IAM role can expose terabytes of sensitive data. Additionally, insider threats—whether malicious or accidental—are amplified by the ease of copying large datasets from cloud storage to unauthorized locations.
+
+Compliance frameworks (HIPAA, PCI DSS, SOC 2, GDPR) require specific controls for cloud storage: encryption at rest and in transit, access logging, data classification, and retention policies. Failure to implement these controls can result in regulatory fines, loss of certification, and reputational damage.
+
+**Key Takeaways**
+1. Enforce encryption at rest and in transit using customer-managed keys, and never rely solely on default CSP-managed keys for regulated data.
+2. Implement least privilege access with IAM roles, block public access by default, and enable detailed logging with real-time alerts for anomalous storage operations.
+3. Use versioning, object lock, and lifecycle policies to ensure data integrity, prevent accidental deletion, and meet compliance retention requirements.

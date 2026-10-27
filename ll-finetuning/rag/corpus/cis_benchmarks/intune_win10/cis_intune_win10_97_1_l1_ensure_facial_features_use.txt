@@ -1,0 +1,26 @@
+97.1: (L1) Ensure 'Facial Features Use Enhanced Anti Spoofing' is
+
+Overview
+This policy setting determines whether enhanced anti-spoofing is configured for devices 
+which support it. 
+The recommended state for this setting is: true.
+
+Why This Matters
+Enterprise managed environments are now supporting a wider range of mobile devices, 
+increasing the security on these devices will help protect against unauthorized access 
+on your network.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Microsoft\Policies\PassportForWork\Biometrics:FacialFeaturesUse
+EnhancedAntiSpoofing
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to true. 
+Windows Hello For Business\Facial Features Use Enhanced Anti Spoofing
+
+Key Takeaways
+- Enterprise managed environments are now supporting a wider range of mobile devices,  increasing the security on these devices will help protect against unauthorized access  on your network.

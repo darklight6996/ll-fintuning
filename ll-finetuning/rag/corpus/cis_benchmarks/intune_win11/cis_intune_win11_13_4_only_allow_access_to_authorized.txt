@@ -1,0 +1,24 @@
+13.4: Only Allow Access to Authorized Cloud Storage or
+
+Overview
+This policy setting controls whether Windows records attempts to connect with the 
+OneSettings service to the Event Log. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+If events are not recorded it may be difficult or impossible to determine the root cause of 
+system problems or the unauthorized activities of malicious users.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection:EnableOneSettingsAudi ting
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+System\Enable OneSettings Auditing
+
+Key Takeaways
+- If events are not recorded it may be difficult or impossible to determine the root cause of  system problems or the unauthorized activities of malicious users.

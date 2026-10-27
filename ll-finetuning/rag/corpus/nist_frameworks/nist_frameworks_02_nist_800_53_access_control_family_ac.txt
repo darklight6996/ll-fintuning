@@ -1,0 +1,49 @@
+The Access Control (AC) family, as defined within NIST Special Publication 800-53 (Rev. 5), governs the policies, procedures, and technical mechanisms that restrict access to systems, networks, and data to authorized entities. It is a foundational security control family because it directly enforces the principle of least privilege and separation of duties. Without a robust AC baseline, all other security controls—encryption, logging, auditing—are rendered ineffective because an adversary or insider can bypass them by simply having improper access.
+
+**Definition**
+
+The AC family comprises controls that manage the identification, authentication, authorization, and accountability of users and processes. Its primary objective is to ensure that only explicitly authorized subjects (users, devices, services) can perform specific actions (read, write, execute, delete) on specific objects (files, databases, network segments). This is achieved through a combination of rule sets, account management practices, and enforcement points. The family does not cover authentication itself (that falls under the Identification and Authentication, or IA, family) but focuses on what happens *after* authentication is successful—specifically, how access decisions are made and enforced.
+
+**Key Components**
+
+The AC family is subdivided into several control enhancements. The most critical components for a security engineer to implement are:
+
+- **AC-1 (Policy and Procedures):** The foundational governance control. Requires documented access control policy and procedures. Without this, all technical controls lack a binding rule set.
+- **AC-2 (Account Management):** Covers the entire lifecycle of user accounts: creation, modification, review, and termination. Key sub-enhancements include:
+    - **AC-2(1):** Automated account management (e.g., integration with HR systems for automatic deprovisioning).
+    - **AC-2(3):** Disabling inactive accounts (typically after 35 days).
+    - **AC-2(4):** Automated audit of account creation, modification, and deletion.
+- **AC-3 (Access Enforcement):** The core technical control. Enforces authorized access decisions. This is where you implement Role-Based Access Control (RBAC), Attribute-Based Access Control (ABAC), or Mandatory Access Control (MAC) at the operating system, database, or application layer.
+- **AC-4 (Information Flow Enforcement):** Controls the flow of information between systems and networks. Implemented via firewalls, data diodes, and cross-domain solutions. Critical for preventing data exfiltration.
+- **AC-5 (Separation of Duties):** Prevents a single individual from having conflicting privileges (e.g., a user who can both create a purchase order and approve payment). Enforced through RBAC role design and workflow approvals.
+- **AC-6 (Least Privilege):** Ensures users and processes operate with the minimum privileges necessary to perform their tasks. Implementation includes:
+    - **AC-6(1):** Authorize access to security functions (e.g., only specific admin accounts can modify firewall rules).
+    - **AC-6(5):** Privileged accounts must be non-personal (shared or service accounts) and monitored.
+- **AC-7 (Unsuccessful Logon Attempts):** Enforces account lockout after a defined number of failed attempts (e.g., 3 attempts, 15-minute lockout). Mitigates brute-force attacks.
+- **AC-17 (Remote Access):** Governs how external users connect to internal systems. Requires VPNs, multi-factor authentication (MFA), and session timeouts.
+- **AC-20 (Use of External Information Systems):** Controls how organizational users access external systems (e.g., cloud services, partner portals). Requires agreements and technical controls to prevent data leakage.
+
+**Real-World Application**
+
+Consider a typical hybrid cloud environment (on-premises Active Directory + AWS). Implementing the AC family requires a layered approach:
+
+1.  **Identity Governance (AC-2):** Integrate Active Directory with your HR system (e.g., Workday) via a provisioning tool (e.g., Microsoft Identity Manager or Okta). When an employee leaves, their account is automatically disabled within 24 hours. For AWS, use IAM Identity Center to sync groups from AD, ensuring that role assignments are tied to group membership, not individual users.
+2.  **Access Enforcement (AC-3):** On Linux servers, enforce RBAC via sudoers files and SELinux policies. On Windows servers, use Group Policy to restrict local admin rights. In AWS, implement S3 bucket policies that explicitly deny access unless the request originates from a specific VPC endpoint (AC-4).
+3.  **Least Privilege (AC-6):** Create separate service accounts for each application. Do not reuse a single admin account for backups, monitoring, and patching. For cloud APIs, use temporary credentials (AWS STS) instead of long-lived access keys.
+4.  **Remote Access (AC-17):** Require all remote connections to go through a VPN gateway that enforces device compliance (e.g., CrowdStrike must be running). Apply MFA for all VPN sessions. Set idle session timeouts to 15 minutes.
+5.  **Separation of Duties (AC-5):** In your CI/CD pipeline, ensure that the developer who commits code cannot also approve and deploy that code to production. Use separate AWS accounts for development, staging, and production, with cross-account IAM roles that require manual approval for promotion.
+
+**Security Relevance**
+
+The AC family is the primary defense against the most common attack vectors: credential theft, insider threats, and privilege escalation. A misconfigured AC control is often the root cause of major breaches.
+
+- **Credential Theft:** Without AC-7 (lockout) and AC-2(3) (inactive account disabling), an attacker can brute-force a dormant service account indefinitely. Once inside, without AC-6 (least privilege), they can pivot laterally.
+- **Insider Threat:** Without AC-5 (separation of duties), a malicious system administrator can exfiltrate the entire database without any oversight. Without AC-4 (information flow enforcement), they can copy data to an external cloud storage service.
+- **Privilege Escalation:** Without AC-3 (access enforcement) and AC-6(1) (authorization for security functions), a standard user can modify their own group membership or disable logging.
+
+From a compliance perspective, the AC family is mandatory for FedRAMP, PCI DSS, HIPAA, and SOC 2. Auditors will specifically test AC-2 (account reviews), AC-3 (enforcement), and AC-6 (least privilege). Failure to demonstrate these controls results in a finding.
+
+**Key Takeaways**
+- The AC family enforces *who* can do *what* on *which* resource, and is the primary technical barrier against unauthorized access and privilege escalation.
+- Implementation must be automated (AC-2(1), AC-2(4)) and layered across identity governance, network segmentation, and application-level RBAC to be effective.
+- Auditors prioritize AC-2, AC-3, and AC-6; you must have documented evidence of account lifecycle management, enforcement mechanisms, and least privilege configurations.

@@ -1,0 +1,55 @@
+14.4: Encrypt All Sensitive Information in Transit (and related controls)
+
+Overview
+This policy setting allows you to manage whether the Windows Remote Management 
+(WinRM) client will not use Digest authentication. 
+The recommended state for this setting is: Enabled.
+
+This policy setting allows you to manage whether the Windows Remote Management 
+(WinRM) service will allow RunAs credentials to be stored for any plug-ins. 
+The recommended state for this setting is: Enabled. 
+Note: If you enable and then disable this policy setting, any values that were previously 
+configured for RunAsPassword will need to be reset.
+
+Why This Matters
+Digest authentication is less robust than other authentication methods available in 
+WinRM, an attacker who is able to capture packets on the network where WinRM is 
+running may be able to determine the credentials used for accessing remote hosts via 
+WinRM.
+
+Although the ability to store RunAs credentials is a convenient feature it increases the 
+risk of account compromise slightly. For example, if you forget to lock your desktop 
+before leaving it unattended for a few minutes another person could access not only the 
+desktop of your computer but also any hosts you manage via WinRM with cached 
+RunAs credentials.
+
+Audit Steps
+For Encrypt All Sensitive Information in Transit:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client:AllowDigest
+
+For Encrypt All Sensitive Information in Transit:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service:DisableRunAs
+
+Remediation
+For Encrypt All Sensitive Information in Transit:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Windows Remote Management 
+(WinRM)\WinRM Client\Disallow Digest authentication
+
+For Encrypt All Sensitive Information in Transit:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Windows Remote Management 
+(WinRM)\WinRM Service\Disallow WinRM from storing RunAs credentials
+
+Key Takeaways
+- Digest authentication is less robust than other authentication methods available in  WinRM, an attacker who is able to capture packets on the network where WinRM is  running may be able to determine the credentials used for accessing remote hosts via  WinRM.
+- Although the ability to store RunAs credentials is a convenient feature it increases the  risk of account compromise slightly.
+- For example, if you forget to lock your desktop  before leaving it unattended for a few minutes another person could access not only the  desktop of your computer but also any hosts you manage via WinRM with cached  RunAs credentials.

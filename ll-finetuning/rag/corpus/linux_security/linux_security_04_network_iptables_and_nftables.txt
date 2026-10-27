@@ -1,0 +1,120 @@
+**Definition**
+
+Iptables and nftables are Linux kernel packet filtering frameworks used to implement firewalls, NAT, and packet mangling. Iptables, part of the legacy Netfilter subsystem, operates on a table-chain-rule model with fixed hooks (PREROUTING, INPUT, FORWARD, OUTPUT, POSTROUTING). Nftables, introduced in kernel 3.13 and stable since 3.18, is the modern replacement that unifies iptables, ip6tables, arptables, and ebtables into a single framework with a simpler, more flexible bytecode-based rule engine. Nftables uses a single `nft` userspace utility and a new in-kernel virtual machine (nft VM) for rule evaluation, eliminating the per-protocol duplication inherent in iptables.
+
+**Key Components**
+
+**Iptables Architecture**
+- Tables: `filter` (default for packet filtering), `nat` (connection tracking and address translation), `mangle` (packet header modification), `raw` (connection tracking bypass), `security` (SELinux context marking).
+- Chains: Built-in chains per table (e.g., INPUT, OUTPUT, FORWARD in filter table). User-defined chains for modular rule organization.
+- Rules: Ordered list of matches (e.g., `-s`, `-d`, `-p`, `--dport`) and targets (e.g., ACCEPT, DROP, REJECT, LOG, DNAT, SNAT, MASQUERADE).
+- Connection tracking (`conntrack`): Stateful inspection via `-m state` or `-m conntrack` modules. States: NEW, ESTABLISHED, RELATED, INVALID.
+
+**Nftables Architecture**
+- Namespaces: Tables are isolated by address family (ip, ip6, inet, arp, bridge, netdev). The `inet` family unifies IPv4 and IPv6 rules.
+- Chains: Base chains attach to Netfilter hooks (prerouting, input, forward, output, postrouting) with a priority value for ordering. Regular chains are for jumps/gotos.
+- Rules: Composed of expressions (e.g., `ip saddr`, `tcp dport`, `ct state`) and verdicts (accept, drop, reject, queue, continue, return, jump, goto).
+- Sets and maps: Native support for IP sets, port ranges, and key-value mappings (e.g., `ip saddr @whitelist`). Sets can be anonymous (inline) or named (predefined).
+- Stateful objects: Counters, quotas, and limits can be attached directly to rules or sets without separate modules.
+
+**Transition from iptables to nftables**
+- The `iptables-translate` tool converts iptables rules to nftables syntax.
+- The `iptables-legacy` and `iptables-nft` binaries allow coexistence. `iptables-nft` uses the nftables kernel API but accepts iptables syntax.
+- Kernel config: `CONFIG_NF_TABLES`, `CONFIG_NFT_*` modules replace `CONFIG_IP_NF_*` options.
+
+**Real-World Application**
+
+**1. Stateless Packet Filtering (iptables)**
+```
+iptables -A INPUT -p tcp --dport 22 -s 10.0.0.0/24 -j ACCEPT
+iptables -A INPUT -p tcp --dport 22 -j DROP
+```
+Use case: Restrict SSH access to a management subnet. Simple, but lacks native set support—requires multiple rules for large subnet lists.
+
+**2. Stateful Firewall with Connection Tracking (nftables)**
+```
+table inet filter {
+    chain input {
+        type filter hook input priority 0; policy drop;
+        ct state invalid drop
+        ct state {established, related} accept
+        iif lo accept
+        tcp dport 22 ip saddr 10.0.0.0/24 accept
+        tcp dport 443 accept
+    }
+    chain forward {
+        type filter hook forward priority 0; policy drop;
+        ct state {established, related} accept
+        ip saddr 192.168.1.0/24 oif eth0 accept
+    }
+}
+```
+Use case: Default-deny firewall for a web server. Nftables reduces rule count by combining IPv4/IPv6 in one table and using named sets for allowed source IPs.
+
+**3. Rate Limiting with Nftables Sets**
+```
+table inet filter {
+    set ssh_ratelimit {
+        type ipv4_addr
+        flags dynamic, timeout
+        size 65536
+        timeout 60s
+    }
+    chain input {
+        type filter hook input priority 0; policy drop;
+        tcp dport 22 add @ssh_ratelimit { ip saddr limit rate 5/minute } accept
+        tcp dport 22 drop
+    }
+}
+```
+Use case: Mitigate SSH brute-force attacks. Dynamic sets track source IPs and enforce rate limits without external scripts.
+
+**4. NAT with Nftables Maps**
+```
+table ip nat {
+    chain prerouting {
+        type nat hook prerouting priority -100;
+        tcp dport 80 dnat to 10.0.0.10:8080
+        tcp dport 443 dnat to 10.0.0.10:8443
+    }
+    chain postrouting {
+        type nat hook postrouting priority 100;
+        oif eth0 masquerade
+    }
+}
+```
+Use case: Port forwarding to an internal web server with outbound NAT for internet access. Maps can replace multiple DNAT rules for dynamic port-to-IP mappings.
+
+**5. Logging and Auditing**
+```
+nft add rule inet filter input log prefix "INPUT_DROP: " drop
+```
+Use case: Log dropped packets for incident response. Nftables supports `log` with prefix, group, and threshold parameters. Avoid logging accepted traffic in production to reduce log volume.
+
+**Security Relevance**
+
+**Performance and Scalability**
+- Nftables uses a single pass through a compiled bytecode program, reducing per-packet overhead compared to iptables' linear rule traversal.
+- Sets and maps enable O(1) lookups for large IP lists (e.g., 100,000+ entries) versus iptables' O(n) rule matching.
+- Connection tracking is shared between both frameworks, but nftables allows selective conntrack bypass via `notrack` expression for high-throughput flows (e.g., DNS, NTP).
+
+**Reduced Attack Surface**
+- Nftables eliminates the need for multiple kernel modules (ip_tables, ip6_tables, arp_tables, ebtables) and their associated compat layers.
+- The nftables kernel API is smaller and less complex, reducing the chance of privilege escalation bugs. CVE-2022-1015 and CVE-2022-1016 affected iptables' `setsockopt` path; nftables uses a netlink-based API with stricter validation.
+- Nftables supports atomic rule replacement: `nft -f ruleset.nft` loads an entire ruleset atomically, preventing race conditions during updates.
+
+**Compliance and Auditability**
+- Nftables provides a single, human-readable ruleset dump (`nft list ruleset`) that can be version-controlled and reviewed.
+- The `nft monitor` command streams real-time rule changes, useful for SIEM integration and change detection.
+- Iptables rulesets often accumulate unused rules; nftables' explicit table/chain structure encourages clean, minimal configurations.
+
+**Operational Security Considerations**
+- Always test rulesets in a non-production environment. Nftables' `--check` flag validates syntax without applying rules.
+- Use `nft -c` to count rule hits for debugging, but remove counters in production to avoid performance impact.
+- For legacy systems, ensure `iptables-legacy` is not accidentally used alongside `iptables-nft`—check with `iptables --version`.
+- Nftables does not support all iptables extensions (e.g., `-m physdev`, `-m recent`). Migrate to native nftables expressions or use sets with timeouts.
+
+**Key Takeaways**
+- Nftables is the successor to iptables, offering unified address family support, native sets/maps, and atomic rule updates for improved performance and security.
+- Migrate from iptables to nftables to reduce kernel attack surface, simplify rule management, and enable scalable packet filtering with dynamic sets.
+- Always validate rulesets with `nft -c` and use atomic loading to prevent firewall misconfigurations that could expose critical assets.

@@ -1,0 +1,56 @@
+**Definition**
+
+Evidence collection in the context of SOC 2 refers to the systematic process of gathering, preserving, and documenting data that demonstrates a service organization’s compliance with the Trust Services Criteria (TSC). Unlike general logging or monitoring, SOC 2 evidence collection is purpose-built to satisfy audit requirements. The evidence must be objective, verifiable, and directly tied to specific controls defined in the System Description. It serves as the factual basis for the auditor’s opinion on whether controls were designed effectively and operated with reasonable assurance over the audit period.
+
+**Key Components**
+
+Effective SOC 2 evidence collection relies on four interdependent components: scope definition, data sources, collection methods, and preservation mechanisms.
+
+**1. Scope Definition**
+- Map each TSC category (Security, Availability, Processing Integrity, Confidentiality, Privacy) to specific controls in your control matrix.
+- Identify which systems, applications, data flows, and personnel are in scope. Evidence must cover all in-scope elements.
+- Define the audit period (typically 6–12 months) and ensure evidence timestamps fall within this window.
+
+**2. Data Sources**
+- **System logs:** Authentication logs, access control logs, change management logs, and network device logs. These must include timestamps, user identifiers, and action details.
+- **Configuration snapshots:** Baseline configurations for firewalls, servers, databases, and cloud services. Use version-controlled files or automated configuration management tools (e.g., Ansible, Terraform).
+- **Access reviews:** Reports from identity and access management (IAM) systems showing user access reviews, role changes, and terminations.
+- **Incident response records:** Tickets, investigation reports, and post-incident reviews. Ensure they include timestamps, actions taken, and resolution status.
+- **Training records:** Completion certificates, LMS logs, and attestations for security awareness training.
+- **Vendor management artifacts:** Due diligence questionnaires, penetration test reports, and SOC 2 reports from subservice organizations.
+
+**3. Collection Methods**
+- **Automated collection:** Use SIEMs, SOAR platforms, or custom scripts to pull logs and reports on a scheduled basis. Automation reduces human error and ensures consistent coverage.
+- **Manual collection:** For artifacts that cannot be automated (e.g., signed policy acknowledgments, physical security logs), use standardized templates and checklists. Each manual artifact must be reviewed for completeness and accuracy.
+- **Continuous monitoring:** Implement tools that provide real-time evidence of control operation (e.g., file integrity monitoring, user behavior analytics). This supports the “operating effectiveness” requirement.
+
+**4. Preservation Mechanisms**
+- **Immutable storage:** Store evidence in write-once-read-many (WORM) storage or append-only logs to prevent tampering.
+- **Chain of custody:** Document who collected each piece of evidence, when, and how. Use hashing (SHA-256) to verify integrity.
+- **Retention policies:** Retain evidence for at least the audit period plus any contractual or regulatory retention requirements. Typically, 12–24 months is standard.
+
+**Real-World Application**
+
+Consider a SaaS company preparing for its first SOC 2 Type II audit. The security team must collect evidence for the Security criterion, specifically control CC6.1 (Logical and physical access controls). The following steps illustrate real-world application:
+
+- **Automated log collection:** Configure the SIEM to export daily authentication logs from the identity provider (e.g., Okta, Azure AD). Ensure logs include successful and failed login attempts, MFA usage, and session durations.
+- **Access review evidence:** Run a monthly report from the IAM system showing all user accounts, their roles, and last login dates. The security engineer reviews the report, marks any dormant accounts for disablement, and saves the reviewed report with a timestamp.
+- **Change management evidence:** For each code deployment, capture the change request ticket, approval email, and deployment log. Use a CI/CD pipeline that automatically archives these artifacts to a secure S3 bucket with versioning enabled.
+- **Physical access evidence:** For on-premises data centers, collect badge access logs and visitor logs. Cross-reference these with the list of authorized personnel. Store the logs in a tamper-evident format (e.g., signed PDFs).
+- **Audit readiness check:** Two weeks before the auditor’s fieldwork, run a gap analysis. Compare collected evidence against the control matrix. If any control lacks evidence (e.g., quarterly access reviews missing for one quarter), remediate immediately by performing a retroactive review and documenting the reason.
+
+**Security Relevance**
+
+Evidence collection is not merely a compliance exercise; it directly impacts security posture. The same data used to prove control effectiveness can be repurposed for threat detection, incident response, and forensic analysis. For example:
+
+- **Log integrity:** Immutable storage of authentication logs prevents an attacker from covering their tracks by modifying logs. This aligns with SOC 2’s requirement for “protection of evidence” and supports forensic investigations.
+- **Access review artifacts:** Regularly collected access review evidence forces the organization to identify and remove excessive permissions, reducing the blast radius of a compromised account.
+- **Change management logs:** Detailed change records enable rapid identification of unauthorized configuration changes, which is a common attack vector.
+- **Incident response records:** Evidence of incident handling demonstrates that the organization can detect and respond to security events, which is a core requirement of the Security criterion.
+
+From a risk management perspective, weak evidence collection creates audit findings and potential legal liability. If an auditor cannot verify a control, the organization may receive a qualified opinion or fail the audit entirely. Moreover, in the event of a breach, regulators and customers will scrutinize whether the organization had adequate evidence of its security controls. Inadequate evidence can be interpreted as inadequate security.
+
+**Key Takeaways**
+- Evidence collection must be systematic, automated where possible, and tied directly to each control in the SOC 2 control matrix to ensure audit readiness.
+- Immutable storage and chain-of-custody documentation are non-negotiable for preserving evidence integrity and meeting auditor expectations.
+- The same evidence collected for compliance directly strengthens security operations by enabling detection, investigation, and remediation of threats.

@@ -1,0 +1,71 @@
+10.3.12: Ensure Redundancy is set to 'geo-redundant storage (GRS)' on critical Azure Storage
+
+Remediation
+CIS has developed Build Kits for many technologies to assist in the automation of 
+hardening systems. Build Kits are designed to correspond to Benchmark's 
+“Remediation” section, which provides the manual remediation steps necessary to make 
+that Recommendation compliant to the Benchmark. 
+When remediating systems (changing configuration settings on 
+deployed systems as per the Benchmark's Recommendations), 
+please approach this with caution and test thoroughly. 
+The following is a reasonable remediation approach to follow: 
+• CIS Build Kits, or internally developed remediation methods should never be 
+applied to production systems without proper testing. 
+• Proper testing consists of the following: 
+o Understand the configuration (including installed applications) of the targeted 
+systems. Various parts of the organization may need different configurations 
+(e.g., software developers vs standard office workers). 
+o Read the Impact section of the given Recommendation to help determine if 
+there might be an issue with the targeted systems. 
+o Test the configuration changes with representative lab system(s). If issues 
+arise during testing, they can be resolved prior to deploying to any production 
+systems. 
+o When testing is complete, initially deploy to a small sub-set of production 
+systems and monitor closely for issues. If there are issues, they can be 
+resolved prior to deploying more broadly. 
+o When the initial deployment above is completes successfully, iteratively 
+deploy to additional systems and monitor closely for issues. Repeat this 
+process until the full deployment is complete. 
+Summary 
+Using the Benchmarks Certified tools, working as a team with key stakeholders, being 
+selective with exceptions, and being careful with remediation deployment, it is possible 
+to harden large numbers of deployed systems in a cost effective, efficient, and safe 
+manner. 
+NOTE: As previously stated, the PDF versions of the CIS Benchmarks™ are 
+available for free, non-commercial use on the CIS Website. All other formats 
+of the CIS Benchmarks™ (MS Word, Excel, and Build Kits) are available for 
+CIS SecureSuite® members. 
+CIS-CAT® Pro is also available to CIS SecureSuite® members. 
+Target Technology Details 
+This document, CIS Microsoft Azure Foundations Benchmark, provides prescriptive 
+guidance for establishing a secure baseline configuration for Microsoft Azure. This 
+Benchmark is scoped to establish foundational security for tenancy in the Microsoft 
+Azure cloud services platform. For Cloud Service Providers, the "Foundations" 
+Benchmark is meant to be used as a first step which is complimented by "Service 
+Category" Benchmarks as a second step. This relationship is further explained in the 
+"Introduction" section. Section overviews are used extensively in this document to 
+provide specific and very important context - review section overviews diligently. 
+
+The sections of this document are titled to reflect the product category names found in 
+the Microsoft Azure Product Directory. These categorical sections are then divided into 
+subsections that will be titled to reflect the specific services being addressed. 
+Recommendations will be found in these subsections if "Foundational" 
+recommendations are available for the service, OR if a Service Category Benchmark 
+has not yet been created to address the Service Category. 
+
+To obtain the latest version of this guide, please visit https://benchmarks.cisecurity.org. 
+If you have questions, comments, or have identified ways to improve this guide, please 
+write us at BenchmarkInfo@cisecurity.org. 
+Intended Audience 
+This document is intended for system and application administrators, security 
+specialists, auditors, help desk, and platform deployment personnel who plan to 
+develop, deploy, assess, or secure solutions that incorporate Microsoft Azure. 
+Consensus Guidance 
+This CIS Benchmark™ was created using a consensus review process comprised of a 
+global community of subject matter experts. The process combines real world 
+experience with data-based information to create technology specific guidance to assist 
+users to secure their environments. Consensus participants provide perspective from a 
+diverse set of backgrounds
+
+Key Takeaways
+- This control mitigates risks associated with ensure redundancy is set to 'geo-redundant storage (grs)' on critical azure storage.

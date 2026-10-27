@@ -1,0 +1,49 @@
+Disk forensics is the process of acquiring, preserving, and analyzing data from non-volatile storage media—primarily hard disk drives (HDDs) and solid-state drives (SSDs)—to reconstruct events, recover evidence, and support legal or incident response proceedings. Evidence preservation is the subset of disk forensics that ensures the integrity, authenticity, and chain of custody of the acquired data from the moment of seizure through analysis and presentation. Without rigorous preservation, any evidence extracted is inadmissible in court and useless for internal investigations.
+
+**Key Components of Disk Forensics and Evidence Preservation**
+
+1. **Write Blocking**
+   - A hardware or software write blocker is mandatory when connecting a suspect drive to a forensic workstation. It intercepts all write commands from the operating system, preventing any modification to the source media. Hardware write blockers (e.g., Tableau, WiebeTech) are preferred for HDDs and SSDs because they operate at the ATA/SCSI command level and cannot be bypassed by software. Software write blockers (e.g., EnCase, FTK Imager) are acceptable only when hardware blockers are unavailable, but they introduce risk if the OS or driver stack is compromised.
+
+2. **Hashing for Integrity**
+   - Before and after acquisition, the forensic imager computes a cryptographic hash of the entire source drive. SHA-256 is the current standard; MD5 and SHA-1 are deprecated due to collision vulnerabilities. The hash is recorded in the case file and verified at every transfer of custody. Any mismatch indicates tampering or corruption. For live acquisition (e.g., a running server), a snapshot hash is taken at the start and end of the imaging process to account for normal system writes.
+
+3. **Forensic Imaging Methods**
+   - **Physical (bit-stream) image**: A sector-by-sector copy of the entire drive, including unallocated space, slack space, and partition tables. This is the gold standard because it captures deleted files, remnants of previous partitions, and hidden data. Tools: `dd` (Linux), `dcfldd`, FTK Imager, EnCase.
+   - **Logical image**: Copies only active files and directories. Used when physical imaging is impractical (e.g., multi-terabyte RAID arrays) or when only specific user data is needed. Logical images miss deleted data and file system metadata.
+   - **Sparse image**: Copies only sectors that contain data, skipping zeroed or unallocated sectors. Reduces image size but risks missing data in partially overwritten sectors. Use only when storage is constrained and the risk is documented.
+
+4. **Chain of Custody Documentation**
+   - Every interaction with the evidence must be logged: who seized it, when, where, how it was transported, who imaged it, and who analyzed it. Use a tamper-evident seal on the physical drive and a digital log (e.g., a signed hash manifest) for the image. The chain of custody must be unbroken from seizure to courtroom. Missing links can result in evidence suppression.
+
+5. **Anti-Forensic Countermeasures**
+   - Modern drives, especially SSDs, implement TRIM and garbage collection that can permanently erase data during acquisition. For SSDs, use a hardware write blocker that issues a “freeze lock” ATA command to disable TRIM before powering the drive. For HDDs, avoid spinning the drive unnecessarily—some drives have built-in self-encryption or automatic reallocation of bad sectors that can alter data.
+
+6. **Encryption and Decryption**
+   - If the drive is encrypted (BitLocker, FileVault, LUKS), the forensic imager must capture the encrypted image first. Decryption is attempted later using keys from memory dumps, key files, or brute-force attacks. Never attempt to decrypt in place on the source drive—this modifies the data.
+
+**Real-World Application**
+
+Consider a scenario: a security engineer responds to a suspected data exfiltration by a departing employee. The employee’s company-issued laptop is seized.
+
+- **Step 1**: The engineer immediately powers off the laptop by holding the power button (not a graceful shutdown) to prevent the OS from writing to the drive. For SSDs, this is critical to avoid TRIM commands.
+- **Step 2**: The drive is removed and connected to a forensic workstation via a hardware write blocker. The engineer records the drive model, serial number, and capacity.
+- **Step 3**: A physical bit-stream image is created using `dcfldd` with SHA-256 hashing. The image is written to a dedicated forensic NAS with RAID-6 redundancy.
+- **Step 4**: The original drive is sealed in an anti-static bag, logged into the evidence locker, and never touched again. All analysis is performed on the image.
+- **Step 5**: The engineer verifies the hash of the image against the original drive’s hash. They then mount the image read-only and begin analysis: recovering deleted files from unallocated space, examining the $MFT (Master File Table) for file timestamps, and searching for artifacts of cloud storage uploads (e.g., Dropbox logs, browser history).
+- **Step 6**: If the drive is encrypted, the engineer captures a memory dump from the laptop before power-off (if possible) to extract the decryption key. Otherwise, they image the encrypted drive and attempt decryption offline.
+
+The resulting evidence—timestamps of file access, deleted file contents, and network logs—is presented to HR and legal with a complete chain of custody. Without proper preservation, the employee could claim the data was planted or altered.
+
+**Security Relevance**
+
+Disk forensics and evidence preservation are foundational to incident response, insider threat investigations, and compliance audits. For a security engineer, the relevance is threefold:
+
+- **Legal admissibility**: Evidence that is not preserved correctly is inadmissible in court. This applies to internal disciplinary actions as well—many employment contracts require evidence to meet a “preponderance of evidence” standard, which still demands integrity.
+- **Root cause analysis**: A properly preserved disk image allows engineers to reconstruct the exact state of a system at the time of compromise. This is essential for identifying attack vectors, lateral movement, and data exfiltration paths.
+- **Regulatory compliance**: Frameworks like PCI DSS, HIPAA, and GDPR require organizations to preserve evidence during breach investigations. Failure to do so can result in fines, extended audits, or presumption of guilt.
+
+**Key Takeaways**
+- Always use a hardware write blocker and compute SHA-256 hashes before and after imaging to guarantee data integrity.
+- For SSDs, issue a freeze lock command before powering the drive to prevent TRIM from destroying evidence.
+- Document every step of the chain of custody in a tamper-evident log; without it, the evidence is worthless in any formal proceeding.

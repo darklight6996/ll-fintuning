@@ -1,0 +1,28 @@
+4.10.30.1: (L1) Ensure 'Configure Offer Remote Assistance' is set
+
+Overview
+This policy setting allows you to turn on or turn off Offer (Unsolicited) Remote 
+Assistance on this computer. 
+Help desk and support personnel will not be able to proactively offer assistance, 
+although they can still respond to user assistance requests. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+A user might be tricked and accept an unsolicited Remote Assistance offer from a 
+malicious user.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal 
+Services:fAllowUnsolicited
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\System\Remote Assistance\Configure Offer Remote 
+Assistance
+
+Key Takeaways
+- A user might be tricked and accept an unsolicited Remote Assistance offer from a  malicious user.

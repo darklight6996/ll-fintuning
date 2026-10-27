@@ -1,0 +1,30 @@
+4.11.50.1: (L1) Ensure 'Enable MPR notifications for the system' is
+
+Overview
+This policy setting controls whether winlogon sends Multiple Provider Router (MPR) 
+notifications. MPR handles communication between the Windows operating system and 
+the installed network providers. MPR checks the registry to determine which providers 
+are installed on the system and the order they are cycled through. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+MPR is a legacy utility that provides notifications to registered credential managers or 
+network providers when there is a logon event or a password change event. Although 
+this functionality can be used by legitimate applications, it can also be abused by 
+attackers to harvest logon information.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System:EnableMPR
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled: 
+Administrative Templates\Windows Components\Windows Logon Options\Enable MPR 
+notifications for the system
+
+Key Takeaways
+- MPR is a legacy utility that provides notifications to registered credential managers or  network providers when there is a logon event or a password change event.
+- Although  this functionality can be used by legitimate applications, it can also be abused by  attackers to harvest logon information.

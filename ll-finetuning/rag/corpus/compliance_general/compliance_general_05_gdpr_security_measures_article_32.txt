@@ -1,0 +1,35 @@
+Article 32 of the General Data Protection Regulation (GDPR) mandates that controllers and processors implement “appropriate technical and organizational measures” to ensure a level of security appropriate to the risk. This is the core security obligation in the regulation, distinct from data protection principles like data minimization. It applies to the processing of personal data, regardless of whether the data is pseudonymized or anonymized in the controller’s environment. The article does not prescribe specific technologies; instead, it requires a risk-based approach where the measures are proportional to the nature, scope, context, and purposes of processing, as well as the likelihood and severity of risks to data subjects’ rights and freedoms.
+
+**Key Components of Article 32**
+
+The article explicitly lists four categories of security measures that must be considered, though the list is non-exhaustive:
+
+- **Pseudonymization and encryption of personal data**: Pseudonymization replaces identifying fields with artificial identifiers, reducing linkability without full anonymization. Encryption, typically at rest and in transit, renders data unintelligible without a decryption key. Both are explicitly called out because they directly mitigate the impact of a breach.
+- **Ongoing confidentiality, integrity, availability, and resilience of processing systems and services**: This is the CIA triad plus resilience. Confidentiality ensures unauthorized parties cannot access data; integrity prevents unauthorized modification; availability ensures systems are accessible when needed; resilience means the system can recover from disruptions (e.g., failover clusters, redundant storage).
+- **Ability to restore availability and access in a timely manner in the event of a physical or technical incident**: This maps directly to backup and disaster recovery (DR) planning. The requirement is not just to have backups, but to be able to restore them within a defined time frame that matches the risk assessment. For example, a healthcare provider processing patient records may need hourly backups with sub-hour recovery time objectives (RTOs), while a marketing analytics platform might accept daily backups with a 24-hour RTO.
+- **Regular testing, assessing, and evaluating the effectiveness of technical and organizational measures**: This mandates periodic security testing—penetration testing, vulnerability scanning, tabletop exercises, and audits. Testing must be documented and the results used to adjust controls. A single annual penetration test is insufficient if the risk assessment indicates a higher threat landscape.
+
+**Real-World Application**
+
+Implementing Article 32 requires a structured, documented process. The starting point is a Data Protection Impact Assessment (DPIA) or a risk assessment that identifies specific threats to personal data. For example, a cloud-based SaaS provider processing EU customer data must evaluate risks such as unauthorized access via API keys, data exfiltration through misconfigured S3 buckets, or ransomware encrypting customer databases. Based on that assessment, the provider would:
+
+- Enforce encryption at rest using AES-256 and in transit using TLS 1.3.
+- Implement role-based access control (RBAC) with least privilege, plus multi-factor authentication (MFA) for all administrative accounts.
+- Deploy intrusion detection systems (IDS) and security information and event management (SIEM) for continuous monitoring.
+- Establish a backup strategy with immutable snapshots stored in a separate geographic region, tested quarterly for restore integrity.
+- Conduct quarterly vulnerability scans and annual penetration tests, with remediation SLAs tied to severity (e.g., critical vulnerabilities patched within 48 hours).
+
+A common pitfall is treating Article 32 as a checklist rather than a continuous process. For instance, a company might encrypt databases but leave plaintext logs containing personal data accessible to all developers. The risk assessment must cover all data flows, including backups, logs, and temporary caches. Another real-world example: a controller using a third-party processor for email marketing must verify that the processor’s security measures (e.g., encryption, access controls, incident response) meet the same standard. This is typically done through a Data Processing Agreement (DPA) and periodic audits or SOC 2 reports.
+
+**Security Relevance for Engineers**
+
+From a security engineering perspective, Article 32 is the legal hook that forces organizations to operationalize security controls. It directly influences architecture decisions: you cannot simply “add security later” because the regulation requires measures to be appropriate at the time of processing. For example, designing a microservices architecture without encryption between services (e.g., using mTLS) would violate the confidentiality requirement if personal data flows between them. Similarly, a system that lacks logging for access to personal data fails the “accountability” principle that underpins Article 32—you cannot demonstrate compliance without evidence.
+
+The article also creates liability for both controllers and processors. A processor that suffers a breach due to inadequate security (e.g., no encryption on a database exposed to the internet) can be fined up to 4% of global annual turnover or €20 million, whichever is higher. For engineers, this means security misconfigurations are not just technical debt—they are regulatory violations. The requirement for regular testing means that security teams must have a documented testing schedule and a process for remediating findings. Automated compliance scanning tools (e.g., AWS Config, Azure Policy) can help enforce baseline controls, but they must be supplemented with manual reviews for context-specific risks.
+
+Finally, Article 32’s emphasis on “state of the art” means that security measures must evolve with the threat landscape. Using outdated encryption algorithms (e.g., DES) or failing to patch known vulnerabilities (e.g., Log4j) would likely be deemed non-compliant. Engineers should track industry standards (e.g., NIST SP 800-53, ISO 27001) and regulatory guidance (e.g., EDPB guidelines) to ensure their controls remain appropriate.
+
+**Key Takeaways**
+- Article 32 requires a risk-based, documented security program covering encryption, CIA triad, disaster recovery, and regular testing—not a static checklist.
+- Real-world compliance demands continuous assessment of all data flows, including third-party processors, and integration of security into system architecture from the start.
+- Failure to implement appropriate measures creates direct regulatory liability; security misconfigurations and outdated controls are non-compliance risks that must be actively managed.

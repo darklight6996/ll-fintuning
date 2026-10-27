@@ -1,0 +1,58 @@
+Bitbucket integration security refers to the controls, configurations, and practices that govern how Bitbucket Cloud or Bitbucket Data Center connects with external tools, services, and pipelines. These integrations include webhooks, OAuth applications, SSH keys, personal access tokens, and CI/CD pipeline connections (e.g., Jenkins, GitHub Actions, AWS CodePipeline). Each integration point expands the attack surface, as it introduces external authentication flows, data transmission channels, and privilege delegation mechanisms. The core security objective is to ensure that every integration is authenticated, authorized, encrypted, and auditable, with the principle of least privilege applied to all tokens and permissions.
+
+**Key Components of Bitbucket Integration Security**
+
+1. **Authentication Mechanisms**
+   - **Personal Access Tokens (PATs):** Used for API access and Git operations. Must be scoped to specific repositories or project permissions. Rotate regularly and never hardcode in scripts.
+   - **OAuth 2.0 Applications:** Used for third-party tool integrations. Require explicit user consent and scoped permissions. Revoke unused applications.
+   - **SSH Keys:** Used for Git operations over SSH. Each key should be tied to a single user or service account. Disable weak key types (e.g., RSA < 2048 bits).
+   - **App Passwords:** Legacy authentication for Bitbucket Cloud. Deprecated in favor of PATs. If still in use, restrict to necessary scopes and monitor usage.
+
+2. **Authorization Controls**
+   - **Repository and Project Permissions:** Integrations inherit permissions from the user or service account that created them. Never grant admin-level permissions to integration tokens.
+   - **IP Allow Lists:** Restrict API and Git access to trusted IP ranges. Critical for integrations that do not require public internet exposure.
+   - **Branch Permissions:** Enforce restrictions on which branches integrations can push to or merge. Prevent automated pipelines from writing to protected branches.
+
+3. **Data Transmission Security**
+   - **TLS/SSL:** All API and Git traffic must use TLS 1.2 or higher. Disable weak cipher suites on the server side.
+   - **Webhook Secrets:** Use HMAC-based secrets to verify that incoming webhook payloads originate from Bitbucket. Validate the signature on every request.
+   - **Audit Logging:** Enable audit logs for all integration events: token creation, webhook delivery, OAuth authorization grants. Forward logs to a SIEM for anomaly detection.
+
+4. **Secrets Management**
+   - **Token Storage:** Store PATs, SSH private keys, and webhook secrets in a secrets manager (e.g., HashiCorp Vault, AWS Secrets Manager). Never store in source code or environment variables in plaintext.
+   - **Token Rotation:** Automate rotation of all integration credentials. Set expiration dates on PATs and OAuth tokens. Use short-lived tokens where possible.
+
+**Real-World Application**
+
+Consider a typical CI/CD pipeline where Bitbucket Cloud integrates with a Jenkins server and an artifact repository (e.g., JFrog Artifactory). The integration flow:
+
+- A developer pushes code to a feature branch.
+- Bitbucket sends a webhook to Jenkins with a secret HMAC signature.
+- Jenkins authenticates to Bitbucket using a PAT with read-only access to the repository.
+- Jenkins builds the code and pushes artifacts to Artifactory using a separate PAT scoped only to the artifact repository.
+
+Security implementation steps:
+
+1. **Webhook Secret:** Generate a random 32-character secret in Bitbucket and configure Jenkins to validate the HMAC-SHA256 signature on every incoming webhook. Reject any request without a valid signature.
+2. **PAT Scoping:** Create a Jenkins-specific PAT with only "Repository read" and "Pull request read" permissions. Do not grant admin or write access. Set the PAT to expire in 90 days.
+3. **IP Allow List:** Restrict Jenkins' outbound IP to a static range and add that range to Bitbucket's IP allow list. This prevents unauthorized access from other networks.
+4. **Secrets Manager:** Store the webhook secret and PAT in Vault. Jenkins retrieves them at runtime via a Vault plugin, never exposing them in logs or build output.
+5. **Audit Trail:** Enable Bitbucket audit logs and forward them to the SIEM. Monitor for failed webhook deliveries, token usage from unexpected IPs, and unauthorized PAT creation.
+
+**Security Relevance**
+
+Bitbucket integrations are a primary vector for supply chain attacks and credential theft. A compromised PAT can allow an attacker to clone private repositories, inject malicious code into pipelines, or exfiltrate secrets. Webhooks without signature validation can be spoofed to trigger unauthorized builds. OAuth applications with excessive permissions can be abused to escalate privileges across projects.
+
+The most common security failures in Bitbucket integrations include:
+- Over-permissioned tokens (e.g., admin-level PATs used for read-only tasks).
+- Hardcoded credentials in CI/CD configuration files.
+- Missing webhook signature validation.
+- No IP restrictions on API access.
+- Lack of token expiration and rotation policies.
+
+Mitigating these risks requires a layered approach: enforce least privilege at the token level, validate all incoming webhook payloads, restrict network access, and centralize secrets management. Regular audits of active integrations and token usage are essential. Bitbucket Cloud provides a "Connected apps" page and an "App passwords" section where administrators can review and revoke integrations. For Bitbucket Data Center, use the built-in audit log and the REST API to programmatically audit integration credentials.
+
+**Key Takeaways**
+- Every Bitbucket integration token must be scoped to the minimum permissions required and rotated on a fixed schedule, with expiration dates enforced.
+- Webhook payloads must be validated using HMAC signatures to prevent spoofing and unauthorized pipeline triggers.
+- Centralize all integration secrets in a secrets manager, restrict API access by IP, and continuously audit integration activity through logs and SIEM alerts.

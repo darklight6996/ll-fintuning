@@ -1,0 +1,73 @@
+Active Directory (AD) is the core identity and access management service for most enterprise Windows environments. Hardening AD involves reducing the attack surface by removing unnecessary privileges, enforcing least privilege, securing authentication protocols, and monitoring for abuse. A compromised AD domain grants an attacker control over all joined systems and user accounts.
+
+**Key Components of Active Directory Hardening**
+
+**1. Tiered Administration Model (Red Forest / ESAE)**
+- Implement the Enhanced Security Administrative Environment (ESAE) or a similar tiering model.
+- Separate administrative accounts into Tier 0 (domain controllers, identity management), Tier 1 (server OS, applications), and Tier 2 (workstations).
+- No administrative account from a higher tier should ever log into a lower-tier system.
+- Use dedicated, hardened administrative workstations (PAWs) for Tier 0 tasks.
+
+**2. Privileged Access Management**
+- Remove permanent membership from high-privilege groups: Domain Admins, Enterprise Admins, Schema Admins, and BUILTIN\Administrators.
+- Use just-in-time (JIT) elevation via tools like Microsoft Identity Manager (MIM) or third-party PAM solutions.
+- Enable time-bound group membership for administrative roles.
+- Audit and remove stale or unused privileged accounts, including service accounts with domain admin rights.
+
+**3. Authentication Protocol Hardening**
+- **Kerberos:** Disable RC4 encryption for Kerberos tickets. Enforce AES256 encryption for all service accounts and computer accounts. This prevents Kerberoasting attacks from cracking weak hashes.
+- **NTLM:** Disable NTLM authentication entirely where possible. If required, enforce NTLMv2 and restrict NTLM traffic via Group Policy (Network security: Restrict NTLM: Outgoing NTLM traffic to remote servers).
+- **LDAP:** Require LDAP signing and channel binding. Disable anonymous LDAP binds. Use LDAPS (LDAP over SSL) for all directory queries.
+- **SMB:** Disable SMBv1 on all domain controllers and member servers. Enable SMB signing.
+
+**4. Domain Controller Security**
+- Run only the Active Directory Domain Services role on domain controllers. No additional applications, web servers, or SQL instances.
+- Apply the latest security patches within 30 days for critical vulnerabilities.
+- Enable advanced auditing: Audit account logon events, directory service access, and privilege use.
+- Use Windows Defender Credential Guard on domain controllers to protect LSASS credentials.
+- Implement secure time synchronization (NTP) with authentication to prevent Kerberos replay attacks.
+
+**5. Group Policy Security Baselines**
+- Apply Microsoft Security Compliance Toolkit baselines for domain controllers and member servers.
+- Enforce strong password policies: minimum 14 characters, no complexity requirements (use passphrases), and enable password history of 24.
+- Enable Account Lockout policy: 10 invalid attempts, 15-minute lockout duration.
+- Disable LM hash storage and NTLMv1 via Group Policy.
+- Restrict local administrator rights on workstations and servers to only authorized users.
+
+**6. Delegation and Permission Hardening**
+- Avoid granting "Full Control" or "Write All Properties" on OUs or groups.
+- Use granular delegated permissions for specific tasks (e.g., reset password, manage group membership).
+- Remove "Allowed to Authenticate" permissions from unused service accounts.
+- Audit and remove "GenericAll" or "GenericWrite" ACEs that allow privilege escalation.
+
+**7. Monitoring and Detection**
+- Enable and forward AD security logs to a SIEM (e.g., Event IDs 4624, 4625, 4672, 4732, 4740, 4768, 4769, 4776).
+- Monitor for anomalous Kerberos ticket requests (e.g., service ticket requests for high-value accounts from non-domain controllers).
+- Alert on changes to sensitive groups (Domain Admins, Enterprise Admins) and default admin accounts.
+- Use honeytoken accounts (fake privileged accounts) to detect lateral movement.
+
+**8. Service Account Hardening**
+- Replace user-based service accounts with Group Managed Service Accounts (gMSAs) where possible.
+- For legacy service accounts, enforce long, random passwords (40+ characters) and rotate them regularly.
+- Remove "Log on as a service" rights from accounts that do not require them.
+- Restrict service accounts to only the specific computers they need.
+
+**Real-World Application**
+
+A financial institution with 50,000 users and 200 domain controllers implemented tiered administration. They removed all permanent Domain Admin memberships and deployed a JIT PAM solution. Within three months, they detected and blocked a Kerberoasting attack because RC4 encryption was disabled. They also reduced the number of accounts with domain admin privileges from 45 to 3 (emergency break-glass accounts). The SIEM now alerts on any attempt to use NTLM authentication against domain controllers, and all LDAP queries require signing.
+
+**Security Relevance**
+
+Active Directory is the primary target for attackers because compromising it grants domain-wide control. Common attack paths include:
+- **Kerberoasting:** Cracking service account passwords from Kerberos tickets.
+- **DCSync:** Replicating password hashes from domain controllers.
+- **Pass-the-Hash:** Using NTLM hashes to authenticate laterally.
+- **ACL Abuse:** Modifying permissions to escalate privileges.
+- **Golden Ticket:** Forging Kerberos tickets using the KRBTGT hash.
+
+Hardening directly mitigates these by removing unnecessary privileges, enforcing strong encryption, limiting authentication protocols, and monitoring for abuse. Without these controls, a single compromised workstation can lead to full domain compromise within hours.
+
+**Key Takeaways**
+1. Implement a tiered administration model with dedicated PAWs and JIT privilege elevation to eliminate standing high-privilege access.
+2. Disable RC4 Kerberos encryption, NTLMv1, and enforce LDAP signing to block the most common credential theft and relay attacks.
+3. Enable comprehensive auditing of AD security events and forward them to a SIEM with alerts for anomalous privileged account activity.

@@ -1,0 +1,54 @@
+Binary Authorization is a deploy-time security control that enforces a policy requiring container images to be signed by trusted authorities before they can be deployed to a production environment. It acts as a gatekeeper between your build pipeline and your runtime infrastructure, ensuring that only verified, integrity-checked images reach your clusters. This mechanism is critical for preventing the deployment of tampered, vulnerable, or unauthorized container images.
+
+**Key Components**
+
+Binary Authorization operates through a set of distinct components that work together to enforce the policy:
+
+- **Attestors**: These are trusted entities that verify a container image and produce a cryptographic attestation. An attestor is typically a service (e.g., Cloud Key Management Service, a third-party signing tool) that holds a private key. When an image passes validation—such as passing vulnerability scans, meeting compliance checks, or being built from an approved CI/CD pipeline—the attestor signs the image’s digest. The resulting attestation is stored in a metadata store (e.g., Container Registry metadata).
+
+- **Attestations**: A signed statement that a specific container image digest has been verified by a specific attestor. Each attestation includes the image digest, the attestor’s identity, and a cryptographic signature. Multiple attestations from different attestors can be required for a single image, enforcing a multi-party approval process.
+
+- **Policy**: A set of rules that defines which images are allowed to run. The policy specifies required attestors, allowed image registries, and optional constraints (e.g., “must be from registry X” or “must have at least two attestations from different teams”). The policy is evaluated at deploy time, before the image is pulled or the pod is scheduled.
+
+- **Admission Controller**: A Kubernetes admission webhook that intercepts all pod creation requests. When a request arrives, the admission controller checks the image digest against the Binary Authorization policy. If the policy is satisfied (all required attestations are present and valid), the request is allowed. If not, the request is denied and logged.
+
+- **Platform Integration**: Binary Authorization is typically integrated with managed Kubernetes services (e.g., Google Kubernetes Engine) and container registries (e.g., Artifact Registry, Container Registry). The platform handles the cryptographic verification and policy evaluation transparently, without requiring changes to your application code.
+
+**Real-World Application**
+
+A typical deployment pipeline using Binary Authorization follows this flow:
+
+1. A developer commits code to a source repository.
+2. A CI/CD pipeline (e.g., Cloud Build, Jenkins) builds the container image.
+3. The pipeline runs security scans (SAST, DAST, vulnerability scanning) and unit tests.
+4. If all checks pass, the pipeline signs the image using an attestor key. This produces an attestation that is attached to the image in the registry.
+5. The image is pushed to a container registry.
+6. A deployment request (e.g., `kubectl apply`) triggers the Kubernetes admission controller.
+7. The admission controller queries Binary Authorization for the image digest.
+8. Binary Authorization evaluates the policy: it checks that the image has a valid attestation from the required attestor and that the image comes from an approved registry.
+9. If the policy is satisfied, the pod is created. If not, the request is denied, and an audit log entry is generated.
+
+This process prevents scenarios such as:
+- A developer manually pushing a debug image with known vulnerabilities to production.
+- An attacker injecting a malicious image into the registry and attempting to deploy it.
+- A compromised CI/CD pipeline deploying an unsigned image that bypassed security checks.
+
+**Security Relevance**
+
+Binary Authorization addresses several critical security concerns in containerized environments:
+
+- **Supply Chain Integrity**: By requiring attestations from trusted build pipelines, you ensure that every image in production has been built from known, audited source code and has passed your organization’s security gates. This mitigates risks from compromised dependencies, insider threats, or accidental misconfigurations.
+
+- **Non-Repudiation**: Attestations are cryptographically signed, providing a verifiable chain of custody. If a security incident occurs, you can trace which attestor approved the image and when. This is essential for forensic analysis and compliance audits (e.g., PCI DSS, SOC 2).
+
+- **Least Privilege and Separation of Duties**: The policy can require multiple attestors from different teams (e.g., security team and development team). This enforces separation of duties—no single individual can deploy an image without approval from another trusted party.
+
+- **Runtime Protection**: Unlike runtime security tools (e.g., runtime scanners, network policies), Binary Authorization prevents unauthorized images from ever being scheduled. This reduces the attack surface by ensuring that only vetted images reach production, even if an attacker gains access to the cluster’s API server.
+
+- **Audit and Compliance**: Every deployment decision is logged, including the image digest, the policy evaluation result, and the attestors used. This provides a tamper-evident audit trail that satisfies regulatory requirements for change management and access control.
+
+**Key Takeaways**
+
+- Binary Authorization enforces deploy-time policies that require container images to be cryptographically signed by trusted attestors, preventing unauthorized or tampered images from running in production.
+- The system relies on attestors, attestations, a policy engine, and a Kubernetes admission controller to create a verifiable chain of custody from build to deploy.
+- Implementing Binary Authorization strengthens supply chain security, enforces separation of duties, and provides a robust audit trail for compliance and incident response.

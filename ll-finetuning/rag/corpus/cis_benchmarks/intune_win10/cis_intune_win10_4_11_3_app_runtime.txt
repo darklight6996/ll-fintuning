@@ -1,0 +1,32 @@
+4.11.3: App runtime
+
+Overview
+This policy setting lets you control whether Microsoft accounts are optional for Windows 
+Store apps that require an account to sign in. This policy only affects Windows Store 
+apps that support it. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+Enabling this setting allows an organization to use their enterprise user accounts 
+instead of using their Microsoft accounts when accessing Windows store apps. This 
+provides the organization with greater control over relevant credentials. Microsoft 
+accounts cannot be centrally managed and as such enterprise credential security 
+policies cannot be applied to them, which could put any information accessed by using 
+Microsoft accounts at risk.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System:MSAOptional
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\App runtime\Allow Microsoft 
+accounts to be optional
+
+Key Takeaways
+- Enabling this setting allows an organization to use their enterprise user accounts  instead of using their Microsoft accounts when accessing Windows store apps.
+- This  provides the organization with greater control over relevant credentials.
+- Microsoft  accounts cannot be centrally managed and as such enterprise credential security  policies cannot be applied to them, which could put any information accessed by using  Microsoft accounts at risk.

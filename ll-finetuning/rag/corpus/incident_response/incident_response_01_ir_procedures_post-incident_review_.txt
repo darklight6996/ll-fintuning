@@ -1,0 +1,40 @@
+**Definition**
+
+A post-incident review (PIR), also known as a lessons learned or after-action review, is a structured, systematic examination of an incident response (IR) process and its outcomes. It is conducted after containment, eradication, and recovery are complete. The primary objective is to identify what worked, what did not, and what must change to improve future detection, response, and prevention capabilities. Unlike a root cause analysis (RCA), which focuses narrowly on the technical trigger, a PIR evaluates the entire incident lifecycle—including process, people, technology, and communication. It is a mandatory step in mature IR programs and is often required for compliance with frameworks such as NIST SP 800-61, PCI DSS, and ISO 27001.
+
+**Key Components**
+
+A thorough PIR must include the following elements to be actionable and defensible:
+
+- **Timeline reconstruction**: A chronological log of all events from initial detection through closure. This includes timestamps for alerts, escalations, containment actions, and communications. Discrepancies between expected and actual timelines highlight process gaps.
+- **Detection and alerting analysis**: Evaluate whether the incident was detected by existing controls or by external notification. Assess alert fidelity—false positives, missed detections, and alert fatigue. Document the mean time to detect (MTTD) and mean time to respond (MTTR).
+- **Response actions and decision points**: Catalog every action taken by the IR team, including tool usage, containment strategies, and evidence preservation. Identify decision points where alternative actions could have reduced impact or duration.
+- **Communication effectiveness**: Review internal communications (between IR team, management, legal, PR) and external communications (with customers, regulators, law enforcement). Note delays, misrouting, or incomplete information sharing.
+- **Tool and resource performance**: Assess whether forensic tools, SIEM queries, EDR capabilities, and playbooks performed as expected. Document any tool failures, configuration errors, or missing data sources.
+- **Policy and compliance gaps**: Identify whether existing policies (e.g., data retention, access control, incident classification) were followed or were insufficient. Note any regulatory reporting obligations that were missed or delayed.
+- **Actionable recommendations**: Each finding must map to a specific, measurable improvement. Recommendations should be prioritized by risk reduction and assigned an owner and deadline.
+
+**Real-World Application**
+
+Consider a ransomware incident where the initial compromise occurred via a phishing email that bypassed email security controls. The IR team contained the outbreak within four hours but spent an additional 12 hours restoring backups due to incomplete backup documentation. During the PIR, the team reconstructed the timeline and identified the following:
+
+- **Detection gap**: The phishing email was not flagged because the email security gateway’s machine learning model had not been updated in 90 days. Recommendation: Implement a monthly update cadence for email security models and add a manual review queue for high-risk senders.
+- **Response delay**: The IR team lost 45 minutes locating the backup administrator because the on-call roster was outdated. Recommendation: Automate the on-call schedule integration with the incident management platform and require quarterly roster verification.
+- **Tool failure**: The EDR agent on the compromised endpoint had been disabled by the attacker 72 hours prior to detection. Recommendation: Enable tamper protection on all EDR agents and configure alerts for agent health status changes.
+- **Communication breakdown**: Legal was not notified until 90 minutes after containment, delaying regulatory reporting. Recommendation: Add a mandatory legal notification step to the incident classification playbook for any incident involving data exfiltration or ransomware.
+
+The PIR output was a prioritized action plan with three high-severity items (email gateway updates, EDR tamper protection, on-call automation) assigned to specific teams with 30-day deadlines. The plan was reviewed in the next monthly security steering committee meeting. Six months later, a similar phishing attempt was detected and blocked within 10 minutes, and the on-call process was verified during a tabletop exercise.
+
+**Security Relevance**
+
+The PIR is not a post-mortem for blame; it is a feedback loop that directly strengthens the security posture. Without a structured PIR, organizations repeat the same mistakes, leaving gaps that adversaries can exploit repeatedly. From a compliance perspective, regulators increasingly expect evidence of continuous improvement. For example, PCI DSS Requirement 12.10.6 mandates that entities review and test incident response plans annually, and a PIR is the primary mechanism for that review. Similarly, NIST SP 800-61 explicitly states that lessons learned should be used to update policies, procedures, and technologies.
+
+The PIR also serves as a critical input for threat intelligence. By documenting attacker tactics, techniques, and procedures (TTPs) observed during the incident, the IR team can update detection rules, threat hunting hypotheses, and security awareness training. This transforms a single incident into a systemic defense improvement. Additionally, the PIR provides legal and audit defensibility. A well-documented review demonstrates due diligence and a commitment to security governance, which can mitigate liability and regulatory penalties.
+
+Finally, the PIR process itself must be periodically reviewed. If the same types of findings recur across multiple PIRs (e.g., repeated alert fatigue, slow containment), it indicates a deeper systemic issue that requires executive-level intervention. The PIR is therefore both a tactical and strategic tool.
+
+**Key Takeaways**
+
+1. A post-incident review must focus on process, people, and technology—not just root cause—to produce actionable improvements that reduce future incident impact.
+2. Every finding in a PIR must be mapped to a specific, prioritized recommendation with an owner and deadline; otherwise, the review is a documentation exercise, not a security improvement.
+3. The PIR is a compliance requirement under major frameworks (NIST, PCI DSS, ISO 27001) and provides legal defensibility by demonstrating continuous improvement and due diligence.

@@ -1,0 +1,48 @@
+An offense in IBM QRadar is a correlated set of network events, flows, and vulnerabilities that represent a potential security threat. Offense management is the systematic process of triaging, investigating, assigning, and closing these offenses within the QRadar console. It is the primary workflow for a security analyst using the platform, moving from raw data ingestion to actionable incident response.
+
+**Key Components of QRadar Offense Management**
+
+The offense management workflow is built on several interdependent components that govern how offenses are created, prioritized, and handled.
+
+- **Offense Creation Logic:** QRadar does not create an offense for every single event. An offense is generated when a rule or a set of rules (a rule group) triggers a specific magnitude threshold. Magnitude is a score from 0 to 10, calculated from the relevance (how applicable the event is to the target), severity (the potential impact of the event), and credibility (the reliability of the event source). An offense is created when the cumulative magnitude of correlated events exceeds a configurable threshold, typically 5 or higher.
+
+- **Offense Summary and Details:** Each offense has a summary page that provides a high-level view. Key fields include: Offense ID, Description (derived from the triggering rule), Source IP, Destination IP, Event Count, Flow Count, Magnitude, Time Created, and Assigned To. The details tab provides the raw logs and flows that contributed to the offense, allowing for deep forensic analysis.
+
+- **Rules and Building Blocks:** Offenses are the output of rules. Rules are logical conditions (e.g., "when more than 10 failed login attempts from a single source in 5 minutes") that trigger actions. Building blocks are reusable rule components (e.g., "is this a known malicious IP?") that can be combined into complex rules. Effective offense management requires tuning these rules to reduce false positives.
+
+- **Offense Status and Assignment:** Offenses have a status lifecycle: Open, Assigned, In Progress, and Closed. An analyst can manually assign an offense to themselves or another team member. The assignment system integrates with external ticketing systems (e.g., ServiceNow, Jira) via custom actions or API calls, ensuring that QRadar offenses are tracked in the organization's primary incident management tool.
+
+- **Offense Tuning and False Positive Reduction:** A critical component is the ability to tune offenses. This is done by adding offenses to a "Reference Set" (a lookup table) or by modifying the rule that created the offense. For example, if a vulnerability scanner consistently triggers a low-severity offense, you can add the scanner's IP to a reference set that excludes it from that specific rule. This reduces noise without disabling the rule entirely.
+
+- **Custom Actions and Response:** QRadar allows for automated response to offenses. A custom action can be a script or a playbook that runs when an offense is created or updated. Common examples include: blocking a source IP on a firewall via API, sending a Slack message to a security channel, or automatically creating a ticket in a SIEM case management system.
+
+**Real-World Application: A Phishing Campaign Investigation**
+
+Consider a scenario where an organization receives a wave of phishing emails. The email security gateway logs events to QRadar. A rule is configured: "When a user clicks a link in a phishing email, and that link resolves to a domain with a low reputation score, create an offense."
+
+1.  **Offense Creation:** The rule triggers, creating an offense with a magnitude of 7 (high severity, high credibility from the reputation service, high relevance because it's a user clicking a malicious link). The offense summary shows the source IP (the user's workstation), the destination IP (the malicious domain), and the event count (one click event).
+
+2.  **Triage:** An analyst sees the offense in the "Open Offenses" dashboard. They click on it. The details tab shows the raw log from the email gateway, including the user's email address and the exact URL clicked. The flows tab shows the network connection from the user's workstation to the malicious domain.
+
+3.  **Investigation:** The analyst uses the "Log Activity" tab to search for other events from the same user in the last 24 hours. They also check the "Assets" tab to see if the user's workstation has any known vulnerabilities. They find that the user also downloaded a file from the same domain.
+
+4.  **Response:** The analyst assigns the offense to themselves, changing the status to "In Progress." They run a custom action that isolates the user's workstation from the network via the endpoint detection and response (EDR) tool. They then create a ticket in the ticketing system with the offense ID and all relevant details.
+
+5.  **Closure:** After the incident is resolved (the workstation is cleaned, the user is re-trained), the analyst adds the malicious domain to a reference set called "Known Malicious Domains" to prevent future offenses from the same indicator. They then close the offense with a note explaining the actions taken.
+
+**Security Relevance**
+
+Proper offense management is directly tied to the effectiveness of a security operations center (SOC).
+
+- **Mean Time to Detect (MTTD) and Mean Time to Respond (MTTR):** A well-tuned offense management process reduces MTTD by ensuring that high-magnitude offenses are immediately visible. Automated assignment and custom actions reduce MTTR by eliminating manual hand-offs and enabling immediate containment actions.
+
+- **Alert Fatigue Reduction:** Without offense management, a SOC can be overwhelmed by thousands of individual events. By correlating events into offenses and tuning false positives, analysts focus only on verified threats. This prevents burnout and ensures that critical alerts are not missed.
+
+- **Compliance and Audit Readiness:** Offense management provides a clear audit trail. Every offense has a creation timestamp, assignment history, and closure notes. This is essential for compliance frameworks like PCI DSS, HIPAA, and SOC 2, which require evidence of monitoring and incident response activities.
+
+- **Threat Hunting and Trend Analysis:** Closed offenses are stored in the QRadar database. Security engineers can query historical offenses to identify patterns, such as a specific user being targeted repeatedly or a particular vulnerability being exploited. This data feeds into proactive threat hunting and rule refinement.
+
+**Key Takeaways**
+- QRadar offenses are correlated threats, not raw events; effective management requires tuning rules and reference sets to minimize false positives and focus analyst attention on high-magnitude incidents.
+- The offense lifecycle (Open, Assigned, In Progress, Closed) must be integrated with external ticketing and response systems to automate containment and ensure a complete audit trail.
+- Proper offense management directly reduces MTTD and MTTR, supports compliance requirements, and provides a historical dataset for threat hunting and trend analysis.

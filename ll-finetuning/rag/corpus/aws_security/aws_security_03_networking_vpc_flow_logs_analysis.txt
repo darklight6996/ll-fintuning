@@ -1,0 +1,53 @@
+VPC Flow Logs capture metadata about IP traffic traversing network interfaces in a Virtual Private Cloud. This metadata includes the source and destination IP addresses, ports, protocol, packet and byte counts, and the action (ACCEPT or REJECT) taken by the security group or network ACL. Flow logs are not packet captures; they do not contain payload data. They are generated at intervals, typically aggregated into five-minute windows, and can be published to Amazon CloudWatch Logs or Amazon S3. The log format is a fixed set of fields, and each record represents a single flow.
+
+**Key Components of VPC Flow Logs**
+
+- **Log Destinations:** Flow logs can be sent to CloudWatch Logs for real-time monitoring and metric filtering, or to S3 for long-term storage and batch analysis. S3 is preferred for compliance archives and large-scale analytics because it is cheaper and integrates with Athena, Glue, and EMR. CloudWatch Logs is suitable for alerting and dashboards when latency matters.
+
+- **Log Format and Fields:** The default format includes version, account-id, interface-id, srcaddr, dstaddr, srcport, dstport, protocol, packets, bytes, start, end, action, and log-status. You can customize the format to include fields like vpc-id, subnet-id, instance-id, tcp-flags, and pkt-srcaddr/pkt-dstaddr for deeper analysis. The `action` field is critical: it shows whether the flow was ACCEPTED or REJECTED by the network ACL or security group.
+
+- **Aggregation Interval:** The default is 10 minutes, but you can set it to 1 minute for higher granularity. Shorter intervals increase log volume and cost. For security investigations, 1-minute intervals are often necessary to correlate with specific attack timestamps.
+
+- **Traffic Scope:** Flow logs capture all IP traffic to and from an elastic network interface, including traffic that is ultimately dropped. They do not capture traffic to Amazon DNS servers, Amazon Windows license activation, instance metadata (169.254.169.254), or DHCP traffic. This is a known limitation.
+
+**Real-World Application: Analyzing VPC Flow Logs**
+
+Security engineers use flow logs for threat detection, incident response, and network troubleshooting. The most common analysis patterns are:
+
+- **Identifying Unauthorized Outbound Connections:** Query for flows where `dstport` is 25 (SMTP) or 445 (SMB) to detect data exfiltration or malware beaconing. Filter for `action = ACCEPT` and `srcaddr` belonging to internal subnets, then aggregate by `dstaddr` to find external IPs with high byte counts.
+
+- **Detecting Port Scanning:** Look for flows with `action = REJECT` from a single source IP to multiple destination ports on a single destination IP within a short time window. In Athena, you can use a query like:
+  ```sql
+  SELECT srcaddr, dstaddr, COUNT(DISTINCT dstport) as port_count
+  FROM vpc_flow_logs
+  WHERE action = 'REJECT'
+    AND start > (current_timestamp - interval '5' minute)
+  GROUP BY srcaddr, dstaddr
+  HAVING COUNT(DISTINCT dstport) > 20
+  ORDER BY port_count DESC;
+  ```
+
+- **Correlating with Security Group Changes:** After a security group rule is modified, compare flow logs before and after the change to verify that intended traffic is now allowed and unintended traffic is blocked. This is a standard change validation procedure.
+
+- **Troubleshooting Asymmetric Routing:** When traffic enters via one network interface but exits via another, flow logs will show the flow on both interfaces. Compare the `srcaddr` and `dstaddr` fields across interfaces to identify routing misconfigurations.
+
+- **Compliance Auditing:** For PCI DSS or SOC 2, you must demonstrate that only necessary ports and protocols are allowed. Run periodic queries against flow logs to enumerate all accepted traffic by port, protocol, and destination. Flag any traffic to non-approved external IPs.
+
+**Security Relevance**
+
+VPC Flow Logs are a foundational data source for network security monitoring in cloud environments. Their primary security use cases are:
+
+- **Threat Detection:** Flow logs enable detection of brute-force attempts (many REJECTs on port 22 or 3389), DNS tunneling (high volume of DNS queries to a single external IP), and C2 beaconing (regular, periodic outbound connections to a known malicious IP). Because flow logs are metadata-only, they can be analyzed without decrypting traffic, making them suitable for environments with encrypted protocols.
+
+- **Incident Response:** When an intrusion is suspected, flow logs provide the timeline of network connections. You can identify which instances communicated with a compromised host, the ports used, and the volume of data transferred. This is often the first step in scoping an incident.
+
+- **Network Segmentation Validation:** Flow logs confirm whether network ACLs and security groups are enforcing the intended segmentation. For example, if a production database should only accept traffic from the application tier, flow logs will show any unexpected ACCEPT flows from other subnets.
+
+- **Data Exfiltration Detection:** Unusual outbound traffic patterns, such as large data transfers to unfamiliar IPs or to cloud storage services in other regions, are visible in flow logs. Set up CloudWatch metric filters to alert on high byte counts per source IP.
+
+- **Compliance Evidence:** Auditors require evidence that network controls are effective. Flow logs stored in S3 with object lock provide immutable, timestamped records of all accepted and rejected traffic. This satisfies requirements for logging and monitoring of network access.
+
+**Key Takeaways**
+1. VPC Flow Logs provide metadata-only traffic records; use them for threat detection and compliance auditing, not for payload inspection.
+2. Choose S3 as the destination for cost-effective long-term storage and scalable analysis with Athena; use CloudWatch Logs for real-time alerting.
+3. Focus analysis on the `action` field to distinguish allowed from blocked traffic, and aggregate by source/destination IP and port to identify scanning, exfiltration, and misconfigurations.

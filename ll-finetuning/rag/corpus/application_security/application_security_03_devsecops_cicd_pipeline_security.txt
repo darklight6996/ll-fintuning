@@ -1,0 +1,71 @@
+**Definition**
+
+CI/CD pipeline security refers to the set of controls, processes, and tools applied to the continuous integration and continuous delivery/deployment pipeline to protect the software delivery lifecycle from unauthorized access, code tampering, credential leakage, and supply chain attacks. Unlike traditional security testing performed at the end of development, CI/CD security embeds automated checks at every stage—commit, build, test, deploy—to enforce policy without slowing velocity. The pipeline itself becomes an attack surface; if compromised, an adversary can inject malicious code into production artifacts with full trust.
+
+**Key Components**
+
+1. **Source Code and Version Control Security**
+   - Enforce branch protection rules (require pull request reviews, status checks, signed commits).
+   - Scan for secrets (API keys, tokens, passwords) in commits using tools like git-secrets or pre-commit hooks.
+   - Restrict write access to repositories; use least-privilege service accounts for pipeline triggers.
+
+2. **Build Environment Hardening**
+   - Use ephemeral, isolated build agents (containers or VMs) that are destroyed after each job.
+   - Pin base images to specific, signed digests; scan images for known vulnerabilities (CVEs) before use.
+   - Disable interactive shell access and network egress from build nodes unless explicitly required.
+
+3. **Dependency and Artifact Management**
+   - Implement software bill of materials (SBOM) generation for every build.
+   - Use a private, curated package registry (e.g., Artifactory, Nexus) with allowlisting of approved versions.
+   - Automatically block builds that introduce dependencies with critical or high-severity vulnerabilities.
+
+4. **Credential and Secret Management**
+   - Never store secrets in code, environment variables, or pipeline configuration files.
+   - Use a dedicated secrets vault (e.g., HashiCorp Vault, AWS Secrets Manager) with dynamic, short-lived tokens.
+   - Rotate secrets automatically and audit access logs for every secret retrieval.
+
+5. **Pipeline Configuration as Code**
+   - Store pipeline definitions (e.g., Jenkinsfile, GitLab CI YAML) in version control and review changes via pull requests.
+   - Apply static analysis to pipeline scripts to detect misconfigurations (e.g., hardcoded credentials, insecure shell commands).
+   - Restrict who can modify pipeline definitions; use separate, privileged pipelines for production deployments.
+
+6. **Artifact Signing and Integrity Verification**
+   - Sign all build artifacts (containers, binaries, packages) with a private key held in a hardware security module (HSM) or cloud KMS.
+   - Verify signatures at every downstream stage (deployment, runtime admission control) to ensure tampering has not occurred.
+   - Maintain an immutable audit trail of artifact provenance (who built, when, from which commit).
+
+7. **Deployment and Runtime Security**
+   - Enforce deployment approvals with separation of duties (e.g., developer cannot deploy to production without a security team sign-off).
+   - Use policy-as-code tools (e.g., OPA, Kyverno) to validate deployment manifests against security baselines (e.g., no privileged containers, no host network access).
+   - Implement canary deployments or blue/green strategies with automatic rollback on security alert triggers.
+
+**Real-World Application**
+
+A financial services organization implements a CI/CD pipeline for a microservices-based payment platform. The pipeline includes the following security controls:
+
+- **Pre-commit:** Developers run a local hook that scans for secrets and runs linters. Commits must be signed with GPG.
+- **Build:** Each service is built in a fresh Docker container. The build agent pulls a base image from an internal registry that is rescanned daily. Dependencies are fetched from a private npm registry that blocks packages with known vulnerabilities.
+- **Test:** Unit and integration tests run alongside SAST (Semgrep) and dependency scanning (Trivy). If any critical vulnerability is found, the pipeline fails and notifies the security team via Slack.
+- **Artifact:** The resulting container image is signed using cosign with a key stored in AWS KMS. An SBOM is generated and attached to the image metadata.
+- **Deploy:** The signed image is pushed to a staging environment. An OPA policy checks that the image has a valid signature, that it is not running as root, and that it does not expose unnecessary ports. A manual approval gate requires a security engineer to review the SBOM and SAST results before promotion to production.
+- **Post-deploy:** Runtime monitoring (Falco) detects anomalous behavior in production containers. Any deviation triggers an automatic rollback to the previous signed version.
+
+This pipeline reduced the mean time to remediate (MTTR) for vulnerabilities from days to hours and eliminated a previous pattern of secret leakage in CI logs.
+
+**Security Relevance**
+
+CI/CD pipeline security directly addresses the most common attack vectors in modern software supply chains:
+
+- **Credential theft:** Attackers target CI systems to steal cloud provider keys or database passwords. Vault integration and short-lived tokens limit blast radius.
+- **Dependency confusion:** Malicious packages with the same name as internal packages can be pulled from public registries. Private registries with allowlisting prevent this.
+- **Build poisoning:** Compromised build agents can inject backdoors into artifacts. Ephemeral agents and artifact signing make this detectable and non-repudiable.
+- **Pipeline privilege escalation:** A developer with write access to a pipeline definition can execute arbitrary commands on build nodes. Pipeline-as-code with mandatory reviews prevents unauthorized changes.
+- **Compliance drift:** Without automated policy enforcement, deployments can deviate from security baselines (e.g., running containers as root). Policy-as-code gates enforce compliance at deploy time.
+
+From a compliance perspective, CI/CD security supports frameworks like SOC 2 (change management), PCI DSS (secure coding practices), and NIST SP 800-218 (SSDF). Auditors increasingly expect evidence of automated security gates, artifact provenance, and separation of duties within the pipeline.
+
+**Key Takeaways**
+
+- Treat the CI/CD pipeline as a critical attack surface; apply least privilege, ephemeral environments, and mandatory code review to pipeline definitions themselves.
+- Automate security checks (SAST, dependency scanning, secret detection) as gating steps that block builds or deployments on policy violation, not just as informational reports.
+- Implement artifact signing and provenance tracking to ensure that every deployed artifact can be traced back to a specific, verified build and commit.

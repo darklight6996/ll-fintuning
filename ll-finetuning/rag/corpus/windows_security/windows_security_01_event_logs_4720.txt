@@ -1,0 +1,52 @@
+Event ID 4720 is a Windows security audit event that records the creation of a new user account on a domain controller or local system. It is generated when a user account is created via Active Directory Users and Computers, PowerShell, net user commands, or any other account management tool that interacts with the Security Account Manager (SAM) or Active Directory. This event is part of the Audit User Account Management policy category and is critical for tracking administrative actions that modify the user base.
+
+**Key Components of Event ID 4720**
+
+The event log entry contains several fields that provide context for the account creation:
+
+- **Subject**: Identifies the account that performed the creation. This includes the Security ID (SID), account name, domain, and logon ID. The subject is typically a domain administrator or a service account with delegated permissions.
+- **New Account**: Contains the SID, account name, and domain of the newly created user. The SID is unique and can be used to correlate future events (e.g., logon events) to this specific account.
+- **Attributes**: Lists the properties set on the new account at creation time. Common attributes include:
+  - SAM Account Name: The pre-Windows 2000 logon name.
+  - Display Name: The full name shown in the address book.
+  - User Principal Name (UPN): The internet-style logon name (e.g., user@domain.com).
+  - Home Directory: Path to the user’s home folder.
+  - Home Drive: Mapped drive letter for the home directory.
+  - Script Path: Logon script assigned to the user.
+  - Profile Path: Roaming profile location.
+  - User Workstations: Computers the user is allowed to log on to (if restricted).
+  - Password Last Set: Timestamp of when the password was last changed (usually set to the creation time).
+  - Account Expires: Date when the account will be disabled (if set).
+  - Primary Group ID: Typically 513 (Domain Users) for domain accounts.
+  - User Account Control (UAC): A bitmask that defines account properties such as account disabled, password never expires, smart card required, etc.
+- **Additional Information**: The event may include the workstation name from which the creation was performed, though this is not always populated reliably.
+
+**Real-World Application**
+
+Event ID 4720 is a primary source for detecting unauthorized account creation. In a typical enterprise environment, user account creation should follow a formal process, often triggered by HR onboarding workflows. Security teams use 4720 events to:
+
+- **Baseline normal creation patterns**: Identify which administrators or service accounts routinely create users, and at what times. For example, a helpdesk account might create 10 accounts per week during business hours, while a compromised admin account might create 50 accounts at 3 AM.
+- **Correlate with other events**: Pair 4720 with Event ID 4724 (password reset attempt) or 4624 (successful logon) to see if a newly created account is immediately used. An account created and then logged into within seconds is a strong indicator of backdoor creation.
+- **Monitor for service account creation**: Service accounts often have elevated privileges and should be created only through change management. A 4720 event for an account with a UAC flag indicating “Password Never Expires” or “Account is sensitive and cannot be delegated” warrants review.
+- **Detect lateral movement**: If an attacker compromises a domain controller or a server with account management tools, they may create a local account (on a non-domain-joined system) or a domain account. On domain controllers, 4720 events for domain accounts are logged. On member servers, local account creation generates 4720 in the Security log of that specific machine.
+
+**Security Relevance**
+
+From a security engineering perspective, Event ID 4720 is a high-fidelity indicator of potential compromise when it deviates from baseline. Key security considerations include:
+
+- **Privileged Access Workstations (PAWs)**: Account creation should only be performed from PAWs or dedicated admin workstations. A 4720 event originating from a standard user workstation suggests credential theft or misuse.
+- **Service account hygiene**: Attackers often create accounts with names that mimic legitimate services (e.g., “SQLAgent” or “BackupSvc”). Review the SAM Account Name and UPN for typos or unusual patterns.
+- **UAC flags**: The User Account Control field is a bitmask. Common flags to watch:
+  - 0x10: Account disabled (normal for pre-staged accounts).
+  - 0x100: Password never expires (often used for service accounts, but risky).
+  - 0x200: Smart card required (high security).
+  - 0x10000: Account is sensitive and cannot be delegated (protects against Kerberos delegation attacks).
+  - 0x40000: Password not required (should never occur in production).
+- **Immediate logon after creation**: As noted, a 4624 logon event for the new account within minutes of creation is suspicious. Attackers test credentials immediately to ensure the backdoor works.
+- **Group membership**: While 4720 does not show group membership changes, the Primary Group ID field indicates the default group (usually Domain Users). Subsequent Event ID 4728 (member added to security group) or 4732 (member added to local group) will show privilege escalation.
+
+**Key Takeaways**
+
+1. Event ID 4720 is the definitive audit record for user account creation in Windows environments; monitor it for deviations from baseline creation patterns, especially outside business hours or from unexpected workstations.
+2. The User Account Control (UAC) field in the event contains critical flags that reveal account security posture—flag accounts with “Password Not Required” or “Password Never Expires” for immediate review.
+3. Correlate 4720 with subsequent logon events (4624) and group membership changes (4728, 4732) to detect backdoor accounts created by attackers for persistent access.

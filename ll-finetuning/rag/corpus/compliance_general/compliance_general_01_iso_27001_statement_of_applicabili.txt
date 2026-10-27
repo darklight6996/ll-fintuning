@@ -1,0 +1,41 @@
+**Definition**
+
+The Statement of Applicability (SoA) is a mandatory document required by ISO/IEC 27001:2022 (clause 6.1.3 d). It formally lists which security controls from Annex A are applicable to the organization’s Information Security Management System (ISMS), and for each control, whether it is implemented or excluded, along with the justification for any exclusion. The SoA is not a static checklist; it is a living artifact that reflects the outcome of the risk assessment and risk treatment process. It serves as the bridge between the organization’s risk appetite and the specific controls deployed to mitigate identified risks.
+
+**Key Components**
+
+A compliant SoA must contain the following elements for every control in Annex A (now 93 controls across four themes: Organizational, People, Physical, and Technological):
+
+- **Control Identifier and Name:** e.g., A.5.1 – Policies for Information Security.
+- **Implementation Status:** Explicitly state “Implemented” or “Excluded.”
+- **Justification for Exclusion:** If excluded, provide a clear, risk-based rationale. Common justifications include: the control is not applicable due to business context (e.g., no mobile devices), the risk is accepted, or the control is covered by another mechanism (e.g., a third-party provider). Vague justifications like “not needed” will fail an audit.
+- **Reference to Risk Treatment Plan (RTP):** Link each implemented control to the specific risk(s) it mitigates. This demonstrates traceability from risk identification through to control deployment.
+- **Version Control and Approval:** The SoA must have a version number, date, and be formally approved by ISMS management (typically the CISO or equivalent). Unapproved versions are non-compliant.
+
+**Real-World Application**
+
+Creating and maintaining the SoA is a cyclical process, not a one-time exercise. Here is how a security engineer should operationalize it:
+
+1.  **During Initial ISMS Setup:** After completing the risk assessment, map each identified risk to one or more Annex A controls. For each control, decide if it is required. If a control is not selected, document the risk-based justification. For example, if your organization has no cloud services, you can exclude A.5.23 (Information security for use of cloud services) with the justification: “No cloud services are used; all data resides on-premises.”
+
+2.  **During Internal Audits:** The SoA is the primary document an internal auditor will use to verify control implementation. Ensure that for every control marked “Implemented,” there is corresponding evidence (policies, procedures, logs, configurations). If an auditor finds a control is not actually in place, the SoA must be updated to reflect the true state, and a corrective action must be raised.
+
+3.  **During External Certification Audits:** The certification auditor will review the SoA to confirm that exclusions are legitimate and that implemented controls are effective. A common pitfall is excluding a control that is actually relevant (e.g., excluding physical security controls when the organization has a physical office). This leads to a major non-conformity.
+
+4.  **During Change Management:** Any significant change (new system, new regulation, merger) triggers a re-evaluation of the risk assessment and, consequently, the SoA. For example, if your organization starts using a SaaS HR platform, you must add controls related to cloud security (A.5.23) and supplier relationships (A.5.19–A.5.22). The SoA must be updated before the change is fully operational.
+
+**Security Relevance**
+
+The SoA is not merely a compliance checkbox; it directly impacts security posture in three critical ways:
+
+- **Prevents Control Gaps:** By forcing explicit justification for every exclusion, the SoA prevents the common mistake of ignoring controls that are inconvenient but necessary. For instance, excluding access control reviews (A.8.2) because “it’s too much work” is not a valid justification. The SoA process forces the organization to either implement the control or formally accept the residual risk.
+
+- **Enables Risk-Based Resource Allocation:** The SoA, linked to the risk treatment plan, shows exactly which controls are mitigating the highest-priority risks. A security engineer can use this to prioritize budget and effort. If a control is implemented but not linked to any significant risk, it may be a candidate for removal or optimization.
+
+- **Provides Audit and Legal Defense:** In the event of a security incident, the SoA demonstrates due diligence. It shows that the organization performed a risk assessment, selected controls based on that assessment, and documented the rationale for all decisions. This is critical for regulatory compliance (e.g., GDPR, NIST) and can reduce liability in legal proceedings.
+
+**Key Takeaways**
+
+- The Statement of Applicability is a risk-based document that formally lists which Annex A controls are implemented or excluded, with justifications for each exclusion.
+- Every control in the SoA must be traceable to a specific risk in the risk assessment, and the document must be updated whenever the ISMS changes.
+- A poorly maintained SoA (missing justifications, unapproved versions, or false implementation statuses) is a common cause of major non-conformities during certification audits.

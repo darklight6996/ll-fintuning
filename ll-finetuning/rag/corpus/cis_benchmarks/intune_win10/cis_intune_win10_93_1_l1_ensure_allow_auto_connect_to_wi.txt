@@ -1,0 +1,39 @@
+93.1: (L1) Ensure 'Allow Auto Connect To Wi Fi Sense Hotspots' is
+
+Overview
+This policy setting determines whether users can enable the following WLAN settings: 
+"Connect to suggested open hotspots," "Connect to networks shared by my contacts," 
+and "Enable paid services". 
+• 
+"Connect to suggested open hotspots" enables Windows to automatically 
+connect users to open hotspots it knows about by crowdsourcing networks that 
+other people using Windows have connected to. 
+• 
+"Connect to networks shared by my contacts" enables Windows to automatically 
+connect to networks that the user's contacts have shared with them, and enables 
+users on this device to share networks with their contacts. 
+• 
+"Enable paid services" enables Windows to temporarily connect to open hotspots 
+to determine if paid services are available. 
+The recommended state for this setting is: Block. 
+Note: These features are also known by the name "Wi-Fi Sense".
+
+Why This Matters
+Automatically connecting to an open hotspot or network can introduce the system to a 
+rogue network with malicious intent.
+
+Audit Steps
+1. Navigate to the following registry location and note the WinningProvider GUID. 
+This value confirms under which User GUID the policy is set. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Wifi:AllowAutoConnectToW
+iFiSenseHotspots_ProviderSet 
+2. Navigate to the following registry location and confirm the value is set to 0. 
+HKLM\SOFTWARE\Microsoft\PolicyManager\Providers\{GUID}\Default\Device\Wifi:Al lowAutoConnectToWiFiSenseHotspots
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Block. 
+Wi-Fi Settings\Allow Auto Connect To Wi Fi Sense Hotspots
+
+Key Takeaways
+- Automatically connecting to an open hotspot or network can introduce the system to a  rogue network with malicious intent.

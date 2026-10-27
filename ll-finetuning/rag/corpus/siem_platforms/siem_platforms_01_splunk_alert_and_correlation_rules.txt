@@ -1,0 +1,46 @@
+Alert and correlation rules are the core detection logic within Splunk that transform raw machine data into actionable security events. A correlation rule is a saved search that runs on a schedule or in real-time, evaluating incoming data against a defined condition. When that condition is met, the rule generates a notable event, which is the primary artifact that security analysts triage in Splunk Enterprise Security (ES) or other SIEM workflows. Unlike simple alerts that fire on a single log line, correlation rules are designed to detect multi-step attack patterns, temporal sequences, and statistical anomalies across disparate data sources.
+
+**Key Components**
+
+Every effective correlation rule consists of five mandatory components:
+
+- **Search Query (SPL):** The underlying Splunk Processing Language (SPL) that retrieves and filters the relevant events. This query must be optimized for performance, using indexed fields, time bounds, and summary indexing where appropriate. Example: `index=windows sourcetype=WinEventLog:Security EventCode=4625 | stats count by Account_Name, src_ip | where count > 5`
+
+- **Trigger Condition:** The threshold or pattern that must be met to generate an alert. This can be a simple count (e.g., more than 5 failed logins in 10 minutes), a statistical deviation (e.g., 3 standard deviations above the mean), or a sequence (e.g., event A followed by event B within 60 seconds). In Splunk ES, this is often defined using the `| where` command or the Risk Analysis framework.
+
+- **Time Window:** The lookback period for the search. For real-time rules, this is a sliding window (e.g., `earliest=-15m`). For scheduled rules, it defines the range of data evaluated each time the rule runs. The time window must align with the expected attack timeline to avoid false negatives (too short) or excessive noise (too long).
+
+- **Throttling and Suppression:** Controls to prevent alert fatigue. Throttling limits how often the same rule can fire for the same entity (e.g., one alert per source IP per hour). Suppression temporarily stops alert generation when a known false positive pattern is detected, often based on a lookup table of trusted entities.
+
+- **Response Action:** The automated workflow triggered by the alert. In Splunk, this includes sending to a ticketing system, executing a script (via custom alert actions), or updating a threat intelligence feed. For security use cases, the most critical response action is the creation of a notable event in ES, which includes risk scores, drill-down searches, and assigned ownership.
+
+**Real-World Application**
+
+Consider a common detection scenario: lateral movement via pass-the-hash. A single event of a successful logon (EventCode 4624) is benign. However, when combined with a previous failed logon from a different source IP and a subsequent service installation (EventCode 7045), it indicates a potential attack.
+
+A correlation rule for this scenario would be structured as follows:
+
+1.  **Base Search:** Collect all Windows Security events (4624, 4625, 7045) and Sysmon process creation events (EventID 1) for the last 60 minutes.
+2.  **Correlation Logic:** Use `transaction` or `stats` to group events by `Account_Name` and `Destination_Host`. The condition is: a 4625 event from IP_A, followed within 5 minutes by a 4624 from IP_B (different IP), followed within 10 minutes by a 7045 or a suspicious process launch (e.g., `powershell.exe -enc`).
+3.  **Output:** Generate a notable event with a risk score of 70, include the source IPs, account name, and destination host in the title. Attach a drill-down search that shows the full timeline of events for that account.
+4.  **Throttling:** Suppress duplicate alerts for the same account and destination host for 24 hours to avoid flooding the queue during a widespread compromise.
+
+This rule directly reduces analyst workload by filtering out isolated failed logins (which are common) and only escalating when the full kill chain is observed.
+
+**Security Relevance**
+
+Alert and correlation rules are the frontline of detection engineering. Their security relevance is defined by three metrics: detection rate, false positive rate, and mean time to detect (MTTD).
+
+- **Detection Rate:** A well-tuned rule catches adversary techniques that would otherwise be missed by signature-based tools. For example, a rule that correlates DNS queries to known malicious domains with subsequent process creation can detect C2 beaconing before a payload is executed.
+
+- **False Positive Rate:** Every false positive consumes analyst time and erodes trust in the SIEM. Correlation rules must be tuned using historical data and feedback loops. Common techniques include whitelisting known administrative activity, using risk-based alerting (where alerts only fire when a cumulative risk score exceeds a threshold), and implementing time-based decay for low-severity events.
+
+- **Mean Time to Detect:** Real-time correlation rules reduce MTTD from hours or days to seconds. For critical rules (e.g., ransomware behavior), the search should run every 60 seconds with a 5-minute lookback. For less urgent patterns (e.g., brute force attempts), a 5-minute schedule with a 15-minute window is sufficient to balance performance and detection speed.
+
+From a compliance perspective, correlation rules are the mechanism that satisfies regulatory requirements for continuous monitoring (PCI DSS 10.6, SOX 404, NIST 800-53 AU-6). Audit teams will request evidence that rules are active, tuned, and generating alerts that are triaged within defined SLAs. Splunk’s correlation rule framework provides this evidence through saved search logs, notable event records, and dashboard summaries.
+
+**Key Takeaways**
+
+- Correlation rules must be built with optimized SPL, precise trigger conditions, and throttling to minimize false positives while maximizing detection of multi-step attack patterns.
+- Real-world effectiveness is measured by detection rate, false positive rate, and MTTD; rules should be tuned iteratively using analyst feedback and historical data.
+- From a compliance standpoint, correlation rules are the operational proof of continuous monitoring requirements and must be documented, version-controlled, and auditable.

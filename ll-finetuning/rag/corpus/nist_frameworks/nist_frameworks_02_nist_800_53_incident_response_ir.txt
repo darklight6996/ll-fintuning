@@ -1,0 +1,40 @@
+Incident Response (IR) is a structured, documented approach for handling security incidents, defined within the NIST SP 800-53 control family (specifically IR-1 through IR-9). It is not a single action but a lifecycle that governs how an organization detects, analyzes, contains, eradicates, recovers from, and learns from cybersecurity events. For a security engineer, IR is the operational backbone that transforms a reactive alert into a controlled, forensically sound, and legally defensible process. NIST 800-53 mandates IR as a core control because without it, an organization cannot reliably limit damage, preserve evidence, or meet compliance obligations (e.g., FedRAMP, FISMA).
+
+**Key Components of NIST 800-53 Incident Response**
+
+The IR control family is broken into nine distinct controls, each with specific implementation requirements. The critical components are:
+
+- **IR-1 (Policy and Procedures):** The foundational document. It must define the scope of the IR program, roles and responsibilities (e.g., Incident Response Team, CISO, legal counsel), and the process for policy review and update. Without this, all other IR controls lack authority.
+- **IR-2 (Training):** Mandates role-based training. Technical staff need hands-on training with tools (e.g., SIEM, EDR, forensic imaging). Non-technical staff need awareness training on reporting suspicious activity. Training must occur initially and at least annually.
+- **IR-3 (Testing):** Requires testing of the IR plan at least annually. This is not a tabletop exercise alone; it must include functional exercises (e.g., simulated phishing, ransomware simulation, or live-fire exercises in a test environment). Results must be documented and used to update the plan.
+- **IR-4 (Handling):** The core operational control. It defines the incident handling lifecycle: preparation, detection and analysis, containment/eradication/recovery, and post-incident activity. It must specify criteria for declaring an incident, escalation paths, and communication protocols (internal and external).
+- **IR-5 (Monitoring):** Mandates continuous monitoring of information systems for security incidents. This is typically implemented via a SIEM, EDR, and network detection tools. The control requires correlation of logs from multiple sources to detect patterns.
+- **IR-6 (Reporting):** Requires personnel to report suspected incidents within a defined timeframe (e.g., within one hour of detection). The reporting mechanism must be simple (e.g., a dedicated email alias, a ticketing system, or a phone hotline).
+- **IR-7 (Assistance):** Requires that the incident response team provides guidance and assistance to users. This is often implemented via a 24/7 on-call rotation and a documented escalation matrix.
+- **IR-8 (Plan):** The formal, documented Incident Response Plan. It must include the mission, strategies, roles, reporting structure, resource requirements, and coordination with external entities (e.g., law enforcement, ISACs). The plan must be reviewed and updated at least annually or after a major incident.
+- **IR-9 (Information Spillage Response):** A specialized control for handling data spills (e.g., classified data on an unclassified system). It requires immediate containment, damage assessment, secure removal of the spilled data, and notification to affected parties.
+
+**Real-World Application**
+
+Consider a scenario where an engineer receives an alert from the EDR indicating a workstation has executed a known ransomware binary. The NIST 800-53 IR framework dictates the following actions:
+
+1.  **Detection and Analysis (IR-4, IR-5):** The engineer confirms the alert is not a false positive by checking the file hash against threat intelligence feeds (e.g., VirusTotal). The SIEM shows the binary was downloaded from a phishing email, and the EDR shows it has encrypted local files. The engineer declares an incident.
+2.  **Containment (IR-4):** The engineer immediately isolates the workstation from the network via the EDR’s network isolation feature. This prevents lateral movement. The engineer also disables the user’s Active Directory account to prevent further access.
+3.  **Eradication and Recovery (IR-4):** The engineer uses a forensic image of the workstation to identify the initial access vector. The system is then wiped and restored from a known-good backup (validated against the backup policy). The engineer also checks the SIEM for any other systems that may have communicated with the same command-and-control IP address.
+4.  **Post-Incident Activity (IR-4, IR-8):** Within 30 days, the engineer participates in a lessons-learned meeting. The root cause is identified as a lack of email filtering for the specific attachment type. The IR plan is updated to include a new email security rule. The engineer also updates the playbook for ransomware incidents.
+5.  **Reporting (IR-6):** The engineer files a formal incident report in the ticketing system, noting the time of detection, actions taken, and evidence collected. If the data spill involves PII, the engineer notifies the privacy officer and legal counsel per IR-9.
+
+**Security Relevance**
+
+Incident Response is not merely a compliance checkbox. Its security relevance is direct and measurable:
+
+- **Reduces Mean Time to Respond (MTTR):** A well-practiced IR plan with clear roles and automated containment actions (e.g., EDR isolation) can cut response time from hours to minutes, directly limiting the blast radius of an attack.
+- **Preserves Forensic Integrity:** Following NIST 800-53’s handling procedures ensures that evidence is collected in a chain-of-custody manner, making it admissible in court or for internal disciplinary actions.
+- **Enables Continuous Improvement:** The post-incident activity requirement (IR-4) forces organizations to treat every incident as a learning opportunity. Without this, the same vulnerabilities are exploited repeatedly.
+- **Supports Compliance and Legal Defense:** Demonstrating a documented, tested IR program is often a requirement for cyber insurance, FedRAMP authorization, and regulatory audits. In the event of a breach, a well-documented IR process can reduce fines and legal liability.
+- **Prevents Recurrence:** The feedback loop from IR-4 (lessons learned) into IR-8 (plan updates) and IR-2 (training updates) ensures that the organization’s defenses evolve in response to actual threats.
+
+**Key Takeaways**
+- Incident Response under NIST 800-53 is a lifecycle (prepare, detect, contain, eradicate, recover, learn), not a single procedure; each control (IR-1 through IR-9) serves a distinct, non-optional role in that lifecycle.
+- The most impactful controls for a security engineer are IR-4 (Handling) for operational playbooks, IR-5 (Monitoring) for detection capability, and IR-3 (Testing) to validate that the plan works under realistic conditions.
+- Every incident must produce a documented lesson learned that directly updates the IR plan, training materials, and technical controls; otherwise, the organization remains vulnerable to the same attack vector.

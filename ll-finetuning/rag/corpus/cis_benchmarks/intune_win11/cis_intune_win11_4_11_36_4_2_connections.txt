@@ -1,0 +1,130 @@
+4.11.36.4: .2 Connections (and related controls)
+
+Overview
+This policy setting allows you to configure remote access to computers by using 
+Remote Desktop Services. 
+The recommended state for this setting is: Disabled.
+
+This policy setting specifies whether to prevent the redirection of data to client COM 
+ports from the remote computer in a Remote Desktop Services session. 
+The recommended state for this setting is: Enabled.
+
+This policy setting specifies whether Remote Desktop Services always prompts the 
+client computer for a password upon connection. You can use this policy setting to 
+enforce a password prompt for users who log on to Remote Desktop Services, even if 
+they already provided the password in the Remote Desktop Connection client. 
+The recommended state for this setting is: Enabled.
+
+This policy setting allows you to specify the maximum amount of time that an active 
+Remote Desktop Services session can be idle (without user input) before it is 
+automatically disconnected. 
+The recommended state for this setting is: Enabled: 15 minutes or less, but not 
+Never (0).
+
+This policy setting specifies whether Remote Desktop Services retains a user's persession temporary folders at logoff. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+Any account with the Allow log on through Remote Desktop Services user right can log 
+on to the remote console of the computer. If you do not restrict access to legitimate 
+users who need to log on to the console of the computer, unauthorized users could 
+download and execute malicious code to elevate their privileges.
+
+In a more security-sensitive environment, it is desirable to reduce the possible attack 
+surface. The need for COM port redirection within a Remote Desktop session is very 
+rare, so makes sense to reduce the number of unexpected avenues for data exfiltration 
+and/or malicious code transfer.
+
+Users have the option to store both their username and password when they create a 
+new Remote Desktop Connection shortcut. If the server that runs Remote Desktop 
+Services allows users who have used this feature to log on to the server but not enter 
+their password, then it is possible that an attacker who has gained physical access to 
+the user's computer could connect to a Remote Desktop Server through the Remote 
+Desktop Connection shortcut, even though they may not know the user's password.
+
+This setting helps to prevent active Remote Desktop sessions from tying up the 
+computer for long periods of time while not in use, preventing computing resources from 
+being consumed by large numbers of inactive sessions. In addition, old, forgotten 
+Remote Desktop sessions that are still active can cause password lockouts if the user's 
+password has changed but the old session is still running. For systems that limit the 
+number of connected users (e.g. servers in the default Administrative mode - 2 sessions 
+only), other users' old but still active sessions can prevent another user from 
+connecting, resulting in an effective denial of service. 
+In addition, session timeouts that are misconfigured or set for a long period of time can 
+leave the system open to an attacker hijacking the session.
+
+Sensitive information could be contained inside the temporary folders and visible to 
+other administrators that log into the system.
+
+Audit Steps
+For .2 Connections:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal 
+Services:fDenyTSConnections
+
+For .3.1 (L2) Ensure 'Do not allow COM port redirection' is:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services:fDisableCcm
+
+For .9 Security:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal 
+Services:fPromptForPassword
+
+For .10.1 (L2) Ensure 'Set time limit for active but idle:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 900000 or less but not0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services:MaxIdleTime
+
+For .11.1 (L1) Ensure 'Do not delete temp folders upon exit':
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal 
+Services:DeleteTempDirsOnExit
+
+Remediation
+For .2 Connections:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Windows Components\Remote Desktop Services\Remote 
+Desktop Session Host\Connections\Allow users to connect remotely by using 
+Remote Desktop Services
+
+For .3.1 (L2) Ensure 'Do not allow COM port redirection' is:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Remote Desktop Services\Remote 
+Desktop Session Host\Device and Resource Redirection\Do not allow COM port 
+redirection
+
+For .9 Security:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\Remote Desktop Services\Remote 
+Desktop Session Host\Security\Always prompt for password upon connection
+
+For .10.1 (L2) Ensure 'Set time limit for active but idle:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 15 minutes or less, but not Never (0). 
+Administrative Templates\Windows Components\Remote Desktop Services\Remote 
+Desktop Session Host\Session Time Limits\Set time limit for active but idle 
+Remote Desktop Services sessions
+
+For .11.1 (L1) Ensure 'Do not delete temp folders upon exit':
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\Windows Components\Remote Desktop Services\Remote 
+Desktop Session Host\Temporary Folders\Do not delete temp folders upon exit
+
+Key Takeaways
+- Any account with the Allow log on through Remote Desktop Services user right can log  on to the remote console of the computer.
+- If you do not restrict access to legitimate  users who need to log on to the console of the computer, unauthorized users could  download and execute malicious code to elevate their privileges.
+- In a more security-sensitive environment, it is desirable to reduce the possible attack  surface.

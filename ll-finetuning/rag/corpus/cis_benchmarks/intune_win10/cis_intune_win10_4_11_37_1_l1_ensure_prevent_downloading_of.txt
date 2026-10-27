@@ -1,0 +1,26 @@
+4.11.37.1: (L1) Ensure 'Prevent downloading of enclosures' is set
+
+Overview
+This policy setting prevents the user from having enclosures (file attachments) 
+downloaded from an RSS feed to the user's computer. 
+The recommended state for this setting is: Enabled.
+
+Why This Matters
+Allowing attachments to be downloaded through the RSS feed can introduce files that 
+could have malicious intent.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Internet 
+Explorer\Feeds:DisableEnclosureDownload
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled. 
+Administrative Templates\Windows Components\RSS Feeds\Prevent downloading of 
+enclosures
+
+Key Takeaways
+- Allowing attachments to be downloaded through the RSS feed can introduce files that  could have malicious intent.

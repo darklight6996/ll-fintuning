@@ -1,0 +1,62 @@
+**Definition**
+
+AI/ML model security refers to the set of practices, controls, and architectural decisions designed to protect machine learning models throughout their lifecycle—from data collection and training through deployment and inference—against adversarial manipulation, data poisoning, model theft, and unintended information disclosure. Unlike traditional software security, which focuses on code vulnerabilities and access controls, model security must account for the unique properties of learned systems: their dependence on training data, their statistical decision boundaries, and their susceptibility to input perturbations that are imperceptible to humans but catastrophic to model behavior.
+
+**Key Components**
+
+**1. Data Poisoning Prevention**
+- Training data integrity must be verified through cryptographic hashing and provenance tracking.
+- Implement anomaly detection on training samples to identify outliers that could be maliciously inserted.
+- Use differential privacy during training to limit the influence of any single data point on the final model.
+- Validate data sources and enforce strict access controls on training pipelines.
+
+**2. Adversarial Robustness**
+- Adversarial examples are inputs crafted with small, intentional perturbations that cause misclassification.
+- Defenses include adversarial training (augmenting training data with adversarial examples), input sanitization (e.g., JPEG compression, feature squeezing), and certified robustness methods (e.g., randomized smoothing).
+- Evaluate models against standard attack frameworks such as Fast Gradient Sign Method (FGSM), Projected Gradient Descent (PGD), and Carlini-Wagner attacks.
+- No single defense is sufficient; use layered defenses and continuous red-teaming.
+
+**3. Model Extraction and Inversion**
+- Model extraction attacks query a deployed model to reconstruct its architecture or approximate its parameters.
+- Model inversion attacks use model outputs to reconstruct training data, potentially exposing sensitive information.
+- Mitigations: rate limiting on API queries, output perturbation (differential privacy at inference), watermarking model outputs, and monitoring query patterns for extraction behavior.
+- For high-value models, consider running inference in trusted execution environments (TEEs) or using homomorphic encryption.
+
+**4. Supply Chain and Lifecycle Security**
+- Model registries must enforce signed model artifacts and immutable versioning.
+- Scan third-party models and pre-trained weights for backdoors or embedded malicious behavior.
+- Implement CI/CD security controls for model training pipelines, including vulnerability scanning of dependencies and container images.
+- Maintain audit logs for all model updates, retraining events, and access to model artifacts.
+
+**5. Verification and Validation**
+- Formal verification techniques can prove that a model satisfies certain safety properties (e.g., no output exceeds a threshold for a given input range).
+- Continuous monitoring of model performance and behavior drift can detect degradation or adversarial manipulation post-deployment.
+- Implement shadow deployment or canary testing before full production rollout.
+
+**Real-World Application**
+
+Consider a financial institution deploying a deep learning model for real-time fraud detection. The model processes transaction features and outputs a risk score. Without model security controls, an attacker could:
+
+- **Poison the training data** by submitting fraudulent transactions labeled as legitimate, causing the model to learn incorrect patterns. Mitigation: cryptographic data provenance and anomaly detection on training samples.
+- **Craft adversarial transactions** that bypass detection by adding small, carefully chosen features. Mitigation: adversarial training and input sanitization (e.g., rounding feature values to reduce perturbation space).
+- **Extract the model** by sending thousands of queries and using the outputs to train a surrogate model, then using that surrogate to find evasion strategies. Mitigation: rate limiting, query pattern analysis, and output perturbation.
+- **Invert the model** to reconstruct sensitive customer transaction histories from the model's internal representations. Mitigation: differential privacy during training and inference.
+
+In practice, the security team would implement a multi-layered defense: (1) data integrity checks at ingestion, (2) adversarial training with a library like CleverHans or ART, (3) API rate limiting with exponential backoff, (4) output rounding to one decimal place, and (5) weekly red-team exercises using automated attack tools. The model would be deployed in a containerized environment with network segmentation and access logging. Any deviation in model accuracy or query pattern triggers an automated alert for manual review.
+
+**Security Relevance**
+
+AI/ML model security is not a niche concern—it is a fundamental requirement for any organization deploying models in production, especially in regulated industries (finance, healthcare, critical infrastructure). The consequences of a compromised model include:
+
+- **Financial loss**: Fraud models that fail to detect attacks, pricing models that are manipulated, or trading models that are adversarially influenced.
+- **Reputational damage**: Models that produce biased or harmful outputs due to data poisoning.
+- **Regulatory penalties**: Violations of GDPR, CCPA, or sector-specific regulations if training data is exposed through model inversion.
+- **Operational disruption**: Models that are rendered ineffective by adversarial attacks, requiring costly retraining and redeployment.
+
+Model security must be integrated into the existing security framework—it is not a separate discipline. Access controls, logging, monitoring, and incident response plans must all account for the unique attack surface of ML systems. Security engineers should treat models as high-value assets with their own threat model, distinct from the infrastructure they run on.
+
+**Key Takeaways**
+
+- AI/ML model security requires defenses across the entire lifecycle: data integrity during training, adversarial robustness at inference, and protection against extraction and inversion post-deployment.
+- No single defense is sufficient; implement layered controls including adversarial training, input sanitization, rate limiting, and differential privacy.
+- Treat models as critical assets with their own threat model, and integrate model security into existing security operations, monitoring, and incident response processes.

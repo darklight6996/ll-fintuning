@@ -1,0 +1,100 @@
+8.3: Enable Operating System Anti-Exploitation Features/ (and related controls)
+
+Overview
+This policy setting controls whether Microsoft Defender Antivirus exclusions are visible 
+to local users on the system. 
+The recommended state for this setting is: If you enable this setting, local 
+users will no longer be able to see the exclusion list in Windows 
+Security App or via PowerShell.. 
+Note: As of the publication of this Benchmark, the setting configuration state in Intune is 
+the sentence above after The recommended state for this setting is: and not Enabled as 
+the title states. This was done to keep title length to a minimum.
+
+This setting lets users turn on Credential Guard with virtualization-based security to help 
+protect credentials. The "Enabled with UEFI lock" option ensures that Credential Guard 
+cannot be disabled remotely. In order to disable the feature, you must set the Group 
+Policy to "Disabled" as well as remove the security functionality from each computer, 
+with a physically present user, in order to clear configuration persisted in UEFI. 
+The recommended state for this setting is: Enabled with UEFI lock. 
+Note: Virtualization Based Security requires a 64-bit version of Windows with Secure 
+Boot enabled, which in turn requires that Windows was installed with a UEFI BIOS 
+configuration, not a Legacy BIOS configuration. In addition, if running Windows on a 
+virtual machine, the hardware-assisted CPU virtualization feature (Intel VT-x or AMD-V) 
+must be exposed by the host to the guest VM. 
+More information on system requirements for this feature can be found at Windows 
+Defender Credential Guard Requirements (Windows 10) | Microsoft Docs 
+Note #2: Credential Guard and Device Guard are not currently supported when using 
+Azure IaaS VMs.
+
+This policy setting specifies whether Virtualization Based Security is enabled. 
+Virtualization Based Security uses the Windows Hypervisor to provide support for 
+security services. 
+The recommended state for this setting is: Enabled. 
+Note: Virtualization Based Security requires a 64-bit version of Windows with Secure 
+Boot enabled, which in turn requires that Windows was installed with a UEFI BIOS 
+configuration, not a Legacy BIOS configuration. In addition, if running Windows on a 
+virtual machine, the hardware-assisted CPU virtualization feature (Intel VT-x or AMD-V) 
+must be exposed by the host to the guest VM. 
+More information on system requirements for this feature can be found at Windows 
+Defender Credential Guard Requirements (Windows 10) | Microsoft Docs 
+Note #2: Credential Guard and Device Guard are not currently supported when using 
+Azure IaaS VMs.
+
+Why This Matters
+Only administrators should be able to view and manage Microsoft Defender Antivirus 
+exclusions.
+
+The Enabled with UEFI lock option ensures that Credential Guard cannot be 
+disabled remotely.
+
+Kerberos, NTLM, and Credential manager isolate secrets by using virtualization-based 
+security. Previous versions of Windows stored secrets in the Local Security Authority 
+(LSA). Prior to Windows 10, the LSA stored secrets used by the operating system in its 
+process memory. With Windows Defender Credential Guard enabled, the LSA process 
+in the operating system talks to a new component called the isolated LSA process that 
+stores and protects those secrets. Data stored by the isolated LSA process is protected 
+using virtualization-based security and is not accessible to the rest of the operating 
+system.
+
+Audit Steps
+For Enable Operating System Anti-Exploitation Features/:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Policy 
+Manager:HideExclusionsFromLocalUsers
+
+For Enable Operating System Anti-Exploitation Features/:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard:LsaCfgFlags
+
+For Enable Operating System Anti-Exploitation Features/:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard:EnableVirtualizationBase dSecurity
+
+Remediation
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to If you enable this setting, local users will no 
+longer be able to see the exclusion list in Windows Security App or 
+via PowerShell.. 
+Defender\Hide Exclusions From Local Users
+
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled with UEFI lock: 
+Device Guard\Credential Guard
+
+For Enable Operating System Anti-Exploitation Features/:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enable virtualization based security: 
+Device Guard\Enable Virtualization Based Security
+
+Key Takeaways
+- Only administrators should be able to view and manage Microsoft Defender Antivirus  exclusions.
+- The Enabled with UEFI lock option ensures that Credential Guard cannot be  disabled remotely.
+- Kerberos, NTLM, and Credential manager isolate secrets by using virtualization-based  security.

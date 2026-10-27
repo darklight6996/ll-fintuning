@@ -1,0 +1,28 @@
+4.10.40.5: .1 (L2) Ensure 'Microsoft Support Diagnostic Tool: Turn
+
+Overview
+This policy setting configures Microsoft Support Diagnostic Tool (MSDT) interactive 
+communication with the support provider. MSDT gathers diagnostic data for analysis by 
+support professionals. 
+The recommended state for this setting is: Disabled.
+
+Why This Matters
+Due to privacy concerns, data should never be sent to any third-party since this data 
+could contain sensitive information.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 0. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\ScriptedDiagnosticsProvider\Policy:D
+isableQueryRemoteServer
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Disabled. 
+Administrative Templates\System\Troubleshooting and Diagnostics\Microsoft 
+Support Diagnostic Tool\Microsoft Support Diagnostic Tool: Turn on MSDT 
+interactive communication with support provider
+
+Key Takeaways
+- Due to privacy concerns, data should never be sent to any third-party since this data  could contain sensitive information.

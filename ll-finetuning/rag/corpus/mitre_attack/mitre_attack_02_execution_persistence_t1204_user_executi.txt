@@ -1,0 +1,41 @@
+**Definition**
+
+T1204 User Execution is a MITRE ATT&CK technique that describes adversary reliance on a user to execute a malicious payload. Unlike techniques that achieve code execution through automated system mechanisms (e.g., scheduled tasks, service control managers), T1204 requires an explicit user action such as clicking a link, opening a file, or running a script. This technique is categorized under the Execution tactic and is frequently chained with initial access vectors like spearphishing attachments (T1566.001) or malicious links (T1566.002). The core principle is that the user becomes the execution vector, bypassing many automated defenses that monitor for system-level process creation anomalies.
+
+**Key Components**
+
+T1204 is divided into two primary sub-techniques, each with distinct operational characteristics:
+
+- **T1204.001: Malicious Link** – The user clicks a URL that leads to payload download or direct execution. This can occur via email, instant messaging, or web advertisements. The link may point to a staged executable, a script hosted on a compromised site, or a drive-by download page. Adversaries often use URL shorteners or redirect chains to evade reputation-based blocklists. Execution can be immediate (e.g., a .exe download) or delayed (e.g., a JavaScript file that fetches a second-stage payload).
+
+- **T1204.002: Malicious File** – The user opens a file that contains or triggers malicious code. Common file types include Microsoft Office documents with macros (VBA), PDFs with embedded JavaScript, compiled HTML Help (.chm) files, or shortcut (.lnk) files pointing to remote payloads. The file may be delivered as an attachment or downloaded from a link. Execution depends on the user enabling content (e.g., enabling macros in Office) or the file exploiting a vulnerability in the associated application.
+
+Adversaries frequently combine these sub-techniques with social engineering to increase the likelihood of user compliance. For example, a spearphishing email might contain a PDF that appears to be an invoice, which when opened, launches a PowerShell script that downloads Cobalt Strike. The user’s action is the critical gate; without it, the payload remains inert.
+
+**Real-World Application**
+
+T1204 is one of the most commonly observed techniques in both commodity malware and advanced persistent threat (APT) operations. Its prevalence stems from the difficulty of fully automating user behavior monitoring and the inherent trust users place in familiar applications.
+
+- **Emotet and TrickBot** – These banking trojans historically relied on malicious Office documents with macros. The user would open a Word document, see a prompt to “Enable Content,” and upon doing so, a VBA macro would execute to download the main payload. Emotet operators frequently updated the document templates to evade signature-based detection, but the core user execution requirement remained constant.
+
+- **APT29 (Cozy Bear)** – In campaigns targeting think tanks and government entities, APT29 has used spearphishing emails containing malicious links to Google Drive or SharePoint. The link would host a .lnk file disguised as a PDF. When the user double-clicked the shortcut, it executed a PowerShell command to download and run a backdoor. The user’s action of clicking the link and then the file was essential to the attack chain.
+
+- **Ransomware Initial Access** – Groups like REvil and BlackCat have used malicious links in phishing emails to deliver initial payloads. The link leads to a download of a JavaScript or VBScript file that, when executed by the user, establishes a foothold for later ransomware deployment. In some cases, the link itself triggers a browser-based exploit that executes code without a separate file download, but the user must still click the link.
+
+**Security Relevance**
+
+For security engineers, T1204 represents a persistent challenge because it exploits human behavior rather than system vulnerabilities. Defenses must address both technical controls and user awareness.
+
+- **Detection Challenges** – Traditional endpoint detection and response (EDR) systems can flag suspicious child processes (e.g., Word spawning PowerShell), but these detections often occur after the user has already executed the payload. Behavioral baselines for user-driven process creation are noisy, as legitimate software updates and document macros generate similar patterns. Adversaries can also use living-off-the-land binaries (LOLBins) like mshta.exe or regsvr32.exe to execute payloads, making detection harder.
+
+- **Preventive Controls** – The most effective technical controls focus on reducing the attack surface. Disable macros for users who do not require them via Group Policy (e.g., “Block macros from running in Office files from the Internet”). Use application control solutions (e.g., AppLocker, WDAC) to block execution of scripts and executables from untrusted locations. Implement URL filtering and sandboxing for email attachments. Enforce browser security settings that block automatic downloads of executable content.
+
+- **User Awareness** – Security awareness training must emphasize the specific behaviors that T1204 exploits: enabling macros, opening unexpected attachments, and clicking links in unsolicited messages. However, training alone is insufficient; it must be reinforced with simulated phishing exercises that test user response to malicious links and files.
+
+- **Detection Strategies** – Monitor for anomalous process chains: office applications spawning cmd.exe, PowerShell, or wscript.exe. Correlate these events with email or web logs to identify the initial vector. Use User and Entity Behavior Analytics (UEBA) to flag users who suddenly execute scripts or download executables outside their normal pattern. Deploy network-level detection for outbound connections from processes that should not initiate network activity (e.g., Word connecting to an external IP).
+
+**Key Takeaways**
+
+1. T1204 User Execution relies on a human action to trigger payload execution, making it resistant to automated system-level defenses and requiring layered controls that address both technology and user behavior.
+2. The two primary sub-techniques—malicious links (T1204.001) and malicious files (T1204.002)—are frequently used in phishing campaigns and require distinct detection approaches: URL analysis for links and file content inspection for attachments.
+3. Effective mitigation combines macro and script execution restrictions, application control, user awareness training, and behavioral monitoring of process chains originating from user-driven applications like Office or browsers.

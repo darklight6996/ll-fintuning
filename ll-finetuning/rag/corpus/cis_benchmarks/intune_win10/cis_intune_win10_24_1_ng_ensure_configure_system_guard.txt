@@ -1,0 +1,30 @@
+24.1: (NG) Ensure 'Configure System Guard Launch' is set to
+
+Overview
+Secure Launch protects the Virtualization Based Security environment from exploited 
+vulnerabilities in device firmware. 
+The recommended state for this setting is: Unmanaged Enables Secure Launch if 
+supported by hardware. 
+Note: Credential Guard and Device Guard are not currently supported when using 
+Azure IaaS VMs.
+
+Why This Matters
+Secure Launch changes the way Windows boots to use Intel Trusted Execution 
+Technology (TXT) and Runtime BIOS Resilience features to prevent firmware exploits 
+from being able to impact the security of the Windows Virtualization Based Security 
+environment.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard:ConfigureSystemGuardLaun ch
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Unmanaged Enables Secure Launch if supported by 
+hardware: 
+Device Guard\Configure System Guard Launch
+
+Key Takeaways
+- Secure Launch changes the way Windows boots to use Intel Trusted Execution  Technology (TXT) and Runtime BIOS Resilience features to prevent firmware exploits  from being able to impact the security of the Windows Virtualization Based Security  environment.

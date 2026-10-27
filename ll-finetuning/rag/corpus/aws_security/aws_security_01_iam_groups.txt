@@ -1,0 +1,51 @@
+**Definition**
+
+In Identity and Access Management (IAM), a group is a logical container that aggregates multiple user identities under a single security principal. Groups simplify permission management by allowing administrators to assign access rights to the collection rather than to each individual user. This abstraction reduces administrative overhead, enforces consistency, and supports the principle of least privilege when properly configured. Groups are distinct from roles, which typically define a set of permissions for a specific function, and from organizational units, which are primarily used for hierarchical management of objects in directory services.
+
+**Key Components**
+
+- **Group Object**: The core entity stored in a directory service (e.g., Active Directory, LDAP, Azure AD, Okta). It contains attributes such as name, description, membership list, and security identifier (SID) or unique ID.
+- **Membership Types**:
+  - *Static*: Users are explicitly added or removed by an administrator or automated process. Simple to audit but requires manual updates as personnel changes occur.
+  - *Dynamic*: Membership is determined by rules or queries (e.g., all users in the "Engineering" department). Reduces maintenance but requires careful rule design to avoid unintended access.
+  - *Nested*: Groups can contain other groups. Useful for hierarchical permission structures but increases complexity and can obscure effective permissions.
+- **Scope**: Defines where the group is recognized and usable.
+  - *Domain Local*: Applied within a single domain; often used for resource access.
+  - *Global*: Used for grouping users from the same domain; can be added to domain local groups in other domains.
+  - *Universal*: Recognized across an entire forest; ideal for cross-domain access.
+  - *Application-specific*: Defined within a cloud IAM system (e.g., AWS IAM groups, GCP groups) and scoped to that provider.
+- **Permissions Assignment**: Groups are linked to access control entries (ACEs) on resources (files, databases, applications) or attached to IAM policies (in cloud environments). Permissions are inherited by all members.
+- **Lifecycle Management**: Processes for creation, modification, archiving, and deletion of groups. Includes approval workflows, expiration policies, and automated cleanup of stale groups.
+
+**Real-World Application**
+
+A multinational corporation uses Active Directory with 15,000 employees across five business units. Instead of assigning permissions to each employee individually, the security team creates the following group structure:
+
+- **Global Security Groups**: `BU_Finance`, `BU_Engineering`, `BU_HR`. Each contains all users from that business unit.
+- **Domain Local Groups**: `FS_Finance_Share`, `DB_Engineering_Read`, `App_Payroll_Admin`. These are placed on the ACL of the corresponding resource.
+- **Nesting**: `BU_Finance` is added to `FS_Finance_Share` and `App_Payroll_Admin`. `BU_Engineering` is added to `DB_Engineering_Read`.
+
+When a new finance employee joins, they are added to `BU_Finance` and automatically gain access to the finance share and payroll application. When they leave, removal from `BU_Finance` revokes all associated access. This pattern reduces the number of ACL modifications from thousands to dozens.
+
+In a cloud environment, an AWS account uses IAM groups to manage developer access. The group `Developers` has an attached policy granting read/write access to specific S3 buckets and EC2 instances. A separate group `Auditors` has a read-only policy. When a developer is promoted to auditor, their group membership is changed, instantly updating their effective permissions without modifying any policies.
+
+**Security Relevance**
+
+Groups are a double-edged sword. When used correctly, they enforce least privilege and simplify auditing. When misused, they become a primary attack vector and compliance risk.
+
+- **Attack Surface**: Over-privileged groups (e.g., "Domain Admins" with thousands of members) create a single point of compromise. If an attacker gains control of a member account, they inherit all group permissions. Attackers frequently target group membership escalation (e.g., adding themselves to a privileged group via a compromised admin account).
+- **Privilege Creep**: Without regular review, groups accumulate stale members. Former employees or contractors may retain access indefinitely. This violates compliance frameworks (SOX, PCI DSS, HIPAA) that require timely revocation of access.
+- **Nesting Complexity**: Deeply nested groups make it difficult to determine effective permissions. A user may have unintended access through multiple levels of membership. Auditors often flag groups with more than 3 levels of nesting.
+- **Dynamic Group Risks**: Poorly written dynamic membership rules can grant access to unintended users. For example, a rule that includes "all users with department=IT" may accidentally include interns or contractors.
+- **Mitigation Strategies**:
+  - Implement a group ownership and certification process. Each group must have an owner who reviews membership quarterly.
+  - Use privileged access management (PAM) tools to monitor and control membership changes to high-risk groups.
+  - Enable logging for all group membership modifications and alert on suspicious additions (e.g., adding a user to "Domain Admins" outside of change window).
+  - Limit nesting to 2-3 levels maximum. Document the group hierarchy in a central repository.
+  - Automate removal of inactive members using identity governance tools (e.g., SailPoint, Azure AD Access Reviews).
+  - Apply the principle of "deny by default" for group creation; require approval for new groups to prevent sprawl.
+
+**Key Takeaways**
+- Groups are the primary mechanism for scalable permission management; misuse directly leads to privilege creep and increased attack surface.
+- Always prefer static groups with regular certification over dynamic groups unless dynamic rules are tightly scoped and audited.
+- Monitor and alert on all group membership changes, especially for privileged groups, as this is a common lateral movement technique for attackers.

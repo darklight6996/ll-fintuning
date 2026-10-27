@@ -1,0 +1,95 @@
+14.6: Protect Information through Access Control Lists (and related controls)
+
+Overview
+Restrict Microsoft 365 group creation to administrators only.
+
+NOTE: This recommendation is only relevant if your subscription is using Per-User 
+MFA. If your organization is licensed to use Conditional Access, the preferred method of 
+requiring MFA to join devices to Entra ID is to use a Conditional Access policy (see 
+additional information below for link). 
+Joining or registering devices to Microsoft Entra ID should require multi-factor 
+authentication.
+
+Users who are set as subscription owners are able to make administrative changes to 
+the subscriptions and move them into and out of Microsoft Entra ID.
+
+Why This Matters
+Restricting Microsoft 365 group creation to administrators only ensures that creation of 
+Microsoft 365 groups is controlled by the administrator. Appropriate groups should be 
+created and managed by the administrator and group creation rights should not be 
+delegated to any other user.
+
+Multi-factor authentication is recommended when adding devices to Microsoft Entra ID. 
+When set to Yes, users who are adding devices from the internet must first use the 
+second method of authentication before their device is successfully added to the 
+directory. This ensures that rogue devices are not added to the domain using a 
+compromised user account.
+
+Permissions to move subscriptions in and out of a Microsoft Entra tenant must only be 
+given to appropriate administrative personnel. A subscription that is moved into a 
+Microsoft Entra tenant may be within a folder to which other users have elevated 
+permissions. This prevents loss of data or unapproved changes of the objects within by 
+potential bad actors.
+
+Audit Steps
+For Protect Information through Access Control Lists:
+Audit from Azure Portal 
+1. From Azure Home select the Portal Menu 
+2. Select Microsoft Entra ID 
+3. Under Manage, select Groups 
+4. Under Settings, select General 
+5. Under Microsoft 365 Groups, ensure that Users can create Microsoft 
+365 groups in Azure portals, API or PowerShell is set to No
+
+For Protect Information through Access Control Lists:
+Audit from Azure Portal 
+1. From Azure Home select the Portal Menu 
+2. Select Microsoft Entra ID 
+3. Under Manage, select Devices 
+4. Under Manage, select Device settings 
+5. Under Microsoft Entra join and registration settings, ensure that 
+Require Multifactor Authentication to register or join devices 
+with Microsoft Entra is set to Yes
+
+For Protect Information through Access Control Lists:
+Audit from Azure Portal 
+1. From the Azure Portal Home select the portal menu 
+2. Select Subscriptions 
+3. In the Advanced options drop-down menu, select Manage Policies 
+4. Ensure Subscription leaving Microsoft Entra tenant and Subscription 
+entering Microsoft Entra tenant are set to Permit no one
+
+Remediation
+For Protect Information through Access Control Lists:
+Remediate from Azure Portal 
+1. From Azure Home select the Portal Menu 
+2. Select Microsoft Entra ID 
+3. Under Manage, select Groups 
+4. Under Settings, select General 
+5. Under Microsoft 365 Groups, set Users can create Microsoft 365 
+groups in Azure portals, API or PowerShell to No 
+6. Click Save
+
+For Protect Information through Access Control Lists:
+Remediate from Azure Portal 
+1. From Azure Home select the Portal Menu 
+2. Select Microsoft Entra ID 
+3. Under Manage, select Devices 
+4. Under Manage, select Device settings 5. Under Microsoft Entra join and registration settings, set Require 
+Multifactor Authentication to register or join devices with 
+Microsoft Entra to Yes 
+6. Click Save
+
+For Protect Information through Access Control Lists:
+Remediate from Azure Portal 
+1. From the Azure Portal Home select the portal menu 
+2. Select Subscriptions 
+3. In the Advanced options drop-down menu, select Manage Policies 
+4. Set Subscription leaving Microsoft Entra tenant and Subscription 
+entering Microsoft Entra tenant to Permit no one 
+5. Click Save changes
+
+Key Takeaways
+- Restricting Microsoft 365 group creation to administrators only ensures that creation of  Microsoft 365 groups is controlled by the administrator.
+- Appropriate groups should be  created and managed by the administrator and group creation rights should not be  delegated to any other user.
+- Multi-factor authentication is recommended when adding devices to Microsoft Entra ID.

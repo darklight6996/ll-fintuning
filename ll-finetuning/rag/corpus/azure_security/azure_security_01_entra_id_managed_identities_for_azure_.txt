@@ -1,0 +1,60 @@
+Managed Identities for Azure services provide Azure resources with an automatically managed identity in Microsoft Entra ID. This eliminates the need for developers to manage credentials, such as service principals or access keys, when authenticating to any service that supports Entra ID authentication. A managed identity is a service principal of a special type that is automatically created and deleted by Azure, and its lifecycle is tied to the Azure resource it is assigned to.
+
+**Key Components**
+
+Managed Identities come in two types: System-assigned and User-assigned.
+
+- **System-assigned Managed Identity:** This identity is created directly on an Azure resource (e.g., a Virtual Machine, Azure Function, or App Service). Its lifecycle is tied to that resource. When the resource is deleted, the identity is automatically removed. You cannot share this identity across multiple resources. Each resource gets a unique identity principal in Entra ID.
+
+- **User-assigned Managed Identity:** This identity is created as a standalone Azure resource. You can then assign it to one or more Azure resources. Its lifecycle is independent of any single resource. This is useful for scenarios where multiple resources need the same set of permissions, or when you need to pre-provision permissions before the resource exists.
+
+- **Credential Rotation:** The credentials (certificates) used by the managed identity are automatically rotated by the Azure platform. The rotation occurs every 90 days by default, and the platform handles the transition seamlessly. No manual intervention or code changes are required.
+
+- **Authentication Flow:** When a resource with a managed identity needs to authenticate, it requests a token from the Azure Instance Metadata Service (IMDS) endpoint (169.254.169.254). The IMDS endpoint validates the resource's identity and returns an access token for the target service (e.g., Azure Key Vault, Azure Storage). This token is then used in the Authorization header of API calls.
+
+- **Role Assignments:** Permissions are granted to the managed identity via Azure RBAC. You assign roles (e.g., "Key Vault Secrets User", "Storage Blob Data Contributor") to the managed identity's service principal, just as you would for a user or a regular service principal.
+
+**Real-World Application**
+
+Consider a scenario where an Azure Function needs to read secrets from Azure Key Vault and write logs to Azure Storage.
+
+1.  **Enable System-assigned Managed Identity:** In the Azure Function's "Identity" blade, set the "Status" to "On". This creates a service principal for the function in Entra ID.
+
+2.  **Grant Permissions to Key Vault:** In the Key Vault's "Access policies" blade, add the function's managed identity with "Get" and "List" permissions for secrets. Alternatively, use Azure RBAC with the "Key Vault Secrets User" role.
+
+3.  **Grant Permissions to Storage:** In the Storage account's "Access Control (IAM)" blade, assign the "Storage Blob Data Contributor" role to the function's managed identity.
+
+4.  **Code Implementation:** In the function's code, you use the Azure Identity SDK (e.g., `DefaultAzureCredential` in .NET or Python) to obtain a token. The SDK automatically detects the managed identity and requests a token from the IMDS endpoint. No connection strings, client secrets, or certificates are stored in code or configuration files.
+
+    *Example (Python):*
+    ```python
+    from azure.identity import DefaultAzureCredential
+    from azure.keyvault.secrets import SecretClient
+
+    credential = DefaultAzureCredential()
+    secret_client = SecretClient(vault_url="https://myvault.vault.azure.net", credential=credential)
+    secret = secret_client.get_secret("mySecret")
+    ```
+
+5.  **Operational Benefit:** If the function is scaled out to multiple instances, each instance automatically uses the same managed identity. If the function is deleted, the identity is cleaned up. No manual credential rotation or secret management is needed.
+
+**Security Relevance**
+
+Managed Identities are a critical security control for reducing credential exposure.
+
+- **Eliminates Static Credentials:** The most significant security benefit is the removal of hardcoded credentials, connection strings, and service principal secrets from source code, configuration files, and environment variables. This drastically reduces the attack surface for credential theft.
+
+- **Reduces Privilege Escalation Risk:** Because the identity is tied to a specific resource, an attacker who compromises one resource cannot easily reuse stolen credentials to access another resource. Each resource has its own identity (in the system-assigned case) or a shared identity with a defined scope.
+
+- **Automated Lifecycle Management:** The automatic creation and deletion of the identity prevents orphaned service principals and stale credentials. This reduces the administrative overhead of auditing and cleaning up unused identities.
+
+- **Integration with Conditional Access:** Managed identities can be targeted by Conditional Access policies in Entra ID. For example, you can require that tokens issued to a managed identity only be used from specific Azure regions or IP ranges. This adds an additional layer of control over resource access.
+
+- **Auditing and Monitoring:** All token requests and usage are logged in the Azure Activity Log and Entra ID sign-in logs. Security teams can monitor for anomalous token requests, such as a managed identity requesting tokens for services it does not normally access.
+
+- **Limitation:** Managed identities are not suitable for external client applications or user-facing authentication. They are designed for server-to-server authentication within Azure. For external clients, use App Registrations with OAuth 2.0 flows.
+
+**Key Takeaways**
+- Managed Identities eliminate the need to store and rotate credentials by providing Azure resources with an automatically managed identity in Entra ID.
+- Use system-assigned identities for single-resource workloads and user-assigned identities for multi-resource scenarios requiring shared permissions.
+- Always prefer Managed Identities over service principals with client secrets for any Azure resource-to-resource authentication to reduce credential exposure and operational overhead.

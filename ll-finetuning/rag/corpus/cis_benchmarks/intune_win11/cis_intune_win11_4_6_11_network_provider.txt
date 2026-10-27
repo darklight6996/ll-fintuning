@@ -1,0 +1,53 @@
+4.6.11: Network Provider
+
+Overview
+This policy setting configures secure access to UNC paths. 
+The recommended state for this setting is: Enabled, with "Require Mutual 
+Authentication", "Require Integrity", and “Require Privacy” set for 
+all NETLOGON and SYSVOL shares. 
+Note: If the environment is 100% managed by Intune these shares will not be available. 
+An exception to this recommendation will be needed.
+
+Why This Matters
+In February 2015, Microsoft released a new control mechanism to mitigate a security 
+risk in Group Policy as part of the MS15-011 / MSKB 3000483 security update. This 
+mechanism requires both the installation of the new security update and also the 
+deployment of specific group policy settings to all computers on the domain from 
+Windows Vista / Server 2008 (non-R2) or newer (the associated security patch to 
+enable this feature was not released for Server 2003). A new group policy template 
+(NetworkProvider.admx/adml) was also provided with the security update. 
+Once the new GPO template is in place, the following are the minimum requirements to 
+remediate the Group Policy security risk: 
+\\*\NETLOGON RequireMutualAuthentication=1, RequireIntegrity=1, 
+RequirePrivacy=1 
+\\*\SYSVOL RequireMutualAuthentication=1, RequireIntegrity=1, 
+RequirePrivacy=1 
+Note: A reboot may be required after the setting is applied to a client machine to access 
+the above paths. 
+Additional guidance on the deployment of this security setting is available from the 
+Microsoft Premier Field Engineering (PFE) Platforms TechNet Blog here: Guidance on 
+Deployment of MS15-011 and MS15-014.
+
+Audit Steps
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry locations with a 
+REG_SZ value of RequireMutualAuthentication=1, RequireIntegrity=1, 
+RequirePrivacy=1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\NetworkProvider\HardenedPaths:\\*\NE
+TLOGON 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\NetworkProvider\HardenedPaths:\\*\SY
+SVOL
+
+Remediation
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled with the following paths configured, at a minimum: 
+\\*\NETLOGON RequireMutualAuthentication=1, RequireIntegrity=1, 
+RequirePrivacy=1 
+\\*\SYSVOL RequireMutualAuthentication=1, RequireIntegrity=1, 
+RequirePrivacy=1 
+Administrative Templates\Network\Network Provider\Hardened UNC Paths
+
+Key Takeaways
+- In February 2015, Microsoft released a new control mechanism to mitigate a security  risk in Group Policy as part of the MS15-011 / MSKB 3000483 security update.
+- This  mechanism requires both the installation of the new security update and also the  deployment of specific group policy settings to all computers on the domain from  Windows Vista / Server 2008 (non-R2) or newer (the associated security patch to  enable this feature was not released for Server 2003).
+- A new group policy template  (NetworkProvider.

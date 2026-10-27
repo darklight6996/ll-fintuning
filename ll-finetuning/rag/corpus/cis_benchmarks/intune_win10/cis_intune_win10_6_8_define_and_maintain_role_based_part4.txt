@@ -1,0 +1,120 @@
+6.8: Define and Maintain Role-Based Access Control (and related controls)
+
+Overview
+This security setting determines which users are prevented from logging on at the 
+computer. This policy setting supersedes the Allow log on locally policy setting if an 
+account is subject to both policies. 
+The recommended state for this setting is to include: *S-1-5-32-546 (Guests). 
+Important: If you apply this security policy to the Everyone group, no one will be able to 
+log on locally. 
+Warning: The help text in Intune associated with this recommendation is for the setting, 
+Deny log on as a service and not this setting.
+
+This policy setting determines whether users can log on as Remote Desktop clients. 
+After the baseline workstation is joined to a domain environment, there is no need to 
+use local accounts to access the workstation from the network. Domain accounts can 
+access the workstation for administration and end-user processing. This user right 
+supersedes the Allow log on through Remote Desktop Services user right if an 
+account is subject to both policies. 
+The recommended state for this setting is to include: *S-1-5-32-546 and *S-1-5-113 
+(Guests, Local account). 
+Caution: Configuring a standalone (non-domain-joined) workstation as described above 
+may result in an inability to remotely administer the workstation. 
+Caution #2: Configuring a cloud system workstation as described above may result in 
+an inability log on to the workstation. In this case, Local Accounts need this ability for 
+the log on to succeed. 
+Note: The security identifier Local account is not available in Windows 7 and 
+Windows 8.0 unless MSKB 2871997 has been installed. 
+Note #2: In all versions of Windows prior to Windows 7, Remote Desktop Services 
+was known as Terminal Services, so you should substitute the older term if comparing 
+against an older OS.
+
+This policy setting allows users to change the Trusted for Delegation setting on a 
+computer object in Active Directory. Abuse of this privilege could allow unauthorized 
+users to impersonate other users on the network. 
+The recommended state for this setting is: No One. 
+Note: This user right is considered a "sensitive privilege" for the purposes of auditing.
+
+This policy setting determines which users or processes can generate audit records in 
+the Security log. 
+The recommended state for this setting is: *S-1-5-19 and *S-1-5-20 (LOCAL 
+SERVICE, NETWORK SERVICE). 
+Note: This user right is considered a "sensitive privilege" for the purposes of auditing.
+
+Why This Matters
+Any account with the ability to log on locally could be used to log on at the console of 
+the computer. If this user right is not restricted to legitimate users who need to log on to 
+the console of the computer, unauthorized users might download and run malicious 
+software that elevates their privileges.
+
+Any account with the right to log on through Remote Desktop Services could be used to 
+log on to the remote console of the computer. If this user right is not restricted to 
+legitimate users who need to log on to the console of the computer, unauthorized users 
+might download and run malicious software that elevates their privileges.
+
+Misuse of the Enable computer and user accounts to be trusted for delegation user 
+right could allow unauthorized users to impersonate other users on the network. An 
+attacker could exploit this privilege to gain access to network resources and make it 
+difficult to determine what has happened after a security incident.
+
+An attacker could use this capability to create a large number of audited events, which 
+would make it more difficult for a system administrator to locate any illicit activity. Also, if 
+the event log is configured to overwrite events as needed, any evidence of unauthorized 
+activities could be overwritten by a large number of unrelated events.
+
+Audit Steps
+For Define and Maintain Role-Based Access Control:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed.
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Deny log on through 
+Remote Desktop Services
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Enable computer and 
+user accounts to be trusted for delegation
+
+For Define and Maintain Role-Based Access Control:
+Navigate to the Local Security Policy and confirm it is set as prescribed. 
+Security Settings\Local Policies\User Rights Assignment\Generate security 
+audits
+
+Remediation
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-546 (Guests). 
+User Rights\Deny Local Log On 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-32-546 and *S-1-5-113 (Guests, Local account). 
+User Rights\Deny Remote Desktop Services Log On 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to (<![CDATA[]]>) which equals No One. 
+User Rights\Enable Delegation 
+Note: Using (<![CDATA[]]>) to represent a blank value or No One is recommended 
+by Microsoft. However, there is a known issue where an error occurs in Endpoint 
+Manger (Intune) but does not affect the policy setting from being applied to the system 
+properly.
+
+For Define and Maintain Role-Based Access Control:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to *S-1-5-19 and *S-1-5-20 (LOCAL SERVICE, NETWORK 
+SERVICE). 
+User Rights\Generate security audits 
+Note: Include only one User or Group per line in the Settings Catalog configuration 
+screen.
+
+Key Takeaways
+- Any account with the ability to log on locally could be used to log on at the console of  the computer.
+- If this user right is not restricted to legitimate users who need to log on to  the console of the computer, unauthorized users might download and run malicious  software that elevates their privileges.
+- Any account with the right to log on through Remote Desktop Services could be used to  log on to the remote console of the computer.

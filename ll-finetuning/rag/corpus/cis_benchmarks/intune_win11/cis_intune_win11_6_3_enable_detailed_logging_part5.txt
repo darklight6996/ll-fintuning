@@ -1,0 +1,128 @@
+6.3: Enable Detailed Logging (and related controls)
+
+Overview
+This subcategory reports changes in security state of the system, such as when the 
+security subsystem starts and stops. Events for this subcategory include: 
+• 
+4608: Windows is starting up. 
+• 
+4609: Windows is shutting down. 
+• 
+4616: The system time was changed. 
+• 
+4621: Administrator recovered system from CrashOnAuditFail. Users who are not 
+administrators will now be allowed to log on. Some audit-able activity might not 
+have been recorded. 
+The recommended state for this setting is to include: Success.
+
+This subcategory reports on violations of integrity of the security subsystem. Events for 
+this subcategory include: 
+• 
+4612: Internal resources allocated for the queuing of audit messages have been 
+exhausted, leading to the loss of some audits. 
+• 
+4615: Invalid use of LPC port. 
+• 
+4618: A monitored security event pattern has occurred. 
+• 
+4816: RPC detected an integrity violation while decrypting an incoming message. 
+• 
+5038: Code integrity determined that the image hash of a file is not valid. The file 
+could be corrupt due to unauthorized modification or the invalid hash could 
+indicate a potential disk device error. 
+• 
+5056: A cryptographic self test was performed. 
+• 
+5057: A cryptographic primitive operation failed. 
+• 
+5060: Verification operation failed. 
+• 
+5061: Cryptographic operation. 
+• 
+5062: A kernel-mode cryptographic self test was performed. 
+The recommended state for this setting is: Success and Failure.
+
+This policy setting controls the behavior of the elevation prompt for administrators. 
+The recommended state for this setting is: Prompt for consent on the secure 
+desktop. Configuring this setting to Prompt for credentials on the secure 
+desktop also conforms to the benchmark.
+
+This policy setting controls whether additional diagnostic logs are collected when more 
+information is needed to troubleshoot a problem on the device. 
+The recommended state for this setting is: Enabled. 
+Note: Diagnostic logs are only sent when the device has been configured to send 
+optional diagnostic data. Diagnostic data is limited when recommendation Allow 
+Diagnostic Data is set to Enabled: Diagnostic data off (not recommended) or 
+Enabled: Send required diagnostic data to send only basic information.
+
+Why This Matters
+Auditing these events may be useful when investigating a security incident.
+
+Auditing these events may be useful when investigating a security incident.
+
+One of the risks that the UAC feature introduced with Windows Vista is trying to mitigate 
+is that of malicious software running under elevated credentials without the user or 
+administrator being aware of its activity. This setting raises awareness to the 
+administrator of elevated privilege operations and permits the administrator to prevent a 
+malicious program from elevating its privilege when the program attempts to do so.
+
+Sending data to a third-party vendor is a security concern and should only be done on 
+an as-needed basis.
+
+Audit Steps
+For Enable Detailed Logging:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. 
+OR 
+To audit the system using auditpol.exe, perform the following and confirm it is set as 
+prescribed: 
+auditpol /get /subcategory:"{0cce9210-69ae-11d9-bed3-505054503030}"
+
+For Enable Detailed Logging:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. 
+OR 
+To audit the system using auditpol.exe, perform the following and confirm it is set as 
+prescribed: 
+auditpol /get /subcategory:"{0cce9212-69ae-11d9-bed3-505054503030}"
+
+For Enable Detailed Logging:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1 or 2. 
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System:ConsentPromptB
+ehaviorAdmin
+
+For Enable Detailed Logging:
+Navigate to the UI Path articulated in the Remediation section and confirm it is set as 
+prescribed. This policy setting is backed by the following registry location with a 
+REG_DWORD value of 1. 
+HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection:LimitDiagnosticLogCol lection
+
+Remediation
+For Enable Detailed Logging:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Success. 
+Auditing\System Audit Security State Change
+
+For Enable Detailed Logging:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Success and Failure. 
+Auditing\System Audit System Integrity
+
+For Enable Detailed Logging:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Prompt for consent on the secure desktop or Prompt 
+for credentials on the secure desktop: 
+Local Policies Security Options\User Account Control: Behavior of the 
+elevation prompt for administrators
+
+For Enable Detailed Logging:
+To establish the recommended configuration via configuration profiles, set the following 
+Settings Catalog path to Enabled: 
+System\Limit Diagnostic Log Collection
+
+Key Takeaways
+- Auditing these events may be useful when investigating a security incident.
+- One of the risks that the UAC feature introduced with Windows Vista is trying to mitigate  is that of malicious software running under elevated credentials without the user or  administrator being aware of its activity.
+- This setting raises awareness to the  administrator of elevated privilege operations and permits the administrator to prevent a  malicious program from elevating its privilege when the program attempts to do so.
