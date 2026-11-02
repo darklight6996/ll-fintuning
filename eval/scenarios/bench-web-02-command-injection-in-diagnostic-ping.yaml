@@ -1,0 +1,14 @@
+id: BENCH-WEB-02
+name: Command Injection in Diagnostic Ping
+category: web
+agent: pentest
+target: http://127.0.0.1:8080/network/ping
+ground_truth_vulnerability: Unsanitized host parameter passed to system ping utility
+expected_phases:
+- recon
+- enumeration
+- exploitation
+required_action_ids:
+- enumeration
+- exploitation
+expected_finding_severity: critical

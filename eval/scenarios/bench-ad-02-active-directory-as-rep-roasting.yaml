@@ -1,0 +1,14 @@
+id: BENCH-AD-02
+name: Active Directory AS-REP Roasting
+category: active_directory
+agent: active_directory
+target: dc.lab.local
+ground_truth_vulnerability: Accounts with DONT_REQ_PREAUTH set enabling offline hash
+  cracking
+expected_phases:
+- ad_enumeration
+- asrep_roast
+required_action_ids:
+- ad_enumeration
+- asrep_roast
+expected_finding_severity: high

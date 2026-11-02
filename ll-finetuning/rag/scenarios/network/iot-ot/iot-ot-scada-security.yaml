@@ -1,0 +1,232 @@
+# Category: Emerging Technologies - IoT/OT/SCADA Security
+name: "IoT and OT/SCADA Security Assessment"
+id: "iot-ot-security-001"
+category: "emerging_technologies"
+subcategory: "iot_ot_scada"
+difficulty: "advanced"
+estimated_time: "90"
+
+tags:
+  - iot
+  - ot
+  - scada
+  - modbus
+  - dnp3
+  - industrial-control
+  - firmware-analysis
+  - shodan
+  - nmap
+  - plc
+  - hmi
+  - network-segmentation
+  - purdue-model
+  - nist-800-82
+  - ics-security
+
+description: |
+  Assess security of IoT devices and Operational Technology (OT) / SCADA
+  environments. Covers device discovery, protocol analysis, firmware extraction,
+  and network segmentation validation aligned with NIST SP 800-82 Rev3 and
+  the Purdue Reference Model.
+
+learning_objectives:
+  - Discover and enumerate IoT/OT devices on industrial networks
+  - Analyze industrial protocols (Modbus, DNP3) for security weaknesses
+  - Perform firmware extraction and analysis on IoT devices
+  - Validate OT network segmentation against ICS security best practices
+
+tools:
+  - "nmap"
+  - "shodan_cli"
+  - "binwalk"
+  - "modscan"
+  - "plcscan"
+  - "python3"
+
+prerequisites:
+  - "Written authorization from asset owner and plant manager"
+  - "Understanding of industrial control system architecture"
+  - "Safety briefing completed before accessing OT environment"
+  - "Coordination with operations team to avoid disruption"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "OT network discovery and device enumeration"
+    commands:
+      - "# CRITICAL: Use slow scan rates in OT environments — fast scans can disrupt PLCs"
+      - "# Coordinate all scanning with operations team"
+      - "# Passive discovery first — listen before scanning"
+      - "tcpdump -i [ot_interface] -n 'not port 22' -w /tmp/ot_traffic.pcap -G 300 -W 1"
+      - "# Analyze captured traffic for device types"
+      - "tshark -r /tmp/ot_traffic.pcap -q -z ip,hosts | head -50"
+      - "# Conservative Nmap scan — slow timing to avoid PLC disruption"
+      - "nmap -sn -T2 --max-rate 10 [ot_range] -oG /tmp/ot_hosts.txt"
+      - "# Service scan on discovered hosts — extremely slow"
+      - "nmap -sV -T1 --max-rate 5 -p102,502,20000,44818,47808,1911,4840,2404 [ot_host] -oA /tmp/ot_services"
+      - "# Common ICS ports:"
+      - "# 502   - Modbus"
+      - "# 102   - Siemens S7 (ISO-TSAP)"
+      - "# 44818 - EtherNet/IP"
+      - "# 20000 - DNP3"
+      - "# 1911  - Niagara Fox"
+      - "# 4840  - OPC-UA"
+      - "# 47808 - BACnet"
+      - "# 2404  - IEC 60870-5-104"
+    expected_output: "OT device inventory with device types and industrial protocol ports"
+    detection: "Network scan visible in OT network monitoring; alert operations team in advance"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Modbus protocol enumeration"
+    commands:
+      - "# Install Modbus tools"
+      - "pip3 install pymodbus"
+      - "# Read device identification (Function Code 43)"
+      - "python3 << 'EOF'\nfrom pymodbus.client import ModbusTcpClient\nclient = ModbusTcpClient('[modbus_host]', port=502)\nclient.connect()\n# Read holding registers 0-9\nresult = client.read_holding_registers(0, 10, slave=1)\nif not result.isError():\n    print(f'Holding registers: {result.registers}')\n# Read coils 0-9\nresult = client.read_coils(0, 10, slave=1)\nif not result.isError():\n    print(f'Coils: {result.bits}')\nclient.close()\nEOF"
+      - "# modscan for Modbus enumeration"
+      - "modscan -t [modbus_host] -r 1-100"
+      - "# Check for Modbus without authentication"
+      - "python3 << 'EOF'\nfrom pymodbus.client import ModbusTcpClient\nclient = ModbusTcpClient('[modbus_host]')\nif client.connect():\n    print('MODBUS ACCESSIBLE WITHOUT AUTHENTICATION')\n    result = client.read_holding_registers(0, 5, slave=1)\n    if not result.isError():\n        print(f'Register values: {result.registers}')\nclient.close()\nEOF"
+    expected_output: "Modbus register values, coil states, and authentication status"
+    detection: "Modbus function code queries in OT network monitoring"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "IoT device firmware analysis"
+    commands:
+      - "# Extract firmware from device (UART/JTAG or update file)"
+      - "# Via update file download"
+      - "curl -s 'https://[vendor_site]/firmware/device_fw_v2.1.bin' -o /tmp/firmware.bin"
+      - "# Analyze firmware structure with binwalk"
+      - "binwalk /tmp/firmware.bin"
+      - "# Extract filesystem"
+      - "binwalk -e /tmp/firmware.bin --run-as=root -C /tmp/firmware_extracted/"
+      - "ls /tmp/firmware_extracted/"
+      - "# Check for hardcoded credentials"
+      - "grep -r 'password\\|passwd\\|admin\\|root\\|secret\\|key' /tmp/firmware_extracted/ --include='*.conf' --include='*.xml' --include='*.json' --include='*.ini' 2>/dev/null | grep -v Binary | head -30"
+      - "# Check for private keys"
+      - "find /tmp/firmware_extracted/ -name '*.pem' -o -name '*.key' -o -name '*.crt' 2>/dev/null"
+      - "# Check for web application credentials"
+      - "find /tmp/firmware_extracted/ -name 'shadow' -o -name 'passwd' 2>/dev/null | xargs cat 2>/dev/null"
+      - "# Check for default credentials in binary"
+      - "strings /tmp/firmware.bin | grep -iE 'admin|password|default|root' | head -30"
+    expected_output: "Firmware filesystem with hardcoded credentials, private keys, and default accounts"
+    detection: "N/A — offline firmware analysis"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "OT network segmentation validation"
+    commands:
+      - "# Validate Purdue Model zone isolation"
+      - "# Level 0/1 (Field devices) should NOT reach corporate network"
+      - "# Level 2 (Control) should NOT reach internet"
+      - "# Level 3 (Operations) limited connection to Level 4 (Enterprise)"
+      - "# Test from OT zone — should be blocked to enterprise"
+      - "ping -c3 [enterprise_host] 2>/dev/null && echo 'OT->ENTERPRISE: REACHABLE — SEGMENTATION GAP' || echo 'OT->ENTERPRISE: BLOCKED'"
+      - "# Test from OT zone — should be blocked to internet"
+      - "curl -s --connect-timeout 5 http://example.com 2>/dev/null && echo 'OT->INTERNET: REACHABLE — CRITICAL GAP' || echo 'OT->INTERNET: BLOCKED'"
+      - "# Test from DMZ — should not reach Level 0/1 field devices"
+      - "nmap -sn [level01_range] --source-interface [dmz_interface] 2>/dev/null"
+      - "# Verify data historian is the only bridge"
+      - "traceroute [historian_host] -n"
+      - "# Check for unauthorized wireless in OT environment"
+      - "airmon-ng start [wireless_interface] 2>/dev/null && airodump-ng [wireless_interface]mon 2>/dev/null --write /tmp/ot_wireless --output-format csv & sleep 30 && kill %1 2>/dev/null"
+    expected_output: "Segmentation test results showing allowed/denied paths between OT zones"
+    detection: "ICMP and TCP probes from OT zone in network firewall logs"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "Shodan OSINT for exposed ICS systems"
+    commands:
+      - "# Search Shodan for exposed ICS devices belonging to target organization"
+      - "pip3 install shodan && shodan init [shodan_api_key]"
+      - "shodan search 'org:\"[target_org]\" port:502' --fields ip_str,port,org,product"
+      - "shodan search 'org:\"[target_org]\" port:44818' --fields ip_str,port,org,product"
+      - "shodan search 'org:\"[target_org]\" Modbus' --fields ip_str,port,product,version"
+      - "shodan search 'org:\"[target_org]\" DNP3' --fields ip_str,port,product"
+      - "shodan search 'org:\"[target_org]\" Siemens S7' --fields ip_str,port,product,version"
+      - "shodan search 'org:\"[target_org]\" \"BACnet\"' --fields ip_str,port,product"
+      - "# Get full details on discovered ICS devices"
+      - "shodan host [ics_external_ip]"
+    expected_output: "Internet-exposed ICS devices belonging to target — critical risk finding"
+    detection: "N/A — passive Shodan lookup"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Generate ICS security assessment report"
+    commands:
+      - "python3 << 'EOF'\nimport datetime\n\nfindings = [\n    {'id': 'ICS-001', 'severity': 'CRITICAL', 'title': 'Modbus accessible without authentication', 'system': 'PLC-Line-A', 'standard': 'NIST 800-82 Rev3 6.2.1', 'remediation': 'Implement Modbus firewall/whitelist; upgrade to authenticated protocol'},\n    {'id': 'ICS-002', 'severity': 'CRITICAL', 'title': 'OT network has internet access', 'system': 'OT Zone Level 2', 'standard': 'IEC 62443-3-3 SR 5.1', 'remediation': 'Remove internet access from OT; implement air gap or DMZ'},\n    {'id': 'ICS-003', 'severity': 'HIGH', 'title': 'Hardcoded credentials in IoT firmware', 'system': 'Temperature Sensors', 'standard': 'NIST 800-82 Rev3 4.2', 'remediation': 'Update firmware; change default credentials; implement credential management'},\n    {'id': 'ICS-004', 'severity': 'HIGH', 'title': 'Unpatched engineering workstation (3 years old)', 'system': 'HMI-Station-01', 'standard': 'NIST 800-82 Rev3 6.3.3', 'remediation': 'Apply vendor-approved patches; implement compensating controls'},\n    {'id': 'ICS-005', 'severity': 'MEDIUM', 'title': 'Wireless network detected in OT environment', 'system': 'Plant Floor', 'standard': 'IEC 62443-2-1', 'remediation': 'Identify and remove unauthorized wireless; implement RF monitoring'},\n]\n\nprint(f'ICS/OT Security Assessment — {datetime.date.today()}')\nprint('=' * 70)\nfor f in sorted(findings, key=lambda x: ['CRITICAL','HIGH','MEDIUM','LOW'].index(x['severity'])):\n    print(f\"[{f['severity']:8}] {f['id']} | {f['title']}\")\n    print(f\"           System: {f['system']} | Standard: {f['standard']}\")\n    print(f\"           Fix: {f['remediation']}\")\n    print()\nEOF"
+    expected_output: "Structured ICS security findings with severity, affected systems, and remediation"
+    detection: "N/A — reporting"
+
+compliance_controls:
+  - standard: "NIST SP 800-82 Rev3"
+    control: "Full document"
+    description: "Guide to OT Security — ICS risk management"
+  - standard: "IEC 62443"
+    control: "2-1, 3-3"
+    description: "Industrial automation and control systems security"
+  - standard: "NERC CIP"
+    control: "CIP-005, CIP-007"
+    description: "Electronic Security Perimeter, Systems Security Management"
+  - standard: "NIST 800-53 Rev5"
+    control: "SA-22"
+    description: "Unsupported system components in OT environments"
+
+detection:
+  network_indicators:
+    - "Unexpected protocols (Modbus, DNP3) on corporate network segment"
+    - "Internet-facing connections from OT network addresses"
+    - "New devices appearing on OT network not in asset inventory"
+  log_indicators:
+    - "Modbus function code writes to PLC registers from unexpected source"
+    - "Failed authentication to HMI from non-operator IP"
+    - "Engineering workstation accessing internet via OT segment"
+  endpoint_indicators:
+    - "USB devices connected to air-gapped OT systems"
+    - "Unauthorized software installed on HMI workstations"
+
+remediation:
+  immediate:
+    - "Disable internet access from all OT network zones immediately"
+    - "Firewall Modbus port 502 to authorized engineering stations only"
+    - "Remove unauthorized wireless access points from plant floor"
+    - "Disconnect any internet-exposed ICS devices identified via Shodan"
+  long_term:
+    - "Implement Purdue Model network segmentation with unidirectional gateways"
+    - "Deploy OT-specific IDS (Claroty, Dragos, Nozomi) for passive monitoring"
+    - "Establish OT patch management process aligned with vendor guidance"
+    - "Conduct annual ICS penetration testing by qualified OT security specialists"
+
+variables:
+  ot_range: "10.100.0.0/24"
+  ot_host: "10.100.0.10"
+  modbus_host: "10.100.0.20"
+  enterprise_host: "10.0.1.100"
+  level01_range: "10.100.1.0/24"
+  historian_host: "10.100.0.100"
+  target_org: "Example Manufacturing Corp"
+  ics_external_ip: "203.0.113.100"
+  shodan_api_key: "YOUR_SHODAN_API_KEY"
+  ot_interface: "eth1"
+  wireless_interface: "wlan0"
+  dmz_interface: "eth2"
+  vendor_site: "downloads.iot-vendor.example.com"
+
+assessment_questions:
+  - "What is the Purdue Reference Model and how does it define OT network zones?"
+  - "Why is Modbus considered an insecure industrial protocol?"
+  - "What makes ICS/OT environments more safety-critical than IT environments?"
+  - "How does binwalk help in IoT firmware security analysis?"
+  - "What NIST publication governs security for industrial control systems?"
+
+references:
+  - url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-82r3.pdf"
+    title: "NIST SP 800-82 Rev3 OT Security Guide"
+  - url: "https://www.isa.org/standards-and-publications/isa-standards/isa-iec-62443-series-of-standards"
+    title: "IEC 62443 Industrial Security Standards"
+  - url: "https://github.com/ReFirmLabs/binwalk"
+    title: "Binwalk Firmware Analysis"
+  - url: "https://www.dragos.com/ics-ot-cybersecurity/"
+    title: "Dragos ICS/OT Security Resources"

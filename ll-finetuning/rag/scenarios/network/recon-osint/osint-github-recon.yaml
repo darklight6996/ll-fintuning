@@ -1,0 +1,106 @@
+# Category: Intelligence Gathering
+name: "GitHub Reconnaissance – Finding Secrets and Source Code"
+id: "osint-github-recon-001"
+category: "osint"
+subcategory: "code_repos"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Search GitHub for public repositories belonging to an organization or
+  individual to find accidentally committed secrets (API keys, passwords,
+  tokens), internal code structure, and information about infrastructure.
+  Also useful for identifying employees and their coding habits.
+
+learning_objectives:
+  - Use GitHub's search syntax (org:, repo:, path:, language:)
+  - Search for common secrets using regex patterns
+  - Use tools like truffleHog and gitrob to automate scanning
+  - Analyze commit histories for additional information
+
+tools:
+  - GitHub web search
+  - truffleHog
+  - gitrob
+  - Gitleaks
+  - ghdork
+
+prerequisites:
+  - Target organization name (GitHub organization)
+  - Basic knowledge of GitHub search operators
+
+steps:
+  - id: "step1"
+    phase: "discovery"
+    action: "List public repositories of the target organization"
+    commands:
+      - "# Search for organization repositories"
+      - "org:exampleorg"
+      - "# Or by user"
+      - "user:developer"
+      - "# Filter by language (e.g., Python)"
+      - "org:exampleorg language:python"
+    expected_output: "List of public repositories and their contents"
+    detection: "GitHub tracks API usage; but public data is free"
+
+  - id: "step2"
+    phase: "secret_scanning"
+    action: "Automate secret discovery using truffleHog"
+    commands:
+      - "# Run truffleHog on a repository"
+      - "trufflehog git https://github.com/exampleorg/repo.git"
+      - "# Or scan entire organization"
+      - "trufflehog github --org=exampleorg"
+      - "# Use Gitleaks for similar"
+      - "gitleaks detect --source path/to/repo"
+    expected_output: "List of high‑entropy strings, API keys, AWS secrets"
+    detection: "No direct detection (GitHub may audit API use)"
+
+  - id: "step3"
+    phase: "analysis"
+    action: "Examine commit history and issues"
+    commands:
+      - "# Look at commit messages for infrastructure clues"
+      - "# Search for internal IPs, domain names"
+      - "# Check closed issues for vulnerability disclosures"
+    expected_output: "Internal IPs, subdomains, staging URLs, usernames"
+    detection: "N/A"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1587.001"
+    description: "Develop Capabilities – Malware (code leaks)"
+  - standard: "CIS GitHub Benchmarks"
+    control: "1.1"
+    description: "Ensure no secrets are committed"
+
+detection:
+  network_indicators:
+    - "Git clone operations from suspicious IPs"
+  log_indicators:
+    - "GitHub audit logs for large API calls"
+  endpoint_indicators:
+    - "truffleHog, gitrob processes"
+
+remediation:
+  immediate:
+    - "Rotate any exposed secrets immediately"
+    - "Enable GitHub secret scanning (built‑in) for private repos"
+  long_term:
+    - "Use pre‑commit hooks to prevent secret commits"
+    - "Limit public repositories to non‑sensitive code"
+
+variables:
+  target_org: "exampleorg"
+  repo_url: "https://github.com/exampleorg/repo.git"
+
+assessment_questions:
+  - "What is a common regex pattern to find AWS access keys?"
+  - "How can an attacker use commit history to find previous versions of sensitive files?"
+  - "What is the difference between gitleaks and truffleHog?"
+
+references:
+  - url: "https://github.com/trufflesecurity/trufflehog"
+    title: "truffleHog GitHub"
+  - url: "https://github.com/zricethezav/gitleaks"
+    title: "Gitleaks GitHub"

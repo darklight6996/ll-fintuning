@@ -1,0 +1,17 @@
+id: BENCH-CTF-01
+name: CTF SUID PATH Hijack
+category: privilege_escalation
+agent: ctf
+target: localhost
+ground_truth_vulnerability: SUID binary executes relative command vulnerable to PATH
+  injection
+expected_phases:
+- environment_recon
+- suid_audit
+- path_hijack_validation
+- flag_capture
+required_action_ids:
+- suid_audit
+- path_hijack_validation
+expected_finding_severity: high
+success_flag_pattern: flag{suid_path_pwned}

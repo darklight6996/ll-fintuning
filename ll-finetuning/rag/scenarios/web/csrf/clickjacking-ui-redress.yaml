@@ -1,0 +1,92 @@
+# Category: Web Security
+name: "Clickjacking – UI Redress Attack"
+id: "web-clickjacking-001"
+category: "offensive_security"
+subcategory: "web_application"
+difficulty: "beginner"
+estimated_time: "40 minutes"
+
+description: |
+  Trick a user into clicking on a transparent or disguised iframe overlay
+  that performs actions on the target website without the user's knowledge.
+  This can lead to unauthorized account changes, likes, or financial
+  transactions.
+
+learning_objectives:
+  - Understand iframe embedding and X-Frame-Options
+  - Craft an HTML page with a transparent iframe
+  - Lure the user into clicking a button that triggers an action
+  - Bypass protections if no X-Frame-Options header is set
+
+tools:
+  - Burp Suite (to check response headers)
+  - Basic HTML/CSS
+  - Python (for simple server)
+
+prerequisites:
+  - Target website that allows framing (no X-Frame-Options)
+  - A user to visit the malicious page
+
+steps:
+  - id: "step1"
+    phase: "recon"
+    action: "Check if target allows framing"
+    commands:
+      - "# Using curl to view headers"
+      - "curl -I https://example.com"
+      - "# Look for X-Frame-Options: DENY or SAMEORIGIN"
+    expected_output: "Missing X-Frame-Options header"
+    detection: "None"
+
+  - id: "step2"
+    phase: "crafting"
+    action: "Create malicious HTML"
+    commands:
+      - "# HTML with iframe opacity: 0"
+      - "# Position iframe over a button"
+    expected_output: "Hidden iframe with target site; user sees a decoy button"
+    detection: "User may notice if mouse pointer changes"
+
+  - id: "step3"
+    phase: "delivery"
+    action: "Host page and lure victim"
+    expected_output: "When user clicks decoy, they unknowingly click the target button"
+    detection: "Target logs show the action from victim's session"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1566"
+    description: "Phishing"
+  - standard: "OWASP"
+    control: "A05:2021"
+    description: "Security Misconfiguration"
+
+detection:
+  network_indicators:
+    - "Referer header from attacker's domain"
+  log_indicators:
+    - "None"
+  endpoint_indicators:
+    - "Malicious HTML hosted"
+
+remediation:
+  immediate:
+    - "Set X-Frame-Options: DENY or SAMEORIGIN"
+    - "Use Content-Security-Policy: frame-ancestors"
+  long_term:
+    - "Add anti-clickjacking JavaScript (though not foolproof)"
+
+variables:
+  target_url: "https://example.com/delete-account"
+  decoy_url: "https://attacker.com/lucky.html"
+
+assessment_questions:
+  - "What header prevents clickjacking?"
+  - "How can you test if a website is vulnerable?"
+  - "What is the difference between frame-ancestors and X-Frame-Options?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/Clickjacking"
+    title: "OWASP Clickjacking"
+  - url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options"
+    title: "MDN X-Frame-Options"

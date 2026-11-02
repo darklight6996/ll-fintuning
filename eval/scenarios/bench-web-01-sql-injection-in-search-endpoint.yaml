@@ -1,0 +1,15 @@
+id: BENCH-WEB-01
+name: SQL Injection in Search Endpoint
+category: web
+agent: bug_bounty
+target: http://127.0.0.1:8080/search
+ground_truth_vulnerability: Error-based and boolean-blind SQL injection in q parameter
+expected_phases:
+- recon
+- endpoint_discovery
+- param_fuzzing
+- vuln_validation
+required_action_ids:
+- endpoint_discovery
+- vuln_validation
+expected_finding_severity: critical

@@ -1,0 +1,97 @@
+# Category: Clickjacking
+name: "Multistep clickjacking"
+id: "clickjacking-multistep-001"
+category: "clickjacking"
+subcategory: "multistep"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This scenario covers clickjacking attacks that involve multiple steps. The
+  attacker uses a series of overlays or timed interactions to guide the victim
+  through a multi-step process (e.g., clicking two buttons: first to confirm
+  and then to submit). This is used when the target requires multiple steps
+  to perform a sensitive action.
+
+learning_objectives:
+  - Understand multi-step clickjacking attacks
+  - Use multiple iframe overlays or timed sequences
+  - Guide the victim through a multi-step process
+  - Perform actions that require multiple user interactions
+
+tools:
+  - Burp Suite
+  - Basic HTML/CSS/JavaScript
+
+prerequisites:
+  - Target requires multiple steps for sensitive actions
+  - Target can be framed (no X-Frame-Options)
+  - Victim has an active session
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify multi-step process"
+    commands:
+      - "# Observe the flow: step1, step2, step3"
+      - "# Note the sequence of clicks required"
+    expected_output: "Multi-step process identified"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Create a multi-step clickjacking page"
+    commands:
+      - "# Use multiple iframes or change the iframe source over time"
+      - "# Use JavaScript to redirect the user through steps"
+      - "# Example: step1 button → step2 button → submit"
+    expected_output: "Victim is guided through all steps, completing the sensitive action"
+    detection: "Application logs show the multi-step action completed"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Escalate to account takeover"
+    commands:
+      - "# Use the technique for complex actions like adding admin users"
+    expected_output: "Privilege escalation achieved"
+    detection: "Security alerts for sensitive privilege changes"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1204"
+    description: "User Execution"
+  - standard: "OWASP"
+    control: "A04:2021"
+    description: "Insecure Design"
+
+detection:
+  network_indicators:
+    - "Multiple requests in quick succession"
+  log_indicators:
+    - "Multi-step actions completed in suspicious sequence"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Set X-Frame-Options: DENY"
+    - "Use CSRF tokens for each step"
+  long_term:
+    - "Implement multi-factor authentication for sensitive actions"
+    - "Require re-authentication for critical operations"
+
+variables:
+  target_url: "https://target.com/account"
+  step1_selector: "#confirm-btn"
+  step2_selector: "#submit-btn"
+
+assessment_questions:
+  - "What is a multi-step clickjacking attack?"
+  - "How can an attacker guide a victim through multiple steps?"
+  - "What additional defenses can protect against multi-step clickjacking?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/Clickjacking"
+    title: "OWASP Clickjacking"
+  - url: "https://portswigger.net/web-security/clickjacking"
+    title: "PortSwigger Clickjacking"

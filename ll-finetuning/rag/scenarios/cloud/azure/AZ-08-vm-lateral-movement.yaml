@@ -1,0 +1,194 @@
+name: "Azure VM Lateral Movement & Network Segmentation"
+id: "AZ-08"
+category: "Cloud Security"
+subcategory: "Azure / Cloud Security"
+difficulty: "advanced"
+estimated_time: "60"
+
+tags:
+  - azure
+  - vm
+  - network-security-group
+  - nsg
+  - vnet
+  - vnet-peering
+  - lateral-movement
+  - network-segmentation
+  - rdp
+  - ssh
+  - bastion
+  - firewall
+  - soc2
+  - cc6.6
+  - cc7.1
+  - compliance
+  - network-security
+
+description: |
+  Assess Azure VM network segmentation by testing lateral movement paths
+  through Network Security Groups (NSGs), Azure Firewall, and VNet peering.
+  Maps to SOC 2 CC6.6 (System Boundaries).
+
+learning_objectives:
+  - Enumerate NSG rules and identify overly permissive configurations
+  - Test network connectivity between subnets and VNets
+  - Assess VNet peering for unintended lateral movement paths
+  - Verify Azure Firewall and route table configurations
+  - Test RDP/SSH access between production and non-production networks
+
+tools:
+  - "Azure CLI"
+  - "Azure PowerShell (Az module)"
+  - "nmap"
+  - "PowerShell"
+  - "tcpdump"
+  - "Steampipe"
+
+prerequisites:
+  - "Azure subscription with Network Reader access"
+  - "Compromised VM or jump host in target VNet"
+  - "nmap and network testing tools installed"
+  - "Understanding of Azure networking (VNet, NSG, UDR)"
+
+steps:
+  - id: "step1"
+    phase: "enumeration"
+    action: "Enumerate all NSGs and their security rules"
+    commands:
+      - "az network nsg list --query '[].{Name:name, ResourceGroup:resourceGroup, Rules:length(securityRules)}' -o table"
+      - "az network nsg rule list --nsg-name {nsg_name} --resource-group {resource_group} --query '[].{Name:name, Direction:direction, Access:access, Protocol:protocol, SourcePortRange:sourcePortRange, DestPortRange:destinationPortRange, SourceAddr:sourceAddressPrefix, DestAddr:destinationAddressPrefix, Priority:priority}' -o table"
+      - "Get-AzNetworkSecurityGroup | ForEach-Object { $_.SecurityRules | Select-Object @{N='NSGName';E={$_.Name}}, Name, Direction, Access, Protocol, SourceAddressPrefix, DestinationAddressPrefix, DestinationPortRange, Priority } | Export-Csv -Path 'nsg_rules.csv' -NoTypeInformation"
+    expected_output: "All NSG rules with source/destination addresses, ports, and priorities"
+    detection: "NSG rule enumeration in Azure Activity Logs"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Identify overly permissive NSG rules"
+    commands:
+      - "az network nsg rule list --nsg-name {nsg_name} --resource-group {resource_group} --query '[?sourceAddressPrefix==`Internet` || sourceAddressPrefix==`*` || sourceAddressPrefix==`0.0.0.0/0`].{Name:name, Direction:direction, Access:access, Protocol:protocol, DestPortRange:destinationPortRange, SourceAddr:sourceAddressPrefix}' -o table"
+      - "# Check for rules allowing RDP (3389) or SSH (22) from Internet"
+      - "az network nsg rule list --nsg-name {nsg_name} --resource-group {resource_group} --query '[?destinationPortRange==`3389` || destinationPortRange==`22` || destinationPortRange==`5985` || destinationPortRange==`5986`].{Name:name, Direction:direction, Access:access, SourceAddr:sourceAddressPrefix, DestPortRange:destinationPortRange}' -o table"
+    expected_output: "NSG rules allowing inbound access from Internet on management ports"
+    detection: "NSG rule reads with specific port filters"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Map VNet topology, peering, and route tables"
+    commands:
+      - "az network vnet list --query '[].{Name:name, ResourceGroup:resourceGroup, AddressSpace:addressSpace.addressPrefixes[0], Subnets:length(subnets)}' -o table"
+      - "az network vnet peering list --resource-group {resource_group} --vnet-name {vnet_name} --query '[].{Name:name, RemoteVnet:remoteVirtualNetwork.id, PeeringState:peeringState, AllowForwardedTraffic:allowForwardedTraffic, AllowGatewayTransit:allowGatewayTransit, UseRemoteGateways:useRemoteGateways}' -o table"
+      - "az network route-table list --query '[].{Name:name, ResourceGroup:resourceGroup, Routes:length(routes)}' -o table"
+    expected_output: "VNet topology with peering connections and route table associations"
+    detection: "VNet and route table enumeration in Azure Activity Logs"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Test network connectivity between subnets from compromised VM"
+    commands:
+      - "# From jump host/compromised VM, scan target subnet"
+      - "nmap -sn {target_subnet} -oN subnet_scan.txt"
+      - "# Scan for open management ports on discovered hosts"
+      - "nmap -p 22,3389,5985,5986,445,139,135 {target_subnet} --open -oN management_ports.txt"
+    expected_output: "Live hosts in target subnet with open management ports"
+    detection: "Port scanning traffic in NSG flow logs; VM network traffic anomalies"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Test lateral movement via RDP/SSH between subnets"
+    commands:
+      - "# Test RDP connectivity to target VM"
+      - "nc -zv {target_vm_ip} 3389"
+      - "# Test SSH connectivity"
+      - "nc -zv {target_vm_ip} 22"
+      - "# If open, attempt authentication with compromised credentials"
+      - "xfreerdp /v:{target_vm_ip} /u:{username} /p:{password} /cert-ignore"
+      - "ssh {username}@{target_vm_ip}"
+    expected_output: "Successful connection to target VM confirming lateral movement path"
+    detection: "RDP/SSH connections between subnets in NSG flow logs; Azure AD sign-ins from VM IP"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "Test VNet peering traversal to peered networks"
+    commands:
+      - "# From VM in VNet A, scan VNet B via peering"
+      - "nmap -sn {peered_vnet_address_space} -oN peering_scan.txt"
+      - "# Test if Azure Firewall blocks inter-VNet traffic"
+      - "curl -I http://{target_in_peered_vnet} --connect-timeout 5"
+    expected_output: "Reachable hosts in peered VNets confirming peering-based lateral movement"
+    detection: "Cross-VNet traffic in flow logs; firewall deny/allow logs"
+
+  - id: "step7"
+    phase: "post_exploitation"
+    action: "Generate network segmentation assessment report"
+    commands:
+      - "$report = @{ TotalNSGs=(az network nsg list --query 'length(@)' -o tsv); RulesAllowingInternet=(Import-Csv nsg_rules.csv | Where-Object { $_.SourceAddr -in @('Internet','*','0.0.0.0/0') }).Count; RulesAllowingRDP=(Import-Csv nsg_rules.csv | Where-Object { $_.DestPortRange -eq '3389' -and $_.Access -eq 'Allow' }).Count; VNetPeerings=(az network vnet peering list --resource-group {resource_group} --vnet-name {vnet_name} --query 'length(@)' -o tsv); LateralMovementPaths=(Get-Content management_ports.txt | Select-String 'open').Count }; $report | ConvertTo-Json | Out-File 'network_segmentation_report.json'"
+    expected_output: "network_segmentation_report.json with quantified network security gaps"
+    detection: "N/A - reporting step"
+
+compliance_controls:
+  - standard: "SOC 2"
+    control: "CC6.6"
+    description: "System boundaries - validate network segmentation controls"
+  - standard: "SOC 2"
+    control: "CC7.1"
+    description: "Detection - identify unauthorized lateral movement"
+  - standard: "NIST 800-53"
+    control: "SC-7"
+    description: "Boundary Protection - network segmentation implementation"
+  - standard: "CIS Azure"
+    control: "6.1"
+    description: "Ensure that RDP access from the Internet is evaluated and restricted"
+
+detection:
+  network_indicators:
+    - "Port scanning traffic (SYN, ACK) between Azure subnets"
+    - "RDP/SSH sessions between VMs in different subnets"
+    - "Cross-VNet traffic that bypasses expected firewall rules"
+  log_indicators:
+    - "NSG flow logs showing inbound connections on management ports"
+    - "Azure Firewall logs: allow/deny decisions for inter-VNet traffic"
+    - "VM guest OS logs: RDP/SSH authentication events"
+  endpoint_indicators:
+    - "nmap process executing on Azure VM"
+    - "xfreerdp or ssh client connections from VM to internal IPs"
+    - "Network connection attempts to non-local subnet ranges"
+
+remediation:
+  immediate:
+    - "Remove NSG rules allowing inbound RDP/SSH from Internet"
+    - "Replace broad address prefixes with specific IP ranges or Azure Service Tags"
+    - "Enable Azure Firewall or NSG flow logging on all subnets"
+    - "Disable unnecessary VNet peerings"
+    - "Implement Just-In-Time (JIT) VM access for management ports"
+  long_term:
+    - "Deploy hub-and-spoke network topology with centralized firewall"
+    - "Implement micro-segmentation with application security groups"
+    - "Use Azure Bastion for all management access instead of public IPs"
+    - "Deploy Network Virtual Appliances (NVAs) for advanced traffic inspection"
+    - "Enable DDoS Protection Standard on all VNets"
+    - "Implement zero-trust network architecture with identity-based access"
+
+variables:
+  nsg_name: "[TARGET_NSG_NAME]"
+  resource_group: "[RESOURCE_GROUP_NAME]"
+  vnet_name: "[TARGET_VNET_NAME]"
+  target_subnet: "[TARGET_SUBNET_CIDR]"
+  target_vm_ip: "[TARGET_VM_IP]"
+  peered_vnet_address_space: "[PEERED_VNET_CIDR]"
+  username: "[COMPROMISED_USERNAME]"
+  password: "[COMPROMISED_PASSWORD]"
+
+assessment_questions:
+  - "How many NSG rules allow inbound access from Internet?"
+  - "Are management ports (RDP/SSH/WinRM) accessible between production and dev subnets?"
+  - "Do VNet peerings allow unintended lateral movement to sensitive networks?"
+  - "Is Azure Firewall or equivalent inspecting inter-VNet traffic?"
+  - "Are NSG rules using specific address prefixes or broad ranges like 0.0.0.0/0?"
+
+references:
+  - url: "https://docs.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview"
+    title: "Azure Network Security Groups"
+  - url: "https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-peering-overview"
+    title: "Azure VNet Peering"
+  - url: "https://docs.microsoft.com/en-us/azure/bastion/bastion-overview"
+    title: "Azure Bastion - Secure RDP/SSH Access"

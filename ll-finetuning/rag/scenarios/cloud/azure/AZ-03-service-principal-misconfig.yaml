@@ -1,0 +1,163 @@
+name: "Service Principal Misconfiguration & Secret Rotation"
+id: "AZ-03"
+category: "Cloud Security"
+subcategory: "Azure / Cloud Security"
+difficulty: "intermediate"
+estimated_time: "45"
+
+tags:
+  - azure
+  - azure-ad
+  - service-principal
+  - app-registration
+  - secret-rotation
+  - credential-management
+  - oauth
+  - saml
+  - redirect-uri
+  - implicit-flow
+  - soc2
+  - cc6.1
+  - cc7.1
+  - compliance
+  - identity
+
+description: |
+  Audit Azure AD service principals and app registrations for misconfigurations
+  including excessive permissions, expired or long-lived secrets, missing owners,
+  and insecure redirect URIs. Maps to SOC 2 CC6.1 (Logical Access).
+
+learning_objectives:
+  - Identify service principals with expired or near-expiry secrets/certificates
+  - Find service principals with excessive Microsoft Graph or Azure RBAC permissions
+  - Detect app registrations with insecure redirect URIs (localhost, http://)
+  - Verify secret rotation policies and ownership assignments
+  - Assess service principal authentication methods for security gaps
+
+tools:
+  - "Microsoft Graph PowerShell"
+  - "Azure CLI"
+  - "ROADtools"
+  - "PowerShell"
+  - "Steampipe"
+
+prerequisites:
+  - "Azure AD credentials with Application.Read.All and Directory.Read.All"
+  - "Microsoft.Graph PowerShell module"
+  - "Azure CLI authenticated"
+
+steps:
+  - id: "step1"
+    phase: "enumeration"
+    action: "Enumerate all service principals and their authentication credentials"
+    commands:
+      - "Get-MgServicePrincipal -All | Select-Object DisplayName, AppId, Id, AccountEnabled, @{N='SecretCount';E={$_.PasswordCredentials.Count}}, @{N='CertCount';E={$_.KeyCredentials.Count}}, @{N='OldestSecret';E={($_.PasswordCredentials.StartDateTime | Sort-Object)[0]}}, @{N='NewestSecretExpiry';E={($_.PasswordCredentials.EndDateTime | Sort-Object -Descending)[0]}} | Export-Csv -Path 'sp_credentials.csv' -NoTypeInformation"
+      - "Get-MgServicePrincipal -All | Where-Object { $_.PasswordCredentials } | ForEach-Object { $_.PasswordCredentials | Select-Object @{N='SPName';E={$_.DisplayName}}, @{N='SPAppId';E={$_.AppId}}, KeyId, StartDateTime, EndDateTime, @{N='DaysUntilExpiry';E={[math]::Round((([datetime]$_.EndDateTime) - (Get-Date)).TotalDays,0)}} } | Export-Csv -Path 'sp_secret_details.csv' -NoTypeInformation"
+    expected_output: "CSV files with all service principal credentials, expiry dates, and days until expiration"
+    detection: "Application.Read.All enumeration of service principal secrets"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Identify service principals with excessive Graph API permissions"
+    commands:
+      - "Get-MgServicePrincipal -All | Where-Object { $_.AppRoles } | ForEach-Object { $sp = $_; $sp.AppRoles | Select-Object @{N='SPName';E={$sp.DisplayName}}, @{N='SPAppId';E={$sp.AppId}}, Value, AllowedMemberTypes } } | Where-Object { $_.Value -match 'ReadWrite|Write|Delete|Manage' } | Export-Csv -Path 'sp_high_permissions.csv' -NoTypeInformation"
+      - "Get-MgServicePrincipal -All | Where-Object { $_.Oauth2PermissionScopes } | ForEach-Object { $sp = $_; $sp.Oauth2PermissionScopes | Select-Object @{N='SPName';E={$sp.DisplayName}}, Value, AdminConsentDescription } } | Where-Object { $_.Value -match 'full_access|all|write' } | Export-Csv -Path 'sp_oauth_scopes.csv' -NoTypeInformation"
+    expected_output: "Service principals with high-risk permissions like Mail.ReadWrite, Files.ReadWrite.All, etc."
+    detection: "Application.Read.All enumeration of app roles and OAuth2 scopes"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Check app registrations for insecure redirect URIs and implicit flow"
+    commands:
+      - "Get-MgApplication -All | Where-Object { $_.Web.RedirectUris -match 'localhost|http://|127.0.0.1' } | Select-Object DisplayName, AppId, @{N='InsecureUris';E={($_.Web.RedirectUris | Where-Object { $_ -match 'localhost|http://|127.0.0.1' }) -join ','}}, @{N='AllUris';E={($_.Web.RedirectUris) -join ','}} | Export-Csv -Path 'app_insecure_uris.csv' -NoTypeInformation"
+      - "Get-MgApplication -All | Where-Object { $_.Web.ImplicitGrantSettings.EnableAccessTokenIssuance -eq $true -or $_.Web.ImplicitGrantSettings.EnableIdTokenIssuance -eq $true } | Select-Object DisplayName, AppId, @{N='ImplicitFlowEnabled';E={$_.Web.ImplicitGrantSettings.EnableAccessTokenIssuance}} | Export-Csv -Path 'app_implicit_flow.csv' -NoTypeInformation"
+    expected_output: "App registrations using localhost/http redirect URIs or implicit grant flow"
+    detection: "Application.Read.All enumeration of app registration properties"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "Verify service principal ownership and inactive principals"
+    commands:
+      - "Get-MgServicePrincipal -All | Where-Object { -not $_.Owners } | Select-Object DisplayName, AppId, AccountEnabled, CreatedDateTime | Export-Csv -Path 'sp_no_owners.csv' -NoTypeInformation"
+      - "Get-MgServicePrincipal -All | Where-Object { $_.SignInActivity.LastSignInDateTime -lt (Get-Date).AddDays(-90) -or -not $_.SignInActivity.LastSignInDateTime } | Select-Object DisplayName, AppId, @{N='LastSignIn';E={$_.SignInActivity.LastSignInDateTime}}, @{N='DaysSinceSignIn';E={if($_.SignInActivity.LastSignInDateTime){[math]::Round(((Get-Date) - [datetime]$_.SignInActivity.LastSignInDateTime).TotalDays,0)}else{'Never'}}}, AccountEnabled | Export-Csv -Path 'sp_inactive.csv' -NoTypeInformation"
+    expected_output: "Service principals without owners and those inactive for 90+ days"
+    detection: "Directory.Read.All enumeration of service principal ownership and sign-in activity"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Attempt to use a service principal credential for authentication"
+    commands:
+      - "# If a secret is exposed, test if it works"
+      - "$SecureClientSecret = ConvertTo-SecureString -String '{client_secret}' -AsPlainText -Force; $ClientSecretCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList '{client_id}', $SecureClientSecret; Connect-MgGraph -ClientSecretCredential $ClientSecretCredential -TenantId '{tenant_id}'"
+      - "Get-MgContext"
+    expected_output: "Successful authentication as the service principal, confirming credential validity"
+    detection: "Service principal sign-in from new IP; client credential grant usage"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Generate compliance report with findings"
+    commands:
+      - "$report = @{ TotalSPs=(Import-Csv sp_credentials.csv).Count; SPsWithExpiredSecrets=(Import-Csv sp_secret_details.csv | Where-Object { [int]$_.DaysUntilExpiry -lt 0 }).Count; SPsWithNoOwners=(Import-Csv sp_no_owners.csv).Count; InactiveSPs=(Import-Csv sp_inactive.csv | Where-Object { $_.DaysSinceSignIn -ne 'Never' -and [int]$_.DaysSinceSignIn -gt 90 }).Count; AppsWithInsecureUris=(Import-Csv app_insecure_uris.csv).Count; AppsWithImplicitFlow=(Import-Csv app_implicit_flow.csv).Count }; $report | ConvertTo-Json | Out-File 'sp_misconfig_report.json'"
+    expected_output: "sp_misconfig_report.json with quantified misconfiguration findings"
+    detection: "N/A - reporting step"
+
+compliance_controls:
+  - standard: "SOC 2"
+    control: "CC6.1"
+    description: "Logical access controls - verify service principal credential lifecycle"
+  - standard: "SOC 2"
+    control: "CC7.1"
+    description: "Detection - identify insecure app configurations"
+  - standard: "NIST 800-53"
+    control: "IA-5"
+    description: "Authenticator Management - secret rotation and lifecycle"
+  - standard: "CIS Azure"
+    control: "1.4"
+    description: "Ensure that 'Allow users to register applications' is set to 'No'"
+
+detection:
+  network_indicators:
+    - "Graph API calls to /servicePrincipals and /applications endpoints"
+    - "Client credential grant flows to login.microsoftonline.com"
+  log_indicators:
+    - "Azure AD Audit: Application credential reads"
+    - "Sign-In Logs: Service principal authentication events"
+    - "Audit logs showing app registration property enumeration"
+  endpoint_indicators:
+    - "PowerShell executing Get-MgServicePrincipal with credential expansion"
+    - "CSV generation of service principal credential metadata"
+
+remediation:
+  immediate:
+    - "Rotate all secrets older than 1 year or expired"
+    - "Remove insecure redirect URIs (localhost, http://) from app registrations"
+    - "Disable implicit grant flow where not required"
+    - "Assign owners to all service principals without ownership"
+    - "Disable inactive service principals (90+ days no sign-in)"
+  long_term:
+    - "Implement automated secret rotation using Azure Key Vault + managed identities"
+    - "Deploy CI/CD pipeline scanning for exposed service principal secrets"
+    - "Require admin consent for all delegated permissions"
+    - "Quarterly review of service principal permissions against least privilege"
+    - "Enable Azure AD access reviews for service principal ownership"
+
+variables:
+  tenant_id: "[TARGET_TENANT_ID]"
+  client_id: "[SERVICE_PRINCIPAL_CLIENT_ID]"
+  client_secret: "[SERVICE_PRINCIPAL_SECRET]"
+  output_path: "[OUTPUT_DIRECTORY]"
+
+assessment_questions:
+  - "What percentage of service principal secrets are expired or near expiry (<30 days)?"
+  - "Are there service principals with Mail.ReadWrite or Files.ReadWrite.All permissions?"
+  - "How many app registrations use localhost or HTTP redirect URIs?"
+  - "Are inactive service principals automatically disabled?"
+  - "Is there a documented process for service principal lifecycle management?"
+
+references:
+  - url: "https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals"
+    title: "Application and Service Principal Objects in Azure AD"
+  - url: "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow"
+    title: "Microsoft Identity Platform - Client Credentials Flow"
+  - url: "https://github.com/dirkjanm/ROADtools"
+    title: "ROADtools - Azure AD Security Assessment"

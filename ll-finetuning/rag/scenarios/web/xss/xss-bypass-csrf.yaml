@@ -1,0 +1,96 @@
+# Category: Cross-Site Scripting (XSS)
+name: "Exploiting XSS to bypass CSRF defenses"
+id: "xss-bypass-csrf-001"
+category: "xss"
+subcategory: "post_exploitation"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This scenario covers using XSS to bypass CSRF (Cross-Site Request Forgery)
+  defenses. When an application uses CSRF tokens, an attacker can use XSS to
+  read the CSRF token from the DOM or cookies and then perform authenticated
+  requests on behalf of the victim.
+
+learning_objectives:
+  - Understand CSRF tokens and their protection
+  - Use XSS to extract CSRF tokens from the DOM
+  - Perform authenticated requests with the extracted token
+  - Automate the process via JavaScript
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - XSS vulnerability identified
+  - Application uses CSRF tokens
+  - CSRF token is accessible via DOM or cookies
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify how CSRF tokens are stored"
+    commands:
+      - "# Look for hidden input fields: <input type='hidden' name='csrf_token' value='...'>"
+      - "# Or cookies: document.cookie"
+    expected_output: "CSRF token location identified"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Inject payload to extract token and perform action"
+    commands:
+      - "# Payload: <script>"
+      - "# 1. Read token from DOM: document.querySelector('[name=csrf_token]').value"
+      - "# 2. Send authenticated request: fetch('/change-email', { method:'POST', body: new URLSearchParams({email:'new@email.com', csrf_token:token}) })"
+      - "# </script>"
+    expected_output: "Action performed with victim's session and valid CSRF token"
+    detection: "Application logs show action from victim"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Escalate to account takeover or privilege escalation"
+    commands:
+      - "# Change password, email, or perform admin actions"
+    expected_output: "Victim's account compromised"
+    detection: "Security alerts for account changes"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Sensitive actions from victim's session"
+  log_indicators:
+    - "Application logs showing unauthorized changes"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Fix XSS vulnerabilities"
+    - "Use anti-CSRF tokens bound to session and user"
+  long_term:
+    - "Implement sameSite cookies"
+    - "Use double-submit cookies or CSRF tokens in headers"
+
+variables:
+  target_action: "/change-email"
+  new_email: "attacker@evil.com"
+
+assessment_questions:
+  - "How does XSS bypass CSRF defenses?"
+  - "What is the difference between CSRF and XSS?"
+  - "How can you prevent XSS from being used to extract CSRF tokens?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/xss/"
+    title: "OWASP XSS"
+  - url: "https://owasp.org/www-community/attacks/csrf"
+    title: "OWASP CSRF"

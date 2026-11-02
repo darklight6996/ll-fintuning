@@ -1,0 +1,95 @@
+# Category: Cloud Security - Azure
+name: "Azure Storage Account Public Access – Data Exposure"
+id: "cloud-azure-storage-public-001"
+category: "cloud_security"
+subcategory: "azure"
+difficulty: "beginner"
+estimated_time: "40 minutes"
+
+description: |
+  Identify Azure Storage accounts with public blob containers or improperly
+  configured access policies. Attackers can list and download blobs without
+  authentication, exposing sensitive data.
+
+learning_objectives:
+  - Understand Azure Storage security (public vs private)
+  - Enumerate storage account URLs
+  - Check for public access using `az storage` or `curl`
+  - Exfiltrate data from exposed containers
+
+tools:
+  - Azure CLI
+  - curl
+  - Storage Explorer
+  - Azurite (for testing)
+
+prerequisites:
+  - Storage account URL or name
+  - Public access may be enabled
+
+steps:
+  - id: "step1"
+    phase: "discovery"
+    action: "Find storage accounts (if you have reader permissions)"
+    commands:
+      - "az storage account list"
+      - "# Or search for known naming patterns"
+    expected_output: "List of storage account names"
+    detection: "Cloud audit logs may show list operations"
+
+  - id: "step2"
+    phase: "test_public"
+    action: "Try to list containers without auth"
+    commands:
+      - "# If storage account is public:"
+      - "curl https://<account>.blob.core.windows.net/?restype=container&comp=list"
+      - "# Or use Azure CLI with --public-access"
+    expected_output: "XML list of containers and blobs"
+    detection: "Storage logs show anonymous request"
+
+  - id: "step3"
+    phase: "exfil"
+    action: "Download blobs"
+    commands:
+      - "curl https://<account>.blob.core.windows.net/container/blob -O"
+    expected_output: "File downloaded"
+    detection: "Storage logs show GET requests"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1530"
+    description: "Data from Cloud Storage Object"
+  - standard: "CIS Azure Foundations"
+    control: "2.1"
+    description: "Ensure that storage accounts are not publicly accessible"
+
+detection:
+  network_indicators:
+    - "Requests to blob.core.windows.net from unexpected IPs"
+  log_indicators:
+    - "Storage analytics logs show anonymous access"
+  endpoint_indicators:
+    - "curl, az storage"
+
+remediation:
+  immediate:
+    - "Set default public access to disabled"
+    - "Use Azure Private Link for storage"
+  long_term:
+    - "Regularly audit storage account permissions"
+    - "Enable logging and monitoring for storage"
+
+variables:
+  account_name: "myaccount"
+  container_name: "mycontainer"
+
+assessment_questions:
+  - "What is the default public access level for Azure Storage?"
+  - "How can you restrict access to specific IPs?"
+  - "What is the difference between blob and container public access?"
+
+references:
+  - url: "https://docs.microsoft.com/en-us/azure/storage/blobs/anonymous-read-access-configure"
+    title: "Azure Storage Public Access"
+  - url: "https://cis-benchmarks.cisecurity.org/"
+    title: "CIS Azure Benchmarks"

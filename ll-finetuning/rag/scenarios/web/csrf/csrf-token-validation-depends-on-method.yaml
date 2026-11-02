@@ -1,0 +1,95 @@
+# Category: Cross-Site Request Forgery (CSRF)
+name: "CSRF where token validation depends on request method"
+id: "csrf-token-validation-method-001"
+category: "csrf"
+subcategory: "bypass"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This scenario covers CSRF where the application validates CSRF tokens only
+  for certain HTTP methods (typically POST). The attacker can bypass this by
+  using a different method (e.g., GET) that performs the same state-changing
+  action without requiring the token.
+
+learning_objectives:
+  - Understand how HTTP methods affect CSRF validation
+  - Identify endpoints where token validation is method-specific
+  - Use GET requests to bypass token requirements
+  - Craft CSRF payloads using different methods
+
+tools:
+  - Burp Suite
+  - curl
+
+prerequisites:
+  - Target application with method-specific token validation
+  - State-changing request can be performed via GET or other methods
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Test token validation for different methods"
+    commands:
+      - "# Send a POST request with a valid token"
+      - "# Send a POST request without a token (should fail)"
+      - "# Send a GET request to the same endpoint (might work)"
+    expected_output: "GET request works without token; POST requires token"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Craft a CSRF using the GET method"
+    commands:
+      - "# Use an image tag to trigger a GET request:"
+      - "<img src='https://target.com/change-email?email=attacker@evil.com' width='0' height='0'>"
+      - "# Or use a link: <a href='...'>Click me</a>"
+    expected_output: "The request is sent without token validation, changing the email"
+    detection: "Application logs show the GET request"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Perform additional state-changing actions"
+    commands:
+      - "# Use GET requests for other sensitive endpoints"
+    expected_output: "Multiple actions performed"
+    detection: "Audit logs show unusual GET requests"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1204"
+    description: "User Execution"
+  - standard: "OWASP"
+    control: "A01:2021"
+    description: "Broken Access Control"
+
+detection:
+  network_indicators:
+    - "GET requests for state-changing endpoints"
+  log_indicators:
+    - "Sensitive actions performed via GET"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Validate CSRF tokens for all HTTP methods, not just POST"
+    - "Enforce the use of appropriate HTTP methods"
+  long_term:
+    - "Implement proper CSRF token validation for all methods"
+    - "Use framework-level CSRF protection"
+
+variables:
+  target_url: "https://target.com/change-email"
+  new_email: "attacker@evil.com"
+
+assessment_questions:
+  - "Why would an application only validate tokens for POST requests?"
+  - "How can an attacker exploit this inconsistency?"
+  - "What is the best practice for CSRF protection?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/csrf"
+    title: "OWASP CSRF"
+  - url: "https://portswigger.net/web-security/csrf/bypassing-token-validation"
+    title: "PortSwigger CSRF Bypass"

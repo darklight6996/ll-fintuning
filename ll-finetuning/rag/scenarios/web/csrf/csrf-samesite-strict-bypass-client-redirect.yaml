@@ -1,0 +1,96 @@
+# Category: Cross-Site Request Forgery (CSRF)
+name: "SameSite Strict bypass via client-side redirect"
+id: "csrf-samesite-strict-client-redirect-001"
+category: "csrf"
+subcategory: "samesite_bypass"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This scenario covers bypassing SameSite=Strict cookie protection. With
+  SameSite=Strict, cookies are not sent for cross-origin requests. However,
+  if the attacker can cause a client-side redirect (e.g., using `window.location`
+  or a meta refresh) from a same-site page, the browser will send the cookies
+  because the request appears to originate from the same site.
+
+learning_objectives:
+  - Understand SameSite=Strict behavior
+  - Use client-side redirects to bypass SameSite
+  - Chain XSS or open redirect to create a same-site request
+  - Perform CSRF attacks with SameSite=Strict
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Target application uses SameSite=Strict
+  - Attacker can cause a client-side redirect (via XSS or open redirect)
+  - There is a same-site page that can perform the redirect
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify SameSite cookie setting and redirect opportunities"
+    commands:
+      - "# Check cookie attributes: SameSite=Strict"
+      - "# Look for open redirects or XSS vulnerabilities"
+    expected_output: "SameSite=Strict used; redirect opportunity found"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Use a client-side redirect to bypass SameSite"
+    commands:
+      - "# If there is an XSS, inject: window.location='https://target.com/change-email?email=attacker@evil.com'"
+      - "# Or use a meta refresh: <meta http-equiv='refresh' content='0;url=https://target.com/change-email?email=attacker@evil.com'>"
+      - "# The request is made with the victim's cookies because it's a same-site redirect"
+    expected_output: "Request is processed with cookies, bypassing SameSite=Strict"
+    detection: "Application logs show the redirect"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Escalate to other actions"
+    commands:
+      - "# Use the technique for state-changing operations"
+    expected_output: "Victim's account compromised"
+    detection: "Security alerts for unusual redirect patterns"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1204"
+    description: "User Execution"
+  - standard: "OWASP"
+    control: "A01:2021"
+    description: "Broken Access Control"
+
+detection:
+  network_indicators:
+    - "Requests with same-site redirects to sensitive endpoints"
+  log_indicators:
+    - "Unusual redirect sequences"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Fix underlying XSS/open redirect vulnerabilities"
+    - "Implement CSRF tokens in addition to SameSite"
+  long_term:
+    - "Use SameSite=Strict with additional CSRF protection"
+    - "Validate redirect targets"
+
+variables:
+  target_url: "https://target.com/change-email"
+  new_email: "attacker@evil.com"
+
+assessment_questions:
+  - "How does SameSite=Strict differ from SameSite=Lax?"
+  - "Why does a client-side redirect bypass SameSite=Strict?"
+  - "What is the best defense against this type of bypass?"
+
+references:
+  - url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite"
+    title: "MDN SameSite"
+  - url: "https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions"
+    title: "PortSwigger SameSite Bypass"

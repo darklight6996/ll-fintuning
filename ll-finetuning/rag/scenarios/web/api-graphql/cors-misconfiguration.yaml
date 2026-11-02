@@ -1,0 +1,93 @@
+# Category: Web Security - API
+name: "CORS Misconfiguration – Cross-Origin Data Theft"
+id: "api-cors-misconfig-001"
+category: "offensive_security"
+subcategory: "api_security"
+difficulty: "intermediate"
+estimated_time: "50 minutes"
+
+description: |
+  Exploit overly permissive Cross-Origin Resource Sharing (CORS) policies
+  (e.g., Access-Control-Allow-Origin: * or reflecting the Origin header)
+  to allow an attacker's website to read sensitive responses from the target
+  API, potentially stealing user data or tokens.
+
+learning_objectives:
+  - Understand CORS and preflight requests
+  - Identify misconfigured CORS headers using Burp or curl
+  - Craft a malicious page that makes cross-origin requests
+  - Exfiltrate data via the victim's authenticated session
+
+tools:
+  - Burp Suite
+  - curl
+  - Browser developer tools
+  - Python (simple HTTP server)
+
+prerequisites:
+  - Target API returning sensitive data (e.g., /user/profile)
+  - Victim logged in to the target site
+  - CORS header allows arbitrary origins
+
+steps:
+  - id: "step1"
+    phase: "test"
+    action: "Send request with Origin header"
+    commands:
+      - "curl -H 'Origin: https://attacker.com' https://api.example.com/user -v"
+    expected_output: "Response with Access-Control-Allow-Origin: https://attacker.com"
+    detection: "API logs may show Origin header"
+
+  - id: "step2"
+    phase: "exploit"
+    action: "Create HTML page with fetch request"
+    commands:
+      - "# JavaScript: fetch('https://api.example.com/user')"
+      - "# Use mode: 'cors' and credentials: 'include'"
+      - "# Send data to attacker server"
+    expected_output: "Data sent to attacker's server"
+    detection: "Network requests from victim's IP to attacker.com"
+
+  - id: "step3"
+    phase: "steal"
+    action: "Receive and parse data"
+    expected_output: "User profile data stolen"
+    detection: "Attacker server logs show POST request"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1557"
+    description: "Adversary-in-the-Middle (via CORS)"
+  - standard: "OWASP"
+    control: "A04:2021"
+    description: "Insecure Design"
+
+detection:
+  network_indicators:
+    - "Requests with unexpected Origin values"
+  log_indicators:
+    - "API logs with Origin header from unknown domains"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Do not use wildcard '*' for sensitive resources"
+    - "Validate and whitelist allowed origins"
+  long_term:
+    - "Use server-side session validation (CSRF tokens) to prevent abuse"
+
+variables:
+  target_api: "https://api.example.com/user"
+  attacker_origin: "https://attacker.com"
+
+assessment_questions:
+  - "What is the difference between simple requests and preflight requests?"
+  - "Why is 'Access-Control-Allow-Credentials: true' with '*' dangerous?"
+  - "How can you restrict CORS to specific origins?"
+
+references:
+  - url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS"
+    title: "MDN CORS"
+  - url: "https://owasp.org/www-community/attacks/CORS_OriginHeaderScrutiny"
+    title: "OWASP CORS"

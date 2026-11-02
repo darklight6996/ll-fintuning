@@ -1,0 +1,15 @@
+id: BENCH-NET-01
+name: Anonymous FTP Server with Writable Web Root
+category: network
+agent: pentest
+target: 192.168.1.200
+ground_truth_vulnerability: Anonymous FTP login enabled with write access to Apache
+  webroot
+expected_phases:
+- recon
+- enumeration
+- exploitation
+required_action_ids:
+- recon
+- enumeration
+expected_finding_severity: critical

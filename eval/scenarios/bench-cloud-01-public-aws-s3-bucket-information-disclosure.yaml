@@ -1,0 +1,13 @@
+id: BENCH-CLOUD-01
+name: Public AWS S3 Bucket Information Disclosure
+category: cloud
+agent: cloud
+target: s3://corp-backup-prod
+ground_truth_vulnerability: Bucket policy allows s3:GetObject to AllUsers
+expected_phases:
+- resource_enum
+- misconfig_validation
+required_action_ids:
+- resource_enum
+- misconfig_validation
+expected_finding_severity: high

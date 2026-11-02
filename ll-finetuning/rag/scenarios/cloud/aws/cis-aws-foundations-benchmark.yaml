@@ -1,0 +1,210 @@
+name: "CIS AWS Foundations Benchmark Assessment"
+id: "cis-aws-foundations-001"
+category: "Compliance"
+subcategory: "CIS Benchmarks / Cloud"
+difficulty: "intermediate"
+estimated_time: "90"
+
+tags:
+  - aws
+  - cis-benchmark
+  - compliance
+  - security-audit
+  - prowler
+  - cloud-security
+  - identity-management
+  - network-security
+  - cloudtrail
+  - nist-800-53
+
+description: |
+  Assess an AWS account against CIS AWS Foundations Benchmark v1.5 controls.
+  Covers IAM, storage, logging, monitoring, networking, and incident response
+  configurations using AWS CLI and Prowler.
+
+learning_objectives:
+  - Audit AWS account configurations against CIS Foundations Benchmark
+  - Use Prowler for automated multi-account CIS assessment
+  - Identify IAM, logging, and network misconfigurations
+  - Map findings to PCI DSS and NIST 800-53
+
+tools:
+  - "AWS CLI"
+  - "Prowler"
+  - "Steampipe"
+  - "Python 3"
+  - "AWS Config"
+
+prerequisites:
+  - "AWS CLI configured with SecurityAudit or ReadOnlyAccess permissions"
+  - "Prowler installed (pip3 install prowler)"
+  - "Access to target AWS account"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Run automated CIS assessment with Prowler"
+    commands:
+      - "pip3 install prowler"
+      - "prowler --version"
+      - "# Run full CIS AWS Foundations benchmark"
+      - "prowler aws --compliance cis_aws_foundations_benchmark_v1.5 -M csv,html,json"
+      - "# Run against specific account with profile"
+      - "prowler aws --profile [aws_profile] --compliance cis_aws_foundations_benchmark_v1.5"
+      - "# Run specific section only"
+      - "prowler aws --group cis_level1_aws"
+      - "# Output to S3 (for multi-account)"
+      - "prowler aws --compliance cis_aws_foundations_benchmark_v1.5 -B [output_bucket]"
+    expected_output: "Prowler HTML/CSV report with pass/fail for each CIS control"
+    detection: "CloudTrail: Prowler API calls for enumeration (ReadOnly operations)"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "CIS 1 - Identity and Access Management (IAM)"
+    commands:
+      - "# 1.1 - Ensure MFA is enabled for the root account"
+      - "aws iam get-account-summary | python3 -c \"import sys,json; d=json.load(sys.stdin)['SummaryMap']; print('MFA Enabled:', d.get('AccountMFAEnabled',0))\""
+      - "# 1.2 - Ensure hardware MFA for root"
+      - "aws iam list-virtual-mfa-devices --assignment-status Assigned | python3 -m json.tool"
+      - "# 1.4 - Ensure access keys for root are not active"
+      - "aws iam get-account-summary | python3 -c \"import sys,json; d=json.load(sys.stdin)['SummaryMap']; print('Root Access Keys:', d.get('AccountAccessKeysPresent',0))\""
+      - "# 1.5 - Ensure IAM password policy requires uppercase"
+      - "aws iam get-account-password-policy"
+      - "# 1.12 - Ensure credentials unused for 45 days are disabled"
+      - "aws iam generate-credential-report && sleep 5"
+      - "aws iam get-credential-report --query 'Content' --output text | base64 -d | python3 -c \"import sys,csv; [print(r['user'],r['password_last_used'],r['access_key_1_last_used_date']) for r in csv.DictReader(sys.stdin)]\""
+      - "# 1.16 - Ensure IAM policies attached only to groups/roles"
+      - "aws iam list-users --query 'Users[*].UserName' --output text | xargs -I{} aws iam list-attached-user-policies --user-name {} --query 'AttachedPolicies[*].PolicyName'"
+    expected_output: "IAM security configuration including MFA, password policy, and access key status"
+    detection: "CloudTrail: GetAccountSummary, GetAccountPasswordPolicy, GenerateCredentialReport"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "CIS 2 - Storage (S3)"
+    commands:
+      - "# 2.1.1 - Ensure all S3 buckets employ encryption-at-rest"
+      - "aws s3api list-buckets --query 'Buckets[*].Name' --output text | tr '\\t' '\\n' | while read bucket; do echo -n \"$bucket: \"; aws s3api get-bucket-encryption --bucket $bucket 2>&1 | grep -o 'AES256\\|aws:kms\\|ServerSideEncryptionConfigurationNotFoundError'; done"
+      - "# 2.1.2 - Ensure S3 bucket policy denies HTTP requests"
+      - "aws s3api list-buckets --query 'Buckets[*].Name' --output text | tr '\\t' '\\n' | while read bucket; do policy=$(aws s3api get-bucket-policy --bucket $bucket 2>/dev/null); echo \"$bucket: $(echo $policy | python3 -c \\\"import sys,json; p=json.load(sys.stdin); print('HTTPS enforced' if any('aws:SecureTransport' in str(s) for s in p.get('Policy','')) else 'MISSING')\\\") \"; done"
+      - "# 2.1.5 - Ensure S3 Block Public Access is enabled"
+      - "aws s3control get-public-access-block --account-id [account_id]"
+      - "# Check per bucket"
+      - "aws s3api get-public-access-block --bucket [bucket_name]"
+    expected_output: "S3 encryption, policy, and public access block status per bucket"
+    detection: "CloudTrail: GetBucketEncryption, GetBucketPolicy, GetPublicAccessBlock"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "CIS 3 - Logging"
+    commands:
+      - "# 3.1 - Ensure CloudTrail is enabled in all regions"
+      - "aws cloudtrail describe-trails --include-shadow-trails"
+      - "aws cloudtrail get-trail-status --name [trail_name]"
+      - "# 3.2 - Ensure CloudTrail log file validation is enabled"
+      - "aws cloudtrail describe-trails --query 'trailList[*].{Name:Name,LogValidation:LogFileValidationEnabled}'"
+      - "# 3.3 - Ensure CloudTrail bucket is not publicly accessible"
+      - "aws cloudtrail describe-trails --query 'trailList[*].S3BucketName' --output text | xargs -I{} aws s3api get-bucket-acl --bucket {}"
+      - "# 3.4 - Ensure CloudTrail integrated with CloudWatch"
+      - "aws cloudtrail describe-trails --query 'trailList[*].{Name:Name,CWLogGroup:CloudWatchLogsLogGroupArn}'"
+      - "# 3.5 - Ensure AWS Config is enabled in all regions"
+      - "aws configservice describe-configuration-recorders"
+      - "aws configservice describe-configuration-recorder-status"
+      - "# 3.6 - Ensure S3 bucket access logging is enabled"
+      - "aws s3api get-bucket-logging --bucket [cloudtrail_bucket]"
+      - "# 3.8 - Ensure VPC Flow Logs are enabled"
+      - "aws ec2 describe-vpcs --query 'Vpcs[*].VpcId' --output text | tr '\\t' '\\n' | while read vpc; do echo -n \"$vpc: \"; aws ec2 describe-flow-logs --filter Name=resource-id,Values=$vpc --query 'FlowLogs[*].FlowLogStatus' --output text; done"
+    expected_output: "CloudTrail, Config, and VPC Flow Log status across all regions"
+    detection: "CloudTrail: DescribeTrails, GetTrailStatus, DescribeConfigurationRecorders"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "CIS 4 - Monitoring (CloudWatch Alarms)"
+    commands:
+      - "# 4.1 - Unauthorized API calls alarm"
+      - "aws cloudwatch describe-alarms --query 'MetricAlarms[?MetricName==`UnauthorizedAttempts`]'"
+      - "# 4.2 - Console sign-in without MFA alarm"
+      - "aws cloudwatch describe-alarms | python3 -c \"import sys,json; alarms=json.load(sys.stdin)['MetricAlarms']; [print(a['AlarmName']) for a in alarms if 'ConsoleSignIn' in str(a) or 'MFA' in str(a)]\""
+      - "# Check for required metric filters"
+      - "aws logs describe-metric-filters --log-group-name [cloudtrail_log_group]"
+      - "# Verify alarms exist for CIS 4.1-4.15"
+      - "aws cloudwatch describe-alarms --query 'MetricAlarms[*].AlarmName' --output text"
+      - "# Check SNS topic subscriptions for alarms"
+      - "aws sns list-subscriptions"
+    expected_output: "List of existing CloudWatch alarms and metric filters for CIS-required events"
+    detection: "CloudTrail: DescribeAlarms, DescribeMetricFilters"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "CIS 5 - Networking"
+    commands:
+      - "# 5.1 - Ensure no Network ACLs allow unrestricted ingress to remote admin ports"
+      - "aws ec2 describe-network-acls --query 'NetworkAcls[*].Entries[?Egress==`false` && (Protocol==`-1` || contains([`22`,`3389`],to_string(CidrBlock)))]'"
+      - "# 5.2 - Ensure no security groups allow unrestricted SSH (0.0.0.0/0)"
+      - "aws ec2 describe-security-groups --filters Name=ip-permission.from-port,Values=22 Name=ip-permission.cidr,Values='0.0.0.0/0' --query 'SecurityGroups[*].{ID:GroupId,Name:GroupName}'"
+      - "# 5.3 - Ensure no security groups allow unrestricted RDP"
+      - "aws ec2 describe-security-groups --filters Name=ip-permission.from-port,Values=3389 Name=ip-permission.cidr,Values='0.0.0.0/0' --query 'SecurityGroups[*].{ID:GroupId,Name:GroupName}'"
+      - "# 5.4 - Ensure default security group restricts all traffic"
+      - "aws ec2 describe-security-groups --filters Name=group-name,Values=default --query 'SecurityGroups[*].{VPC:VpcId,Inbound:IpPermissions,Outbound:IpPermissionsEgress}'"
+      - "# 5.5 - Ensure VPC peering does not allow overly permissive routing"
+      - "aws ec2 describe-vpc-peering-connections --query 'VpcPeeringConnections[*].{Status:Status.Code,Requester:RequesterVpcInfo.VpcId,Accepter:AccepterVpcInfo.VpcId}'"
+    expected_output: "Security group and NACL configurations with open admin ports or permissive rules"
+    detection: "CloudTrail: DescribeSecurityGroups, DescribeNetworkAcls"
+
+compliance_controls:
+  - standard: "CIS AWS Foundations Benchmark v1.5"
+    control: "1.1 - 5.5"
+    description: "Full CIS AWS Foundations Benchmark assessment"
+  - standard: "PCI DSS v4.0"
+    control: "2.2.1"
+    description: "System configuration standards"
+  - standard: "NIST 800-53 Rev5"
+    control: "CM-6"
+    description: "Configuration settings"
+  - standard: "SOC2 CC6.1"
+    control: "CC6.1"
+    description: "Logical access security"
+
+detection:
+  network_indicators:
+    - "N/A — compliance assessment uses read-only API calls"
+  log_indicators:
+    - "CloudTrail: High volume of read-only API calls for assessment"
+    - "GuardDuty: Recon:IAMUser/GetPolicyVersion if unexpected"
+  endpoint_indicators:
+    - "Prowler HTML report in output directory"
+    - "AWS Config compliance findings dashboard"
+
+remediation:
+  immediate:
+    - "Enable MFA for root account and all IAM users immediately"
+    - "Delete root account access keys if present"
+    - "Enable CloudTrail in all regions with log file validation"
+    - "Close security group rules allowing 0.0.0.0/0 on port 22 and 3389"
+  long_term:
+    - "Enable AWS Config with all managed rules for continuous compliance"
+    - "Deploy AWS Security Hub with CIS Foundations standard enabled"
+    - "Automate remediation of non-compliant resources with Config remediation actions"
+    - "Schedule monthly Prowler assessments and track compliance score over time"
+
+variables:
+  aws_profile: "target_account"
+  account_id: "123456789012"
+  trail_name: "management-events"
+  cloudtrail_bucket: "my-cloudtrail-bucket"
+  cloudtrail_log_group: "CloudTrail/ManagementEvents"
+  bucket_name: "my-data-bucket"
+
+assessment_questions:
+  - "What is the CIS Foundations Benchmark recommendation for root account access keys?"
+  - "How does AWS Config differ from CloudTrail for compliance monitoring?"
+  - "What Prowler compliance framework should you use for PCI DSS assessments?"
+  - "Why should VPC Flow Logs be enabled for all VPCs?"
+  - "What CloudWatch metric filters are required by CIS Section 4?"
+
+references:
+  - url: "https://www.cisecurity.org/benchmark/amazon_web_services"
+    title: "CIS AWS Foundations Benchmark"
+  - url: "https://github.com/prowler-cloud/prowler"
+    title: "Prowler - AWS Security Tool"
+  - url: "https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-cis-controls.html"
+    title: "AWS Security Hub CIS Controls"

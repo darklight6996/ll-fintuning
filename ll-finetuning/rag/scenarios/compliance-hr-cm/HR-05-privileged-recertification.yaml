@@ -1,0 +1,145 @@
+name: "Privileged Access Recertification"
+id: "HR-05"
+category: "HR & Identity Lifecycle"
+subcategory: "Process Verification"
+difficulty: "intermediate"
+estimated_time: "50"
+
+tags:
+  - hr
+  - identity-lifecycle
+  - privileged-access
+  - recertification
+  - pim
+  - access-review
+  - break-glass
+  - separation-of-duties
+  - sod
+  - quarterly-review
+  - soc2
+  - cc6.3
+  - cc1.3
+  - compliance
+  - process-audit
+
+description: |
+  Validate that privileged accounts undergo quarterly recertification
+  by managers or data owners. Critical for SOC 2 CC6.3 (RBAC).
+
+learning_objectives:
+  - Inventory all privileged accounts across systems
+  - Verify recertification occurred within last 90 days
+  - Identify privileged accounts without recent recertification
+  - Check for emergency/break-glass account documentation
+  - Validate separation of duties for privileged roles
+
+tools:
+  - "Azure AD PIM"
+  - "Access certification platform (Certify, SailPoint, Okta)"
+  - "ITSM system"
+  - "PowerBI / Excel"
+
+prerequisites:
+  - "PIM or privileged access reporting access"
+  - "Access certification platform data"
+  - "Privileged role definition (custom vs built-in)"
+
+steps:
+  - id: "step1"
+    phase: "enumeration"
+    action: "Inventory all privileged accounts"
+    commands:
+      - "Get-MgDirectoryRole -All | Where-Object { $_.DisplayName -in @('Global Administrator','Privileged Role Administrator','Security Administrator','Exchange Administrator','SharePoint Administrator') } | ForEach-Object { Get-MgDirectoryRoleMember -DirectoryRoleId $_.Id | Select-Object @{N='RoleName';E={$_.DisplayName}}, @{N='MemberUPN';E={(Get-MgUser -UserId $_.Id).UserPrincipalName}}, @{N='MemberType';E={$_.AdditionalProperties['@odata.type']}} } | Export-Csv -Path 'privileged_accounts.csv' -NoTypeInformation"
+      - "# Include PIM-eligible assignments"
+      - "Get-MgRoleManagementDirectoryRoleEligibilitySchedule -All | Where-Object { $_.Status -eq 'Provisioned' } | Select-Object @{N='RoleName';E={(Get-MgDirectoryRole -DirectoryRoleId $_.RoleDefinitionId).DisplayName}}, PrincipalId, StartDateTime, EndDateTime, DirectoryScopeId"
+    expected_output: "Complete inventory of active and eligible privileged accounts"
+    detection: "N/A - audit enumeration"
+
+  - id: "step2"
+    phase: "verification"
+    action: "Verify recertification completion"
+    commands:
+      - "SELECT review_id, target_user, role_name, reviewer_email, review_status, completion_date, decision, justification FROM privileged_access_reviews WHERE review_type = 'privileged' AND completion_date >= DATE_SUB(NOW(), INTERVAL 90 DAY)"
+      - "# Check for accounts without recent recertification"
+      - "SELECT pa.user_principal_name, pa.role_name, pa.last_recert_date, DATEDIFF(NOW(), pa.last_recert_date) as days_overdue FROM privileged_accounts pa LEFT JOIN privileged_access_reviews par ON pa.user_principal_name = par.target_user WHERE par.completion_date IS NULL OR par.completion_date < DATE_SUB(NOW(), INTERVAL 90 DAY)"
+    expected_output: "Privileged accounts with recertification status and overdue accounts"
+    detection: "N/A - audit verification"
+
+  - id: "step3"
+    phase: "verification"
+    action: "Check break-glass and emergency accounts"
+    commands:
+      - "Get-MgUser -All | Where-Object { $_.UserPrincipalName -match 'breakglass|emergency|bg-' } | Select-Object UserPrincipalName, AccountEnabled, @{N='LastSignIn';E={$_.SignInActivity.LastSignInDateTime}}, @{N='MFARegistered';E={(Get-MgUserAuthenticationMethod -UserId $_.Id).Count -gt 0}}"
+      - "# Verify documentation exists"
+      - "SELECT account_name, purpose, custodian, last_verified_date, password_location, mfa_method FROM emergency_accounts"
+    expected_output: "Break-glass accounts with documentation and last verification dates"
+    detection: "N/A - audit verification"
+
+  - id: "step4"
+    phase: "verification"
+    action: "Validate separation of duties"
+    commands:
+      - "# Check for conflicting role assignments"
+      - "SELECT user_principal_name, COUNT(DISTINCT role_name) as role_count, GROUP_CONCAT(role_name) as roles FROM privileged_accounts GROUP BY user_principal_name HAVING role_count > 2"
+      - "# Flag specific conflicts (e.g., Security Admin + Exchange Admin)"
+    expected_output: "Users with multiple privileged roles that may violate separation of duties"
+    detection: "N/A - audit verification"
+
+  - id: "step5"
+    phase: "post_exploitation"
+    action: "Generate privileged access governance report"
+    commands:
+      - "TotalPrivilegedAccounts: 45; RecertifiedIn90Days: 38; Overdue: 7; BreakGlassDocumented: 2; BreakGlassTotal: 2; SoDViolations: 3; PassRate: 84%"
+    expected_output: "Privileged access governance metrics for SOC 2 evidence"
+    detection: "N/A - audit reporting"
+
+compliance_controls:
+  - standard: "SOC 2"
+    control: "CC6.3"
+    description: "RBAC - periodic review of privileged access"
+  - standard: "SOC 2"
+    control: "CC1.3"
+    description: "COSO - management establishes oversight for privileged access"
+  - standard: "NIST 800-53"
+    control: "AC-2(2)"
+    description: "Account Management - removal of temporary accounts"
+  - standard: "CIS Azure"
+    control: "1.23"
+    description: "Ensure that Azure AD Privileged Identity Management is used"
+
+detection:
+  network_indicators:
+    - "N/A - process audit"
+  log_indicators:
+    - "Privileged role activations without recent recertification"
+    - "Break-glass account usage"
+  endpoint_indicators:
+    - "N/A - process audit"
+
+remediation:
+  immediate:
+    - "Require recertification for all overdue privileged accounts"
+    - "Document all break-glass accounts with custodian and verification process"
+    - "Remove conflicting roles violating separation of duties"
+  long_term:
+    - "Automate quarterly access reviews via Azure AD Access Reviews or PIM"
+    - "Implement role conflict policies preventing SoD violations"
+    - "Deploy PIM for all privileged roles with time-bound activation"
+    - "Require MFA and approval for all privileged role activations"
+    - "Monitor break-glass account usage with real-time alerts"
+
+variables:
+  review_period_days: "[RECERTIFICATION_PERIOD_DAYS]"
+  privileged_role: "[PRIVILEGED_ROLE_NAME]"
+
+assessment_questions:
+  - "What percentage of privileged accounts were recertified in the last 90 days?"
+  - "Are break-glass accounts documented with custodians and secure storage?"
+  - "Are there separation of duty violations in privileged role assignments?"
+  - "Is PIM used for just-in-time privileged access?"
+
+references:
+  - url: "https://www.aicpa.org/content/dam/aicpa/interestareas/frc/assuranceadvisoryservices/downloadabledocuments/trust-services-criteria.pdf"
+    title: "AICPA Trust Services Criteria"
+  - url: "https://docs.microsoft.com/en-us/azure/active-directory/privileged-identity-management/pim-how-to-perform-security-review"
+    title: "Azure AD PIM Access Reviews"

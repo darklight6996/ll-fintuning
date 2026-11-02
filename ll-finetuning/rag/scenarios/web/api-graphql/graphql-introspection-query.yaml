@@ -1,0 +1,95 @@
+# Category: Offensive Security - API
+name: "GraphQL Introspection Query – Schema Enumeration"
+id: "api-graphql-introspection-001"
+category: "offensive_security"
+subcategory: "api_graphql"
+difficulty: "beginner"
+estimated_time: "30 minutes"
+
+description: |
+  Query a GraphQL endpoint's introspection schema to discover all available
+  queries, mutations, types, and fields. This exposes the full API surface,
+  often revealing hidden endpoints and internal fields that are not
+  documented.
+
+learning_objectives:
+  - Understand GraphQL introspection and why it is often left enabled
+  - Use the built‑in `__schema` introspection query
+  - Extract field names, arguments, and types
+  - Identify sensitive fields (e.g., internal fields, password fields)
+
+tools:
+  - GraphQL Playground / GraphiQL
+  - curl
+  - graphql‑introspection (Python)
+  - Burp Suite (GraphQL extension)
+
+prerequisites:
+  - GraphQL endpoint URL
+  - No authentication required (or guest access)
+
+steps:
+  - id: "step1"
+    phase: "query"
+    action: "Send introspection query"
+    commands:
+      - "# Use POST with JSON"
+      - '{"query":"{ __schema { types { name fields { name } } } }"}'
+      - "# Or use GraphQL Playground"
+    expected_output: "Complete schema JSON"
+    detection: "GraphQL server logs may show introspection query"
+
+  - id: "step2"
+    phase: "analysis"
+    action: "Parse schema to find sensitive operations"
+    commands:
+      - "# Look for 'admin', 'users', 'password' field names"
+      - "# Identify mutations like 'updatePassword'"
+    expected_output: "List of all queries and mutations"
+    detection: "None"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Attempt to call undocumented mutations"
+    commands:
+      - '# Example: mutation { deleteUser(id: "1") }'
+    expected_output: "Access to administrative functions"
+    detection: "Application logs show anomalous mutation calls"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1526"
+    description: "Cloud Service Discovery (similar for API)"
+  - standard: "OWASP"
+    control: "A01:2021"
+    description: "Broken Access Control"
+
+detection:
+  network_indicators:
+    - "Introspection query to /graphql endpoint"
+  log_indicators:
+    - "GraphQL logs with `__schema`"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Disable introspection in production (set field to false)"
+    - "Use allowlisting of queries (persisted queries)"
+  long_term:
+    - "Implement rate limiting and authentication"
+    - "Review all exposed fields for sensitivity"
+
+variables:
+  endpoint: "https://api.example.com/graphql"
+
+assessment_questions:
+  - "Why is introspection considered a risk in production?"
+  - "How can you enable introspection without exposing the full schema?"
+  - "What is the difference between introspection and persisted queries?"
+
+references:
+  - url: "https://graphql.org/learn/introspection/"
+    title: "GraphQL Introspection"
+  - url: "https://github.com/nikitastupin/graphql-introspection"
+    title: "GraphQL Introspection Tool"

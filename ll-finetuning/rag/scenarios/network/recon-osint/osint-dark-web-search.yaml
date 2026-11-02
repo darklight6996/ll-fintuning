@@ -1,0 +1,106 @@
+# Category: Intelligence Gathering
+name: "Dark Web OSINT – Monitoring Tor and I2P for Leaked Data"
+id: "osint-darkweb-001"
+category: "osint"
+subcategory: "dark_web"
+difficulty: "advanced"
+estimated_time: "90 minutes"
+
+description: |
+  Access dark web sources (Tor hidden services, I2P) to find leaked data,
+  credentials, and chatter related to the target. This includes searching
+  for corporate email leaks, database dumps, and discussions on underground
+  forums. This scenario covers setting up Tor, using search engines like
+  Ahmia, and monitoring with Python scrapers.
+
+learning_objectives:
+  - Understand Tor network and hidden service addressing
+  - Set up a Tor proxy for safe browsing
+  - Use Ahmia, Onionland, and other dark web search engines
+  - Discover credential dumps using tools like Recon-ng (tor modules)
+  - Monitor for mentions of the target
+
+tools:
+  - Tor Browser
+  - Tails OS (optional)
+  - Ahmia.fi search
+  - Recon-ng (tor module)
+  - OnionSearch
+  - Python with socks/requests
+
+prerequisites:
+  - Tor installation and awareness of .onion domains
+  - Target organization name or email domain
+
+steps:
+  - id: "step1"
+    phase: "setup"
+    action: "Route traffic through Tor"
+    commands:
+      - "# Start Tor service"
+      - "sudo systemctl start tor"
+      - "# Configure proxy in recon-ng"
+      - "# Or use torsocks"
+      - "torsocks curl http://example.onion"
+    expected_output: "Tor proxy listening on 127.0.0.1:9050"
+    detection: "Tor network usage may be flagged by your ISP; use VPN for extra privacy"
+
+  - id: "step2"
+    phase: "search"
+    action: "Search for target on dark web indexes"
+    commands:
+      - "# Use Ahmia (clearnet) with Tor"
+      - "https://ahmia.fi/search/?q=example.com"
+      - "# Use OnionSearch tool"
+      - "python onionsearch.py -q 'example.com' -s 100"
+    expected_output: "Links to .onion sites containing target mentions"
+    detection: "N/A (unless tor exit node monitored)"
+
+  - id: "step3"
+    phase: "data_discovery"
+    action: "Find leaked credentials in paste dumps"
+    commands:
+      - "# Check for domain on haveibeenpwned.com (clearnet)"
+      - "# Or search dark web breach repositories"
+      - "# Use Recon-ng module: `tor` with `dark_web`"
+    expected_output: "Email/password combinations or other stolen data"
+    detection: "N/A"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1590.005"
+    description: "Gather Victim Network Information – Dark Web"
+  - standard: "CJIS"
+    control: "4.1"
+    description: "Restrictions on dark web access (if in law enforcement)"
+
+detection:
+  network_indicators:
+    - "Tor traffic from your IP (if not using VPN/Tails)"
+  log_indicators:
+    - "None (dark web activity anonymized)"
+  endpoint_indicators:
+    - "Tor Browser or torsocks processes"
+
+remediation:
+  immediate:
+    - "Monitor dark web for your data using commercial services (e.g., SpyCloud, Flare)"
+    - "Reset compromised credentials immediately"
+  long_term:
+    - "Implement breach detection using credential monitoring"
+    - "Enforce MFA to mitigate stolen passwords"
+
+variables:
+  target_domain: "example.com"
+  tor_proxy: "socks5://127.0.0.1:9050"
+
+assessment_questions:
+  - "What is the difference between the deep web and the dark web?"
+  - "Why is Tor recommended for dark web OSINT?"
+  - "How can organizations proactively check if their data is on the dark web?"
+
+references:
+  - url: "https://ahmia.fi/"
+    title: "Ahmia – Dark Web Search"
+  - url: "https://www.torproject.org/"
+    title: "Tor Project"

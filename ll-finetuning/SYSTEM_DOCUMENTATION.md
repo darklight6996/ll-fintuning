@@ -2,16 +2,168 @@
 ## Master System Documentation & Architectural Specification
 
 
-## Architectural Updates (September 2026)
+## 🏛️ Multi-Agent Security Assessment Framework (November 2026 Refactor)
+
+The framework has evolved from a monolithic co-pilot CLI into a modular, production-ready **Four-Layer Multi-Agent Security Assessment Framework**. The architecture enforces strict separation of concerns: deterministic scripts execute verifiable actions, while fine-tuned models (QLoRA / LoRA) and RAG engines act as non-destructive reasoning consultants.
+
+### 1. Four-Layer System Architecture
+
+```text
++-----------------------------------------------------------------------------------+
+| LAYER 1: SYSTEM ORCHESTRATOR (main.py)                                           |
+| - Cross-platform OS Detection (Windows, Linux Debian/Ubuntu, macOS)               |
+| - Pre-flight Tool Verification & Package Manager Installation (winget, apt, brew) |
+| - Agent Selection Menu (9 specialized assessment agents)                          |
+| - Scope & Boundary Acquisition (targets, in/out-of-scope, prohibited tests/tools)  |
+| - Execution Mode Selection (Manual Co-Pilot vs. Automated Sequential)            |
+| - Non-intrusive handoff to Layer 2 (Orchestrator NEVER runs tests directly)      |
++-----------------------------------------------------------------------------------+
+                                         │ (instantiates with Scope)
+                                         ▼
++-----------------------------------------------------------------------------------+
+| LAYER 2: SPECIALIZED AGENT CLASSES (agents/)                                     |
+| - BaseAgent: orchestrates lifecycle, approvals, evidence logging, Ctrl+C pauses   |
+| - 9 Specialized Agents: BugBounty, RedTeam, Pentest, CTF, Mobile, Firewall,       |
+|   SecurityResearch, ActiveDirectory, Cloud                                        |
+| - Owns dedicated phases/ directory; delegates ALL execution to CommandExecutor    |
+| - Safe by default: active testing prohibited unless explicitly authorized         |
++-----------------------------------------------------------------------------------+
+                                         │ (iterates sequentially)
+                                         ▼
++-----------------------------------------------------------------------------------+
+| LAYER 3: DETERMINISTIC PHASE SCRIPTS (agents/<agent>/phases/)                     |
+| - Deterministic Python modules with standardized interface:                       |
+|   name, requires_tools, run(session, tools, executor, scope) -> PhaseResult,     |
+|   parse_output(raw) -> dict, next_phase_hint(result) -> str                      |
+| - Pre-flight tool verification prior to phase invocation                          |
+| - Safe parameter parsing; outputs structured findings into session state          |
++-----------------------------------------------------------------------------------+
+                                         │ (invoked at 7 decision points)
+                                         ▼
++-----------------------------------------------------------------------------------+
+| LAYER 4: AI REASONING CONSULTANT (ChatAssistant & RAG/YAML Stack)                 |
+| - AI is a CONSULTANT, NEVER a driver. It generates text, analysis, and code;     |
+|   it NEVER executes commands or writes to disk autonomously                       |
+| - Receives 6 Mandatory Context Inputs on every invocation                         |
+| - Answers 7 Specific Security Decision Points (Adaptive planning, paste analysis, |
+|   error recovery, script generation, exploit pathing, scope checks, reporting)    |
++-----------------------------------------------------------------------------------+
+```
+
+---
+
+### 2. Specialized Agent Workflows (The 9 Framework Agents)
+
+| Agent Class | Module Path | Methodology Workflow | Core Tools |
+| :--- | :--- | :--- | :--- |
+| `BugBountyAgent` | `agents.bug_bounty` | `recon` → `subdomain_enum` → `endpoint_discovery` → `param_fuzzing` → `vuln_validation` | `curl`, `subfinder`, `ffuf` |
+| `RedTeamAgent` | `agents.red_team` | `recon` → `initial_access` → `privesc` → `lateral` → `impact` | `nmap`, `curl`, `whois` |
+| `PentestAgent` | `agents.pentest` | `recon` → `enumeration` → `exploitation` → `post_exploitation` → `report` | `nmap`, `curl`, `nikto` |
+| `CTFAgent` | `agents.ctf` | `environment_recon` → `enumeration` → `privesc` → `flag_capture` | `python`, `curl` |
+| `MobileAppAgent` | `agents.mobile` | `apk_ipa_static` → `dynamic` → `auth_test` → `data_storage` → `network_traffic` | `apktool`, `semgrep` |
+| `FirewallBypassAgent` | `agents.firewall_bypass` | `fingerprint` → `rule_enumeration` → `bypass_techniques` | `curl`, `nmap` |
+| `SecurityResearchAgent`| `agents.security_research`| `cve_research` → `poc_dev` → `analysis` → `writeup` | `python`, `git`, `curl` |
+| `ActiveDirectoryAgent`| `agents.active_directory` | `ad_enumeration` → `kerberoast` → `asrep_roast` → `dcsync` → `impact` | `nmap`, `dig` |
+| `CloudAgent` | `agents.cloud` | `iam_audit` → `resource_enum` → `misconfig_validation` | `curl`, `python`, `git` |
+
+---
+
+### 3. AI Reasoning Integration: The 7 Decision Points
+
+The AI is strictly bounded to high-leverage cognitive reasoning tasks where deterministic regex or scripts are insufficient:
+
+1. **Adaptive Phase Planning (`recommend_next_phase`)**:
+   - Evaluates completed phase results, open ports, and live target telemetry against 200+ indexed YAML scenarios and RAG knowledge.
+   - Selects the next tactical phase with confidence scores and specific scenario citations.
+2. **Terminal Paste Interpretation (`interpret_pasted_output`)**:
+   - Analyzes raw stdout, Nmap XML/text, Burp logs, or console pastes.
+   - Extracts structured facts (services, versions, users, flags, vulnerabilities) and merges them into `session.targets`.
+3. **Novel Situation Recovery (`suggest_recovery`)**:
+   - Invoked when a phase script errors out, times out, or receives unexpected banners.
+   - Diagnoses failure modes and proposes safe, non-destructive diagnostic commands.
+4. **Custom Script Generation (`generate_custom_script`)**:
+   - Synthesizes tailored Python/Bash verification scripts for novel vulnerabilities.
+   - **Safety Boundary**: Returned strictly as text code blocks. The AI cannot write to disk or execute scripts; operator must review and confirm.
+5. **Exploit Path Reasoning (`reason_exploit_chain`)**:
+   - Synthesizes disparate findings into multi-step attack chains mapped to MITRE ATT&CK tactics.
+6. **Pre-Flight Scope Compliance Gate (`check_scope_compliance`)**:
+   - Analyzes planned commands against the active `Scope` object before any active test executes.
+   - Rejects prohibited tools (e.g., Metasploit, DoS tools) or out-of-scope targets before execution.
+7. **Audit Report Synthesis (`synthesize_report`)**:
+   - Compiles session notes, executed commands, and captured evidence into a comprehensive Markdown security audit report.
+
+---
+
+### 4. Mandatory AI Context Stack
+
+Every invocation of `ChatAssistant` packages 6 mandatory context layers to prevent hallucinations:
+1. **Session State**: Target, scope, mode, findings, completed phases, and discovered ports/services.
+2. **YAML Scenarios**: Top-3 matching YAML scenario playbooks retrieved via `YAMLSearch`.
+3. **RAG Corpus**: Top-3 reranked chunks retrieved from the textbook, OWASP, and PortSwigger corpora.
+4. **Recent Conversation History**: Bounded strictly to the last 3 conversational turns.
+5. **Phase Results**: Structured dictionary containing outputs and findings from all prior phases.
+6. **Available System Tools**: Inspected tools, paths, and versions verified on the local host.
+
+---
+
+### 5. Scope & Safety Architecture (`core/scope.py`, `core/command_executor.py`)
+
+- **Scope Dataclass**: Captures `target`, `in_scope`, `out_of_scope`, `prohibited_tests`, `prohibited_tools`, `time_window`, `authorization_ref`, and `active_testing_allowed`.
+- **Out-of-Scope Precedence**: Out-of-scope assets (IPs, subnets, domains) strictly override any in-scope entry.
+- **Safe-by-Default Execution**: `CommandExecutor` defaults to `read_only=True`. Commands are formatted and previewed, never run, unless `active_testing_allowed=True` is explicitly authorized during scope gathering.
+- **Audit Logging**: Every command execution is logged to `.assessments/<session>/artifacts/` and recorded in `state.json` with timestamps, return codes, stdout, and stderr.
+- **Interruption Resilience**: Catching `SIGINT` (Ctrl+C) writes an atomic state save to disk, allowing resuming via `python main.py --resume <session_name>`.
+
+---
+
+## Architectural Updates (September – October 2026)
 
 ### 1. Next-Generation Qwen2.5-7B-Instruct QLoRA & ChatML Pipeline
 - **Primary Model Evolution**: Transitioning primary offensive/defensive fine-tuning from `TinyLlama-1.1B` to `Qwen/Qwen2.5-7B-Instruct`, targeting the adapter repository `DarkLight6996/CyberSec-Qwen-V1`.
-- **ChatML Token Framing**: Migrated from legacy Alpaca 3-field JSONL to strict Qwen ChatML formatting (`<|im_start|>system...<|im_end|>\n<|im_start|>user...<|im_end|>\n<|im_start|>assistant...<|im_end|>`) via `scripts/alpaca_to_chatml.py`.
+  - **Why Migrated**: TinyLlama (1.1B) served as an initial low-resource proof-of-concept for testing LoRA training, but lacked deep multi-step causal reasoning, syntactic accuracy for complex exploit payloads, and robust context adherence across long evidence strings. Qwen2.5-7B provides state-of-the-art coding, command execution logic, and native ChatML structure while operating efficiently inside 8GB VRAM via 4-bit NF4 QLoRA.
+- **ChatML Token Framing**: Migrated from legacy Alpaca 3-field JSONL (`instruction`, `input`, `output`) to strict Qwen ChatML formatting (`<|im_start|>system...<|im_end|>\n<|im_start|>user...<|im_end|>\n<|im_start|>assistant...<|im_end|>`) via `scripts/alpaca_to_chatml.py`. This provides hard role boundaries, eliminating prompt injection risks from untrusted scanner/terminal outputs.
 - **4-Bit QLoRA Optimization**: Engineered for native Windows execution on 8GB consumer VRAM (RTX 3060 Ti) using `BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.bfloat16)`.
-- **PyTorch Native SDPA**: Enforced `attn_implementation="sdpa"` to eliminate complex C++ compilation and FlashAttention build failures on Windows.
-- **LoRA Hyperparameters**: LoRA rank $r=8$, $\alpha=16$, dropout $0.05$ targeting all 7 linear projection layers (`q_proj`, `k_proj`, `v_proj`, `o_proj`, `gate_proj`, `up_proj`, `down_proj`). Sequence length constrained to `max_seq_length=512`.
+- **PyTorch Native SDPA**: Enforced `attn_implementation="sdpa"` / eager execution to eliminate complex C++ compilation and FlashAttention build failures on Windows.
+- **LoRA Hyperparameters**: LoRA rank $r=16$, $\alpha=32$, dropout $0.05$ targeting attention projection layers (`q_proj`, `k_proj`, `v_proj`, `o_proj`). Sequence length constrained to `max_seq_length=512`.
 
-### 2. Engineering Verification Gates & Demo Readiness
+### 2. Training Script Ecosystem & Architecture
+
+| Script | Location | Description & Role | Key Flags / Features |
+| :--- | :--- | :--- | :--- |
+| `train_qlora.py` | Root | Primary QLoRA fine-tuning pipeline for Qwen2.5-7B-Instruct on Windows. | 4-bit NF4, bfloat16, `paged_adamw_8bit`, `gradient_checkpointing`, memory caps. |
+| `train_lora.py` | `ll-finetuning/scripts/` | GPU LoRA fine-tuning script for TinyLlama 1.1B baseline. | FP16, `r=8, alpha=16`, target `q_proj, v_proj`. |
+| `train_lora_cpu.py` | `ll-finetuning/scripts/` | Deterministic CPU fallback training script for resource-constrained systems. | `torch.float32`, fixed max length, CPU device allocation. |
+| `infer_lora.py` | `ll-finetuning/scripts/` | Command-line adapter testing and inference validation. | Auto-merges base model and trained LoRA weights. |
+| `upload_to_hf.py` | `ll-finetuning/scripts/` | Model registry deployment utility for Hugging Face Hub. | Automated token authentication and adapter upload. |
+| `alpaca_to_chatml.py` | `scripts/` | Format conversion pipeline (Alpaca JSONL → Qwen ChatML JSONL). | Uses `AutoTokenizer.apply_chat_template` with system persona. |
+| `verify_bnb.py` | `scripts/` | Pre-flight smoke test validating `bitsandbytes` `Linear4bit` CUDA execution. | Single-layer 4-bit CUDA tensor execution check. |
+| `verify_tokenizer.py` | `scripts/` | Pre-flight verification of special tokens (`<\|im_start\|>`, `<\|im_end\|>`). | Token template validation on sample prompt. |
+
+### 3. Hardware Crash Forensics & Hardened Fail-Safe Engineering
+
+#### Root Cause Analysis: Why Hardware Crashes / Socket Overheats Occurred
+During unhardened 7B QLoRA training runs on 8GB consumer GPUs (RTX 3060 Ti), sudden system crashes, PSU trips, and socket overheating occur due to three compounding failure modes:
+1. **The Step-50 Evaluation Surge**:
+   - In default Hugging Face `SFTTrainer` pipelines with `eval_strategy="steps", eval_steps=50`, gradient checkpointing is disabled during evaluation on the test split.
+   - Forward passes across uncheckpointed evaluation samples allocate large temporary activation tensors, creating an abrupt multi-gigabyte memory spike at step 50.
+2. **LoRA Parameter Oversubscription**:
+   - Targeting all 7 linear projection layers (`q, k, v, o, gate, up, down`) inflates gradient and optimizer buffers beyond the physical 8.19 GB VRAM capacity (especially with ~1.4 GB reserved by Windows WDDM).
+3. **Windows WDDM Paging Thrashing & Transient Power Draw**:
+   - Physical VRAM saturation triggers Windows WDDM Shared Memory paging across the PCIe bus.
+   - 100% Tensor Core utilization, PCIe thrashing, CPU paging, and concurrent checkpoint disk writes (`save_steps=50`) produce severe transient power spikes (250W+ on Ampere cards).
+   - This trips the PSU Over-Current Protection (OCP) or overheats physical wall sockets/power strips.
+
+#### Hardened Fail-Safe Protections in `train_qlora.py`
+To ensure 100% stable, crash-proof execution without hardware strain:
+* **VRAM Memory Capping**: `torch.cuda.set_per_process_memory_fraction(0.80, device=0)` hard-caps PyTorch to 80% VRAM, guaranteeing a 20% dedicated buffer for Windows and preventing WDDM paging thrashing.
+* **Bypassed In-Train Evaluation**: `eval_strategy="no"` disables the Step-50 uncheckpointed evaluation surge.
+* **Attention-Focused LoRA Targets**: `LORA_TARGETS = ["q_proj", "k_proj", "v_proj", "o_proj"]` reduces trainable parameter overhead and activation tensors by >50%.
+* **Sequence Budgeting**: `MAX_SEQ_LEN = 512` bounds sequence length to cover ~87% of data (mean 406 tokens), slashing quadratic self-attention memory by $4\times$.
+* **PyTorch Allocator Configuration**: `os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"` prevents memory fragmentation errors.
+* **8-Bit Paged Optimizer**: `optim="paged_adamw_8bit"` automatically pages optimizer states to CPU RAM if allocations surge.
+* **Hardware Power Limit Capping**: Recommend `nvidia-smi -pl 150` (75% TDP) to eliminate microsecond transient power spikes.
+
+### 4. Engineering Verification Gates & Demo Readiness
 - **Gate 1 (Go/No-Go)**: Day 1 `bitsandbytes` 4-bit CUDA verification gate (`scripts/verify_bnb.py`) to validate 4-bit quantization kernel execution on Windows.
 - **Gate 2 (VRAM Decision Tree)**: Dynamic sequence length and rank throttle: if VRAM peak exceeds 7.5GB during 10-sample testing, `max_seq_length` throttles from 512 to 384 and rank from 8 to 4.
 - **Gate 3 (Dual-Track Fallback)**: Standby rehearsals for both the verified `DarkLight6996/CyberSec-Model-V2` (TinyLlama 1.1B adapter) and the deterministic 8-branch rule engine to guarantee zero risk during government demonstrations.
@@ -429,9 +581,43 @@ core/memory.py & core/services/memory_service.py
 
 ---
 
-### 15. Full Test Suite Status (September 2026)
+### 15. Phase 11 — Offensive Tool Execution Engine & Scope Controller (`core/mode_controller.py`, `core/tools/`)
 
-**88 / 88 tests passing** across 11 test modules:
+Phase 11 introduces a production-ready, safety-gated execution architecture supporting both manual guidance and authorized lab automation:
+
+#### 15.1 Architectural Components
+
+```
+core/mode_controller.py & core/tools/
+  ModeController ──────► AssignmentMode.MANUAL (operator run) vs AUTOMATED (lab execution)
+  ScopeEnforcer  ──────► IP/CIDR/Domain matching, exclusion rules (!IP), localhost gating
+  ToolExecutor   ──────► Subprocess runner (shell=False), timeouts, output caps, kill-switch
+  Adapters:
+    ├── NmapAdapter       ──► Port discovery, service detection (-sV), timing profiles
+    ├── NucleiAdapter     ──► CVE template vulnerability auditing (-jsonl)
+    ├── FfufAdapter       ──► Web endpoint/parameter fuzzing (-fc, -of json)
+    ├── GobusterAdapter   ──► Directory & DNS subdomain enumeration
+    ├── SqlmapAdapter     ──► Automated SQL injection audit (enforced --batch, risk caps)
+    └── HydraAdapter      ──► Network credential verification (throttled tasks)
+```
+
+#### 15.2 Operational Modes
+- **MANUAL Mode**: Dry-run only (`dry_run=True`). Commands are rendered with syntax formatting for manual operator verification and execution in their own terminal. Strictly required for client engagements and bug bounty targets where automated scanning is disallowed.
+- **AUTOMATED Mode**: Autonomous execution (`dry_run=False`). Executes commands directly via `ToolExecutor` subprocess wrapper, gated behind strict `ScopeEnforcer` authorization. For use in isolated lab environments, CTF challenges, HackTheBox, and TryHackMe.
+
+#### 15.3 Verification Results
+
+| Test | Status |
+|---|---|
+| `test_mode_controller.py` (12 tests) | ✅ All passed |
+| `test_executor.py` (10 tests) | ✅ All passed |
+| `test_tool_adapters.py` (13 tests) | ✅ All passed |
+
+---
+
+### 16. Full Test Suite Status (October 2026)
+
+**123 / 123 tests passing** across 13 test modules:
 
 | Module | Tests | Status |
 |---|---|---|
@@ -440,14 +626,16 @@ core/memory.py & core/services/memory_service.py
 | `test_intelligence_parsers.py` | 11 | ✅ All passed |
 | `test_prompt_subsystem.py` | 10 | ✅ All passed |
 | `test_rag_pipeline.py` | 7 | ✅ All passed |
-| `test_core_modules.py` | 0 (import only) | ✅ No errors |
 | `test_cli_architecture.py` | 4 | ✅ All passed |
 | `test_tool_registry.py` | 12 | ✅ All passed |
 | `test_agent.py` | 14 | ✅ All passed |
 | `test_chat_assistant.py` | 10 | ✅ All passed |
 | `test_memory_enrichment.py` | 8 | ✅ All passed |
+| `test_mode_controller.py` | 12 | ✅ All passed |
+| `test_executor.py` | 10 | ✅ All passed |
+| `test_tool_adapters.py` | 13 | ✅ All passed |
 
-Run: `python -m pytest ll-finetuning/rag/core/ -v --tb=short`
+Run: `python -m pytest rag/core/ -v --tb=short`
 
 
 
@@ -2654,3 +2842,384 @@ When an operator asks for guidance on initial enumeration, commands, or how to i
 ### 4. Neural Engine Singleton & Reranking Score Threshold
 To prevent model reload latency and memory bloat, `rag_engine.py` implements `get_global_rag_engine()`. The cross-encoder reranker now filters out chunks with relevance scores below `-2.5`, preventing irrelevant cross-domain snippets (e.g. Web SQLi advice) from intruding upon Linux terminal queries.
 
+
+
+---
+
+## 13. Autonomous AI Security Assessment System (v5.0)
+
+### 13.1 Overview
+
+Version 5.0 upgrades the framework from a policy-bound workflow runner into a **security reasoning system** that discovers vulnerabilities through:
+
+```text
+OBSERVATION  ->  HYPOTHESIS  ->  VALIDATION  ->  FINDING  ->  IMPACT
+```
+
+Every action passes through a **10-gate safety pipeline** before execution. The AI proposes structured actions; the framework validates, builds, and executes them - with shell=False, argv vectors only.
+
+---
+
+### 13.2 New Core Modules
+
+| Module | Location | Purpose |
+|--------|----------|---------|
+| `action_contract.py` | `core/`, `ll-finetuning/rag/core/` | `ActionDefinition`, `AIActionProposal`, `ActionRegistry` - typed action system |
+| `investigation.py` | `core/`, `ll-finetuning/rag/core/` | `EvidenceStore`, `Observation`, `Hypothesis`, `Validation`, `Finding` - evidence chain |
+| `ai_planner.py` | `core/`, `ll-finetuning/rag/core/` | `AIPlanner` - wraps `ChatAssistant` to emit structured JSON action proposals |
+
+> **Import Note:** Both `core/` (root) and `ll-finetuning/rag/core/` must contain identical copies of these three modules. The `core/__init__.py` extends `__path__` to `rag/core`, so imports from either location resolve to the same logical module. When modifying any of these files, update both copies.
+
+---
+
+### 13.3 The 10-Gate Safety Pipeline
+
+Every AI-proposed action traverses these gates **in order** before execution:
+
+```text
+Gate 1:  Registry validation       - action name exists, params pass Pydantic model validation
+Gate 2:  Target format + scope     - structural check: target in scope, not in out_of_scope
+Gate 3:  Policy validation         - network_effect, state_change, requires_active_testing vs scope flags
+Gate 4:  Prohibited action gate    - action name not in scope.prohibited_tools / prohibited_actions
+Gate 5:  Time window gate          - current time within authorized assessment window
+Gate 6:  Retry budget gate         - action-identity retry count <= budget (framework-enforced)
+Gate 7:  Command build             - deterministic pure-Python builder -> List[List[str]], no AI
+Gate 8:  Final argv safety check   - no shell metacharacters in any argv element
+Gate 9:  Approval gate             - manual: operator Y/N; autonomous: policy-based
+Gate 10: Execution                 - subprocess(argv, shell=False, timeout, capture)
+```
+
+Gate 9 distinguishes **manual** vs **autonomous** policy:
+- `approval_policy="manual"` -> operator prompted for Y/N before every action
+- `approval_policy="autonomous"` -> auto-approved if all prior gates pass and scope permits
+
+---
+
+### 13.4 Evidence Chain Architecture (`core/investigation.py`)
+
+```python
+class Observation:
+    action: str
+    raw_output: str
+    timestamp: str
+    source: str
+
+class Hypothesis:
+    description: str
+    supporting_observations: List[str]   # Observation IDs
+    confidence: float                     # 0.0 - 1.0
+
+class Validation:
+    action: str
+    result: str
+    confirms_hypothesis: bool
+    timestamp: str
+
+class Finding:
+    title: str
+    severity: str                         # critical/high/medium/low/info
+    description: str
+    hypothesis_id: str                    # REQUIRED - must link to confirmed Hypothesis
+    validation_ids: List[str]             # REQUIRED - must link to confirming Validations
+    evidence_ids: List[str]               # REQUIRED - must link to supporting Observations
+    false_positive: bool
+```
+
+`EvidenceStore.record_finding()` **rejects** any Finding that:
+- Has no linked Hypothesis
+- Has no linked Validation that `confirms_hypothesis=True`
+- Has no linked Observations
+
+This rejection is deterministic Python logic - not AI-gated.
+
+---
+
+### 13.5 ActionRegistry Pattern (`core/action_contract.py`)
+
+```python
+@dataclass
+class ActionDefinition:
+    name: str
+    description: str
+    params_model: Type[BaseModel]     # Pydantic v2, extra="forbid"
+    network_effect: bool = False      # Triggers Gate 3 check
+    state_change: bool = False        # Triggers Gate 3 check
+    requires_active_testing: bool = False  # Requires scope.active_network_allowed
+
+@dataclass
+class AIActionProposal:
+    action_name: str
+    params: dict
+    reasoning: str
+    confidence: float
+
+class ActionRegistry:
+    def register(self, action: ActionDefinition) -> None
+    def validate_proposal(self, proposal: AIActionProposal) -> Tuple[bool, str, Optional[ActionDefinition]]
+    def list_actions(self) -> List[str]
+```
+
+---
+
+### 13.6 CTF Agent - Full Autonomous Implementation
+
+The `CTFAgent` is the first agent with a complete autonomous implementation:
+
+```text
+agents/ctf/
+├── agent.py             # CTFAgent + run_autonomous_default()
+├── actions.py           # 10 ActionDefinitions + build_ctf_registry()
+├── command_builders.py  # 10 pure Python argv builders (no shell strings)
+├── completion.py        # CTF_COMPLETION criteria + verify_completion()
+└── phases/              # Traditional deterministic phase scripts
+```
+
+**10 CTF Actions:**
+
+| Action | network_effect | state_change | requires_active |
+|--------|---------------|-------------|-----------------|
+| `scan_ports` | Yes | No | No |
+| `scan_services` | Yes | No | No |
+| `dir_brute` | Yes | No | Yes |
+| `http_get` | Yes | No | No |
+| `find_suid` | No | No | No |
+| `list_directory` | No | No | No |
+| `read_file` | No | No | No |
+| `run_linpeas` | No | No | No |
+| `sudo_check` | No | No | No |
+| `capture_flag` | No | No | No |
+
+**Completion criteria** (`completion.py`):
+```python
+CTF_COMPLETION = CompletionCriteria(
+    required_phases=["environment_recon", "enumeration", "privesc"],
+    minimum_findings=1,
+    requires_flag=True,
+    no_unresolved_errors=True,
+)
+```
+
+`verify_completion(criteria, evidence_store, session)` returns `(bool, reason)`. The AI cannot self-declare completion - the framework verifies.
+
+---
+
+### 13.7 Autonomous Hunter Loop (`agents/base_agent.py`)
+
+All 9 agents inherit `run_autonomous()` from `BaseAgent`:
+
+```python
+def run_autonomous(
+    self,
+    registry: ActionRegistry,
+    completion_criteria,
+    planner: AIPlanner,
+    evidence_store: EvidenceStore,
+    max_iterations: int = 50,
+    approval_policy: str = "autonomous",
+) -> dict:
+    """
+    Runs the autonomous hunter loop:
+    1. AIPlanner.decide_next() -> AIActionProposal (structured JSON)
+    2. ActionRegistry.validate_proposal() -> Gate 1
+    3. execute_action() -> Gates 2-10
+    4. EvidenceStore.record_observation() -> evidence chain
+    5. Loop until verify_completion() or max_iterations
+    6. On KeyboardInterrupt: save state, return partial results
+    """
+```
+
+The `--autohunt` flag in `main.py` dispatches to `agent.run_autonomous_default()` if the agent has it, otherwise falls back to `agent.run()`.
+
+---
+
+### 13.8 AIPlanner (`core/ai_planner.py`)
+
+```python
+class AIPlanner:
+    def decide_next(
+        self,
+        session_state: dict,
+        available_actions: List[str],
+        evidence_summary: str,
+        iteration: int,
+    ) -> AIActionProposal:
+        """
+        Prompts ChatAssistant with structured context.
+        Parses JSON response -> AIActionProposal.
+        Falls back to 'scan_ports' default if parse fails.
+        max_new_tokens bounded to 150 for decision generation.
+        """
+```
+
+The AI **never** receives raw argv vectors, shell strings, or sudo invocations. It selects from a named registry of allowed actions with typed param schemas.
+
+#### Rejection & Retry Budget Handling
+When the Autonomous Hunter Loop rejects a proposal via the 10-gate safety pipeline:
+1. **Rejection Categories**: Rejections are classified into categories (`out_of_scope`, `unregistered_action`, `validation_failed`, `action_failed`, `retry_budget_exhausted`).
+2. **Retry Budget Tracking**: Each action has a per-session retry budget (default: 3 attempts).
+3. **Exclusion on Exhaustion**: When an action's failure/rejection count reaches its retry budget (`retry_budget_exhausted`), `AIPlanner` automatically excludes that action from the `available_actions` list presented to the LLM on subsequent iterations.
+4. **Graceful Fallback**: If all candidate actions are exhausted or no proposals validate, the planner signals early exit or fallback to safe passive enumeration.
+
+---
+
+### 13.9 Session Manager Extensions
+
+Three new methods added to `SessionManager`:
+
+```python
+def save_investigation_store(self, session_name: str, store_data: dict) -> None:
+    """Persists EvidenceStore.to_dict() to .assessments/<session>/investigation.json"""
+
+def load_investigation_store(self, session_name: str) -> dict:
+    """Loads and returns investigation.json; returns {} if not found"""
+
+def append_autonomous_history(self, session_name: str, entry: dict) -> None:
+    """Appends one autonomous loop iteration record to autonomous_history in state.json"""
+```
+
+These enable Ctrl+C save and resume across autonomous sessions.
+
+---
+
+### 13.10 Evaluation Benchmark (`eval/`)
+
+```text
+eval/
+├── scenarios/           # 10 YAML benchmark scenarios
+│   ├── ctf_linux_basic.yaml
+│   ├── ctf_web_lfi.yaml
+│   ├── web_sqli_basic.yaml
+│   ├── ad_kerberoast.yaml
+│   ├── cloud_s3_misconfig.yaml
+│   ├── network_scan_privesc.yaml
+│   ├── mobile_api_auth.yaml
+│   ├── red_team_initial_access.yaml
+│   ├── firewall_bypass_waf.yaml
+│   └── research_cve_analysis.yaml
+├── run_benchmark.py     # Validates 10 scenarios: discovery, chain integrity, violations
+└── report_benchmark.py  # Generates markdown report from latest results JSON
+```
+
+**Benchmark Acceptance Criteria:**
+- Discovery rate: 100% (all simulated findings detected)
+- Chain integrity: 100% (no finding without complete evidence chain)
+- Safety violations: 0 (no gate bypasses, no shell strings, no scope violations)
+
+Run: `python eval/run_benchmark.py`
+
+---
+
+### 13.11 Test Suite - New Tests (`tests/test_autonomous_framework.py`)
+
+| Test | Gate/Feature Covered |
+|------|---------------------|
+| `test_scope_validation_structural` | Gate 2 - structural scope check |
+| `test_policy_gates` | Gate 3 - network_effect/state_change policy |
+| `test_retry_budget_enforcement` | Gate 6 - retry budget exhaustion |
+| `test_high_risk_requires_confirmation` | Gate 9 - high-risk action approval |
+| `test_completion_verification_rejects_early` | Framework completion verification |
+| `test_hypothesis_to_finding_chain` | Evidence chain enforcement |
+| `test_false_positive_tracking` | Finding false-positive marking |
+| `test_ctrl_c_preserves_state` | KeyboardInterrupt -> save |
+| `test_manual_mode_unchanged` | Manual mode regression |
+| `test_command_builder_no_shell_strings` | Gate 7 - no shell strings in builders |
+| `test_arg_injection_blocked` | Gate 8 - argv injection prevention |
+| `test_retry_budget_per_action_identity` | Gate 6 - per-identity budget tracking |
+
+All 12 tests pass in 0.35s (no GPU load).
+
+---
+
+### 13.12 Dependency Updates
+
+`pydantic>=2.0` is required for `action_contract.py`, `investigation.py`, and `ai_planner.py`.
+
+Added to `ll-finetuning/requirements.txt`. Install via:
+```bash
+uv pip install pydantic>=2.0
+# OR
+pip install pydantic>=2.0
+```
+
+All param models use Pydantic v2 syntax:
+```python
+model_config = {"extra": "forbid"}   # Pydantic v2
+# NOT: class Config: extra = "forbid"  (Pydantic v1 - incompatible)
+```
+
+---
+
+### 13.13 Module Sync Policy
+
+`core/action_contract.py`, `core/investigation.py`, and `core/ai_planner.py` exist in **two locations**:
+
+1. `d:\AI Dev\ll-fintuning\core\` - root, imported by tests and main.py
+2. `d:\AI Dev\ll-fintuning\ll-finetuning\rag\core\` - copy, imported by rag-path imports
+
+**Always update both copies when modifying any of these files.**
+
+---
+
+### 13.14 GPU Configuration Note
+
+| Setting | Value | Reason |
+|---------|-------|--------|
+| `GPU_MODEL_NAME` | `TinyLlama/TinyLlama-1.1B-Chat-v1.0` | RTX 3060 Ti = 8GB VRAM; Qwen 7B needs ~14GB |
+| `LoRA Adapter` | `DarkLight6996/CyberSec-Model-V2` | Fine-tuned on cybersecurity data |
+| `CPU_MODEL_NAME` | `google/flan-t5-large` | Fallback when no CUDA |
+| `max_new_tokens` | Bounded per decision point (25/80/150/60) | Prevents runaway generation |
+
+Do **not** switch back to Qwen 7B for automated testing - it will cause `test_ai_phase_recommendation` and related LLM tests to time out on 8GB cards.
+
+
+### 13.15 Complete 9-Agent Autonomous Action Matrix & Evidence Graph
+
+Every specialized agent in the framework now implements the autonomous contract:
+1. `get_action_registry() -> ActionRegistry` (10 ActionDefinitions each, 90 total typed actions)
+2. `get_completion_criteria() -> CompletionCriteria` (Framework-enforced phase coverage & finding gates)
+3. `run_autonomous_default(max_steps)` (Direct CLI `--autohunt` runner)
+
+| Agent | Module | Action Registry Factory | Completion Criteria | Key Scenarios |
+| :--- | :--- | :--- | :--- | :--- |
+| `CTFAgent` | `agents.ctf` | `build_ctf_registry()` | `CTF_COMPLETION` | Linux shells, SUID, flags |
+| `BugBountyAgent` | `agents.bug_bounty` | `build_bug_bounty_registry()` | `BUG_BOUNTY_COMPLETION` | Subdomains, endpoints, IDOR, SQLi |
+| `PentestAgent` | `agents.pentest` | `build_pentest_registry()` | `PENTEST_COMPLETION` | PTES methodology, service scans, reports |
+| `ActiveDirectoryAgent` | `agents.active_directory` | `build_ad_registry()` | `AD_COMPLETION` | DC discovery, Kerberoast, AS-REP, DCSync |
+| `CloudAgent` | `agents.cloud` | `build_cloud_registry()` | `CLOUD_COMPLETION` | IAM audits, S3 exposures, IMDSv1 |
+| `RedTeamAgent` | `agents.red_team` | `build_red_team_registry()` | `RED_TEAM_COMPLETION` | External recon, footholds, lateral pivots |
+| `MobileAppAgent` | `agents.mobile` | `build_mobile_registry()` | `MOBILE_COMPLETION` | APK decompilation, secrets, storage, pinning |
+| `FirewallBypassAgent` | `agents.firewall_bypass` | `build_firewall_registry()` | `FIREWALL_BYPASS_COMPLETION` | WAF fingerprints, chunked encoding, mutations |
+| `SecurityResearchAgent`| `agents.security_research`| `build_research_registry()` | `SECURITY_RESEARCH_COMPLETION`| CVE analysis, root cause, benign PoC, CVSS |
+
+#### EvidenceGraph Specification
+The `EvidenceGraph` in `core/investigation.py` provides multi-step attack path correlation:
+- **`Entity`**: Identifies target assets (`host`, `port`, `service`, `user`, `credential`, `vulnerability`, `endpoint`, `file`, `token`, `domain`).
+- **`Relationship`**: Connects entities with confidence scores (`runs_on`, `authenticates_as`, `member_of`, `vulnerable_to`, `leads_to`, `exposes`, `contains`, `trusts`, `compromises`).
+- **`find_paths(source_id, target_id, max_depth)`**: Traverses directed entity relationships to discover multi-hop escalation paths.
+- **`correlate_cross_observations(obs_a, obs_b)`**: Discovers shared entities and multi-hop attack paths linking two distinct observations.
+
+### 13.16 Evaluation Benchmark & Git Regression Comparison
+
+The framework includes a standalone quantitative evaluation harness in `eval/` evaluating all 9 agents against authorized scenarios.
+
+#### Benchmark Runner (`eval/run_benchmark.py`)
+- Evaluates 13 benchmark scenarios across Active Directory, Cloud, CTF, Web, Network, Mobile, Red Team, Firewall Bypass, and Security Research.
+- Produces timestamped JSON result records in `eval/results/benchmark_<timestamp>.json`.
+- Evaluates against Phase 5 acceptance thresholds:
+  - Discovery Rate >= 80% (Current: 100%)
+  - Evidence Chain Integrity >= 80% (Current: 100%)
+  - Safety Violations == 0 (Current: 0)
+
+#### Two-Commit Regression Detection (`eval/compare_commits.py`)
+Compares two benchmark result runs (e.g. across git commits or before/after refactoring):
+```bash
+python eval/compare_commits.py --baseline eval/results/benchmark_A.json --current eval/results/benchmark_B.json
+# Or auto-compare latest run:
+python eval/run_benchmark.py --compare
+```
+Outputs a delta comparison table:
+- **Discovery Rate Delta**: regression flagged if delta < 0
+- **Chain Integrity Delta**: regression flagged if delta < 0
+- **Safety Violations Delta**: regression flagged if delta > 0
+- **Per-Scenario Change Tracking**: `IMPROVED`, `REGRESSED`, `CHAIN_IMPROVED`, `CHAIN_REGRESSED`, `UNCHANGED`
+- Returns exit code `1` on regression for CI gate enforcement.

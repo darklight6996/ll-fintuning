@@ -1,0 +1,94 @@
+# Category: DOM-based Vulnerabilities
+name: "DOM-based open redirection"
+id: "dom-based-open-redirection-001"
+category: "dom_based"
+subcategory: "open_redirection"
+difficulty: "practitioner"
+estimated_time: "30 minutes"
+
+description: |
+  This scenario covers DOM-based open redirection where the application uses
+  user-controlled data (e.g., from location.search) to set `window.location`
+  or similar navigation sinks without validation. An attacker can redirect the
+  user to a malicious site, facilitating phishing or credential theft.
+
+learning_objectives:
+  - Understand DOM-based open redirection
+  - Identify navigation sinks that use user input
+  - Craft a URL that redirects to an attacker-controlled site
+  - Use redirection for phishing attacks
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Target uses user input in navigation (e.g., redirect parameter)
+  - No validation of the redirect URL
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify redirect parameter in URL"
+    commands:
+      - "# Look for: window.location = location.search.substring(...)"
+      - "# Or: window.location.href = params.get('redirect')"
+    expected_output: "Navigation uses user-controlled data"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Craft a URL with a malicious redirect"
+    commands:
+      - "# Example: https://target.com/page?redirect=https://evil.com"
+      - "# When the page loads, the user is redirected to evil.com"
+    expected_output: "User is redirected to the attacker's site"
+    detection: "Web server logs show the redirect parameter"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Use redirection for phishing"
+    commands:
+      - "# Redirect to a fake login page: https://evil.com/fake-login"
+      - "# Capture credentials when the user logs in"
+    expected_output: "Credentials captured"
+    detection: "Phishing site logs show credential submission"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1204"
+    description: "User Execution"
+  - standard: "OWASP"
+    control: "A04:2021"
+    description: "Insecure Design"
+
+detection:
+  network_indicators:
+    - "Requests with redirect parameters pointing to external domains"
+  log_indicators:
+    - "Redirects to external domains"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Validate redirect URLs against a whitelist"
+    - "Do not allow user-controlled navigation"
+  long_term:
+    - "Use a centralized redirector service"
+    - "Implement input validation for all redirect parameters"
+
+variables:
+  target_url: "https://target.com/page?redirect=PAYLOAD"
+  malicious_site: "https://evil.com"
+
+assessment_questions:
+  - "What is DOM-based open redirection?"
+  - "How can an attacker exploit open redirection?"
+  - "What is the difference between DOM-based and server-side redirection?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/Open_Redirect"
+    title: "OWASP Open Redirect"
+  - url: "https://portswigger.net/web-security/dom-based/open-redirection"
+    title: "PortSwigger DOM-based Open Redirection"

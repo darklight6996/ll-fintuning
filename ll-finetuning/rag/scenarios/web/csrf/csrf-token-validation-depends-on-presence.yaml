@@ -1,0 +1,96 @@
+# Category: Cross-Site Request Forgery (CSRF)
+name: "CSRF where token validation depends on token being present"
+id: "csrf-token-validation-presence-001"
+category: "csrf"
+subcategory: "bypass"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This scenario covers CSRF where the application validates the CSRF token
+  only if it is present. If the token is not included in the request, the
+  request is accepted. This allows an attacker to omit the token entirely
+  and perform a CSRF attack.
+
+learning_objectives:
+  - Understand conditional CSRF token validation
+  - Identify endpoints that bypass validation when token is missing
+  - Omit the CSRF token to perform requests
+  - Craft CSRF payloads without tokens
+
+tools:
+  - Burp Suite
+  - curl
+
+prerequisites:
+  - Target application with conditional token validation
+  - State-changing request works without token
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Test token validation behavior"
+    commands:
+      - "# Send a request with a valid token (should work)"
+      - "# Send a request with an invalid token (should fail)"
+      - "# Send a request without any token (might work)"
+    expected_output: "Request without token is accepted"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Craft a CSRF request without the token"
+    commands:
+      - "# Create a standard HTML form without the hidden CSRF field"
+      - "<form action='https://target.com/change-email' method='POST'>"
+      - "<input type='hidden' name='email' value='attacker@evil.com'>"
+      - "</form>"
+    expected_output: "The request is processed without token validation"
+    detection: "Application logs show no token in request"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Automate the attack"
+    commands:
+      - "# Use JavaScript to auto-submit the form"
+    expected_output: "Victim's email changed automatically"
+    detection: "Audit logs show sensitive action"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1204"
+    description: "User Execution"
+  - standard: "OWASP"
+    control: "A01:2021"
+    description: "Broken Access Control"
+
+detection:
+  network_indicators:
+    - "Requests without CSRF tokens"
+  log_indicators:
+    - "State-changing actions with no token parameter"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Always validate CSRF tokens; do not skip validation when missing"
+    - "Require token presence for all state-changing requests"
+  long_term:
+    - "Use framework-level CSRF protection"
+    - "Implement strict token validation"
+
+variables:
+  target_url: "https://target.com/change-email"
+  new_email: "attacker@evil.com"
+
+assessment_questions:
+  - "Why would an application accept requests without tokens?"
+  - "How can an attacker exploit this?"
+  - "What is the correct way to implement CSRF protection?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/csrf"
+    title: "OWASP CSRF"
+  - url: "https://portswigger.net/web-security/csrf/bypassing-token-validation"
+    title: "PortSwigger CSRF Bypass"

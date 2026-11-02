@@ -1,0 +1,103 @@
+# Category: Intelligence Gathering
+name: "Document Metadata Extraction – Office Files and PDFs"
+id: "osint-doc-metadata-001"
+category: "osint"
+subcategory: "file_analysis"
+difficulty: "beginner"
+estimated_time: "40 minutes"
+
+description: |
+  Extract metadata from public documents (PDF, Word, Excel, PPT, OpenOffice)
+  to discover author names, software versions, last modified dates, and
+  sometimes internal paths. This metadata can reveal internal usernames,
+  department structures, and collaboration history.
+
+learning_objectives:
+  - Understand metadata fields in office documents
+  - Use exiftool, pdfid, and oledump to extract metadata
+  - Identify hidden data in documents (comments, tracked changes, embedded macros)
+  - Use metadata for profiling employees or internal systems
+
+tools:
+  - exiftool
+  - pdfid (PDF metadata)
+  - oledump (for OLE files)
+  - Metagoofil (automated extraction)
+  - Python (PyPDF2, python-docx)
+
+prerequisites:
+  - Access to documents published by the target (white papers, annual reports, job postings)
+
+steps:
+  - id: "step1"
+    phase: "collection"
+    action: "Gather documents from target website"
+    commands:
+      - "# Use wget to download all PDFs"
+      - "wget -r -A .pdf https://example.com/docs"
+      - "# Or use Metagoofil"
+      - "metagoofil -d example.com -t pdf,doc,xls -l 50 -o docs"
+    expected_output: "Directory of target documents"
+    detection: "Web server logs may show many GET requests from your IP"
+
+  - id: "step2"
+    phase: "metadata_extraction"
+    action: "Extract metadata using exiftool"
+    commands:
+      - "# Extract all metadata from a PDF"
+      - "exiftool document.pdf"
+      - "# Filter for author, creator, and company"
+      - "exiftool -Author -Creator -Company document.pdf"
+      - "# For OLE files (doc, xls), use oledump"
+      - "oledump.py document.doc"
+    expected_output: "Author names, software versions, creation dates, internal paths (e.g., C:\\Users\\John\\Documents)"
+    detection: "None"
+
+  - id: "step3"
+    phase: "analysis"
+    action: "Correlate metadata to build profiles"
+    commands:
+      - "# Compile list of author names"
+      - "# Look for internal share paths revealing network structure"
+      - "# Check for 'Last Modified By' to identify active users"
+    expected_output: "List of usernames and potential network shares"
+    detection: "N/A"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1589.001"
+    description: "Gather Victim Identity Information – Credentials (through metadata)"
+  - standard: "GDPR"
+    control: "Article 32"
+    description: "Security of Processing (data exposure)"
+
+detection:
+  network_indicators:
+    - "Wget downloads of many files"
+  log_indicators:
+    - "None"
+  endpoint_indicators:
+    - "exiftool, metagoofil"
+
+remediation:
+  immediate:
+    - "Remove metadata from documents before publishing (use 'Remove Properties and Personal Information' in Office)"
+    - "Use PDF sanitizers to strip metadata"
+  long_term:
+    - "Implement a document release policy that includes metadata cleaning"
+    - "Train employees on metadata risks"
+
+variables:
+  target_domain: "example.com"
+  document_type: "pdf"
+
+assessment_questions:
+  - "What is the most dangerous field in a Word document's metadata?"
+  - "How can you remove metadata from a PDF using exiftool?"
+  - "What does the 'Last Modified By' field reveal?"
+
+references:
+  - url: "https://exiftool.org/"
+    title: "exiftool"
+  - url: "https://www.didierstevens.com/projects/oledump/"
+    title: "oledump by Didier Stevens"

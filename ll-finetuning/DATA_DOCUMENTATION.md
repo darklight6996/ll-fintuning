@@ -115,25 +115,85 @@ The training and scenario datasets span the full offensive security, compliance,
 
 ---
 
-## ⚙️ Model Training & Quantization Specifications
+## ⚙️ Model Architecture Evolution: TinyLlama to Qwen2.5-7B
 
-### Qwen2.5-7B-Instruct QLoRA Configuration (Primary Target)
-- **Base Model**: `Qwen/Qwen2.5-7B-Instruct`
-- **Attention Implementation**: PyTorch native SDPA (`attn_implementation="sdpa"`) to guarantee stable native Windows execution without external FlashAttention compilation.
-- **Quantization**: 4-bit NormalFloat (`nf4`) with double quantization enabled via `bitsandbytes` (`BitsAndBytesConfig` with `compute_dtype=torch.bfloat16`).
-- **LoRA Hyperparameters**:
-  - Rank ($r$): `8`
-  - Alpha ($\alpha$): `16`
-  - Dropout: `0.05`
-  - Target Modules: All 7 projection layers (`q_proj`, `k_proj`, `v_proj`, `o_proj`, `gate_proj`, `up_proj`, `down_proj`).
-- **Sequence Length**: `max_seq_length = 512` (strict 8GB VRAM budget guard).
-- **Optimizer & Checkpointing**: `paged_adamw_8bit`, `gradient_checkpointing=True`, `save_steps=100`, `save_total_limit=2`, `resume_from_checkpoint=True`.
+### 1. Rationale for Transitioning from TinyLlama-1.1B to Qwen2.5-7B-Instruct
+The initial baseline relied on `TinyLlama/TinyLlama-1.1B-Chat-v1.0` (`DarkLight6996/CyberSec-Model-V2`). While TinyLlama offered an ultra-fast proof-of-concept for verifying LoRA pipelines with minimal VRAM (~2.2 GB), it exhibited core architectural limitations when deployed in autonomous security operations:
+* **Reasoning Depth & Tool Syntax**: Complex cybersecurity tasks (constructing ROP chains, auditing ADCS certificate templates, multi-stage Linux privilege escalation, parsing messy nmap/ffuf outputs) require deep multi-step causal reasoning. 1.1B models frequently hallucinated syntax or dropped necessary flags.
+* **Context Retention & Instruction Following**: TinyLlama struggled to adhere simultaneously to strict system personas, live environment state (`whoami`, `pwd`, SUID binaries), untrusted evidence blocks, and FAISS RAG context.
+* **Why Qwen2.5-7B-Instruct?**: Qwen2.5-7B is recognized as a premier open-weight model for coding, mathematical logic, structured JSON outputs, and tool-use reasoning. Through 4-bit NF4 QLoRA quantization, the entire 7B base model fits into ~4.5 GB of VRAM, allowing enterprise-grade reasoning directly on consumer GPUs (RTX 3060 Ti 8GB).
 
-### TinyLlama-1.1B Baseline Configuration (Fallback / Active Model)
-- **Base Model**: `TinyLlama/TinyLlama-1.1B-Chat-v1.0`
-- **Adapter Repo**: `DarkLight6996/CyberSec-Model-V2`
-- **LoRA Hyperparameters**: $r=8, \alpha=16$, targeting `q_proj` and `v_proj`.
-- **Memory Footprint**: ~2.2 GB VRAM in FP16; runnable on CPU if required.
+---
+
+## 📜 Training & Utility Script Inventory
+
+| Script Path | Purpose | Key Technologies |
+| :--- | :--- | :--- |
+| `train_qlora.py` *(Root)* | Primary QLoRA fine-tuning for `Qwen/Qwen2.5-7B-Instruct` on Windows with hardened memory caps and power fail-safes. | `transformers 5.17`, `trl 1.13`, `peft 0.21`, `bitsandbytes` 4-bit NF4, `bfloat16`. |
+| `ll-finetuning/scripts/train_lora.py` | Legacy GPU training script for TinyLlama 1.1B baseline adapter. | `peft`, `transformers`, FP16 LoRA. |
+| `ll-finetuning/scripts/train_lora_cpu.py` | Deterministic fallback CPU training pipeline (single precision FP32) for low-resource environments. | `torch.float32`, CPU execution, fixed padding. |
+| `ll-finetuning/scripts/infer_lora.py` | Local CLI inference test script for validating LoRA adapters. | `peft`, `AutoModelForCausalLM`. |
+| `ll-finetuning/scripts/upload_to_hf.py` | Automated deployment script to push trained adapters and tokenizer configs to Hugging Face Hub. | `huggingface_hub`, `HfApi`. |
+| `scripts/alpaca_to_chatml.py` | Converts legacy 3-field Alpaca JSONL datasets into native Qwen ChatML format (`<\|im_start\|>`/`<\|im_end\|>`). | `transformers.AutoTokenizer.apply_chat_template`. |
+| `scripts/verify_bnb.py` | Day 1 Go/No-Go smoke test validating `bitsandbytes` `Linear4bit` CUDA execution on Windows. | `bitsandbytes.nn.Linear4bit`, PyTorch CUDA. |
+| `scripts/verify_tokenizer.py` | Verifies ChatML template serialization and special token formatting. | `transformers.AutoTokenizer`. |
+
+---
+
+## 🔄 Format Transition: Stanford Alpaca to Native Qwen ChatML
+
+### 1. Why the Transition Was Necessary
+* **Role Ambiguity in Alpaca**: Standard Alpaca format (`{"instruction", "input", "output"}`) flattens queries into monolithic text. The model cannot structurally distinguish between immutable system security instructions, operator prompts, untrusted scanner evidence, and assistant responses.
+* **Special Token Demarcation**: ChatML uses hard boundary tokens (`<|im_start|>role\n...<|im_end|>`) natively trained into Qwen2.5. This strictly isolates system rules from user input, eliminating prompt injection risks from raw terminal evidence.
+* **Multi-Turn Readiness**: ChatML natively supports arbitrary conversation turns, preserving conversation history cleanly for iterative CTF and assessment sessions.
+
+### 2. How the Transformation Works (`scripts/alpaca_to_chatml.py`)
+Each Alpaca record is extracted, combining `instruction` and optional `input` context into a structured user message, and mapped into standard Hugging Face conversation dictionaries:
+```python
+messages = [
+    {"role": "system", "content": "You are a cybersecurity and penetration testing expert."},
+    {"role": "user", "content": f"{instruction}\n\nContext:\n{input_text}" if input_text else instruction},
+    {"role": "assistant", "content": output_text}
+]
+chatml_text = tokenizer.apply_chat_template(messages, tokenize=False)
+```
+
+---
+
+## ⚡ Hardware Safety, Crash Root-Cause Analysis & Fail-Safe Engineering
+
+### 1. Root Cause Analysis: Why Hardware Crashes Occur During 7B Training
+During unhardened QLoRA training on 8GB GPUs (e.g. RTX 3060 Ti), systems can experience sudden hard shutdowns, power supply trips, or physical socket overheating due to three compounding factors:
+
+1. **The Step-50 Evaluation Activation Surge**:
+   - In standard Hugging Face `SFTTrainer` configurations with `eval_strategy="steps", eval_steps=50`, gradient checkpointing is automatically turned off during the evaluation loop over the test dataset (e.g. 41 samples).
+   - Computing forward-pass activations across maximum sequence lengths without gradient checkpointing creates a sudden multi-gigabyte VRAM spike.
+2. **LoRA Parameter Oversubscription**:
+   - Targeting all 7 linear projection matrices (`q, k, v, o, gate, up, down`) inflates trainable gradients and optimizer states.
+   - On Windows, where the Desktop Window Manager (WDDM) consumes ~1.4 GB of VRAM, total required memory exceeds physical 8 GB.
+3. **Windows WDDM Paging Thrashing & Transient Power Spikes**:
+   - When VRAM saturates, Windows WDDM forces memory paging between GPU VRAM and System RAM across the PCIe bus.
+   - The concurrent load of 100% GPU Tensor Cores, PCIe saturation, CPU paging, and checkpoint disk I/O causes acute transient power spikes (jumping past 250W on Ampere cards).
+   - This trips the PSU Over-Current Protection (OCP) or overheats electrical wall sockets/extension strips.
+
+### 2. Implemented Fail-Safe Protections in `train_qlora.py`
+
+To guarantee 100% stable, crash-proof fine-tuning on 8GB consumer hardware:
+
+* **VRAM Memory Capping (`torch.cuda.set_per_process_memory_fraction(0.80, device=0)`)**:
+  Hard-caps PyTorch to use at most 80% of total physical VRAM, guaranteeing a dedicated 20% buffer for Windows display/WDDM and completely preventing OS memory paging thrashing.
+* **Bypassed In-Train Evaluation (`eval_strategy="no"`)**:
+  Eliminates the uncheckpointed evaluation surge during the training run. Evaluation is conducted offline or on saved adapters.
+* **Optimized Attention LoRA Targets**:
+  Focused `LORA_TARGETS = ["q_proj", "k_proj", "v_proj", "o_proj"]` to reduce trainable parameter overhead and activation tensors by >50%.
+* **Sequence Length Budgeting (`MAX_SEQ_LEN = 512`)**:
+  Empirical dataset auditing shows mean token length is 406 tokens (only 12.9% >512). Bounding sequence length to 512 slashes quadratic self-attention memory by $4\times$.
+* **PyTorch Allocator Optimization**:
+  `os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"` prevents CUDA memory fragmentation errors.
+* **8-Bit Paged Optimizer**:
+  `optim="paged_adamw_8bit"` automatically pages optimizer states to CPU RAM if allocations surge, preventing OOM crashes.
+* **Hardware Power Limit Capping (Recommended)**:
+  Run `nvidia-smi -pl 150` in an Administrator terminal to cap peak board power draw to 150W (75% TDP), preventing electrical socket overheating and transient PSU trips.
 
 ---
 
@@ -279,3 +339,42 @@ get_memory(session_id)   ──► ChatMemoryWrapper → ChatMemory(SQLite, sess
 
 These files require YAML repair (replace `\W` with `\\W`, use single-quote strings around regex patterns, remove raw backticks). Flagged for Phase 2 data maintenance pass.
 
+---
+
+## 🏛️ Multi-Agent Framework State & Scope Data Schemas (November 2026)
+
+### 1. Scope Data Contract (`core/scope.py`)
+```json
+{
+  "target": "10.10.10.5",
+  "in_scope": ["10.10.10.0/24", "target.corp"],
+  "out_of_scope": ["10.10.10.1", "prod-db.target.corp"],
+  "prohibited_tests": ["no DoS", "no social engineering", "no credential dumping"],
+  "prohibited_tools": ["metasploit", "sqlmap"],
+  "time_window": "09:00 - 17:00 UTC",
+  "authorization_ref": "SEC-AUDIT-2026-441",
+  "active_testing_allowed": false
+}
+```
+
+### 2. PhaseResult Data Contract (`agents/base_agent.py`)
+```json
+{
+  "phase_name": "subdomain_enum",
+  "status": "success",
+  "commands_run": [
+    {
+      "command": "subfinder -d target.com -silent",
+      "status": "success",
+      "stdout": "api.target.com\nauth.target.com",
+      "returncode": 0
+    }
+  ],
+  "raw_output": "api.target.com\nauth.target.com",
+  "findings": {
+    "subdomains": ["api.target.com", "auth.target.com"]
+  },
+  "next_hint": "endpoint_discovery",
+  "error": null
+}
+```

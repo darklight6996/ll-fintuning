@@ -509,6 +509,75 @@ class SessionManager:
             "ingested_counts": {k: len(v) for k, v in self.state.get("ingested_findings", {}).items()}
         }
 
+
+    def save_investigation_store(self, evidence_store) -> None:
+        """
+        Persist the EvidenceStore (observation/hypothesis/validation/finding chain)
+        to '.assessments/<session>/investigation.json'.
+
+        Args:
+            evidence_store: EvidenceStore instance from core.investigation.
+        """
+        self._require_active_session()
+        inv_file = self.session_dir / "investigation.json"
+        data = evidence_store.to_dict()
+        tmp_file = inv_file.with_suffix(".tmp")
+        try:
+            with open(tmp_file, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, default=str)
+            tmp_file.replace(inv_file)
+        except Exception:
+            if tmp_file.exists():
+                tmp_file.unlink(missing_ok=True)
+            raise
+
+    def load_investigation_store(self):
+        """
+        Load a previously persisted EvidenceStore.
+
+        Returns:
+            EvidenceStore instance if investigation.json exists, else None.
+        """
+        self._require_active_session()
+        from core.investigation import EvidenceStore
+        inv_file = self.session_dir / "investigation.json"
+        if not inv_file.exists():
+            return None
+        try:
+            with open(inv_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return EvidenceStore.from_dict(data)
+        except Exception:
+            return None
+
+    def append_autonomous_history(self, entry: dict) -> None:
+        """
+        Append one autonomous execution history entry to session state.
+        Keeps the in-memory state synchronized with the entry and persists.
+
+        Args:
+            entry: Dict containing action_id, status, rejection_reason, results, etc.
+        """
+        self._require_active_session()
+        history = self.state.setdefault("autonomous_execution_history", [])
+        history.append(entry)
+        # Also record in the audit evidence trail if the action succeeded
+        if entry.get("status") == "success" and entry.get("results"):
+            results = entry["results"]
+            if isinstance(results, list):
+                for res in results:
+                    argv = res.get("argv", [])
+                    cmd = " ".join(argv) if isinstance(argv, list) else str(entry.get("action_id", ""))
+                    out = str(res.get("stdout", ""))[:2000]
+                    self.state.setdefault("evidence", []).append({
+                        "command": cmd,
+                        "output": out,
+                        "step_id": entry.get("action_id", "autonomous"),
+                        "status": "completed",
+                        "timestamp": entry.get("timestamp", ""),
+                    })
+        self.save_current_state()
+
     def _require_active_session(self) -> None:
         if not self.active_session_name or not self.state:
             raise RuntimeError("No active assessment session. Create or open one first.")

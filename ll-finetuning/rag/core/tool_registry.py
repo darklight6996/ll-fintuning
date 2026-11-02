@@ -560,6 +560,12 @@ def _build_default_registry() -> ToolRegistry:
         category="recon",
     )
 
+    try:
+        from core.tools import register_offensive_tools
+        register_offensive_tools(registry)
+    except Exception:
+        pass
+
     return registry
 
 

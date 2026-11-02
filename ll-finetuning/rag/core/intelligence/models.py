@@ -67,9 +67,10 @@ class FlagIntel:
 
 @dataclass
 class FilesystemIntel:
-    """Current working directory and writeable filesystem paths."""
+    """Current working directory, writeable paths, and directory contents."""
     pwd: Optional[str] = None
     writable_paths: List[str] = field(default_factory=list)
+    discovered_files: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -98,6 +99,7 @@ class SessionIntelligence:
             "has_sudo": self.user_intel.has_sudo,
             "kernel": self.kernel_intel.kernel,
             "pwd": self.filesystem_intel.pwd,
+            "discovered_files": list(self.filesystem_intel.discovered_files),
             "suid_binaries": list(self.suid_intel.suid_binaries),
             "custom_binaries": list(self.binary_intel.custom_binaries),
             "strings_findings": list(self.strings_intel.strings_findings),

@@ -1,0 +1,107 @@
+# Category: Intelligence Gathering
+name: "Email Harvesting – Collecting Target Addresses via Search Engines"
+id: "osint-email-harvest-001"
+category: "osint"
+subcategory: "email"
+difficulty: "beginner"
+estimated_time: "45 minutes"
+
+description: |
+  Use search engines and specialized tools to harvest email addresses
+  associated with a target domain or individual. This is a fundamental
+  OSINT technique for building target profiles, discovering valid usernames,
+  and identifying potential entry points for phishing or credential attacks.
+
+learning_objectives:
+  - Understand email format patterns and common aliases
+  - Use Google dorks (filetype:csv, intext:@domain.com) to find emails
+  - Leverage theHarvester to automate harvesting across multiple sources
+  - Validate email addresses without alerting the target
+
+tools:
+  - theHarvester
+  - Google (manual dorking)
+  - Hunter.io (API)
+  - Phonebook.cz
+  - Clearbit (email verification)
+
+prerequisites:
+  - Target domain name (e.g., example.com)
+  - Internet connection and basic search skills
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Manual Google dorking for emails"
+    commands:
+      - '# Search for emails in text files'
+      - 'site:example.com filetype:csv "email"'
+      - '# Search for emails in PDF metadata'
+      - 'site:example.com filetype:pdf "email"'
+      - '# Use intitle or inurl to narrow scope'
+      - 'inurl:contact site:example.com'
+    expected_output: "List of email addresses found in public documents"
+    detection: "None (passive); but if using API, source may log your IP"
+
+  - id: "step2"
+    phase: "automation"
+    action: "Run theHarvester to gather emails"
+    commands:
+      - "# Use theHarvester with all sources"
+      - "theHarvester -d example.com -l 500 -b all"
+      - "# Or specific sources"
+      - "theHarvester -d example.com -b google,bing,linkedin"
+    expected_output: "Consolidated list of emails from search engines, LinkedIn, and social media"
+    detection: "Search engine rate‑limiting; may block after many queries"
+
+  - id: "step3"
+    phase: "validation"
+    action: "Verify email addresses without sending emails"
+    commands:
+      - "# Use Hunter.io email verifier"
+      - "curl 'https://api.hunter.io/v2/email-verifier?email=john@example.com&api_key=YOUR_KEY'"
+      - "# Or use CLI tools like emailverifier"
+      - "# Check MX records and SMTP without delivery (VRFY/SMTP RCPT TO)"
+      - "telnet mail.example.com 25"
+      - "VRFY john"
+    expected_output: "Validated addresses that are likely deliverable"
+    detection: "SMTP server logs may show VRFY attempts (if enabled)"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1589.002"
+    description: "Gather Victim Identity Information – Email Addresses"
+  - standard: "NIST SP 800-53"
+    control: "PE-8"
+    description: "Visitor Access Records (similar concept of data collection)"
+
+detection:
+  network_indicators:
+    - "Multiple search engine queries from same IP"
+  log_indicators:
+    - "SMTP VRFY commands in mail server logs"
+  endpoint_indicators:
+    - "theHarvester, recon-ng execution"
+
+remediation:
+  immediate:
+    - "Remove email addresses from publicly accessible files"
+    - "Use contact forms instead of exposing raw email addresses"
+  long_term:
+    - "Implement email obfuscation (e.g., JavaScript) on websites"
+    - "Regularly scan for exposed emails using OSINT tools"
+
+variables:
+  target_domain: "example.com"
+  api_key_hunter: "dummy_key"
+
+assessment_questions:
+  - "What is the difference between passive and active email harvesting?"
+  - "Why are generic addresses like info@domain.com often targeted?"
+  - "How can you verify an email address without sending an email?"
+
+references:
+  - url: "https://github.com/laramies/theHarvester"
+    title: "theHarvester – GitHub"
+  - url: "https://hunter.io/api"
+    title: "Hunter.io API"

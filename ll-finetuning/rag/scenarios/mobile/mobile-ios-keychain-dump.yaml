@@ -1,0 +1,100 @@
+# Category: Mobile Security - iOS
+name: "iOS Keychain Dump – Extracting Stored Credentials"
+id: "mobile-ios-keychain-001"
+category: "mobile_security"
+subcategory: "ios"
+difficulty: "advanced"
+estimated_time: "90 minutes"
+
+description: |
+  Dump the iOS Keychain from a jailbroken device to extract stored passwords,
+  tokens, and certificates used by apps. This attack relies on the Keychain
+  being accessible if the device is jailbroken and the appropriate tools
+  are installed.
+
+learning_objectives:
+  - Understand iOS Keychain structure and access control
+  - Use Keychain Dumper or Frida to extract items
+  - Decrypt Keychain data using stored keys
+  - Identify shared Keychain items across apps
+
+tools:
+  - Keychain Dumper (tool)
+  - Frida (for dynamic instrumentation)
+  - iPhone with jailbreak (e.g., checkra1n)
+  - iFunBox / SSH
+
+prerequisites:
+  - Jailbroken iOS device
+  - SSH access to device (root)
+  - Keychain Dumper or similar script
+
+steps:
+  - id: "step1"
+    phase: "setup"
+    action: "Copy Keychain Dumper to device and run"
+    commands:
+      - "# SCP keychain_dumper to device"
+      - "scp keychain_dumper root@<DEVICE_IP>:/tmp/"
+      - "# SSH and execute"
+      - "ssh root@<DEVICE_IP>"
+      - "chmod +x /tmp/keychain_dumper"
+      - "/tmp/keychain_dumper -a"
+    expected_output: "Dump of all Keychain items (service, account, data)"
+    detection: "Jailbreak detection might fire; device logs may show access"
+
+  - id: "step2"
+    phase: "analysis"
+    action: "Parse output for sensitive items"
+    commands:
+      - "# Look for 'password', 'token', 'auth'"
+      - "grep -i pass keychain_dump.txt"
+    expected_output: "Credentials in plaintext (if accessible)"
+    detection: "None"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Use extracted tokens to authenticate"
+    commands:
+      - "# Use token in API requests"
+    expected_output: "Access to user account"
+    detection: "Backend logs"
+
+compliance_controls:
+  - standard: "OWASP Mobile Top 10"
+    control: "M1"
+    description: "Improper Platform Usage"
+  - standard: "GDPR"
+    control: "Article 32"
+    description: "Security of Processing"
+
+detection:
+  network_indicators:
+    - "SSH connections to device"
+  log_indicators:
+    - "Keychain access logs (if available)"
+  endpoint_indicators:
+    - "Keychain Dumper execution"
+
+remediation:
+  immediate:
+    - "Implement additional encryption on top of Keychain (e.g., derived keys)"
+    - "Use biometrics to protect Keychain access"
+  long_term:
+    - "Consider using iOS Data Protection classes that are more restrictive"
+    - "Regularly test jailbroken device detection"
+
+variables:
+  device_ip: "192.168.1.5"
+  keychain_file: "keychain_dump.txt"
+
+assessment_questions:
+  - "What is the difference between the iOS Keychain and Android Keystore?"
+  - "How can an app protect its Keychain items from being read by other apps?"
+  - "What additional protections does the iPhone's Secure Enclave provide?"
+
+references:
+  - url: "https://github.com/ptoomey3/Keychain-Dumper"
+    title: "Keychain Dumper"
+  - url: "https://developer.apple.com/documentation/security/keychain_services"
+    title: "Apple Keychain Services"

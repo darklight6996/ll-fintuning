@@ -1,0 +1,92 @@
+# Category: Web Security - Race Condition
+name: "Race Condition in File Upload – Bypass Size/Type Restrictions"
+id: "web-race-upload-001"
+category: "offensive_security"
+subcategory: "web_application"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Exploit a race condition during file upload where the server checks the
+  file type/size, then moves it to a final location. By sending two requests
+  nearly simultaneously, an attacker can upload a large or malicious file
+  that bypasses validation.
+
+learning_objectives:
+  - Understand file upload workflows (temporary storage, validation, move)
+  - Use Burp Turbo Intruder to send concurrent uploads
+  - Bypass file size limits or extension checks
+  - Achieve remote code execution or data exfiltration
+
+tools:
+  - Burp Suite (Turbo Intruder)
+  - Python (asyncio)
+  - curl (parallel)
+
+prerequisites:
+  - File upload endpoint with validation
+  - The validation and move are not atomic
+
+steps:
+  - id: "step1"
+    phase: "identify"
+    action: "Analyze upload flow"
+    commands:
+      - "# Upload a small file, observe behavior"
+      - "# Upload a large file, see if validation occurs before or after temporary save"
+    expected_output: "Understanding of flow"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploit"
+    action: "Send two requests: one valid small file and one malicious large file"
+    commands:
+      - "# Use Turbo Intruder to send them in parallel"
+    expected_output: "Malicious file accepted due to race condition"
+    detection: "Server logs may show multiple uploads"
+
+  - id: "step3"
+    phase: "rce"
+    action: "If file is PHP, access to execute"
+    expected_output: "Shell"
+    detection: "Web server logs show access to malicious file"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1190"
+    description: "Exploit Public-Facing Application"
+  - standard: "OWASP"
+    control: "A04:2021"
+    description: "Insecure Design"
+
+detection:
+  network_indicators:
+    - "Multiple file uploads in rapid succession"
+  log_indicators:
+    - "Web server logs with simultaneous POSTs"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Perform validation and move in a single transaction (atomic)"
+    - "Use temporary files with locking"
+  long_term:
+    - "Validate file before saving to disk"
+    - "Use a dedicated file scan service"
+
+variables:
+  upload_endpoint: "https://example.com/upload"
+  small_file: "valid.jpg"
+  malicious_file: "malicious.php"
+
+assessment_questions:
+  - "How can a race condition occur during file upload?"
+  - "What is the difference between a race condition and a TOCTOU?"
+  - "How can you test for this vulnerability?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/Race_condition"
+    title: "OWASP Race Condition"
+  - url: "https://portswigger.net/web-security/race-conditions"
+    title: "PortSwigger Race Conditions"

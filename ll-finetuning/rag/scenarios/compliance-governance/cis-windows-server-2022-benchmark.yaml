@@ -1,0 +1,246 @@
+name: "CIS Windows Server 2022 Benchmark Assessment"
+id: "cis-win2022-001"
+category: "Compliance"
+subcategory: "CIS Benchmarks / Windows"
+difficulty: "intermediate"
+estimated_time: "120"
+
+tags:
+  - windows
+  - windows-server
+  - cis-benchmark
+  - compliance
+  - security-audit
+  - powershell
+  - secedit
+  - hardening
+  - group-policy
+  - firewall
+
+description: |
+  Assess a Windows Server 2022 system against CIS Benchmark Level 1 controls.
+  Covers account policies, local policies, event log settings, system services,
+  network settings, and Windows Defender configuration.
+
+learning_objectives:
+  - Audit Windows Server 2022 against CIS Benchmark Level 1 controls
+  - Use PowerShell and secedit for automated configuration assessment
+  - Identify and remediate common Windows hardening failures
+  - Map controls to NIST 800-53 and PCI DSS frameworks
+
+tools:
+  - "PowerShell"
+  - "Secedit"
+  - "GPResult"
+  - "Auditpol"
+  - "Microsoft Security Compliance Toolkit"
+
+prerequisites:
+  - "Local Administrator or Domain Admin access to Windows Server 2022"
+  - "PowerShell 5.1 or higher"
+  - "Microsoft Security Compliance Toolkit (optional)"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Export and review current security policy baseline"
+    commands:
+      - "# Export current security policy"
+      - "secedit /export /cfg C:\\temp\\current_policy.cfg /quiet"
+      - "# Review GPO result"
+      - "gpresult /H C:\\temp\\gpresult.html /F"
+      - "gpresult /R"
+      - "# Export local group policy"
+      - "lgpo.exe /parse /m C:\\Windows\\System32\\GroupPolicy\\Machine\\Registry.pol"
+      - "# Get current audit policy"
+      - "auditpol /get /category:*"
+    expected_output: "Current security policy configuration exported for comparison against CIS baseline"
+    detection: "Local audit — no external detection"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "CIS Section 1 - Account Policies"
+    commands:
+      - "# 1.1.1 - Password history (should be 24 or more)"
+      - "net accounts | findstr 'password history'"
+      - "(Get-ADDefaultDomainPasswordPolicy).PasswordHistoryCount"
+      - "# 1.1.2 - Maximum password age (60 days or fewer)"
+      - "net accounts | findstr 'Maximum password age'"
+      - "# 1.1.3 - Minimum password age (1 or more days)"
+      - "net accounts | findstr 'Minimum password age'"
+      - "# 1.1.4 - Minimum password length (14 or more chars)"
+      - "net accounts | findstr 'Minimum password length'"
+      - "# 1.1.5 - Password complexity"
+      - "secedit /export /cfg C:\\temp\\pol.cfg && findstr PasswordComplexity C:\\temp\\pol.cfg"
+      - "# 1.2.1 - Account lockout duration (15 or more minutes)"
+      - "net accounts | findstr 'Lockout duration'"
+      - "# 1.2.2 - Account lockout threshold (5 or fewer invalid attempts)"
+      - "net accounts | findstr 'Lockout threshold'"
+      - "# 1.2.3 - Reset account lockout counter (15 or more minutes)"
+      - "net accounts | findstr 'Lockout observation window'"
+    expected_output: "Password and lockout policy settings versus CIS recommended values"
+    detection: "Local audit — EventID 4719 if policy changes are made"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "CIS Section 2 - Local Policies / User Rights Assignment"
+    commands:
+      - "# Export and check user rights assignments"
+      - "secedit /export /cfg C:\\temp\\rights.cfg"
+      - "# 2.2.1 - Access Credential Manager (should be No One)"
+      - "findstr SeTrustedCredManAccessPrivilege C:\\temp\\rights.cfg"
+      - "# 2.2.2 - Access this computer from the network"
+      - "findstr SeNetworkLogonRight C:\\temp\\rights.cfg"
+      - "# 2.2.6 - Allow log on locally"
+      - "findstr SeInteractiveLogonRight C:\\temp\\rights.cfg"
+      - "# 2.2.11 - Deny access to this computer from network (include Guests, Local account)"
+      - "findstr SeDenyNetworkLogonRight C:\\temp\\rights.cfg"
+      - "# 2.2.19 - Debug programs (should be Administrators only)"
+      - "findstr SeDebugPrivilege C:\\temp\\rights.cfg"
+      - "# 2.3 - Security Options via registry"
+      - "# 2.3.1.1 - Admin account status (disabled)"
+      - "net user Administrator | findstr 'Account active'"
+      - "# 2.3.7.1 - Interactive logon: Message for users"
+      - "reg query 'HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon' /v LegalNoticeCaption"
+    expected_output: "User rights assignments and security option registry values"
+    detection: "Local audit — EventID 4719 if policy changes detected"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "CIS Section 9 - Windows Firewall and advanced security"
+    commands:
+      - "# 9.1.1 - Domain firewall on"
+      - "netsh advfirewall show domain | findstr 'State'"
+      - "Get-NetFirewallProfile -Profile Domain | Select-Object Name,Enabled"
+      - "# 9.2.1 - Private firewall on"
+      - "netsh advfirewall show private | findstr 'State'"
+      - "# 9.3.1 - Public firewall on"
+      - "netsh advfirewall show public | findstr 'State'"
+      - "# Inbound connections default"
+      - "Get-NetFirewallProfile | Select-Object Name,DefaultInboundAction,DefaultOutboundAction"
+      - "# Log dropped packets"
+      - "netsh advfirewall show allprofiles | findstr 'LogDroppedPackets'"
+      - "# Log successful connections"
+      - "netsh advfirewall show allprofiles | findstr 'LogSuccessfulConnections'"
+    expected_output: "Firewall state and default rule actions for all profiles"
+    detection: "Local audit — no external detection"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "CIS Section 17-18 - Audit Policy and Advanced Audit"
+    commands:
+      - "# Get current advanced audit policy"
+      - "auditpol /get /category:*"
+      - "# 17.1.1 - Audit Credential Validation (Success/Failure)"
+      - "auditpol /get /subcategory:'Credential Validation'"
+      - "# 17.2.1 - Audit Application Group Management"
+      - "auditpol /get /subcategory:'Application Group Management'"
+      - "# 17.5.1 - Audit Account Lockout (Failure)"
+      - "auditpol /get /subcategory:'Account Lockout'"
+      - "# 17.5.2 - Audit Group Membership (Success)"
+      - "auditpol /get /subcategory:'Group Membership'"
+      - "# 17.5.3 - Audit Logon (Success/Failure)"
+      - "auditpol /get /subcategory:'Logon'"
+      - "# 17.6.1 - Audit Detailed File Share"
+      - "auditpol /get /subcategory:'Detailed File Share'"
+      - "# 17.7.1 - Audit Audit Policy Change"
+      - "auditpol /get /subcategory:'Audit Policy Change'"
+      - "# 17.9.1 - Audit IPsec Driver"
+      - "auditpol /get /subcategory:'IPsec Driver'"
+      - "# 17.9.5 - Audit System Integrity"
+      - "auditpol /get /subcategory:'System Integrity'"
+    expected_output: "Current audit subcategory settings versus CIS requirements"
+    detection: "Local audit — EventID 4719 if audit policy is changed"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "CIS Section 18 - Administrative Templates checks"
+    commands:
+      - "# 18.1.1.1 - Prevent enabling lock screen camera"
+      - "reg query 'HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Personalization' /v NoLockScreenCamera 2>nul"
+      - "# 18.1.1.2 - Prevent enabling lock screen slide show"
+      - "reg query 'HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Personalization' /v NoLockScreenSlideshow 2>nul"
+      - "# 18.2.1 - LAPS AdmPwd GPO extension"
+      - "reg query 'HKLM\\SOFTWARE\\Policies\\Microsoft Services\\AdmPwd' /v AdmPwdEnabled 2>nul"
+      - "# 18.3.1 - MSS: Auto-admin logon disabled"
+      - "reg query 'HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon' /v AutoAdminLogon"
+      - "# 18.3.3 - MSS: IP source routing disabled"
+      - "reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters' /v DisableIPSourceRouting"
+      - "# 18.4.1 - Prohibit installation/config of Network Bridge"
+      - "reg query 'HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Network Connections' /v NC_AllowNetBridge_NLA 2>nul"
+      - "# 18.9.8.1 - Windows Defender: Real-time protection"
+      - "reg query 'HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Real-Time Protection' /v DisableRealtimeMonitoring 2>nul"
+      - "Get-MpComputerStatus | Select-Object RealTimeProtectionEnabled,AntivirusEnabled"
+    expected_output: "Registry-based group policy settings versus CIS recommendations"
+    detection: "Local audit — registry reads logged if Object Auditing enabled"
+
+  - id: "step7"
+    phase: "enumeration"
+    action: "Generate compliance summary report"
+    commands:
+      - "# Run Microsoft Security Compliance Toolkit (if available)"
+      - "PolicyAnalyzer.exe"
+      - "# Generate PowerShell compliance report"
+      - "$results = @()"
+      - "$results += [PSCustomObject]@{Control='1.1.4'; Description='Min Password Length'; Value=(net accounts | Select-String 'Minimum password length').ToString().Split(':')[-1].Trim(); Expected='14'; Status='TODO'}"
+      - "$results | Export-Csv C:\\temp\\cis_results.csv -NoTypeInformation"
+      - "# Quick pass/fail summary using secedit comparison"
+      - "secedit /analyze /db C:\\temp\\cis.sdb /cfg C:\\temp\\cis_baseline.cfg /log C:\\temp\\secedit_analysis.log"
+      - "Get-Content C:\\temp\\secedit_analysis.log | Select-String 'mismatch'"
+    expected_output: "Compliance report showing pass/fail for each CIS control"
+    detection: "Local audit — no external detection"
+
+compliance_controls:
+  - standard: "CIS Microsoft Windows Server 2022 Benchmark v2.0.0"
+    control: "Level 1 - All sections"
+    description: "Full CIS Level 1 benchmark for Windows Server 2022"
+  - standard: "NIST 800-53 Rev5"
+    control: "CM-6"
+    description: "Configuration settings"
+  - standard: "PCI DSS v4.0"
+    control: "2.2.1"
+    description: "System configuration standards are developed and implemented"
+  - standard: "SOC2 CC7.1"
+    control: "CC7.1"
+    description: "Detection and monitoring of operational anomalies"
+
+detection:
+  network_indicators:
+    - "N/A - Local compliance assessment"
+  log_indicators:
+    - "EventID 4719 — System audit policy changed (during remediation)"
+    - "EventID 4670 — Permissions on an object were changed"
+  endpoint_indicators:
+    - "Security Compliance Toolkit output in C:\\temp\\"
+    - "Secedit analysis logs showing configuration mismatches"
+
+remediation:
+  immediate:
+    - "Set password policy: minimum 14 chars, complexity enabled, 60-day max age, 24-history"
+    - "Set account lockout: threshold 5, duration 15 min, reset counter 15 min"
+    - "Enable Windows Firewall on all profiles with default deny inbound"
+    - "Enable all CIS-required audit subcategories via auditpol"
+  long_term:
+    - "Deploy CIS benchmark via Group Policy using Microsoft Security Compliance Toolkit"
+    - "Integrate CIS-CAT Pro into vulnerability management program"
+    - "Automate baseline enforcement with Desired State Configuration (DSC)"
+    - "Schedule monthly compliance drift detection using secedit or SCM"
+
+variables:
+  target_host: "WIN-SERVER-2022"
+  output_dir: "C:\\temp\\cis_audit"
+
+assessment_questions:
+  - "What is the CIS recommended minimum password length for Windows Server 2022?"
+  - "Which audit subcategory covers failed logon attempts?"
+  - "How does secedit differ from Group Policy for applying security baselines?"
+  - "What is the purpose of the Microsoft Security Compliance Toolkit?"
+  - "Why should the built-in Administrator account be renamed?"
+
+references:
+  - url: "https://www.cisecurity.org/benchmark/microsoft_windows_server"
+    title: "CIS Microsoft Windows Server 2022 Benchmark"
+  - url: "https://www.microsoft.com/en-us/download/details.aspx?id=55319"
+    title: "Microsoft Security Compliance Toolkit"
+  - url: "https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/advanced-security-auditing"
+    title: "Windows Advanced Security Auditing"

@@ -60,9 +60,14 @@ CPU_MAX_NEW_TOKENS = 200
 # GPU MODEL SETTINGS
 # ==============================
 
-GPU_MODEL_NAME = "DarkLight6996/CyberSec-Model-V2"
-GPU_MAX_INPUT_TOKENS = 3072
-GPU_MAX_NEW_TOKENS = 512
+GPU_MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+GPU_MAX_INPUT_TOKENS = 2048
+GPU_MAX_NEW_TOKENS = 256
+
+# Qwen target (swap in after download finishes):
+# GPU_MODEL_NAME = "Qwen/Qwen2.5-7B-Instruct"
+GPU_MAX_INPUT_TOKENS = 4096
+GPU_MAX_NEW_TOKENS = 1024
 
 # ==============================
 # LORA ADAPTER

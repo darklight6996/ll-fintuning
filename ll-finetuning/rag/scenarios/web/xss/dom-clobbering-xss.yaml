@@ -1,0 +1,96 @@
+# Category: DOM-based Vulnerabilities
+name: "Exploiting DOM clobbering to enable XSS"
+id: "dom-clobbering-xss-001"
+category: "dom_based"
+subcategory: "dom_clobbering"
+difficulty: "expert"
+estimated_time: "75 minutes"
+
+description: |
+  This scenario covers DOM clobbering, where an attacker can use HTML to
+  override global JavaScript variables by creating DOM elements with specific
+  names and IDs. This can enable XSS by breaking security checks or altering
+  application logic that relies on certain global variables.
+
+learning_objectives:
+  - Understand DOM clobbering and its implications
+  - Identify variables that can be clobbered via DOM elements
+  - Use DOM clobbering to bypass security checks
+  - Enable XSS by altering application logic
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Target uses global variables that can be clobbered
+  - No X-Frame-Options header for page isolation
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify vulnerable global variables"
+    commands:
+      - "# Look for code that uses: if (window.someVar) { ... }"
+      - "# Or: if (typeof someVar !== 'undefined')"
+    expected_output: "Global variable identified that can be clobbered"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Use DOM clobbering to override the variable"
+    commands:
+      - "# Create an HTML element to clobber the variable:"
+      - "<a id='someVar' href='#xss'></a>"
+      - "# This will override window.someVar if not properly defined"
+      - "# Then use the clobbered value to bypass checks"
+    expected_output: "Global variable is overridden, altering application behavior"
+    detection: "Web server logs may show the payload"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Use clobbering to enable XSS"
+    commands:
+      - "# If the clobbered variable is used in a dangerous sink, XSS occurs"
+      - "# Example: document.write(window.someVar) where someVar is clobbered"
+    expected_output: "XSS executed"
+    detection: "Application logs may show unusual behavior"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests with HTML payloads containing named elements"
+  log_indicators:
+    - "Unusual DOM behavior in application logs"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Avoid using global variables for security-critical logic"
+    - "Use `const` and `let` for variables instead of `var`"
+  long_term:
+    - "Use modules or encapsulation to prevent global access"
+    - "Implement strict CSP to limit impact"
+
+variables:
+  target_url: "https://target.com/page"
+  clobbered_variable: "someVar"
+
+assessment_questions:
+  - "What is DOM clobbering and how does it work?"
+  - "How can DOM clobbering lead to XSS?"
+  - "What are the best practices to prevent DOM clobbering?"
+
+references:
+  - url: "https://portswigger.net/web-security/dom-based/dom-clobbering"
+    title: "PortSwigger DOM Clobbering"
+  - url: "https://owasp.org/www-community/attacks/DOM_Clobbering"
+    title: "OWASP DOM Clobbering"

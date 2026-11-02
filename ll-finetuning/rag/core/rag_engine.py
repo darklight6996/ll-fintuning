@@ -146,6 +146,25 @@ class RAGEngine:
         """Convert a user query into a float32 embedding."""
         return self.retriever.embed_query(query)
 
+    def search_similarity(self, query: str, top_k: Optional[int] = None) -> List[Tuple[Dict[str, Any], float]]:
+        """
+        Execute vector similarity search returning scores normalized as 1 / (1 + distance),
+        rather than raw L2 Euclidean distance.
+        """
+        k = top_k or self.top_k
+        if not self.vector_store or not self.vector_store.is_ready():
+            return []
+        query_vec = self._embed_query(query)
+        results = self.vector_store.search(query_vec, top_k=k)
+        normalized = []
+        for meta, score in results:
+            sim = meta.get("_score", score)
+            if "_faiss_dist" in meta:
+                sim = 1.0 / (1.0 + float(meta["_faiss_dist"]))
+                meta["_score"] = float(sim)
+            normalized.append((meta, float(sim)))
+        return normalized
+
     def retrieve(self, query: str, min_score: float = -2.5) -> List[Tuple[Dict[str, Any], float]]:
         """
         Retrieve top documents for a query and rerank them, filtering out negative irrelevant logits.

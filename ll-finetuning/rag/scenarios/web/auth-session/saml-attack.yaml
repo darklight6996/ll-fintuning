@@ -1,0 +1,105 @@
+# Category: Identity & Access Management
+name: "SAML Assertion Manipulation – XML Signature Wrapping"
+id: "iam-saml-wrapping-001"
+category: "identity_access"
+subcategory: "saml"
+difficulty: "advanced"
+estimated_time: "90 minutes"
+
+description: |
+  Exploit XML Signature Wrapping (XSW) vulnerabilities in SAML implementations
+  to forge authentication assertions. By manipulating the XML structure while
+  keeping the signature intact, an attacker can impersonate any user in the
+  identity provider (IdP) and gain unauthorized access to service providers (SP).
+
+learning_objectives:
+  - Understand SAML 2.0 flow and assertion structure
+  - Recognize XML Signature Wrapping (XSW) techniques
+  - Modify SAML assertions to change user attributes
+  - Bypass signature verification by exploiting parser differences
+
+tools:
+  - Burp Suite (or ZAP)
+  - SAML Raider (Burp extension)
+  - xmlsig (XML signature manipulation)
+  - openssl
+  - Python (lxml, signxml)
+
+prerequisites:
+  - Access to SAML authentication flow (e.g., as an authenticated user)
+  - Ability to intercept and replay SAML requests/responses
+  - Target SP that does not enforce strict XML canonicalization
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Capture SAML response and analyze structure"
+    commands:
+      - "# Intercept a SAMLResponse POST or Redirect binding"
+      - "# Decode the SAML response (Base64 + inflate if needed)"
+      - "# View XML structure: Assertion, Signature, Subject, AttributeStatement"
+    expected_output: "SAML response XML with signed assertion"
+    detection: "Unusual SAML response size or structure (monitor in SIEM)"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Apply XML Signature Wrapping technique"
+    commands:
+      - "# Using SAML Raider in Burp, select 'Wrap'"
+      - "# Or manually: insert a duplicate <Subject> or <Attribute> with malicious values"
+      - "# Place the original signed element as a child of a new wrapper"
+      - "# Ensure the signed digest still matches (wrap the signed part as a comment or new element)"
+      - "# Re‑encode and send to SP"
+    expected_output: "Forged assertion accepted by SP, logging in as admin user"
+    detection: "SAML log with unexpected NameID or Role values"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Access resources as target user (e.g., admin)"
+    commands:
+      - "# After successful login, access privileged endpoints"
+      - "curl -X GET https://sp.example.com/admin/ -H 'Cookie: <session_cookie>'"
+    expected_output: "Access to admin panel or sensitive data"
+    detection: "Access logs showing admin access from non‑admin source IP"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1585"
+    description: "Establish Accounts – compromise identity provider"
+  - standard: "NIST SP 800-63B"
+    control: "5.2"
+    description: "Federated Identity Requirements"
+
+detection:
+  network_indicators:
+    - "Abnormal SAML responses with oversized XML"
+  log_indicators:
+    - "Authentication events with unexpected attributes (e.g., Role=admin for a regular user)"
+    - "IdP audit logs showing multiple failed validations"
+  endpoint_indicators:
+    - "Use of SAML Raider or similar tools in attacker environment"
+
+remediation:
+  immediate:
+    - "Update SAML libraries to versions with XSW mitigations"
+    - "Enforce strict XML canonicalization (exclusive c14n)"
+    - "Validate the assertion's Subject and Conditions after decryption"
+  long_term:
+    - "Use signed SAML requests and encrypted assertions"
+    - "Implement frequent security audits of SAML endpoints"
+
+variables:
+  idp_url: "https://idp.example.com/sso"
+  sp_url: "https://sp.example.com/acs"
+  target_user: "admin"
+
+assessment_questions:
+  - "What is the root cause of XML Signature Wrapping vulnerabilities?"
+  - "Why does the signature remain valid even after XML manipulation?"
+  - "What countermeasures can prevent XSW?"
+
+references:
+  - url: "https://www.usenix.org/system/files/conference/usenixsecurity12/sec12-final45.pdf"
+    title: "Breaking SAML – Be Careful What You Sign (Paper)"
+  - url: "https://portswigger.net/web-security/saml"
+    title: "PortSwigger – SAML vulnerabilities"

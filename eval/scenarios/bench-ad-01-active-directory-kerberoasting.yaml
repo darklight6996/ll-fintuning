@@ -1,0 +1,14 @@
+id: BENCH-AD-01
+name: Active Directory Kerberoasting
+category: active_directory
+agent: active_directory
+target: dc.lab.local
+ground_truth_vulnerability: Service Principal Name (SPN) accounts using weak password
+  hashes
+expected_phases:
+- ad_enumeration
+- kerberoast
+required_action_ids:
+- ad_enumeration
+- kerberoast
+expected_finding_severity: high

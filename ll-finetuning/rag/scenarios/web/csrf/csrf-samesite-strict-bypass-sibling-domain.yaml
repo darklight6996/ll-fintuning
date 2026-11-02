@@ -1,0 +1,98 @@
+# Category: Cross-Site Request Forgery (CSRF)
+name: "SameSite Strict bypass via sibling domain"
+id: "csrf-samesite-strict-sibling-domain-001"
+category: "csrf"
+subcategory: "samesite_bypass"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This scenario covers bypassing SameSite=Strict using a sibling domain.
+  When SameSite=Strict, cookies are not sent for cross-site requests.
+  However, if the victim has a session on a subdomain (e.g., app.target.com)
+  and the attacker can inject a request from another subdomain (e.g., shop.target.com),
+  the request is considered same-site because it's within the same registered
+  domain.
+
+learning_objectives:
+  - Understand how SameSite treats subdomains
+  - Use sibling subdomains to bypass SameSite
+  - Exploit cross-subdomain vulnerabilities
+  - Perform CSRF attacks from sibling domains
+
+tools:
+  - Burp Suite
+  - curl
+
+prerequisites:
+  - Target application uses SameSite=Strict on a domain with subdomains
+  - Attacker can control or influence a subdomain
+  - Sibling domain can make requests to the target domain
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify subdomains and SameSite settings"
+    commands:
+      - "# Check cookie attributes for all subdomains"
+      - "# Look for subdomains that may be vulnerable or controllable"
+    expected_output: "Subdomains identified; SameSite=Strict used"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Use a sibling subdomain to send the request"
+    commands:
+      - "# From a sibling subdomain (e.g., shop.target.com), send a request to app.target.com"
+      - "# Since they share the same domain, cookies are sent"
+      - "# Example: fetch('https://app.target.com/change-email?email=attacker@evil.com', {credentials:'include'})"
+    expected_output: "Request processed with session cookies"
+    detection: "Application logs show request from sibling subdomain"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Escalate to other actions"
+    commands:
+      - "# Use the technique for multiple state-changing operations"
+    expected_output: "Victim's account compromised"
+    detection: "Audit logs show unusual cross-subdomain requests"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1204"
+    description: "User Execution"
+  - standard: "OWASP"
+    control: "A01:2021"
+    description: "Broken Access Control"
+
+detection:
+  network_indicators:
+    - "Cross-subdomain requests"
+  log_indicators:
+    - "Requests from sibling domains to sensitive endpoints"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use CSRF tokens in addition to SameSite"
+    - "Restrict subdomain permissions"
+  long_term:
+    - "Use SameSite=Strict with domain-specific cookies"
+    - "Implement a strict security policy for subdomains"
+
+variables:
+  target_url: "https://app.target.com/change-email"
+  sibling_url: "https://shop.target.com"
+  new_email: "attacker@evil.com"
+
+assessment_questions:
+  - "How does SameSite treat subdomains?"
+  - "Why can sibling domains bypass SameSite=Strict?"
+  - "What is the best practice for securing subdomains?"
+
+references:
+  - url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite"
+    title: "MDN SameSite"
+  - url: "https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions"
+    title: "PortSwigger SameSite Bypass"

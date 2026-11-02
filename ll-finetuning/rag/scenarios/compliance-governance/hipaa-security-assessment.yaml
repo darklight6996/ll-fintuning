@@ -1,0 +1,217 @@
+# Category: Compliance - HIPAA
+name: "HIPAA Security Rule Compliance Assessment"
+id: "compliance-hipaa-001"
+category: "compliance"
+subcategory: "hipaa"
+difficulty: "intermediate"
+estimated_time: "120"
+
+tags:
+  - compliance
+  - hipaa
+  - phi
+  - ephi
+  - security-rule
+  - privacy-rule
+  - safeguards
+  - risk-analysis
+  - access-control
+  - audit-controls
+  - transmission-security
+  - healthcare
+  - covered-entity
+  - business-associate
+  - nist-800-66
+  - evidence-collection
+
+description: |
+  Assess an organization's compliance with the HIPAA Security Rule (45 CFR Parts
+  164.302-318). Covers administrative, physical, and technical safeguards required
+  to protect electronic Protected Health Information (ePHI).
+
+learning_objectives:
+  - Understand HIPAA Security Rule structure and safeguard categories
+  - Assess administrative, physical, and technical safeguard implementation
+  - Identify and document gaps in ePHI protection controls
+  - Collect evidence for HIPAA risk analysis and audit documentation
+
+tools:
+  - "awscli"
+  - "powershell"
+  - "bash"
+  - "python3"
+  - "spreadsheet_tool"
+
+prerequisites:
+  - "HIPAA Privacy and Security Officer access"
+  - "Access to systems processing ePHI"
+  - "Business Associate Agreements (BAAs) inventory"
+  - "Risk analysis documentation available"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "164.308(a)(1) — Security Management Process"
+    commands:
+      - "# Risk Analysis (Required)"
+      - "ls -la /hipaa/risk_analysis/ 2>/dev/null"
+      - "# Check risk analysis currency (must be ongoing)"
+      - "python3 << 'EOF'\nimport os, datetime\nra_path = '/hipaa/risk_analysis/current_risk_analysis.pdf'\nif os.path.exists(ra_path):\n    mtime = datetime.datetime.fromtimestamp(os.path.getmtime(ra_path))\n    age_days = (datetime.datetime.now() - mtime).days\n    print(f'Risk analysis last updated: {age_days} days ago')\n    if age_days > 365:\n        print('WARNING: Risk analysis may be stale — should reflect current environment')\nelse:\n    print('MISSING: No risk analysis found — Required implementation specification')\nEOF"
+      - "# Risk Management (Required)"
+      - "ls -la /hipaa/risk_management/ /hipaa/remediation/ 2>/dev/null"
+      - "# Sanction Policy (Required)"
+      - "ls -la /policies/ | grep -i 'sanction\\|disciplinary\\|workforce'"
+      - "# Information System Activity Review (Required)"
+      - "# Evidence: Audit log review procedures, log review records"
+      - "aws cloudwatch describe-alarms --query 'MetricAlarms | length(@)' 2>/dev/null"
+    expected_output: "Risk analysis currency, risk management plan, sanction policy status"
+    detection: "N/A — compliance evidence collection"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "164.308(a)(3)-(a)(4) — Workforce and Access Management"
+    commands:
+      - "# Workforce Clearance — background checks"
+      - "# Evidence: HR background check policy, screening records"
+      - "# Termination Procedures (Addressable)"
+      - "# Evidence: Offboarding checklist, access revocation within SLA"
+      - "python3 << 'EOF'\ntry:\n    import csv, datetime\n    with open('/hr/offboarding/termination_log.csv') as f:\n        rows = list(csv.DictReader(f))\n    overdue = []\n    for r in rows:\n        term_date = datetime.datetime.fromisoformat(r.get('termination_date','2000-01-01'))\n        revoke_date = r.get('access_revoked_date','')\n        if not revoke_date:\n            days_open = (datetime.datetime.now() - term_date).days\n            overdue.append(f\"{r.get('name','')} — {days_open} days without revocation\")\n    print(f'Terminated employees with open access: {len(overdue)}')\n    for o in overdue[:5]: print(f'  - {o}')\nexcept FileNotFoundError:\n    print('Termination log not found — 164.308(a)(3)(ii)(C) gap')\nEOF"
+      - "# Access Authorization (Addressable)"
+      - "# Evidence: Access request tickets, approval workflow records"
+      - "# Access Establishment and Modification"
+      - "aws iam generate-credential-report 2>/dev/null && sleep 3"
+      - "aws iam get-credential-report --query 'Content' --output text 2>/dev/null | base64 -d | grep ',true,' | wc -l"
+    expected_output: "Workforce access management evidence: termination SLA, access requests"
+    detection: "N/A — compliance evidence collection"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "164.308(a)(5) — Security Awareness and Training"
+    commands:
+      - "# Security Reminders (Addressable)"
+      - "# Evidence: Security newsletter, policy update communications"
+      - "# Protection from Malicious Software (Addressable)"
+      - "# Evidence: AV/EDR deployment coverage, patch management records"
+      - "# Log-in Monitoring (Addressable)"
+      - "# Evidence: Failed login alerting, account lockout configuration"
+      - "# Password Management (Addressable)"
+      - "# Evidence: Password policy, complexity requirements"
+      - "python3 << 'EOF'\ntry:\n    import csv\n    with open('/hr/training/hipaa_training_log.csv') as f:\n        rows = list(csv.DictReader(f))\n    total = len(rows)\n    trained = sum(1 for r in rows if r.get('hipaa_training_complete','').lower() == 'yes')\n    rate = round(100*trained/total) if total else 0\n    print(f'HIPAA security training: {trained}/{total} ({rate}%)')\n    if rate < 100:\n        print('WARNING: All workforce members must complete HIPAA training')\nexcept FileNotFoundError:\n    print('HIPAA training log not found — 164.308(a)(5) gap')\nEOF"
+    expected_output: "Training completion rate, AV coverage, password policy evidence"
+    detection: "N/A — compliance evidence collection"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "164.310 — Physical Safeguards"
+    commands:
+      - "# Facility Access Controls (Addressable)"
+      - "# Evidence: Badge access logs, visitor management, CCTV records"
+      - "# Workstation Use (Required)"
+      - "# Evidence: Workstation security policy, screen lock enforcement"
+      - "# Check screen lock GPO (Windows)"
+      - "# reg query 'HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Control Panel\\Desktop' /v ScreenSaverIsSecure 2>nul"
+      - "# Workstation Security (Required)"
+      - "# Evidence: Physical workstation security policy, laptop encryption"
+      - "# Device and Media Controls (Addressable)"
+      - "# Evidence: Media disposal procedures, encryption of portable media"
+      - "python3 << 'EOF'\nphysical_controls = {\n    '164.310(a)(1)': ('Facility Access Controls', '/facilities/access_control_policy.pdf'),\n    '164.310(b)': ('Workstation Use Policy', '/policies/workstation_use_policy.pdf'),\n    '164.310(c)': ('Workstation Security', '/policies/workstation_security_policy.pdf'),\n    '164.310(d)(1)': ('Device and Media Controls', '/policies/media_disposal_policy.pdf'),\n}\nimport os\nfor ctrl, (name, path) in physical_controls.items():\n    status = 'FOUND' if os.path.exists(path) else 'MISSING'\n    print(f'{ctrl} {name}: {status}')\nEOF"
+    expected_output: "Physical safeguard documentation status and workstation security evidence"
+    detection: "N/A — compliance evidence collection"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "164.312 — Technical Safeguards"
+    commands:
+      - "# 164.312(a)(1) Access Control — Unique User ID (Required)"
+      - "aws iam list-users --query 'Users | length(@)' 2>/dev/null"
+      - "# Check for shared accounts"
+      - "# 164.312(a)(2)(iv) Encryption and Decryption (Addressable)"
+      - "# Check database encryption"
+      - "aws rds describe-db-instances --query 'DBInstances[*].{ID:DBInstanceIdentifier,Encrypted:StorageEncrypted}' 2>/dev/null"
+      - "# Check S3 PHI bucket encryption"
+      - "aws s3api get-bucket-encryption --bucket [phi_bucket] 2>/dev/null"
+      - "# 164.312(b) Audit Controls (Required)"
+      - "aws cloudtrail describe-trails --query 'trailList[*].{Name:Name,S3:S3BucketName,LogValidation:LogFileValidationEnabled}' 2>/dev/null"
+      - "# 164.312(c)(1) Integrity (Required)"
+      - "# Evidence: Hash verification, data integrity checks"
+      - "# 164.312(d) Person or Entity Authentication (Required)"
+      - "# Check MFA for ePHI system access"
+      - "aws iam get-account-summary --query 'SummaryMap.AccountMFAEnabled' 2>/dev/null"
+      - "# 164.312(e)(1) Transmission Security (Required)"
+      - "# Check TLS on ePHI endpoints"
+      - "openssl s_client -connect [phi_endpoint]:443 </dev/null 2>/dev/null | grep -E 'Protocol|Cipher'"
+    expected_output: "Technical safeguard status: encryption, audit controls, MFA, TLS"
+    detection: "N/A — compliance evidence collection"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "Business Associate Agreements (BAAs) inventory"
+    commands:
+      - "python3 << 'EOF'\nimport json, datetime\ntry:\n    with open('/hipaa/baa/baa_inventory.json') as f:\n        baas = json.load(f)\n    print(f'Total BAAs: {len(baas)}')\n    expired = [b for b in baas if b.get('expiry') and datetime.datetime.fromisoformat(b['expiry']) < datetime.datetime.now()]\n    print(f'Expired BAAs: {len(expired)}')\n    no_signed = [b for b in baas if not b.get('signed_date')]\n    print(f'BAAs not signed: {len(no_signed)}')\n    print('\\nBAA Status:')\n    for b in baas[:10]:\n        status = 'EXPIRED' if b.get('expiry') and datetime.datetime.fromisoformat(b['expiry']) < datetime.datetime.now() else 'ACTIVE'\n        print(f'  {b.get(\"vendor\",\"Unknown\"):30} {status}')\nexcept FileNotFoundError:\n    print('BAA inventory not found — critical HIPAA gap')\nEOF"
+      - "# Check cloud provider BAAs"
+      - "# AWS: BAA accepted via AWS Artifact"
+      - "aws artifact get-account-settings 2>/dev/null"
+    expected_output: "BAA inventory with vendor names, execution status, and expiry dates"
+    detection: "N/A — compliance evidence collection"
+
+  - id: "step7"
+    phase: "post_exploitation"
+    action: "Generate HIPAA compliance summary"
+    commands:
+      - "python3 << 'EOF'\ncontrols = [\n    ('164.308(a)(1)', 'Security Management Process', 'Required', 'TODO'),\n    ('164.308(a)(2)', 'Assigned Security Responsibility', 'Required', 'TODO'),\n    ('164.308(a)(3)', 'Workforce Security', 'Addressable', 'TODO'),\n    ('164.308(a)(4)', 'Information Access Management', 'Addressable', 'TODO'),\n    ('164.308(a)(5)', 'Security Awareness Training', 'Addressable', 'TODO'),\n    ('164.308(a)(6)', 'Security Incident Procedures', 'Required', 'TODO'),\n    ('164.308(a)(7)', 'Contingency Plan', 'Addressable', 'TODO'),\n    ('164.308(a)(8)', 'Evaluation', 'Required', 'TODO'),\n    ('164.310(a)(1)', 'Facility Access Controls', 'Addressable', 'TODO'),\n    ('164.310(b)', 'Workstation Use', 'Required', 'TODO'),\n    ('164.310(c)', 'Workstation Security', 'Required', 'TODO'),\n    ('164.312(a)(1)', 'Access Control', 'Required', 'TODO'),\n    ('164.312(b)', 'Audit Controls', 'Required', 'TODO'),\n    ('164.312(c)(1)', 'Integrity', 'Addressable', 'TODO'),\n    ('164.312(d)', 'Person Authentication', 'Required', 'TODO'),\n    ('164.312(e)(1)', 'Transmission Security', 'Addressable', 'TODO'),\n]\nprint('HIPAA Security Rule Compliance Summary')\nprint('=' * 65)\nprint(f'{\"Standard\":20} {\"Name\":35} {\"Type\":12} {\"Status\"}')\nprint('-' * 65)\nfor std, name, reqtype, status in controls:\n    print(f'{std:20} {name:35} {reqtype:12} {status}')\nprint('=' * 65)\nEOF"
+    expected_output: "HIPAA compliance checklist with implementation status per safeguard"
+    detection: "N/A — report generation"
+
+compliance_controls:
+  - standard: "HIPAA Security Rule"
+    control: "45 CFR 164.302-318"
+    description: "Full HIPAA Security Rule assessment — Administrative, Physical, Technical"
+  - standard: "NIST 800-66 Rev2"
+    control: "All sections"
+    description: "NIST guidance for implementing HIPAA Security Rule"
+  - standard: "NIST 800-53 Rev5"
+    control: "AC, AU, IA, SC, SI"
+    description: "NIST control families mapped to HIPAA safeguards"
+
+detection:
+  network_indicators:
+    - "N/A — compliance assessment"
+  log_indicators:
+    - "Unauthorized access to ePHI systems (164.312(b))"
+    - "Failed authentication to ePHI applications"
+  endpoint_indicators:
+    - "Unencrypted PHI on workstations or portable media"
+    - "ePHI transmitted without TLS encryption"
+
+remediation:
+  immediate:
+    - "Conduct or update risk analysis if not current (164.308(a)(1))"
+    - "Execute BAAs with all vendors handling ePHI"
+    - "Enable encryption for all ePHI at rest and in transit"
+    - "Revoke access for terminated employees immediately"
+  long_term:
+    - "Implement annual HIPAA training for all workforce members"
+    - "Establish formal security incident response procedures"
+    - "Schedule annual HIPAA security evaluation (164.308(a)(8))"
+    - "Deploy audit logging for all ePHI system access"
+
+variables:
+  phi_bucket: "phi-data-bucket"
+  phi_endpoint: "ehr.example.com"
+  organization: "Example Health System"
+  assessment_date: "2024-01-01"
+
+assessment_questions:
+  - "What is the difference between 'Required' and 'Addressable' implementation specifications?"
+  - "Who must sign a Business Associate Agreement under HIPAA?"
+  - "What does the HIPAA Security Rule risk analysis require?"
+  - "How does NIST SP 800-66 Rev2 help implement HIPAA Security Rule?"
+  - "What constitutes a HIPAA breach requiring notification?"
+
+references:
+  - url: "https://www.hhs.gov/hipaa/for-professionals/security/index.html"
+    title: "HHS HIPAA Security Rule"
+  - url: "https://csrc.nist.gov/publications/detail/sp/800-66/rev-2/final"
+    title: "NIST SP 800-66 Rev2 HIPAA Guidance"
+  - url: "https://www.hhs.gov/hipaa/for-professionals/security/guidance/cybersecurity/index.html"
+    title: "HHS HIPAA Cybersecurity Resources"

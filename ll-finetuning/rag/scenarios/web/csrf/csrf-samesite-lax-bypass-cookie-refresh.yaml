@@ -1,0 +1,98 @@
+# Category: Cross-Site Request Forgery (CSRF)
+name: "SameSite Lax bypass via cookie refresh"
+id: "csrf-samesite-lax-cookie-refresh-001"
+category: "csrf"
+subcategory: "samesite_bypass"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This scenario covers bypassing SameSite=Lax by triggering a cookie refresh.
+  With SameSite=Lax, cookies are not sent for cross-origin POST requests but
+  are sent for GET requests. If the application refreshes the cookie during
+  a cross-origin GET request, the attacker can then use that refreshed cookie
+  in a subsequent request.
+
+learning_objectives:
+  - Understand cookie refresh mechanics
+  - Use cross-origin GET requests to refresh cookies
+  - Bypass SameSite=Lax through cookie refresh
+  - Perform CSRF attacks using refreshed cookies
+
+tools:
+  - Burp Suite
+  - curl
+
+prerequisites:
+  - Target application uses SameSite=Lax
+  - Application refreshes or updates cookies on certain requests
+  - State-changing endpoint can be accessed via GET or with method override
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify SameSite setting and cookie refresh behavior"
+    commands:
+      - "# Check cookie attributes: SameSite=Lax"
+      - "# Observe if cookies are refreshed or updated on GET requests"
+    expected_output: "SameSite=Lax used; cookie refresh identified"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Trigger cookie refresh and then perform CSRF"
+    commands:
+      - "# First, make a cross-origin GET request to refresh the cookie:"
+      - "<img src='https://target.com/refresh-cookie'>"
+      - "# Then, use the refreshed cookie in a POST request"
+      - "# Since the cookie is now considered 'same-site' for a short window, the POST may succeed"
+    expected_output: "State-changing request processed with refreshed cookie"
+    detection: "Application logs show cookie refresh followed by sensitive action"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Escalate to other actions"
+    commands:
+      - "# Use the technique for password reset, profile changes"
+    expected_output: "Victim's account compromised"
+    detection: "Security alerts for unusual request patterns"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1204"
+    description: "User Execution"
+  - standard: "OWASP"
+    control: "A01:2021"
+    description: "Broken Access Control"
+
+detection:
+  network_indicators:
+    - "GET requests to refresh endpoints followed by POST requests"
+  log_indicators:
+    - "Cookie refresh and state change from same user"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Avoid refreshing session cookies on cross-origin requests"
+    - "Use CSRF tokens in addition to SameSite"
+  long_term:
+    - "Use SameSite=Strict for sensitive cookies"
+    - "Implement proper CSRF protection"
+
+variables:
+  target_url: "https://target.com/change-email"
+  refresh_url: "https://target.com/refresh-cookie"
+  new_email: "attacker@evil.com"
+
+assessment_questions:
+  - "What is cookie refresh and how does it affect SameSite?"
+  - "Why does SameSite=Lax allow GET requests but not POST requests?"
+  - "How can an attacker use cookie refresh to bypass SameSite?"
+
+references:
+  - url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite"
+    title: "MDN SameSite"
+  - url: "https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions"
+    title: "PortSwigger SameSite Bypass"

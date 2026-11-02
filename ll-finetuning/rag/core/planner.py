@@ -211,7 +211,12 @@ class Planner:
             web_url = web_target
 
         # --- Flag Capture Detection (CTF / Challenge Engagements) ---
-        FLAG_PAT = re.compile(r'(?:(?:pwn\.college|flag|htb|ctf|picoctf|hackthebox)\{[^}\s]+\}|\b(?:FLAG|Flag):\s*[a-zA-Z0-9_\-\{\}]{8,})', re.IGNORECASE)
+        FLAG_PAT = re.compile(
+            r'(?:(?:pwn\.college|flag|htb|ctf|picoctf|hackthebox)\{[^}\s]+\}'
+            r'|\b(?:FLAG|Flag):\s*[a-zA-Z0-9_\-\{\}]{8,}'
+            r'|(?:The password you are looking for is:\s*|NEXT_PASSWORD:\s*|password\s+is:\s*)([a-zA-Z0-9_\-\.]{10,}))',
+            re.IGNORECASE
+        )
         all_text = " ".join(
             str(n.get("content", "")) for n in session_state.get("notes", [])
         ) + " " + " ".join(
@@ -221,7 +226,7 @@ class Planner:
         )
         flag_match = FLAG_PAT.search(all_text)
         if flag_match:
-            captured_flag = flag_match.group(0).strip()
+            captured_flag = (flag_match.group(1) if flag_match.lastindex and flag_match.group(1) else flag_match.group(0)).strip()
             if "flag_captured" not in completed_ids:
                 return {
                     "step_number": len(completed_steps) + 1,
@@ -261,7 +266,7 @@ class Planner:
                 "action": "Inspect current user ID, shell environment, and basic operating system release",
                 "purpose": "Identify current user permissions, working directory, and environment variables.",
                 "rationale": (
-                    "In local shell and CTF challenges (e.g. pwn.college, container labs), establishing the current "
+                    "In local shell and CTF challenges (e.g. pwn.college, container labs, Bandit), establishing the current "
                     "UID/GID, user groups, and current directory is essential before locating flags or running binaries."
                 ),
                 "commands": [
@@ -271,6 +276,24 @@ class Planner:
                 ],
                 "expected_output": "Current username, UID/GID, kernel version, and listing of current directory files.",
                 "risk_assessment": "Standard non-intrusive environment queries."
+            })
+
+            candidate_steps.append({
+                "id": "ctf_local_file_inspection",
+                "phase": "enumeration",
+                "title": "Local Files, Readme & Working Directory Triage",
+                "action": "Inspect directory contents, text files, readmes, and hidden files in working directory",
+                "purpose": "Check if flags, passwords, or challenge clues are directly present in local files (e.g. readme, notes, dotfiles).",
+                "rationale": (
+                    "In Linux challenges like OverTheWire Bandit, passwords or hints are frequently located in files "
+                    "inside the home directory (e.g. readme, hidden files, or formatted text)."
+                ),
+                "commands": [
+                    "ls -la && file ./* .[^.]* 2>/dev/null",
+                    "cat readme 2>/dev/null || cat ./* 2>/dev/null | head -n 30"
+                ],
+                "expected_output": "File contents, passwords, or challenge clues.",
+                "risk_assessment": "Read-only filesystem queries."
             })
 
             candidate_steps.append({

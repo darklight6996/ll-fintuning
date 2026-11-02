@@ -1,0 +1,219 @@
+# Category: Network Penetration Testing - Segmentation Testing
+name: "Network Segmentation Testing"
+id: "net-segmentation-001"
+category: "network_penetration_testing"
+subcategory: "segmentation_testing"
+difficulty: "intermediate"
+estimated_time: "60"
+
+tags:
+  - network
+  - segmentation
+  - vlan
+  - firewall
+  - pci-dss
+  - nist-800-53
+  - lateral-movement
+  - scoping
+  - internal
+  - pentest
+  - red-team
+  - nmap
+  - hping3
+  - cde-isolation
+  - zero-trust
+
+description: |
+  Validate network segmentation controls to confirm that zones are properly
+  isolated. Critical for PCI DSS CDE scoping and zero-trust architecture
+  validation. Tests routes between segments that should be denied.
+
+learning_objectives:
+  - Verify firewall rules enforce intended segment isolation
+  - Test VLAN hopping and cross-segment connectivity
+  - Validate CDE isolation for PCI DSS compliance
+  - Document segmentation gaps and remediation steps
+
+tools:
+  - "nmap"
+  - "hping3"
+  - "scapy"
+  - "traceroute"
+  - "netcat"
+  - "curl"
+
+prerequisites:
+  - "Footholds in each network segment to be tested"
+  - "Network diagram showing intended segmentation"
+  - "Written authorization from network owner"
+  - "List of allowed and denied traffic flows between segments"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Map current network segments and routing"
+    commands:
+      - "# Identify current segment"
+      - "ip addr show && ip route show"
+      - "# Traceroute to confirm hops between segments"
+      - "traceroute [dmz_host] -n"
+      - "traceroute [cde_host] -n"
+      - "traceroute [corp_host] -n"
+      - "# ARP table — see what's reachable at Layer 2"
+      - "arp -n"
+      - "ip neigh show"
+      - "# Check for dual-homed hosts (connected to multiple segments)"
+      - "nmap -sn [dmz_range] [corp_range] [cde_range] --reason 2>/dev/null | grep -E 'Nmap|Host'"
+    expected_output: "Current network position, routing table, and Layer 2 neighbors identified"
+    detection: "ARP and ICMP probes in network monitoring logs"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Test inter-segment connectivity (should-be-denied paths)"
+    commands:
+      - "# From DMZ — should NOT reach internal/corp segment"
+      - "nmap -sS -p22,80,443,445,3389 [corp_range] --open -oG /tmp/dmz_to_corp.txt"
+      - "cat /tmp/dmz_to_corp.txt | grep 'open'"
+      - "# From corp — should NOT reach CDE directly"
+      - "nmap -sS -p22,80,443,1433,3306,5432 [cde_range] --open -oG /tmp/corp_to_cde.txt"
+      - "cat /tmp/corp_to_cde.txt | grep 'open'"
+      - "# Test ICMP between segments"
+      - "ping -c3 [cde_gateway] 2>/dev/null && echo 'ICMP ALLOWED — segmentation gap' || echo 'ICMP blocked'"
+      - "# Test specific denied ports"
+      - "for port in 22 23 80 443 445 3389 1433 3306; do"
+      - "  result=$(nc -w2 -z [cde_host] $port 2>&1 && echo OPEN || echo CLOSED)"
+      - "  echo \"Port $port: $result\""
+      - "done"
+    expected_output: "List of accessible ports/hosts across segment boundaries that should be blocked"
+    detection: "Cross-segment port scan in IDS/IPS and firewall logs"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "VLAN hopping attempt via double tagging"
+    commands:
+      - "# Double-tagging attack — only works when native VLAN matches access port VLAN"
+      - "# Requires Scapy and access to a trunk-adjacent port"
+      - "python3 << 'EOF'\nfrom scapy.all import *\n# Double-tagged frame: outer tag = native VLAN, inner = target VLAN\nouter_vlan = 1   # Native VLAN on trunk\ntarget_vlan = 100  # Target CDE VLAN\npkt = Ether(dst='ff:ff:ff:ff:ff:ff') / Dot1Q(vlan=outer_vlan) / Dot1Q(vlan=target_vlan) / IP(dst='[target_cde_ip]') / ICMP()\nsendp(pkt, iface='[interface]', count=3, verbose=True)\nEOF"
+      - "# Test switch port configuration"
+      - "# Check if interface is access or trunk mode (if switch CLI available)"
+      - "# show interfaces switchport | grep -A5 'Mode'"
+    expected_output: "Frame delivery to target VLAN confirms double-tagging VLAN hop vulnerability"
+    detection: "Double-tagged frames in switch logs; unexpected traffic on CDE VLAN"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "Test firewall rule bypass via allowed protocols"
+    commands:
+      - "# Test tunneling over allowed protocols (DNS, HTTP, ICMP)"
+      - "# DNS query to check if DNS resolves across segment"
+      - "dig @[dns_server_in_cde] internal.cde.local +short 2>/dev/null"
+      - "# HTTP CONNECT proxy tunnel test"
+      - "curl -x http://[allowed_proxy]:8080 http://[cde_internal_host]/ -v 2>&1 | grep 'Connected'"
+      - "# ICMP tunnel test"
+      - "ping -c1 [cde_host] && echo 'ICMP crosses segment boundary'"
+      - "# Test outbound from CDE to internet (should be blocked)"
+      - "curl -s --connect-timeout 5 http://example.com && echo 'CDE HAS INTERNET ACCESS — VIOLATION' || echo 'Internet blocked from CDE'"
+      - "# Test NTP (UDP 123) — often overlooked"
+      - "nmap -sU -p123 [cde_range] --open 2>/dev/null"
+    expected_output: "Allowed protocol tunneling paths and unexpected internet access from CDE"
+    detection: "DNS queries across segment boundaries; HTTP CONNECT to CDE hosts"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "Validate PCI DSS CDE isolation requirements"
+    commands:
+      - "# PCI DSS 1.3.2 — restrict inbound to only what is necessary"
+      - "# From internet/DMZ — only allowed services should reach CDE"
+      - "nmap -sS -p1-65535 [cde_external_ip] --open -oA /tmp/cde_external_scan"
+      - "# PCI DSS 1.3.3 — restrict outbound from CDE to only necessary"
+      - "# From CDE host — test what can be reached outbound"
+      - "for dest in 8.8.8.8 1.1.1.1 [corp_host] [dev_host]; do"
+      - "  result=$(nc -w2 -z $dest 80 2>/dev/null && echo REACHABLE || echo BLOCKED)"
+      - "  echo \"CDE -> $dest:80 : $result\""
+      - "done"
+      - "# Check admin access to CDE — only via jump server?"
+      - "nmap -sS -p22,3389 [cde_range] --open 2>/dev/null"
+      - "# Verify jump server is only path for admin"
+      - "nc -w2 -z [cde_host] 22 2>/dev/null && echo 'DIRECT SSH TO CDE — PCI VIOLATION' || echo 'SSH blocked — OK'"
+    expected_output: "CDE boundary validation report with allowed/denied flows per PCI DSS requirements"
+    detection: "Full port scan of CDE from external in firewall logs"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Document segmentation gaps and generate remediation report"
+    commands:
+      - "python3 << 'EOF'\nimport datetime\n\ngaps = [\n    {'from': 'DMZ', 'to': 'CORP', 'port': 445, 'protocol': 'TCP', 'severity': 'HIGH', 'pci_req': '1.3.2'},\n    {'from': 'CORP', 'to': 'CDE', 'port': 3389, 'protocol': 'TCP', 'severity': 'CRITICAL', 'pci_req': '1.3.2'},\n    {'from': 'CDE', 'to': 'INTERNET', 'port': 80, 'protocol': 'TCP', 'severity': 'CRITICAL', 'pci_req': '1.3.3'},\n]\n\nprint(f'Network Segmentation Gap Report — {datetime.date.today()}')\nprint('=' * 70)\nprint(f'Total gaps found: {len(gaps)}')\nprint()\nfor g in gaps:\n    print(f\"[{g['severity']}] {g['from']} -> {g['to']} port {g['port']}/{g['protocol']} | PCI {g['pci_req']}\")\nprint()\nprint('Remediation: Update firewall rules to deny identified cross-segment flows')\nEOF"
+    expected_output: "Structured gap report with severity, affected segments, and PCI DSS control references"
+    detection: "N/A — reporting activity"
+
+compliance_controls:
+  - standard: "PCI DSS v4.0"
+    control: "1.3.1"
+    description: "Inbound traffic to CDE restricted to only that which is necessary"
+  - standard: "PCI DSS v4.0"
+    control: "1.3.2"
+    description: "Outbound traffic from CDE restricted to only that which is necessary"
+  - standard: "PCI DSS v4.0"
+    control: "11.4.5"
+    description: "Network segmentation tested at least every 6 months"
+  - standard: "NIST 800-53 Rev5"
+    control: "SC-7"
+    description: "Boundary protection"
+  - standard: "CIS Controls v8"
+    control: "12.2"
+    description: "Establish and maintain a secure network architecture"
+
+detection:
+  network_indicators:
+    - "Port scans originating from DMZ hosts toward internal segments"
+    - "Double-tagged VLAN frames on access ports"
+    - "ICMP or DNS traffic crossing firewall segment boundaries unexpectedly"
+  log_indicators:
+    - "Firewall logs: allowed traffic on denied-policy rules"
+    - "IDS: cross-segment port scan detection"
+    - "Switch logs: trunk negotiation on access-mode port"
+  endpoint_indicators:
+    - "Successful network connections from isolated segment to untrusted network"
+
+remediation:
+  immediate:
+    - "Block identified cross-segment ports at perimeter firewall"
+    - "Disable VLAN trunking on all access ports (switchport mode access)"
+    - "Remove direct internet access from CDE — route through proxy only"
+  long_term:
+    - "Implement micro-segmentation using SDN or host-based firewalls"
+    - "Schedule bi-annual segmentation testing (required by PCI DSS 11.4.5)"
+    - "Deploy network access control (NAC) to enforce segment membership"
+    - "Implement zero-trust network architecture to eliminate implicit trust"
+
+variables:
+  dmz_range: "10.10.1.0/24"
+  corp_range: "10.10.2.0/24"
+  cde_range: "10.10.3.0/24"
+  dmz_host: "10.10.1.10"
+  corp_host: "10.10.2.10"
+  cde_host: "10.10.3.10"
+  cde_gateway: "10.10.3.1"
+  cde_external_ip: "203.0.113.50"
+  dns_server_in_cde: "10.10.3.5"
+  dev_host: "10.10.4.10"
+  allowed_proxy: "10.10.2.100"
+  target_cde_ip: "10.10.3.20"
+  interface: "eth0"
+  native_vlan: "1"
+  target_vlan: "100"
+
+assessment_questions:
+  - "What PCI DSS requirement mandates segmentation testing frequency?"
+  - "How does double-tagging enable VLAN hopping and what switch config prevents it?"
+  - "Why must CDE outbound traffic be restricted as well as inbound?"
+  - "What is the difference between network segmentation and micro-segmentation?"
+  - "How does zero-trust architecture eliminate the need for traditional VLAN segmentation?"
+
+references:
+  - url: "https://www.pcisecuritystandards.org/documents/Guidance-PCI-DSS-Scoping-and-Segmentation_v1.pdf"
+    title: "PCI DSS Scoping and Segmentation Guidance"
+  - url: "https://nmap.org/"
+    title: "Nmap Network Scanner"
+  - url: "https://scapy.readthedocs.io/"
+    title: "Scapy Packet Manipulation"

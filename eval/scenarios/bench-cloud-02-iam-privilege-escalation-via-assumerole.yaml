@@ -1,0 +1,14 @@
+id: BENCH-CLOUD-02
+name: IAM Privilege Escalation via AssumeRole
+category: cloud
+agent: cloud
+target: arn:aws:iam::123456789012:role/DevRole
+ground_truth_vulnerability: Over-permissive sts:AssumeRole allowing administrative
+  role takeover
+expected_phases:
+- iam_audit
+- misconfig_validation
+required_action_ids:
+- iam_audit
+- misconfig_validation
+expected_finding_severity: critical

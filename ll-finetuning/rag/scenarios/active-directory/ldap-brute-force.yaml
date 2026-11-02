@@ -1,0 +1,93 @@
+# Category: Identity - LDAP
+name: "LDAP Brute Force – Password Spraying and Credential Guessing"
+id: "identity-ldap-brute-001"
+category: "offensive_security"
+subcategory: "active_directory"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Use password spraying or brute force against LDAP authentication to
+  discover valid credentials for domain users. This is often done against
+  AD LDAP endpoints (port 389/636) to avoid account lockouts by using
+  common passwords against many users.
+
+learning_objectives:
+  - Understand LDAP authentication bind
+  - Use tools like `ldapsearch` or `crackmapexec` to test credentials
+  - Perform password spraying with a wordlist
+  - Identify lockout policies
+
+tools:
+  - crackmapexec
+  - ldapsearch
+  - Hydra (LDAP module)
+  - Python (ldap3)
+
+prerequisites:
+  - Domain controller reachable
+  - List of valid usernames or domain users
+  - Wordlist of common passwords
+
+steps:
+  - id: "step1"
+    phase: "enumerate"
+    action: "Gather usernames (from OSINT or enumeration)"
+    commands:
+      - "# Using enum4linux, or from LinkedIn"
+    expected_output: "List of usernames"
+    detection: "None"
+
+  - id: "step2"
+    phase: "spray"
+    action: "Test each user with a common password"
+    commands:
+      - "crackmapexec smb <DC_IP> -u users.txt -p 'Winter2024'"
+    expected_output: "Valid credentials found"
+    detection: "DC logs show many failed logins (Event 4625)"
+
+  - id: "step3"
+    phase: "use"
+    action: "Use valid credentials to log in"
+    expected_output: "Access to resources"
+    detection: "Successful logon (Event 4624) from new IP"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1110.003"
+    description: "Brute Force: Password Spraying"
+  - standard: "NIST SP 800-53"
+    control: "AC-7"
+    description: "Unsuccessful Logon Attempts"
+
+detection:
+  network_indicators:
+    - "Many LDAP bind requests"
+  log_indicators:
+    - "Event 4625 (failed logon) with many users"
+  endpoint_indicators:
+    - "crackmapexec, ldapsearch"
+
+remediation:
+  immediate:
+    - "Implement strong password policies"
+    - "Enable account lockout after few attempts"
+  long_term:
+    - "Deploy Azure AD Password Protection"
+    - "Use MFA to prevent credential reuse"
+
+variables:
+  dc_ip: "192.168.1.1"
+  userlist: "users.txt"
+  common_password: "Winter2024"
+
+assessment_questions:
+  - "What is the difference between password spraying and brute force?"
+  - "How can you detect password spraying in AD?"
+  - "What is the best defense against spraying?"
+
+references:
+  - url: "https://attack.mitre.org/techniques/T1110/003/"
+    title: "MITRE T1110.003"
+  - url: "https://www.varonis.com/blog/password-spraying/"
+    title: "Password Spraying Guide"

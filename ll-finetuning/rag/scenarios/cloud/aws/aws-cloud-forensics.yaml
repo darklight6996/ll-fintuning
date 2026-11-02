@@ -1,0 +1,236 @@
+# Category: Forensics & Incident Response - Cloud Forensics
+name: "AWS Cloud Forensics and Incident Response"
+id: "forensics-aws-001"
+category: "forensics_incident_response"
+subcategory: "cloud_forensics"
+difficulty: "advanced"
+estimated_time: "90"
+
+tags:
+  - forensics
+  - cloud
+  - aws
+  - cloudtrail
+  - guardduty
+  - vpc-flow-logs
+  - s3-access-logs
+  - incident-response
+  - dfir
+  - blue-team
+  - ioc-extraction
+  - ec2-snapshot
+  - lambda-logs
+  - iam-forensics
+  - nist-800-61
+  - soc2-cc7
+
+description: |
+  Conduct forensic investigations in AWS environments using CloudTrail, VPC Flow
+  Logs, GuardDuty findings, and EC2 snapshot analysis. Covers credential
+  compromise, unauthorized access, and data exfiltration scenarios.
+
+learning_objectives:
+  - Query CloudTrail for attacker activity across AWS services
+  - Analyze VPC Flow Logs for unauthorized network connections
+  - Extract and analyze EC2 disk images for host-level artifacts
+  - Reconstruct attacker timeline from AWS log sources
+
+tools:
+  - "awscli"
+  - "cloudtrail"
+  - "guardduty"
+  - "aws_athena"
+  - "volatility3"
+  - "python3"
+
+prerequisites:
+  - "AWS SecurityAudit or ReadOnlyAccess + CloudTrail read permissions"
+  - "VPC Flow Logs enabled and accessible"
+  - "GuardDuty enabled in affected region"
+  - "Forensic AWS account for evidence preservation"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify initial compromise indicators from GuardDuty"
+    commands:
+      - "# List active GuardDuty findings"
+      - "aws guardduty list-detectors --query 'DetectorIds[0]' --output text > /tmp/detector_id.txt"
+      - "export DETECTOR_ID=$(cat /tmp/detector_id.txt)"
+      - "aws guardduty list-findings --detector-id $DETECTOR_ID --finding-criteria '{\"Criterion\":{\"severity\":{\"Gte\":7}}}' --query 'FindingIds' --output json > /tmp/high_sev_findings.json"
+      - "aws guardduty get-findings --detector-id $DETECTOR_ID --finding-ids $(cat /tmp/high_sev_findings.json | python3 -c 'import sys,json; print(\" \".join(json.load(sys.stdin)))') --query 'Findings[*].{Type:Type,Severity:Severity,Description:Description,AccountId:AccountId,Region:Region}' --output table"
+      - "# Get detailed finding info"
+      - "aws guardduty get-findings --detector-id $DETECTOR_ID --finding-ids [finding_id] --output json > /tmp/finding_detail.json"
+      - "python3 -c \"import json; d=json.load(open('/tmp/finding_detail.json'))['Findings'][0]; print(json.dumps(d, indent=2))\""
+    expected_output: "High-severity GuardDuty findings with type, affected resource, and timeline"
+    detection: "N/A — forensic investigation activity"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Query CloudTrail for suspicious IAM activity"
+    commands:
+      - "# Look for API calls from compromised principal"
+      - "aws cloudtrail lookup-events --lookup-attributes AttributeKey=Username,AttributeValue=[compromised_user] --start-time [incident_start] --end-time [incident_end] --query 'Events[*].{Time:EventTime,Event:EventName,Source:EventSource,IP:CloudTrailEvent}' --output table"
+      - "# Find credential creation/escalation events"
+      - "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=CreateAccessKey --start-time [incident_start] --query 'Events[*].{Time:EventTime,User:Username,Key:CloudTrailEvent}'"
+      - "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=AttachUserPolicy --start-time [incident_start]"
+      - "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=CreateLoginProfile --start-time [incident_start]"
+      - "# Detect console login from unexpected IP"
+      - "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=ConsoleLogin --start-time [incident_start] --query 'Events[*].CloudTrailEvent' --output text | python3 -c \"import sys,json; [print(json.loads(l).get('sourceIPAddress',''),json.loads(l).get('additionalEventData',{}).get('MFAUsed','')) for l in sys.stdin if l.strip()]\""
+    expected_output: "IAM activity timeline showing credential creation, policy changes, and console logins"
+    detection: "N/A — forensic CloudTrail analysis"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Analyze VPC Flow Logs for unauthorized network activity"
+    commands:
+      - "# Query Flow Logs via Athena (if configured)"
+      - "aws athena start-query-execution --query-string \"SELECT srcaddr, dstaddr, srcport, dstport, protocol, packets, bytes, action FROM vpc_flow_logs WHERE srcaddr = '[compromised_ip]' AND start BETWEEN [epoch_start] AND [epoch_end] ORDER BY bytes DESC LIMIT 100\" --query-execution-context Database=vpc_flow_logs --result-configuration OutputLocation=s3://[results_bucket]/athena/ --output json"
+      - "# Direct CloudWatch Logs query (if Flow Logs sent to CWL)"
+      - "aws logs filter-log-events --log-group-name [vpc_flow_log_group] --filter-pattern '[version, account_id, interface_id, srcaddr=[compromised_ip], dstaddr, srcport, dstport, protocol, packets, bytes, start, end, action, log_status]' --start-time [epoch_start_ms] --end-time [epoch_end_ms] --query 'events[*].message' --output text"
+      - "# Parse and summarize flow log output"
+      - "python3 << 'EOF'\nimport sys\nconnections = {}\nfor line in sys.stdin:\n    parts = line.strip().split()\n    if len(parts) >= 14:\n        key = f\"{parts[4]}:{parts[7]}\"\n        connections[key] = connections.get(key, 0) + int(parts[9] or 0)\nfor k,v in sorted(connections.items(), key=lambda x: -x[1])[:20]:\n    print(f\"{k}: {v} bytes\")\nEOF"
+    expected_output: "Top destination IPs/ports from compromised host with byte transfer volumes"
+    detection: "N/A — forensic flow log analysis"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "EC2 instance forensics — snapshot and analyze disk"
+    commands:
+      - "# Create snapshot of compromised instance volume"
+      - "aws ec2 describe-instances --instance-ids [instance_id] --query 'Reservations[*].Instances[*].BlockDeviceMappings[*].Ebs.VolumeId' --output text > /tmp/volume_id.txt"
+      - "export VOLUME_ID=$(cat /tmp/volume_id.txt)"
+      - "aws ec2 create-snapshot --volume-id $VOLUME_ID --description 'Forensic snapshot - IR ticket [ir_ticket]' --tag-specifications 'ResourceType=snapshot,Tags=[{Key=Purpose,Value=Forensics},{Key=IRTicket,Value=[ir_ticket]}]'"
+      - "# Copy snapshot to forensic account"
+      - "aws ec2 copy-snapshot --source-region [region] --source-snapshot-id [snapshot_id] --destination-region [forensic_region] --description 'Forensic copy'"
+      - "# Create volume from snapshot in forensic account"
+      - "aws ec2 create-volume --snapshot-id [forensic_snapshot_id] --availability-zone [az] --volume-type gp3"
+      - "# Attach to forensic EC2 instance"
+      - "aws ec2 attach-volume --volume-id [forensic_volume_id] --instance-id [forensic_instance] --device /dev/sdf"
+      - "# Mount read-only on forensic instance"
+      - "sudo mount -o ro,noexec,nosuid /dev/xvdf1 /mnt/evidence"
+    expected_output: "Read-only forensic disk image mounted for artifact analysis"
+    detection: "N/A — forensic evidence preservation"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "S3 access log analysis for data exfiltration"
+    commands:
+      - "# Check S3 server access logs"
+      - "aws s3 ls s3://[s3_log_bucket]/[log_prefix]/ --recursive | grep '[incident_date]'"
+      - "aws s3 cp s3://[s3_log_bucket]/[log_prefix]/[date_prefix]/ /tmp/s3_logs/ --recursive"
+      - "# Parse S3 access logs for suspicious GET operations"
+      - "grep 'REST.GET.OBJECT\\|REST.COPY.OBJECT' /tmp/s3_logs/* | awk '{print $3, $5, $8, $9, $11}' | sort | uniq -c | sort -rn | head -30"
+      - "# Find accesses from unexpected IPs"
+      - "grep 'REST.GET' /tmp/s3_logs/* | awk '{print $5}' | sort | uniq -c | sort -rn | head -20"
+      - "# Calculate total bytes exfiltrated"
+      - "grep 'REST.GET.OBJECT' /tmp/s3_logs/* | awk '{sum+=$12} END {print \"Total bytes: \" sum}'"
+      - "# Check CloudTrail for GetObject API calls"
+      - "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=GetObject --start-time [incident_start] --query 'Events[*].{Time:EventTime,Resource:Resources[0].ARN,User:Username}'"
+    expected_output: "S3 access timeline with external IPs, object names, and bytes transferred"
+    detection: "N/A — forensic S3 log analysis"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "Lambda and application log forensics"
+    commands:
+      - "# List Lambda functions in affected account"
+      - "aws lambda list-functions --query 'Functions[*].{Name:FunctionName,Runtime:Runtime,LastModified:LastModified,Role:Role}' --output table"
+      - "# Get Lambda execution logs"
+      - "aws logs filter-log-events --log-group-name '/aws/lambda/[function_name]' --start-time [epoch_start_ms] --end-time [epoch_end_ms] --filter-pattern 'ERROR' --query 'events[*].message'"
+      - "# Check for environment variable exposure"
+      - "aws lambda get-function-configuration --function-name [function_name] --query 'Environment'"
+      - "# Check for code changes"
+      - "aws lambda list-versions-by-function --function-name [function_name] --query 'Versions[*].{Version:Version,Modified:LastModified,SHA:CodeSha256}'"
+      - "# CloudTrail: who modified Lambda recently"
+      - "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=[function_name] --start-time [incident_start] --query 'Events[*].{Time:EventTime,Event:EventName,User:Username}'"
+    expected_output: "Lambda modification history, exposed environment variables, execution errors"
+    detection: "N/A — forensic Lambda analysis"
+
+  - id: "step7"
+    phase: "post_exploitation"
+    action: "Generate AWS incident timeline and IOC report"
+    commands:
+      - "python3 << 'EOF'\nimport json, datetime\n\nclass AWSIncidentReport:\n    def __init__(self):\n        self.timeline = []\n        self.iocs = {'ips': set(), 'users': set(), 'resources': set()}\n    \n    def add_event(self, time, event, detail):\n        self.timeline.append({'time': time, 'event': event, 'detail': detail})\n    \n    def add_ioc(self, ioc_type, value):\n        self.iocs[ioc_type].add(value)\n    \n    def report(self):\n        print('=== AWS INCIDENT REPORT ===')\n        print(f'Generated: {datetime.datetime.utcnow().isoformat()}Z')\n        print()\n        print('TIMELINE:')\n        for e in sorted(self.timeline, key=lambda x: x['time']):\n            print(f\"  {e['time']}  {e['event']}: {e['detail']}\")\n        print()\n        print('INDICATORS OF COMPROMISE:')\n        for t, vals in self.iocs.items():\n            for v in sorted(vals):\n                print(f\"  [{t.upper()}] {v}\")\n\nreport = AWSIncidentReport()\nreport.add_event('2024-01-01T09:00:00', 'Initial Access', 'Access key exfiltrated from GitHub')\nreport.add_event('2024-01-01T09:05:00', 'Discovery', 'ListBuckets, DescribeInstances API calls')\nreport.add_event('2024-01-01T09:15:00', 'Exfiltration', 'S3 GetObject 500 objects from data bucket')\nreport.add_ioc('ips', '198.51.100.1')\nreport.add_ioc('users', 'AIDA1234567890EXAMPLE')\nreport.add_ioc('resources', 'arn:aws:s3:::data-bucket')\nreport.report()\nEOF"
+    expected_output: "Structured incident report with chronological timeline and extracted IOCs"
+    detection: "N/A — reporting activity"
+
+compliance_controls:
+  - standard: "NIST 800-61 Rev2"
+    control: "Section 3.2"
+    description: "Evidence collection and handling in cloud environments"
+  - standard: "NIST 800-53 Rev5"
+    control: "IR-4"
+    description: "Incident handling"
+  - standard: "SOC2 CC7.4"
+    control: "CC7.4"
+    description: "Respond to security incidents with forensic evidence collection"
+  - standard: "PCI DSS v4.0"
+    control: "12.10.5"
+    description: "Incident response plan includes cloud forensic procedures"
+
+detection:
+  network_indicators:
+    - "Large volume of S3 GetObject calls from external IP"
+    - "CloudTrail events from unexpected geographic location"
+  log_indicators:
+    - "GuardDuty: UnauthorizedAccess:IAMUser/ConsoleLogin"
+    - "CloudTrail: CreateAccessKey for another user"
+    - "GuardDuty: Exfiltration:S3/ObjectRead.Unusual"
+  endpoint_indicators:
+    - "EC2 snapshot creation for non-routine backup"
+    - "New IAM access key created during off-hours"
+
+remediation:
+  immediate:
+    - "Disable compromised IAM credentials immediately"
+    - "Revoke all sessions for affected principal (aws sts revoke-session)"
+    - "Enable enhanced GuardDuty S3 protection if not active"
+    - "Block attacker source IPs via Security Group and WAF"
+  long_term:
+    - "Enable CloudTrail in all regions with S3 data events"
+    - "Deploy AWS Security Hub for centralized finding management"
+    - "Implement AWS Config for configuration change detection"
+    - "Conduct quarterly IR tabletop exercises for cloud scenarios"
+
+variables:
+  compromised_user: "dev-pipeline-user"
+  compromised_ip: "198.51.100.1"
+  instance_id: "i-0abcdef1234567890"
+  incident_start: "2024-01-01T00:00:00Z"
+  incident_end: "2024-01-02T00:00:00Z"
+  epoch_start_ms: "1704067200000"
+  epoch_end_ms: "1704153600000"
+  epoch_start: "1704067200"
+  epoch_end: "1704153600"
+  region: "us-east-1"
+  forensic_region: "us-east-1"
+  az: "us-east-1a"
+  s3_log_bucket: "my-s3-access-logs"
+  log_prefix: "access-logs"
+  incident_date: "2024-01-01"
+  date_prefix: "2024-01-01"
+  vpc_flow_log_group: "/aws/vpc/flowlogs"
+  results_bucket: "my-athena-results"
+  function_name: "data-processor"
+  forensic_instance: "i-0forensicinstance"
+  forensic_snapshot_id: "snap-0forensic123"
+  forensic_volume_id: "vol-0forensic123"
+  snapshot_id: "snap-0original123"
+  ir_ticket: "INC-2024-001"
+  finding_id: "abc123def456"
+
+assessment_questions:
+  - "What CloudTrail event indicates an attacker created a new IAM access key?"
+  - "How do VPC Flow Logs help identify data exfiltration from an EC2 instance?"
+  - "Why should forensic EC2 snapshots be taken in a separate forensic AWS account?"
+  - "What GuardDuty finding type indicates unusual S3 data access?"
+  - "How does CloudTrail data event logging differ from management event logging?"
+
+references:
+  - url: "https://docs.aws.amazon.com/whitepapers/latest/aws-security-incident-response-guide/welcome.html"
+    title: "AWS Security Incident Response Guide"
+  - url: "https://github.com/aws/aws-incident-response-playbooks"
+    title: "AWS Incident Response Playbooks"
+  - url: "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html"
+    title: "Amazon GuardDuty Documentation"

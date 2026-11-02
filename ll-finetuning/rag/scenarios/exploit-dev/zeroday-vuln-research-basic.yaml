@@ -1,0 +1,99 @@
+# Category: Zero-Day Research
+name: "Zero‑Day Vulnerability Research – Fuzzing and Discovery"
+id: "zeroday-research-basic-001"
+category: "zeroday_research"
+subcategory: "fuzzing"
+difficulty: "advanced"
+estimated_time: "120 minutes"
+
+description: |
+  Introduction to zero‑day research using fuzzing techniques to find
+  vulnerabilities in software or network services. This scenario covers
+  setting up a fuzzing harness, generating malformed inputs, and
+  monitoring for crashes.
+
+learning_objectives:
+  - Understand fuzzing concepts (dumb vs. smart fuzzing)
+  - Use tools like AFL, libFuzzer, or OSS‑Fuzz
+  - Analyze crashes and triage for security impact
+  - Write a proof‑of‑concept exploit
+
+tools:
+  - AFL (American Fuzzy Lop)
+  - libFuzzer
+  - Ghidra / IDA (for analysis)
+  - Python (for harness)
+  - qemu (for binary fuzzing)
+
+prerequisites:
+  - Target binary or library
+  - Source code optional
+  - Ability to compile with instrumentation
+
+steps:
+  - id: "step1"
+    phase: "setup"
+    action: "Install AFL and prepare target"
+    commands:
+      - "# Compile target with afl-gcc/afl-clang"
+      - "AFL_HARDEN=1 afl-gcc -o target target.c"
+      - "# Create input corpus (seed files)"
+    expected_output: "Instrumented binary and seed directory"
+    detection: "None (local)"
+
+  - id: "step2"
+    phase: "fuzzing"
+    action: "Run AFL fuzzer"
+    commands:
+      - "afl-fuzz -i seeds -o findings -- ./target @@"
+    expected_output: "Crashes found (if any)"
+    detection: "None"
+
+  - id: "step3"
+    phase: "analysis"
+    action: "Triage crashes and determine exploitability"
+    commands:
+      - "# Use gdb to analyze crash"
+      - "gdb ./target core"
+      - "# Determine if crash leads to RCE (EIP control)"
+    expected_output: "Exploitable vulnerability"
+    detection: "N/A"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1588.006"
+    description: "Obtain Capabilities – Vulnerabilities"
+  - standard: "NIST SP 800-53"
+    control: "RA-5"
+    description: "Vulnerability Scanning"
+
+detection:
+  network_indicators:
+    - "N/A"
+  log_indicators:
+    - "None"
+  endpoint_indicators:
+    - "AFL processes"
+
+remediation:
+  immediate:
+    - "Patch the vulnerability once confirmed"
+    - "Deploy compensating controls"
+  long_term:
+    - "Implement secure coding practices"
+    - "Use static and dynamic analysis tools"
+
+variables:
+  target_binary: "target"
+  seed_dir: "seeds"
+
+assessment_questions:
+  - "What is the difference between dumb and smart fuzzing?"
+  - "How does AFL achieve coverage guidance?"
+  - "What are common crash types (heap overflow, stack overflow)?"
+
+references:
+  - url: "https://lcamtuf.coredump.cx/afl/"
+    title: "AFL Documentation"
+  - url: "https://google.github.io/oss-fuzz/"
+    title: "OSS-Fuzz"

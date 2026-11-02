@@ -1,0 +1,91 @@
+# Category: Cloud Security - Azure
+name: "Azure Logic Apps Misconfiguration – Data Leakage"
+id: "cloud-azure-logicapp-001"
+category: "cloud_security"
+subcategory: "azure"
+difficulty: "intermediate"
+estimated_time: "50 minutes"
+
+description: |
+  Exploit misconfigured Azure Logic Apps that use insecure triggers (e.g.,
+  HTTP endpoints) or overly permissive managed identities to access sensitive
+  data or execute unauthorized workflows.
+
+learning_objectives:
+  - Understand Azure Logic Apps and connectors
+  - Identify publicly accessible HTTP trigger endpoints
+  - Use trigger to invoke Logic App and read response
+  - Abuse managed identity to access resources
+
+tools:
+  - Azure CLI
+  - HTTP client (curl)
+  - Logic Apps designer (view)
+
+prerequisites:
+  - Azure subscription with Logic Apps
+  - HTTP endpoint of a Logic App without authentication
+
+steps:
+  - id: "step1"
+    phase: "recon"
+    action: "Find Logic Apps with public HTTP triggers"
+    commands:
+      - "az logic workflow list"
+      - "# Or enumerate via URL if known"
+    expected_output: "List of workflows"
+    detection: "Azure Activity Logs show list operations"
+
+  - id: "step2"
+    phase: "exploit"
+    action: "Invoke HTTP trigger with crafted payload"
+    commands:
+      - "curl -X POST https://<logicapp>.azurewebsites.net/api/trigger -d '{\"data\":\"malicious\"}'"
+    expected_output: "Logic App executes and returns data (if configured)"
+    detection: "Logic App run history shows trigger"
+
+  - id: "step3"
+    phase: "escalate"
+    action: "If Logic App uses managed identity, use it to access other Azure resources"
+    commands:
+      - "# Use the Logic App's identity to call Azure APIs"
+    expected_output: "Access to Azure Key Vault, Storage, etc."
+    detection: "Azure AD logs show managed identity usage"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1526"
+    description: "Cloud Service Discovery"
+  - standard: "CIS Azure Foundations"
+    control: "1.23"
+    description: "Ensure Logic Apps are not publicly accessible"
+
+detection:
+  network_indicators:
+    - "Requests to azurewebsites.net endpoints"
+  log_indicators:
+    - "Azure Activity Logs for Logic App runs"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Add authentication (e.g., SAS, AAD) to HTTP triggers"
+    - "Restrict the managed identity permissions"
+  long_term:
+    - "Use Azure AD authentication for Logic Apps"
+    - "Monitor Logic App runs for anomalies"
+
+variables:
+  logicapp_name: "my-logic-app"
+
+assessment_questions:
+  - "What are common triggers for Logic Apps?"
+  - "How can you secure an HTTP trigger?"
+  - "What risks are associated with managed identities in Logic Apps?"
+
+references:
+  - url: "https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-securing-a-logic-app"
+    title: "Azure Logic Apps Security"
+  - url: "https://docs.microsoft.com/en-us/azure/logic-apps/trigger-recurrence"
+    title: "Logic App Triggers"

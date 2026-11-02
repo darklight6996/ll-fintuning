@@ -1,0 +1,197 @@
+name: "Sigma Detection Rule Creation and Deployment"
+id: "blue-sigma-001"
+category: "Blue Team"
+subcategory: "Detection Engineering"
+difficulty: "intermediate"
+estimated_time: "60"
+
+tags:
+  - sigma
+  - detection-engineering
+  - siem
+  - splunk
+  - elasticsearch
+  - microsoft-sentinel
+  - evtx
+  - blue-team
+  - log-analysis
+  - mitre-t1558.003
+
+description: |
+  Create, validate, and deploy Sigma detection rules for common attack techniques.
+  Covers rule syntax, field mapping, backend conversion, and deployment to SIEM platforms
+  including Splunk, Elastic, and Microsoft Sentinel.
+
+learning_objectives:
+  - Understand Sigma rule syntax and structure
+  - Write detection rules for MITRE ATT&CK techniques
+  - Convert Sigma rules to SIEM-specific query languages
+  - Test and validate rules against sample log data
+
+tools:
+  - "Sigma CLI"
+  - "Sigmac"
+  - "EVTX Dump"
+  - "Python 3"
+  - "Splunk"
+  - "Elastic SIEM"
+  - "Microsoft Sentinel"
+
+prerequisites:
+  - "Familiarity with SIEM platforms (Splunk, Elastic, or Sentinel)"
+  - "Understanding of Windows Event Log structure"
+  - "Knowledge of MITRE ATT&CK framework"
+  - "Sample log data for rule testing"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Install sigma-cli and review available backends"
+    commands:
+      - "pip3 install sigma-cli"
+      - "sigma list backends"
+      - "sigma list targets"
+      - "sigma list pipelines"
+      - "# Install backend plugins"
+      - "sigma plugin install splunk"
+      - "sigma plugin install elasticsearch"
+      - "sigma plugin install sentinel"
+      - "sigma --version"
+    expected_output: "Installed sigma-cli with available backends: splunk, elasticsearch, sentinel, etc."
+    detection: "N/A — setup phase"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Create Sigma rule for Kerberoasting detection (T1558.003)"
+    commands:
+      - "cat > /tmp/kerberoasting_detection.yml << 'EOF'\ntitle: Kerberoasting Activity Detected\nid: 556a5d02-1c30-4c53-a4a6-62a5c7e9e3c4\nstatus: stable\ndescription: Detects Kerberoasting activity via high volume of TGS requests with RC4 encryption\nauthor: Security Team\ndate: 2024/01/01\nmodified: 2024/01/01\ntags:\n    - attack.credential_access\n    - attack.t1558.003\nlogsource:\n    product: windows\n    service: security\ndetection:\n    selection:\n        EventID: 4769\n        TicketEncryptionType: '0x17'\n        TicketOptions: '0x40810000'\n    filter_computer_accounts:\n        ServiceName|endswith: '$'\n    filter_local:\n        IpAddress: '::1'\n    condition: selection and not 1 of filter_*\nfalsepositives:\n    - Older systems using RC4 encryption legitimately\n    - Service accounts configured for RC4\nlevel: high\nfields:\n    - EventID\n    - ServiceName\n    - TicketEncryptionType\n    - SubjectUserName\n    - IpAddress\nEOF"
+      - "# Validate rule syntax"
+      - "sigma check /tmp/kerberoasting_detection.yml"
+    expected_output: "Valid Sigma rule file for Kerberoasting detection"
+    detection: "N/A — rule creation phase"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Create Sigma rule for LSASS memory access (T1003.001)"
+    commands:
+      - "cat > /tmp/lsass_access.yml << 'EOF'\ntitle: LSASS Memory Access by Non-System Process\nid: a7ae4ffc-2d7e-4e4e-8b8a-d3b1e2c4a5f6\nstatus: stable\ndescription: Detects access to LSASS memory which may indicate credential dumping\nauthor: Security Team\ndate: 2024/01/01\ntags:\n    - attack.credential_access\n    - attack.t1003.001\nlogsource:\n    category: process_access\n    product: windows\ndetection:\n    selection:\n        TargetImage|endswith: '\\\\lsass.exe'\n        GrantedAccess|contains:\n            - '0x1010'\n            - '0x1410'\n            - '0x147a'\n            - '0x1fffff'\n    filter_legitimate:\n        SourceImage|startswith:\n            - 'C:\\\\Windows\\\\System32\\\\'\n            - 'C:\\\\Windows\\\\SysWOW64\\\\'\n            - 'C:\\\\Program Files\\\\'\n    condition: selection and not filter_legitimate\nfalsepositives:\n    - Legitimate security tools like AV/EDR\n    - Backup agents with SYSTEM privileges\nlevel: high\nfields:\n    - SourceImage\n    - TargetImage\n    - GrantedAccess\n    - CallTrace\nEOF"
+      - "sigma check /tmp/lsass_access.yml"
+    expected_output: "Valid Sigma rule for LSASS access detection using Sysmon Event ID 10"
+    detection: "N/A — rule creation phase"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Convert Sigma rules to Splunk SPL"
+    commands:
+      - "# Convert Kerberoasting rule to Splunk"
+      - "sigma convert -t splunk /tmp/kerberoasting_detection.yml"
+      - "# Convert with specific pipeline"
+      - "sigma convert -t splunk -p splunk_windows /tmp/kerberoasting_detection.yml"
+      - "# Convert LSASS rule"
+      - "sigma convert -t splunk -p splunk_windows_sysmon /tmp/lsass_access.yml"
+      - "# Convert entire directory"
+      - "sigma convert -t splunk -p splunk_windows /tmp/sigma_rules/ -o /tmp/splunk_queries.conf"
+    expected_output: "SPL queries ready for deployment to Splunk ES"
+    detection: "N/A — conversion phase"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Convert Sigma rules to Elastic KQL and ESQL"
+    commands:
+      - "# Convert to Elasticsearch (Lucene)"
+      - "sigma convert -t elasticsearch /tmp/kerberoasting_detection.yml"
+      - "# Convert to Elasticsearch EQL"
+      - "sigma convert -t elasticsearch -f eql /tmp/kerberoasting_detection.yml"
+      - "# Convert to Kibana NDJSON (importable)"
+      - "sigma convert -t elasticsearch -f kibana_ndjson /tmp/kerberoasting_detection.yml -o /tmp/kibana_rule.ndjson"
+      - "# Convert LSASS rule"
+      - "sigma convert -t elasticsearch -f eql /tmp/lsass_access.yml"
+    expected_output: "Elasticsearch queries and Kibana-importable NDJSON files"
+    detection: "N/A — conversion phase"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "Convert Sigma rules to Microsoft Sentinel KQL"
+    commands:
+      - "# Convert to Sentinel KQL"
+      - "sigma convert -t sentinel /tmp/kerberoasting_detection.yml"
+      - "sigma convert -t sentinel /tmp/lsass_access.yml"
+      - "# Convert with Sentinel pipeline"
+      - "sigma convert -t sentinel -p sentinel_windows /tmp/kerberoasting_detection.yml"
+      - "# Batch convert all rules"
+      - "for f in /tmp/sigma_rules/*.yml; do echo \"=== $f ===\"; sigma convert -t sentinel -p sentinel_windows $f; done"
+    expected_output: "KQL queries ready for deployment to Microsoft Sentinel analytics rules"
+    detection: "N/A — conversion phase"
+
+  - id: "step7"
+    phase: "post_exploitation"
+    action: "Test rule against sample EVTX log data"
+    commands:
+      - "# Install evtx_dump"
+      - "pip3 install evtx"
+      - "# Dump EVTX to JSON for testing"
+      - "evtx_dump /var/log/evtx/Security.evtx -f json > /tmp/security_events.json"
+      - "# Test rule against JSON logs using zircolite"
+      - "pip3 install zircolite"
+      - "zircolite --evtx /var/log/evtx/Security.evtx --ruleset /tmp/kerberoasting_detection.yml"
+      - "# Batch test multiple rules"
+      - "zircolite --evtx /var/log/evtx/ --ruleset /tmp/sigma_rules/ --outfile /tmp/detections.json"
+    expected_output: "Matched events from EVTX files showing rule effectiveness"
+    detection: "N/A — testing phase"
+
+compliance_controls:
+  - standard: "NIST 800-53 Rev5"
+    control: "SI-4"
+    description: "System monitoring — implement detection capabilities"
+  - standard: "CIS Controls v8"
+    control: "8.11"
+    description: "Conduct audit log reviews"
+  - standard: "SOC2 CC7.2"
+    control: "CC7.2"
+    description: "Monitor system components for anomalous behavior"
+  - standard: "PCI DSS v4.0"
+    control: "10.7.1"
+    description: "Failures of critical security controls are detected and responded to"
+
+detection:
+  network_indicators:
+    - "N/A — detection rule creation is a blue team activity"
+  log_indicators:
+    - "Sigma rule matches generate alerts in SIEM"
+    - "SIEM correlation rule triggers on matched events"
+  endpoint_indicators:
+    - "Zircolite rule matches in output JSON"
+
+remediation:
+  immediate:
+    - "Deploy validated Sigma rules to SIEM immediately after attack indicators are identified"
+    - "Enable required log sources (Sysmon, Windows Security, PowerShell) before deploying rules"
+    - "Tune rules to reduce false positives before enabling alerting"
+  long_term:
+    - "Maintain Sigma rule library aligned with current MITRE ATT&CK coverage"
+    - "Automate rule deployment via CI/CD pipeline"
+    - "Conduct regular purple team exercises to validate detection coverage"
+    - "Subscribe to community Sigma rule repositories (SigmaHQ)"
+
+variables:
+  siem_platform: "splunk"
+  sigma_rules_dir: "/tmp/sigma_rules"
+  output_dir: "/tmp/converted_rules"
+  evtx_path: "/var/log/evtx/Security.evtx"
+
+assessment_questions:
+  - "What is the Sigma rule 'logsource' field and why is it important?"
+  - "How does the 'condition' field in a Sigma rule work with multiple detection criteria?"
+  - "What is the difference between 'contains', 'startswith', and 'endswith' modifiers?"
+  - "Why should you test Sigma rules against historical EVTX data before deployment?"
+  - "How do you reduce false positives in a Sigma rule using filter conditions?"
+
+references:
+  - url: "https://github.com/SigmaHQ/sigma"
+    title: "SigmaHQ - Sigma Rules Repository"
+  - url: "https://sigmahq.io/docs/"
+    title: "Sigma Documentation"
+  - url: "https://github.com/wagga40/Zircolite"
+    title: "Zircolite - Sigma Rule Testing"
+  - url: "https://attack.mitre.org/"
+    title: "MITRE ATT&CK Framework"

@@ -1,0 +1,130 @@
+name: "Contractor/Vendor Access Review"
+id: "HR-04"
+category: "HR & Identity Lifecycle"
+subcategory: "Process Verification"
+difficulty: "intermediate"
+estimated_time: "35"
+
+tags:
+  - hr
+  - identity-lifecycle
+  - vendor
+  - contractor
+  - third-party
+  - guest-user
+  - b2b
+  - access-review
+  - time-bound
+  - contract-management
+  - soc2
+  - cc6.1
+  - compliance
+  - process-audit
+
+description: |
+  Ensure third-party access is time-bound, reviewed, and removed when
+  contracts end. Validates SOC 2 CC6.1 for external party access governance.
+
+learning_objectives:
+  - Identify all contractor/vendor accounts in identity systems
+  - Verify access has defined expiration dates
+  - Confirm periodic access reviews occur
+  - Check for expired contracts with active access
+  - Validate vendor background check documentation
+
+tools:
+  - "Azure AD / Active Directory"
+  - "Contract management system"
+  - "ITSM platform"
+  - "Access certification platform"
+
+prerequisites:
+  - "Read access to identity platform and contract system"
+  - "Vendor account identification criteria (naming convention, domain, type)"
+
+steps:
+  - id: "step1"
+    phase: "enumeration"
+    action: "Identify all contractor and vendor accounts"
+    commands:
+      - "Get-MgUser -All | Where-Object { $_.UserPrincipalName -match 'vendor|contractor|consultant|external|temp' -or $_.UserType -eq 'Guest' } | Select-Object UserPrincipalName, DisplayName, UserType, AccountEnabled, @{N='Created';E={$_.CreatedDateTime}}, @{N='LastSignIn';E={$_.SignInActivity.LastSignInDateTime}}, @{N='ExternalUserState';E={$_.ExternalUserState}}"
+      - "# Also check for service principals owned by vendors"
+      - "Get-MgServicePrincipal -All | Where-Object { $_.PublisherName -notin @('Microsoft','Microsoft Services') } | Select-Object DisplayName, AppId, PublisherName, AccountEnabled"
+    expected_output: "Complete inventory of external accounts with their status and activity"
+    detection: "N/A - audit enumeration"
+
+  - id: "step2"
+    phase: "verification"
+    action: "Cross-reference with contract end dates"
+    commands:
+      - "SELECT c.vendor_name, c.contract_id, c.start_date, c.end_date, c.renewal_date, c.status, u.user_principal_name, u.account_enabled FROM contracts c JOIN vendor_accounts u ON c.vendor_name = u.vendor_name WHERE c.end_date < NOW() AND u.account_enabled = 1"
+    expected_output: "Active accounts for contracts that have ended"
+    detection: "N/A - audit verification"
+
+  - id: "step3"
+    phase: "verification"
+    action: "Verify access expiration dates are set"
+    commands:
+      - "Get-MgUser -UserId {vendor_upn} | Select-Object UserPrincipalName, @{N='AccountExpirationDate';E={$_.EmployeeHireDate}} # Check custom attribute or extension"
+      - "# For Azure AD B2B guests, check external user expiration"
+      - "Get-MgUser -UserId {vendor_upn} | Select-Object UserPrincipalName, ExternalUserState, @{N='InvitedDate';E={$_.ExternalUserStateChangeDateTime}}"
+    expected_output: "Vendor accounts with or without expiration/renewal dates"
+    detection: "N/A - audit verification"
+
+  - id: "step4"
+    phase: "verification"
+    action: "Check for access review completion"
+    commands:
+      - "SELECT review_id, target_user, reviewer, review_status, completion_date, decision FROM access_reviews WHERE target_user IN ({vendor_upns}) AND review_date >= DATE_SUB(NOW(), INTERVAL 6 MONTH)"
+    expected_output: "Access review status for vendor accounts"
+    detection: "N/A - audit verification"
+
+  - id: "step5"
+    phase: "post_exploitation"
+    action: "Generate vendor access risk report"
+    commands:
+      - "TotalVendorAccounts: 25; ActiveAfterContractEnd: 3; NoExpirationSet: 8; NoReviewIn6Months: 5; PassRate: 68%"
+    expected_output: "Vendor access risk metrics for SOC 2 evidence"
+    detection: "N/A - audit reporting"
+
+compliance_controls:
+  - standard: "SOC 2"
+    control: "CC6.1"
+    description: "Logical access controls - vendor access governance"
+  - standard: "NIST 800-53"
+    control: "AC-2(1)"
+    description: "Account Management - automated system account management"
+
+detection:
+  network_indicators:
+    - "N/A - process audit"
+  log_indicators:
+    - "Vendor account sign-ins after contract expiration"
+    - "Guest user access without recent review"
+  endpoint_indicators:
+    - "N/A - process audit"
+
+remediation:
+  immediate:
+    - "Disable all vendor accounts for expired contracts"
+    - "Set expiration dates on all active vendor accounts"
+    - "Require access reviews every 90 days for vendor access"
+  long_term:
+    - "Implement automated vendor access lifecycle management"
+    - "Integrate contract management with identity platform"
+    - "Deploy Azure AD Access Reviews for recurring vendor certification"
+    - "Require vendor background checks before access provisioning"
+
+variables:
+  vendor_upn: "[VENDOR_USER_PRINCIPAL_NAME]"
+  contract_end_date: "[CONTRACT_END_DATE]"
+
+assessment_questions:
+  - "Are all vendor accounts time-bound with expiration dates?"
+  - "How many vendor accounts remain active after contract expiration?"
+  - "Are vendor access reviews conducted quarterly?"
+  - "Is vendor access limited to specific resources?"
+
+references:
+  - url: "https://www.aicpa.org/content/dam/aicpa/interestareas/frc/assuranceadvisoryservices/downloadabledocuments/trust-services-criteria.pdf"
+    title: "AICPA Trust Services Criteria"

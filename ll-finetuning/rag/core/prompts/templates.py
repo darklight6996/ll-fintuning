@@ -4,6 +4,7 @@ core/prompts/templates.py
 Multi-model token framing and chat template formatting.
 Supports:
 - Qwen (ChatML tokens: <|im_start|> / <|im_end|>)
+- Alpaca / TinyLlama (### Instruction: / ### Response:)
 - Llama 3 (<|start_header_id|> / <|end_header_id|>)
 - Mistral ([INST] / [/INST])
 - Gemma (<start_of_turn> / <end_of_turn>)
@@ -17,6 +18,7 @@ from typing import Union, Optional, Any, Dict, List
 
 class ModelFamily(str, Enum):
     QWEN = "qwen"
+    ALPACA = "alpaca"
     LLAMA = "llama"
     MISTRAL = "mistral"
     GEMMA = "gemma"
@@ -29,9 +31,9 @@ def detect_model_family(model_name: Optional[str]) -> ModelFamily:
     Detect the target ModelFamily from model identifier or path.
 
     Recognised patterns:
-    - Qwen family: qwen
-    - Llama family: llama, tinyllama, alpaca, and DarkLight6996 custom adapters
-      (CyberSec-Model-V2 is TinyLlama-based; CyberSec-Qwen-V1 is Qwen-based)
+    - Qwen family: qwen, cybersec-qwen
+    - Alpaca / TinyLlama: tinyllama, alpaca, cybersec-model
+    - Llama 3 family: llama, llama-3, llama3
     - Mistral family: mistral, zephyr, mixtral
     - Gemma family: gemma
     - DeepSeek family: deepseek
@@ -42,17 +44,11 @@ def detect_model_family(model_name: Optional[str]) -> ModelFamily:
 
     m = model_name.lower()
 
-    # Known DarkLight6996 custom adapter families
-    # CyberSec-Qwen-V1  → Qwen base
-    # CyberSec-Model-V2 → TinyLlama base
-    if "cybersec-qwen" in m:
+    if "cybersec-qwen" in m or "qwen" in m:
         return ModelFamily.QWEN
-    if "cybersec-model" in m or ("darklight" in m and "qwen" not in m):
-        return ModelFamily.LLAMA
-
-    if "qwen" in m:
-        return ModelFamily.QWEN
-    elif "llama" in m or "tinyllama" in m or "alpaca" in m:
+    if "tinyllama" in m or "alpaca" in m or "cybersec-model" in m:
+        return ModelFamily.ALPACA
+    elif "llama" in m:
         return ModelFamily.LLAMA
     elif "mistral" in m or "zephyr" in m or "mixtral" in m:
         return ModelFamily.MISTRAL
@@ -115,7 +111,13 @@ class PromptTemplate:
                 f"<|im_start|>assistant\n"
             )
 
-        # 3. Llama 3 Framing
+        # 3. Alpaca / TinyLlama Framing
+        elif fam == ModelFamily.ALPACA:
+            return (
+                f"### Instruction:\n{sys_str}\n\n{usr_str}\n\n### Response:\n"
+            )
+
+        # 4. Llama 3 Framing
         elif fam == ModelFamily.LLAMA:
             return (
                 f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n"
@@ -123,20 +125,20 @@ class PromptTemplate:
                 f"{usr_str}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
             )
 
-        # 4. Mistral / Zephyr Framing
+        # 5. Mistral / Zephyr Framing
         elif fam == ModelFamily.MISTRAL:
             return (
                 f"<s>[INST] {sys_str}\n\n{usr_str} [/INST]"
             )
 
-        # 5. Gemma Framing
+        # 6. Gemma Framing
         elif fam == ModelFamily.GEMMA:
             return (
                 f"<start_of_turn>user\n{sys_str}\n\n{usr_str}<end_of_turn>\n"
                 f"<start_of_turn>model\n"
             )
 
-        # 6. DeepSeek Framing
+        # 7. DeepSeek Framing
         elif fam == ModelFamily.DEEPSEEK:
             return (
                 f"<｜begin of sentence｜>{sys_str}\n\n"
@@ -144,6 +146,6 @@ class PromptTemplate:
                 f"Assistant: <｜thought｜>\n"
             )
 
-        # 7. Standard / Raw Text Fallback
+        # 8. Standard / Raw Text Fallback
         else:
             return f"{sys_str}\n\n{usr_str}\n\nAssistant:\n"

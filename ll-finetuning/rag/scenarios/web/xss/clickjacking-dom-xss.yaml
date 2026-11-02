@@ -1,0 +1,96 @@
+# Category: Clickjacking
+name: "Exploiting clickjacking vulnerability to trigger DOM-based XSS"
+id: "clickjacking-dom-xss-001"
+category: "clickjacking"
+subcategory: "dom_xss"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This scenario covers combining clickjacking with DOM-based XSS. The attacker
+  uses clickjacking to trick the victim into clicking on a page that contains
+  a DOM XSS vulnerability, which then executes JavaScript in the victim's
+  browser. This allows the attacker to bypass CSRF tokens or perform actions
+  that require user interaction.
+
+learning_objectives:
+  - Understand the combination of clickjacking and DOM XSS
+  - Identify DOM XSS vulnerabilities that require user interaction
+  - Use clickjacking to trigger DOM XSS
+  - Bypass CSRF protections via DOM XSS
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Target has DOM XSS triggered by user interaction
+  - Target can be framed (no X-Frame-Options)
+  - Victim has an active session
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify DOM XSS triggered by user interaction"
+    commands:
+      - "# Look for JavaScript that processes user input on click events"
+      - "# Example: onload, onclick, or user-triggered events"
+    expected_output: "DOM XSS vulnerability identified"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Combine clickjacking with DOM XSS"
+    commands:
+      - "# Create a clickjacking overlay that triggers the DOM XSS"
+      - "# The DOM XSS payload executes when the user clicks"
+      - "# This can be used to steal tokens or perform actions"
+    expected_output: "DOM XSS executes, stealing CSRF tokens or performing actions"
+    detection: "Web server logs may show the payload"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Escalate to account takeover"
+    commands:
+      - "# Use the stolen tokens to perform state-changing actions"
+    expected_output: "Victim's account compromised"
+    detection: "Security alerts for unauthorized actions"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1204"
+    description: "User Execution"
+  - standard: "OWASP"
+    control: "A04:2021"
+    description: "Insecure Design"
+
+detection:
+  network_indicators:
+    - "Requests with DOM XSS payloads"
+  log_indicators:
+    - "State-changing actions from clickjacking contexts"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Fix DOM XSS vulnerabilities"
+    - "Set X-Frame-Options: DENY"
+  long_term:
+    - "Use proper output encoding and secure coding practices"
+    - "Implement Content Security Policy"
+
+variables:
+  target_url: "https://target.com/page#xss_payload"
+  dom_xss_payload: "<img src=x onerror='alert(1)'>"
+
+assessment_questions:
+  - "How can clickjacking trigger DOM XSS?"
+  - "What is the relationship between clickjacking and XSS?"
+  - "How can you prevent this type of attack?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/Clickjacking"
+    title: "OWASP Clickjacking"
+  - url: "https://portswigger.net/web-security/clickjacking"
+    title: "PortSwigger Clickjacking"

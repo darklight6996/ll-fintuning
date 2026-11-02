@@ -14,6 +14,7 @@ Why this matters:
 
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, AutoModelForCausalLM
 from typing import Optional
+import os
 import torch
 
 _GLOBAL_ROUTER: Optional["ModelRouter"] = None
@@ -33,9 +34,10 @@ class ModelRouter:
 
     Main responsibilities:
     1. Load the correct tokenizer
-    2. Load the correct model
-    3. Put the model on the right device (CPU or GPU)
-    4. Expose a clean generate(prompt) function
+    2. Load the correct model (with 4-bit quantization on GPU where appropriate)
+    3. Attach PEFT LoRA adapters from Hugging Face or local path via PeftModel.from_pretrained()
+    4. Put the model on the right device (CPU or GPU)
+    5. Expose a clean generate(prompt) function
     """
 
     def __init__(
@@ -43,36 +45,29 @@ class ModelRouter:
         model_name: str,
         mode: str = "cpu",
         max_input_tokens: int = 2048,
-        max_new_tokens: int = 256
+        max_new_tokens: int = 256,
+        adapter_path: Optional[str] = None,
+        adapter_repo: Optional[str] = None,
     ):
         """
         Parameters
         ----------
         model_name : str
             Hugging Face model name or local model path.
-
-            Example CPU model:
-                "google/flan-t5-base"
-
-            Example GPU model:
-                "mistralai/Mistral-7B-Instruct-v0.2"
-
         mode : str
             Either "cpu" or "gpu".
-            This controls how the model is loaded.
-
         max_input_tokens : int
             Maximum number of input tokens the prompt can use.
-            If prompt is too long, tokenizer will truncate.
-
         max_new_tokens : int
             Maximum number of tokens the model is allowed to generate.
+        adapter_path : Optional[str]
+            Hugging Face repo ID or local path to LoRA adapter weights.
         """
-
         self.model_name = model_name
         self.mode = mode.lower()
         self.max_input_tokens = max_input_tokens
         self.max_new_tokens = max_new_tokens
+        self.adapter_path = adapter_path or adapter_repo
 
         self.tokenizer = None
         self.model = None
@@ -87,22 +82,66 @@ class ModelRouter:
     def _load_model(self):
         """
         Loads tokenizer + model depending on CPU or GPU mode,
-        with seamless support for PEFT LoRA adapters (TinyLlama/Qwen)
-        and 4-bit quantization on GPU for 7B models.
+        with seamless support for loading PEFT LoRA adapters (TinyLlama/Qwen)
+        via PeftModel.from_pretrained() and 4-bit quantization on GPU for 7B models.
         """
         is_peft = False
         base_model_name = self.model_name
-        adapter_path = None
+        adapter_to_load = self.adapter_path
 
+        # 1. Check if model_name itself is a PEFT adapter
         try:
             from peft import PeftConfig
             peft_config = PeftConfig.from_pretrained(self.model_name)
             is_peft = True
-            base_model_name = peft_config.base_model_name_or_path
-            adapter_path = self.model_name
+            base_model_name = peft_config.base_model_name_or_path or base_model_name
+            adapter_to_load = self.model_name
             print(f"[*] Detected PEFT LoRA adapter: {self.model_name} (Base: {base_model_name})")
         except Exception:
-            is_peft = False
+            pass
+
+        # 2. Check if explicit adapter_path was provided
+        if not is_peft and adapter_to_load:
+            try:
+                from peft import PeftConfig
+                peft_config = PeftConfig.from_pretrained(adapter_to_load)
+                is_peft = True
+                if peft_config.base_model_name_or_path:
+                    base_model_name = peft_config.base_model_name_or_path
+                print(f"[*] Configured PEFT LoRA adapter: {adapter_to_load} (Base: {base_model_name})")
+            except Exception:
+                is_peft = True
+                print(f"[*] Using PEFT LoRA adapter: {adapter_to_load}")
+
+        # 3. Check known HF repositories or local lora-adapters if not yet resolved
+        if not is_peft:
+            from core.config import LORA_ADAPTER_PATH
+            lower_name = self.model_name.lower()
+            candidate_hf = None
+            if "tinyllama" in lower_name:
+                candidate_hf = "DarkLight6996/CyberSec-Model-V2"
+            elif "qwen" in lower_name:
+                candidate_hf = "DarkLight6996/CyberSec-Qwen-V1"
+
+            candidate_local = None
+            if os.path.exists(LORA_ADAPTER_PATH):
+                if "qwen" in lower_name and os.path.exists(os.path.join(LORA_ADAPTER_PATH, "qwen-qlora")):
+                    candidate_local = os.path.join(LORA_ADAPTER_PATH, "qwen-qlora")
+                elif os.path.exists(os.path.join(LORA_ADAPTER_PATH, "adapter_config.json")):
+                    candidate_local = LORA_ADAPTER_PATH
+
+            chosen_adapter = candidate_local or candidate_hf
+            if chosen_adapter:
+                try:
+                    from peft import PeftConfig
+                    peft_config = PeftConfig.from_pretrained(chosen_adapter)
+                    is_peft = True
+                    adapter_to_load = chosen_adapter
+                    if peft_config.base_model_name_or_path:
+                        base_model_name = peft_config.base_model_name_or_path
+                    print(f"[*] Auto-discovered fine-tuned LoRA adapter: {chosen_adapter} (Base: {base_model_name})")
+                except Exception:
+                    pass
 
         print(f"Loading tokenizer for: {base_model_name}")
         try:
@@ -129,9 +168,10 @@ class ModelRouter:
                 self.model = AutoModelForSeq2SeqLM.from_pretrained(base_model_name)
             else:
                 self.model = AutoModelForCausalLM.from_pretrained(base_model_name)
-            if is_peft:
+            if is_peft and adapter_to_load:
                 from peft import PeftModel
-                self.model = PeftModel.from_pretrained(self.model, adapter_path)
+                print(f"[*] Attaching PEFT LoRA adapter from {adapter_to_load} via PeftModel.from_pretrained()...")
+                self.model = PeftModel.from_pretrained(self.model, adapter_to_load)
             self.model.to(self.device)
 
         elif self.mode == "gpu":
@@ -141,29 +181,36 @@ class ModelRouter:
             self.device = "cuda"
             print("Loading model in GPU mode...")
 
-            # Broaden 4-bit detection: any large causal model benefits from 4-bit quantization
-            # (7B+, Qwen, Mistral, or any PEFT/fine-tuned derivative like CyberSec-Model-V2)
-            use_4bit = (
+            use_large_model = (
                 "7b" in lower_base
                 or "qwen" in lower_base
                 or "mistral" in lower_base
-                or is_peft  # LoRA adapters on 7B+ base models always use 4-bit
+                or is_peft
             )
-            if use_4bit and model_family == "causal":
-                from transformers import BitsAndBytesConfig
-                print("[*] Applying 4-bit NF4 quantization for GPU loading...")
-                bnb_config = BitsAndBytesConfig(
-                    load_in_4bit=True,
-                    bnb_4bit_quant_type="nf4",
-                    bnb_4bit_use_double_quant=True,
-                    bnb_4bit_compute_dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
-                )
-                self.model = AutoModelForCausalLM.from_pretrained(
-                    base_model_name,
-                    quantization_config=bnb_config,
-                    device_map="auto",
-                    attn_implementation="sdpa"
-                )
+            if use_large_model and model_family == "causal":
+                try:
+                    print("[*] Loading in float16 with device_map=auto (fast path)...")
+                    self.model = AutoModelForCausalLM.from_pretrained(
+                        base_model_name,
+                        torch_dtype=torch.float16,
+                        device_map="auto",
+                    )
+                    print("[+] float16 load successful.")
+                except Exception as oom_err:
+                    print(f"[!] float16 load failed ({oom_err}), falling back to 4-bit NF4...")
+                    from transformers import BitsAndBytesConfig
+                    bnb_config = BitsAndBytesConfig(
+                        load_in_4bit=True,
+                        bnb_4bit_quant_type="nf4",
+                        bnb_4bit_use_double_quant=True,
+                        bnb_4bit_compute_dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+                    )
+                    self.model = AutoModelForCausalLM.from_pretrained(
+                        base_model_name,
+                        quantization_config=bnb_config,
+                        device_map="auto",
+                        attn_implementation="sdpa"
+                    )
             else:
                 if model_family == "seq2seq":
                     self.model = AutoModelForSeq2SeqLM.from_pretrained(
@@ -178,10 +225,10 @@ class ModelRouter:
                         device_map="auto"
                     )
 
-            if is_peft:
+            if is_peft and adapter_to_load:
                 from peft import PeftModel
-                print(f"[*] Attaching PEFT LoRA adapter from {adapter_path}...")
-                self.model = PeftModel.from_pretrained(self.model, adapter_path)
+                print(f"[*] Attaching PEFT LoRA adapter from {adapter_to_load} via PeftModel.from_pretrained()...")
+                self.model = PeftModel.from_pretrained(self.model, adapter_to_load)
 
         else:
             raise ValueError("mode must be either 'cpu' or 'gpu'")
@@ -194,50 +241,71 @@ class ModelRouter:
     # ============================================================
 
     def _prepare_inputs(self, prompt: str):
-        """
-        Tokenize the input prompt into tensors.
-
-        Why this is separated into its own function:
-        - keeps generate() cleaner
-        - easier to debug prompt/tokenization issues
-        - later you can add logging, token counts, prompt inspection, etc.
-
-        Returns
-        -------
-        dict
-            Tokenized tensors ready to be passed into model.generate()
-        """
-
+        """Tokenize the input prompt into tensors."""
         inputs = self.tokenizer(
             prompt,
             return_tensors="pt",
             truncation=True,
             max_length=self.max_input_tokens
         )
-
-        # Move tokenized tensors to correct device if needed
         for key in inputs:
             inputs[key] = inputs[key].to(self.device)
-
         return inputs
 
     # ============================================================
     # GENERATION
     # ============================================================
 
+    def _format_prompt(self, prompt: str, system_prompt: Optional[str] = None) -> str:
+        """
+        Apply chat template or Alpaca framing for causal instruction models.
+        """
+        chat_tokens = ("<|im_start|>", "<|start_header_id|>", "[INST]", "<start_of_turn>", "### Instruction:")
+        if any(tok in prompt for tok in chat_tokens):
+            return prompt
+
+        lower = self.model_name.lower()
+        is_instruct = "instruct" in lower or "chat" in lower or "qwen" in lower or "llama" in lower
+        has_template = hasattr(self.tokenizer, "chat_template") and self.tokenizer.chat_template is not None
+
+        if is_instruct and has_template:
+            sys_msg = (
+                system_prompt
+                or "You are an expert penetration-testing mentor and cybersecurity assistant."
+            )
+            messages = [
+                {"role": "system", "content": sys_msg},
+                {"role": "user", "content": prompt},
+            ]
+            try:
+                return self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+            except Exception:
+                pass
+
+        if "tinyllama" in lower or "alpaca" in lower:
+            sys_prefix = f"{system_prompt}\n\n" if system_prompt else ""
+            return f"### Instruction:\n{sys_prefix}{prompt}\n\n### Response:\n"
+
+        return prompt
+
     def generate(
         self,
         prompt: str,
         temperature: float = 0.2,
         top_p: float = 0.9,
-        do_sample: bool = True
+        do_sample: bool = True,
+        system_prompt: Optional[str] = None,
+        **kwargs
     ) -> str:
-        """
-        Generate a response from the loaded model.
-        """
-
-        inputs = self._prepare_inputs(prompt)
+        """Generate a response from the loaded model."""
+        formatted_prompt = self._format_prompt(prompt, system_prompt=system_prompt)
+        inputs = self._prepare_inputs(formatted_prompt)
         input_length = inputs["input_ids"].shape[1]
+
+        eos_ids = [self.tokenizer.eos_token_id] if self.tokenizer.eos_token_id else []
+        im_end = self.tokenizer.convert_tokens_to_ids("<|im_end|>")
+        if im_end and im_end not in eos_ids:
+            eos_ids.append(im_end)
 
         with torch.no_grad():
             outputs = self.model.generate(
@@ -246,10 +314,10 @@ class ModelRouter:
                 temperature=temperature,
                 top_p=top_p,
                 do_sample=do_sample,
-                pad_token_id=self.tokenizer.pad_token_id
+                pad_token_id=self.tokenizer.pad_token_id,
+                eos_token_id=eos_ids if eos_ids else None,
             )
 
-        # For causal models, decode only the newly generated tokens
         if "t5" in self.model_name.lower() or "flan" in self.model_name.lower():
             decoded = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
         else:
@@ -263,16 +331,14 @@ class ModelRouter:
     # ============================================================
 
     def info(self) -> dict:
-        """
-        Return basic information about the loaded model.
-        Useful for debugging and logging.
-        """
+        """Return basic information about the loaded model."""
         return {
             "model_name": self.model_name,
             "mode": self.mode,
             "device": self.device,
             "max_input_tokens": self.max_input_tokens,
-            "max_new_tokens": self.max_new_tokens
+            "max_new_tokens": self.max_new_tokens,
+            "adapter_path": self.adapter_path
         }
 
 
@@ -285,18 +351,16 @@ def get_global_model_router(
     mode: Optional[str] = None,
     max_input_tokens: Optional[int] = None,
     max_new_tokens: Optional[int] = None,
+    adapter_path: Optional[str] = None,
 ) -> Optional["ModelRouter"]:
     """
     Return the process-wide ModelRouter singleton.
     Creates it on first call using config defaults; subsequent calls return
     the cached instance regardless of arguments.
-
-    Returns None if model loading fails (CUDA unavailable, weights missing, etc.).
     """
     global _GLOBAL_ROUTER
     if _GLOBAL_ROUTER is None:
         try:
-            import torch
             from core.config import (
                 CPU_MODEL_NAME, GPU_MODEL_NAME,
                 CPU_MAX_INPUT_TOKENS, CPU_MAX_NEW_TOKENS,
@@ -317,8 +381,9 @@ def get_global_model_router(
                 mode=mode,
                 max_input_tokens=max_input_tokens,
                 max_new_tokens=max_new_tokens,
+                adapter_path=adapter_path
             )
         except Exception as exc:
             print(f"[!] get_global_model_router failed ({type(exc).__name__}: {exc})")
-            _GLOBAL_ROUTER = None  # type: ignore[assignment]
-    return _GLOBAL_ROUTER
+            _GLOBAL_ROUTER = None
+    return _GLOBAL_ROUTER

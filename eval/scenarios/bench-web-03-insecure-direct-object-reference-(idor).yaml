@@ -1,0 +1,14 @@
+id: BENCH-WEB-03
+name: Insecure Direct Object Reference (IDOR)
+category: web
+agent: bug_bounty
+target: http://127.0.0.1:8080/api/users/1001
+ground_truth_vulnerability: Horizontal privilege escalation via user ID tampering
+expected_phases:
+- recon
+- endpoint_discovery
+- vuln_validation
+required_action_ids:
+- endpoint_discovery
+- vuln_validation
+expected_finding_severity: high

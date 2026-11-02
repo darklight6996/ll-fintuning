@@ -1,0 +1,266 @@
+# Category: Forensics & Incident Response - Linux Forensics
+name: "Linux Forensics and Artifact Analysis"
+id: "forensics-linux-001"
+category: "forensics_incident_response"
+subcategory: "linux_forensics"
+difficulty: "intermediate"
+estimated_time: "90"
+
+tags:
+  - forensics
+  - linux
+  - incident-response
+  - bash-history
+  - syslog
+  - auditd
+  - timeline
+  - ext4
+  - artifacts
+  - ioc-extraction
+  - volatility
+  - log-analysis
+  - blue-team
+  - dfir
+  - nist-800-61
+  - mitre-t1070
+
+description: |
+  Collect and analyze Linux forensic artifacts during incident response investigations.
+  Covers filesystem timestamps, bash history, authentication logs, cron analysis,
+  network connections, and persistence mechanism identification.
+
+learning_objectives:
+  - Collect volatile and non-volatile Linux forensic artifacts
+  - Analyze auth logs, syslog, and auditd for attacker activity
+  - Build a MACB timeline from filesystem metadata
+  - Identify Linux persistence mechanisms installed by attackers
+
+tools:
+  - "sleuth_kit"
+  - "plaso"
+  - "log2timeline"
+  - "volatility3"
+  - "last"
+  - "ausearch"
+  - "grep"
+  - "python3"
+
+prerequisites:
+  - "Root or sudo access to Linux system under investigation"
+  - "Forensic workstation with analysis tools"
+  - "External storage for evidence collection"
+  - "Chain of custody documentation prepared"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Collect volatile data before shutdown"
+    commands:
+      - "# Timestamp evidence collection start"
+      - "date -u > /media/evidence/collection_start.txt"
+      - "# System information"
+      - "uname -a >> /media/evidence/system_info.txt"
+      - "uptime >> /media/evidence/system_info.txt"
+      - "# Running processes"
+      - "ps auxf > /media/evidence/processes.txt"
+      - "# Network connections"
+      - "ss -antp > /media/evidence/network_connections.txt"
+      - "netstat -antp >> /media/evidence/network_connections.txt 2>/dev/null"
+      - "# Logged-in users"
+      - "w > /media/evidence/logged_in_users.txt"
+      - "last -F -n 50 >> /media/evidence/logged_in_users.txt"
+      - "# Open files"
+      - "lsof > /media/evidence/open_files.txt"
+      - "# Loaded kernel modules"
+      - "lsmod > /media/evidence/kernel_modules.txt"
+      - "# Environment variables per process"
+      - "for pid in $(ls /proc | grep -E '^[0-9]+$'); do echo \"=== PID $pid ===\"; cat /proc/$pid/environ 2>/dev/null | tr '\\0' '\\n'; done > /media/evidence/process_env.txt"
+    expected_output: "Complete volatile state snapshot before evidence loss"
+    detection: "N/A — evidence collection by IR team"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Analyze authentication and SSH logs"
+    commands:
+      - "# Failed login attempts"
+      - "grep 'Failed password\\|Invalid user\\|authentication failure' /var/log/auth.log | tail -100"
+      - "grep 'Failed password\\|Invalid user' /var/log/secure 2>/dev/null | tail -100"
+      - "# Successful logins"
+      - "grep 'Accepted password\\|Accepted publickey\\|session opened' /var/log/auth.log | tail -50"
+      - "# New user accounts created"
+      - "grep 'new user\\|useradd\\|adduser' /var/log/auth.log"
+      - "# sudo usage"
+      - "grep 'sudo:' /var/log/auth.log | tail -50"
+      - "# SSH login source IPs"
+      - "grep 'Accepted' /var/log/auth.log | awk '{print $11}' | sort | uniq -c | sort -rn"
+      - "# Brute force detection — IPs with >10 failures"
+      - "grep 'Failed password' /var/log/auth.log | awk '{print $11}' | sort | uniq -c | sort -rn | head -20"
+      - "# last and lastb for login history"
+      - "last -F -n 100"
+      - "lastb -F -n 100 2>/dev/null"
+    expected_output: "Authentication timeline with source IPs, success/failure patterns, and sudo usage"
+    detection: "N/A — forensic log analysis"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Bash history and command reconstruction"
+    commands:
+      - "# Collect all user bash histories"
+      - "for user in $(cut -d: -f1 /etc/passwd); do home=$(eval echo ~$user); if [ -f $home/.bash_history ]; then echo \"=== $user ===\"; cat $home/.bash_history; fi; done > /media/evidence/all_bash_histories.txt"
+      - "# Root bash history"
+      - "cat /root/.bash_history"
+      - "cat /root/.zsh_history 2>/dev/null"
+      - "# Check for history deletion"
+      - "grep -r 'history -c\\|unset HISTFILE\\|HISTSIZE=0\\|rm.*bash_history' /var/log/ /home/*/.bash_history /root/.bash_history 2>/dev/null"
+      - "# Recover deleted history from memory (if still running)"
+      - "strings /proc/$(pgrep bash | head -1)/maps 2>/dev/null | grep -A2 -B2 'wget\\|curl\\|nc\\|ncat\\|python'"
+      - "# Check for commands run via cron or systemd"
+      - "journalctl -u cron --since '7 days ago' | grep -v 'No entries'"
+    expected_output: "Reconstructed command history showing attacker actions on the system"
+    detection: "N/A — forensic log analysis"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "Identify persistence mechanisms"
+    commands:
+      - "# Cron jobs — all users"
+      - "for user in $(cut -d: -f1 /etc/passwd); do crontab -l -u $user 2>/dev/null | grep -v '^#' | grep -v '^$' | sed \"s/^/$user: /\"; done"
+      - "cat /etc/crontab"
+      - "ls -la /etc/cron.d/ /etc/cron.daily/ /etc/cron.hourly/ /etc/cron.weekly/"
+      - "cat /etc/cron.d/* 2>/dev/null"
+      - "# Systemd services (new/modified)"
+      - "find /etc/systemd/system/ /lib/systemd/system/ -newer /etc/passwd -name '*.service' 2>/dev/null"
+      - "systemctl list-units --type=service --state=enabled | grep -v 'UNIT\\|load\\|listed'"
+      - "# SUID/SGID files modified recently"
+      - "find / -perm -4000 -newer /tmp -type f 2>/dev/null"
+      - "# SSH authorized keys (backdoor keys)"
+      - "for user in $(cut -d: -f1 /etc/passwd); do home=$(eval echo ~$user); if [ -f $home/.ssh/authorized_keys ]; then echo \"=== $user ===\"; cat $home/.ssh/authorized_keys; fi; done"
+      - "# /etc/passwd and /etc/shadow modifications"
+      - "stat /etc/passwd /etc/shadow | grep Modify"
+      - "grep ':0:' /etc/passwd"
+    expected_output: "All persistence mechanisms: cron, systemd, SUID, SSH keys, /etc/passwd backdoors"
+    detection: "N/A — forensic artifact analysis"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "Auditd log analysis for suspicious activity"
+    commands:
+      - "# Check if auditd is running"
+      - "systemctl status auditd"
+      - "# Search for execve calls (command execution)"
+      - "ausearch -sc execve --start today | head -100"
+      - "ausearch -sc execve -ui 0 --start 'this-week' | grep -A5 'proctitle'"
+      - "# Search for file access events"
+      - "ausearch -f /etc/passwd --start 'this-week'"
+      - "ausearch -f /etc/shadow --start 'this-week'"
+      - "# Search for network connections"
+      - "ausearch -sc connect --start 'this-week' | head -50"
+      - "# Search for privilege escalation"
+      - "ausearch -m USER_AUTH,USER_ACCT,CRED_ACQ --start 'this-week' | head -50"
+      - "# Generate audit report"
+      - "aureport --start 'this-week' --summary"
+      - "aureport --start 'this-week' --auth"
+      - "aureport --start 'this-week' --executable"
+    expected_output: "Auditd events showing command execution, file access, and privilege changes"
+    detection: "N/A — forensic log analysis"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "Network artifact collection and analysis"
+    commands:
+      - "# Current network connections"
+      - "ss -antp"
+      - "# Historical connections from netflow/logs"
+      - "grep 'ESTABLISHED\\|SYN' /var/log/syslog 2>/dev/null | head -50"
+      - "# Check /proc for network details per process"
+      - "cat /proc/net/tcp | awk 'NR>1 {printf \"%s:%s\\n\", $2, $3}' | while read local remote; do printf 'Local: '; printf '%d.%d.%d.%d:%d\\n' $(echo $local | awk -F: '{printf \"%d %d %d %d %d\", strtonum(\"0x\"substr($1,7,2)), strtonum(\"0x\"substr($1,5,2)), strtonum(\"0x\"substr($1,3,2)), strtonum(\"0x\"substr($1,1,2)), strtonum(\"0x\"$2)}'); done 2>/dev/null | head -20"
+      - "# DNS cache"
+      - "systemd-resolve --statistics"
+      - "# Check /etc/hosts for modifications"
+      - "cat /etc/hosts"
+      - "stat /etc/hosts | grep Modify"
+      - "# Routing table anomalies"
+      - "ip route show"
+      - "arp -n"
+    expected_output: "Network connection history, DNS cache, hosts file integrity, routing anomalies"
+    detection: "N/A — forensic network analysis"
+
+  - id: "step7"
+    phase: "post_exploitation"
+    action: "Build filesystem timeline with log2timeline/plaso"
+    commands:
+      - "# Install plaso"
+      - "pip3 install plaso"
+      - "# Create super timeline from disk image"
+      - "log2timeline.py /media/evidence/timeline.plaso /dev/sda"
+      - "# From mounted filesystem"
+      - "log2timeline.py /media/evidence/timeline.plaso /media/suspect_disk/"
+      - "# Filter and output to CSV"
+      - "psort.py -o l2tcsv -w /media/evidence/timeline.csv /media/evidence/timeline.plaso"
+      - "# Filter to specific time window (around incident)"
+      - "psort.py -o l2tcsv -w /media/evidence/filtered_timeline.csv /media/evidence/timeline.plaso 'date > \"2024-01-01 00:00:00\" AND date < \"2024-01-02 23:59:59\"'"
+      - "# Quick file MAC time analysis without plaso"
+      - "find / -xdev -newer /tmp/reference_time -not -path '/proc/*' -not -path '/sys/*' 2>/dev/null | while read f; do stat --printf='%y %n\\n' \"$f\"; done | sort > /media/evidence/modified_files.txt"
+    expected_output: "Super timeline CSV with all filesystem and log events sorted chronologically"
+    detection: "N/A — forensic timeline creation"
+
+compliance_controls:
+  - standard: "NIST 800-61 Rev2"
+    control: "Section 3.2"
+    description: "Evidence collection and handling during incident analysis"
+  - standard: "NIST 800-53 Rev5"
+    control: "IR-4"
+    description: "Incident handling"
+  - standard: "NIST 800-53 Rev5"
+    control: "AU-12"
+    description: "Audit record generation"
+  - standard: "PCI DSS v4.0"
+    control: "12.10.5"
+    description: "Incident response plan includes forensic procedures"
+
+detection:
+  network_indicators:
+    - "N/A — forensic analysis activity"
+  log_indicators:
+    - "Auditd: high-volume execve calls from compromised user"
+    - "Auth.log: successful login from unexpected IP followed by escalation"
+    - "Syslog: cron job executing from non-standard path"
+  endpoint_indicators:
+    - "Unauthorized SSH authorized_keys entry"
+    - "Systemd service with unusual ExecStart path"
+    - "New UID=0 entry in /etc/passwd"
+
+remediation:
+  immediate:
+    - "Disable compromised user accounts"
+    - "Remove unauthorized SSH keys and cron jobs"
+    - "Block attacker IP at network firewall"
+    - "Preserve forensic evidence before system changes"
+  long_term:
+    - "Enable auditd with CIS-recommended rules on all Linux systems"
+    - "Implement centralized log collection (SIEM) for all auth.log and syslog"
+    - "Deploy file integrity monitoring (FIM) on critical system files"
+    - "Conduct IR tabletop exercises using Linux attack scenarios"
+
+variables:
+  evidence_dir: "/media/evidence"
+  suspect_disk: "/dev/sda"
+  incident_start: "2024-01-01 00:00:00"
+  incident_end: "2024-01-02 23:59:59"
+
+assessment_questions:
+  - "What is the MACB timestamp and what does each letter represent?"
+  - "How can an attacker delete bash history and what forensic artifacts remain?"
+  - "What auditd rule detects privilege escalation via sudo?"
+  - "How does log2timeline differ from manual log analysis for timeline creation?"
+  - "What Linux files should always be checked for persistence backdoors?"
+
+references:
+  - url: "https://github.com/log2timeline/plaso"
+    title: "Plaso / Log2Timeline"
+  - url: "https://www.sleuthkit.org/"
+    title: "The Sleuth Kit"
+  - url: "https://linux-audit.com/linux-forensics/"
+    title: "Linux Forensics Guide"
+  - url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-61r2.pdf"
+    title: "NIST SP 800-61 Rev2"

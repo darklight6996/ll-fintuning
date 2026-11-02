@@ -209,7 +209,7 @@ class CyberAgent:
         intel_dict = self._extract_intel(state)
         intent = self.router.classify(query, state=state, intel=intel_dict)
 
-        # 2. Handle control-gate intents (reset, steering, recon) deterministically
+        # 2. Handle control-gate intents (reset) deterministically
         if intent.value == "reset":
             text = self.router.dispatch_fallback(
                 intent=intent,
@@ -224,22 +224,6 @@ class CyberAgent:
                 text=text,
                 intent=intent.value,
                 source="reset",
-                latency_ms=_elapsed_ms(t_start),
-            )
-        elif intent.value in ("steering", "recon"):
-            text = self.router.dispatch_fallback(
-                intent=intent,
-                query=query,
-                state=state,
-                intel=intel_dict,
-                rag_context="",
-                yaml_tactics=[],
-            )
-            self._save_turn(query, text)
-            return AgentResponse(
-                text=text,
-                intent=intent.value,
-                source="fallback",
                 latency_ms=_elapsed_ms(t_start),
             )
 

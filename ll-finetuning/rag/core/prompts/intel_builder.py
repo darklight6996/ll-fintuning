@@ -58,9 +58,13 @@ class IntelBuilder:
         if data.get("kernel"):
             lines.append(f"- Kernel: {str(data['kernel'])[:80]}")
 
-        # Current working directory
+        # Current working directory & discovered files
         if data.get("pwd"):
             lines.append(f"- PWD: {data['pwd']}")
+
+        if data.get("discovered_files"):
+            files = self._dedupe_list(data["discovered_files"])[:self.max_items_per_field]
+            lines.append(f"- Directory Files: {', '.join(files)}")
 
         # Network Recon
         if data.get("open_ports"):

@@ -1,0 +1,92 @@
+# Category: Cloud Security - GCP
+name: "GCP Identity-Aware Proxy (IAP) Bypass"
+id: "cloud-gcp-iap-bypass-001"
+category: "cloud_security"
+subcategory: "gcp"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Bypass GCP's Identity-Aware Proxy (IAP) by exploiting misconfigured
+  firewall rules or using a compromised service account to directly access
+  backend instances, bypassing the IAP authentication layer.
+
+learning_objectives:
+  - Understand IAP and its role in GCP
+  - Identify firewall rules that allow direct access to instances
+  - Use a compromised service account to SSH to instances
+  - Access internal resources without IAP
+
+tools:
+  - gcloud
+  - SSH
+  - curl
+
+prerequisites:
+  - GCP project with IAP-enabled instances
+  - Firewall rule allowing access from certain IPs (or all)
+  - Compromised credentials for a service account or user
+
+steps:
+  - id: "step1"
+    phase: "recon"
+    action: "Check firewall rules for instances"
+    commands:
+      - "gcloud compute firewall-rules list"
+      - "# Look for rules allowing tcp:22 from 0.0.0.0/0"
+    expected_output: "Open firewall rule"
+    detection: "Firewall changes logging"
+
+  - id: "step2"
+    phase: "exploit"
+    action: "SSH directly to instance using private key or credentials"
+    commands:
+      - "gcloud compute ssh <INSTANCE> --zone <ZONE>"
+      - "# If you have the private key, use regular SSH"
+    expected_output: "Access to instance without IAP"
+    detection: "Cloud Audit Logs show SSH connection"
+
+  - id: "step3"
+    phase: "post"
+    action: "Access internal metadata or other services"
+    expected_output: "Data exfiltration or pivot"
+    detection: "Anomalous access patterns"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1078"
+    description: "Valid Accounts"
+  - standard: "CIS GCP Foundations"
+    control: "3.2"
+    description: "Ensure IAP is used for SSH access"
+
+detection:
+  network_indicators:
+    - "SSH connections to instances from non‑IAP IPs"
+  log_indicators:
+    - "Cloud Audit Logs for compute.instances.start or .ssh"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Remove overly permissive firewall rules"
+    - "Restrict SSH access to only IAP IP range"
+  long_term:
+    - "Enforce IAP as the only access method"
+    - "Use OS Login with IAP"
+
+variables:
+  instance_name: "my-instance"
+  zone: "us-central1-a"
+
+assessment_questions:
+  - "What IP range does IAP use for SSH?"
+  - "How can you restrict SSH to only IAP?"
+  - "What is the difference between IAP and Cloud VPN?"
+
+references:
+  - url: "https://cloud.google.com/iap/docs/using-tcp-forwarding"
+    title: "GCP IAP"
+  - url: "https://cloud.google.com/compute/docs/instances/connecting-advanced"
+    title: "GCP SSH access"

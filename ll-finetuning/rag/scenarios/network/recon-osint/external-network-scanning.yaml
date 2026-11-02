@@ -1,0 +1,209 @@
+name: "External Network Scanning and Reconnaissance"
+id: "net-ext-scan-001"
+category: "Network Penetration Testing"
+subcategory: "External Reconnaissance"
+difficulty: "beginner"
+estimated_time: "60"
+
+tags:
+  - reconnaissance
+  - active-scanning
+  - passive-osint
+  - nmap
+  - masscan
+  - shodan
+  - subdomains
+  - network-security
+  - dns-enumeration
+  - mitre-t1595
+
+description: |
+  Perform external network reconnaissance and port scanning to map the attack surface
+  of a target organization. Covers passive OSINT, active scanning with Nmap, and
+  service version fingerprinting.
+
+learning_objectives:
+  - Enumerate external IP ranges, domains, and exposed services
+  - Use Nmap for TCP/UDP port scanning and service fingerprinting
+  - Identify vulnerabilities using Nmap NSE scripts
+  - Map exposed services to known CVEs
+
+tools:
+  - "Nmap"
+  - "Masscan"
+  - "Shodan CLI"
+  - "theHarvester"
+  - "Amass"
+  - "Dnsx"
+
+prerequisites:
+  - "Written authorization from target owner (scope document)"
+  - "Kali Linux or similar pentesting OS"
+  - "Network connectivity to target scope"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Passive OSINT — enumerate IP ranges and domains"
+    commands:
+      - "# DNS enumeration with amass"
+      - "amass enum -passive -d [target_domain] -o /tmp/amass_passive.txt"
+      - "# Active subdomain enumeration"
+      - "amass enum -active -d [target_domain] -brute -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -o /tmp/amass_active.txt"
+      - "# Email and host harvesting"
+      - "theHarvester -d [target_domain] -b google,bing,linkedin,shodan -l 500 -f /tmp/harvest.html"
+      - "# Certificate transparency lookup"
+      - "curl -s 'https://crt.sh/?q=%.[target_domain]&output=json' | python3 -m json.tool | grep 'name_value' | sort -u"
+      - "# ASN and IP range lookup"
+      - "whois -h whois.radb.net -- '-i origin AS[asn]' | grep 'route:'"
+    expected_output: "Subdomain list, IP ranges, email addresses, and exposed certificates"
+    detection: "Passive — no network traffic to target; crt.sh query logged by certificate authority"
+
+  - id: "step2"
+    phase: "reconnaissance"
+    action: "Shodan OSINT for exposed services"
+    commands:
+      - "# Install Shodan CLI"
+      - "pip3 install shodan"
+      - "shodan init [shodan_api_key]"
+      - "# Search for target organization"
+      - "shodan search 'org:\"[target_org]\"' --fields ip_str,port,product,version"
+      - "# Search by domain"
+      - "shodan search 'hostname:[target_domain]' --fields ip_str,port,product"
+      - "# Search for specific services"
+      - "shodan search 'org:\"[target_org]\" port:3389' --fields ip_str,port"
+      - "shodan search 'org:\"[target_org]\" port:22' --fields ip_str,port,version"
+      - "# Get full host info"
+      - "shodan host [target_ip]"
+    expected_output: "Exposed services, versions, and geographic distribution of target infrastructure"
+    detection: "Shodan lookup — Shodan crawls periodically, not initiated by assessment"
+
+  - id: "step3"
+    phase: "reconnaissance"
+    action: "Fast host discovery with Masscan"
+    commands:
+      - "# Fast host discovery on target range"
+      - "masscan [target_cidr] --rate=1000 -p22,80,443,445,3389,8080,8443 -oL /tmp/masscan_results.txt"
+      - "# Convert masscan output for nmap"
+      - "grep '^open' /tmp/masscan_results.txt | awk '{print $4}' | sort -u > /tmp/live_hosts.txt"
+      - "# Full port range fast scan"
+      - "masscan [target_cidr] --rate=500 -p0-65535 -oL /tmp/masscan_full.txt"
+    expected_output: "List of live hosts and open ports in target range"
+    detection: "High-rate SYN packets to target CIDR; firewall/IDS alerts for port scan"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "Nmap service version scanning on discovered hosts"
+    commands:
+      - "# Service version and OS detection"
+      - "nmap -sV -sC -O -iL /tmp/live_hosts.txt -oA /tmp/nmap_svc_scan"
+      - "# Specific port scan with version detection"
+      - "nmap -sV --version-intensity 5 -p80,443,8080,8443 [target_ip] -oA /tmp/nmap_web"
+      - "# UDP scan on common ports"
+      - "nmap -sU -p53,161,500,1194 [target_ip] -oA /tmp/nmap_udp"
+      - "# Aggressive scan (OS, version, scripts, traceroute)"
+      - "nmap -A -T4 [target_ip] -oA /tmp/nmap_aggressive"
+      - "# Parse XML output"
+      - "python3 -c \"import xml.etree.ElementTree as ET; tree=ET.parse('/tmp/nmap_svc_scan.xml'); [print(h.get('addr'),p.get('portid'),p.find('service').get('name',''),p.find('service').get('product','')) for h in tree.findall('.//host') for p in h.findall('.//port[@protocol=\\\"tcp\\\"]') if p.find('state').get('state')=='open']\""
+    expected_output: "Detailed service/version information for all open ports on live hosts"
+    detection: "TCP SYN/ACK scan pattern; version detection probes; Nmap NSE script requests"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "Nmap NSE vulnerability scanning"
+    commands:
+      - "# Run vuln category scripts"
+      - "nmap -sV --script=vuln [target_ip] -oA /tmp/nmap_vuln"
+      - "# Specific service scripts"
+      - "nmap -sV --script=http-title,http-headers,http-methods [target_ip] -p80,443,8080"
+      - "nmap --script=ssl-enum-ciphers -p443 [target_ip]"
+      - "nmap --script=smb-vuln-ms17-010 -p445 [target_ip]"
+      - "nmap --script=smb-vuln-cve-2020-0796 -p445 [target_ip]"
+      - "nmap --script=rdp-vuln-ms12-020 -p3389 [target_ip]"
+      - "nmap --script=ftp-anon,ftp-syst -p21 [target_ip]"
+      - "nmap --script=ssh-auth-methods -p22 [target_ip]"
+      - "# DNS zone transfer attempt"
+      - "nmap --script=dns-zone-transfer --script-args dns-zone-transfer.domain=[target_domain] -p53 [dns_server]"
+    expected_output: "Vulnerability findings including EternalBlue, SMBGhost, weak SSL ciphers"
+    detection: "NSE script probe patterns in web/application logs; vulnerability scan signatures in IDS"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "Web application discovery and fingerprinting"
+    commands:
+      - "# Web server fingerprinting"
+      - "nmap -sV --script=http-server-header,http-auth-finder,http-title -p80,443,8080,8443 [target_ip]"
+      - "# Directory and technology discovery"
+      - "whatweb -a 3 http://[target_ip] -v"
+      - "whatweb -a 3 https://[target_ip] -v"
+      - "# WAF detection"
+      - "wafw00f http://[target_ip]"
+      - "# Check for common paths"
+      - "curl -sk https://[target_ip]/robots.txt"
+      - "curl -sk https://[target_ip]/.well-known/security.txt"
+      - "curl -sk https://[target_ip]/sitemap.xml | head -50"
+    expected_output: "Web server type, version, CMS, WAF presence, and exposed paths"
+    detection: "HTTP requests with unusual user agents (Nmap, WhatWeb); WAF trigger logs"
+
+compliance_controls:
+  - standard: "NIST 800-53 Rev5"
+    control: "CA-8"
+    description: "Penetration testing — external network assessment"
+  - standard: "PCI DSS v4.0"
+    control: "11.4.1"
+    description: "Penetration testing methodology includes external network testing"
+  - standard: "ISO 27001:2022"
+    control: "A.8.8"
+    description: "Management of technical vulnerabilities"
+  - standard: "CIS Controls v8"
+    control: "18.1"
+    description: "Establish and maintain a penetration testing program"
+
+detection:
+  network_indicators:
+    - "High volume of SYN packets to multiple ports from single source IP"
+    - "Sequential port scanning pattern in firewall logs"
+    - "Nmap service detection probes (banner grabs on multiple services)"
+  log_indicators:
+    - "IDS/IPS alerts for port scan activity"
+    - "Web server access logs showing automated scanning user agents"
+    - "Firewall logs with blocked port scan attempts from external IP"
+  endpoint_indicators:
+    - "Multiple connection attempts from same external IP in short window"
+
+remediation:
+  immediate:
+    - "Review and minimize exposed services — close all unnecessary ports at firewall"
+    - "Patch any vulnerabilities identified (EternalBlue, SMBGhost, etc.)"
+    - "Disable SMBv1 and other deprecated protocol versions"
+  long_term:
+    - "Implement continuous external attack surface monitoring (ASM)"
+    - "Schedule quarterly external penetration tests"
+    - "Deploy honeypots to detect external scanning"
+    - "Implement egress filtering to prevent data exfiltration"
+
+variables:
+  target_domain: "example.com"
+  target_org: "Example Corp"
+  target_ip: "203.0.113.10"
+  target_cidr: "203.0.113.0/24"
+  dns_server: "203.0.113.1"
+  shodan_api_key: "YOUR_SHODAN_API_KEY"
+  asn: "12345"
+
+assessment_questions:
+  - "What is the difference between a SYN scan and a full TCP connect scan?"
+  - "How does Masscan differ from Nmap in terms of speed and accuracy?"
+  - "What is certificate transparency and how does it aid reconnaissance?"
+  - "Why is UDP scanning slower and less reliable than TCP scanning?"
+  - "How would you evade IDS detection during a port scan?"
+
+references:
+  - url: "https://nmap.org/book/man.html"
+    title: "Nmap Reference Guide"
+  - url: "https://github.com/robertdavidgraham/masscan"
+    title: "Masscan"
+  - url: "https://github.com/OWASP/Amass"
+    title: "OWASP Amass"
+  - url: "https://cli.shodan.io/"
+    title: "Shodan CLI"

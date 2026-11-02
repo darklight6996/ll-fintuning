@@ -32,15 +32,18 @@ class FlagParser(BaseParser):
         if flag_perm_match:
             flag_permissions = flag_perm_match.group(1)
 
-        # Pattern 2: CTF Flag formats
-        # Matches picoCTF{...}, pwn.college{...}, HTB{...}, flag{...}, etc.
+        # Pattern 2: CTF Flag & Password formats
+        # Matches picoCTF{...}, pwn.college{...}, HTB{...}, flag{...}, OverTheWire Bandit passwords, etc.
         flag_match = re.search(
-            r'(?:(?:pwn\.college|flag|htb|ctf|picoctf|hackthebox)\{[^}\s]+\}|\b(?:FLAG|Flag):\s*[a-zA-Z0-9_\-\{\}]{8,})',
+            r'(?:(?:pwn\.college|flag|htb|ctf|picoctf|hackthebox)\{[^}\s]+\}'
+            r'|\b(?:FLAG|Flag):\s*[a-zA-Z0-9_\-\{\}]{8,}'
+            r'|(?:The password you are looking for is:\s*|NEXT_PASSWORD:\s*|password\s+is:\s*)([a-zA-Z0-9_\-\.]{10,}))',
             text,
             re.IGNORECASE
         )
         if flag_match:
-            flag_content = flag_match.group(0)
+            # Capture specific password group if present, otherwise full match
+            flag_content = flag_match.group(1) if flag_match.lastindex and flag_match.group(1) else flag_match.group(0)
 
         return FlagIntel(
             flag_permissions=flag_permissions,

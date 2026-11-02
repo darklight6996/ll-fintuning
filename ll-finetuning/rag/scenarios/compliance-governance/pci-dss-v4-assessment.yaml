@@ -1,0 +1,227 @@
+# Category: Compliance - PCI DSS
+name: "PCI DSS v4.0 Compliance Assessment"
+id: "compliance-pci-dss-001"
+category: "compliance"
+subcategory: "pci_dss"
+difficulty: "intermediate"
+estimated_time: "120 minutes"
+
+description: |
+  Assess an organization's cardholder data environment (CDE) against PCI DSS v4.0
+  requirements. Covers network segmentation, access controls, encryption, logging,
+  vulnerability management, and application security testing procedures.
+
+learning_objectives:
+  - Understand PCI DSS v4.0 12 requirement structure
+  - Collect evidence for each PCI DSS requirement
+  - Assess network segmentation and CDE scoping
+  - Map technical controls to PCI DSS requirements
+
+tools:
+  - nmap
+  - awscli
+  - openssl
+  - qualys_pci
+  - powershell
+  - bash
+
+prerequisites:
+  - Access to systems in CDE scope
+  - Network diagrams and data flow diagrams
+  - Approved Scanning Vendor (ASV) scan results
+  - PCI DSS v4.0 SAQ or ROC template
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Requirement 1 - Network Security Controls"
+    commands:
+      - "# 1.2.1 - Network security controls documented"
+      - "# Evidence: Network diagrams, firewall rulesets, change management records"
+      - "# 1.3 - Restrict inbound/outbound traffic to CDE"
+      - "# Check firewall rules for CDE subnets"
+      - "iptables -L -n -v 2>/dev/null"
+      - "aws ec2 describe-security-groups --filters Name=vpc-id,Values=[cde_vpc_id] --query 'SecurityGroups[*].{ID:GroupId,Name:GroupName,Inbound:IpPermissions}' 2>/dev/null"
+      - "# 1.3.2 - Restrict inbound traffic to CDE to only what is necessary"
+      - "aws ec2 describe-security-groups --filters Name=vpc-id,Values=[cde_vpc_id] --query 'SecurityGroups[?IpPermissions[?IpRanges[?CidrIp==`0.0.0.0/0`]]].GroupId' 2>/dev/null"
+      - "# 1.4 - Network controls between trusted and untrusted networks"
+      - "# Check NACLs"
+      - "aws ec2 describe-network-acls --filters Name=vpc-id,Values=[cde_vpc_id] 2>/dev/null"
+      - "# 1.5 - Anti-spoofing controls"
+      - "sysctl net.ipv4.conf.all.rp_filter 2>/dev/null"
+    expected_output: "Firewall rule documentation, security group configs, and anti-spoofing settings"
+    detection: "N/A — compliance evidence collection"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Requirement 2 - Secure Configurations"
+    commands:
+      - "# 2.2.1 - Configuration standards for all system components"
+      - "# Evidence: Hardening standards, baseline configs, CIS benchmarks"
+      - "# 2.2.7 - All non-console administrative access encrypted"
+      - "nmap -p22,23,3389 [cde_range] --open -oG /tmp/admin_ports.txt 2>/dev/null"
+      - "grep 'open' /tmp/admin_ports.txt | grep '23/' && echo 'FAIL: Telnet detected' || echo 'PASS: No Telnet'"
+      - "# Check SSH version"
+      - "ssh -V 2>&1"
+      - "# Check TLS on admin interfaces"
+      - "openssl s_client -connect [admin_interface]:443 </dev/null 2>/dev/null | grep -E 'Protocol|Cipher'"
+      - "# 2.3.2 - Wireless environments: change defaults"
+      - "# Evidence: Wireless config documentation, SSID naming conventions"
+      - "# 2.2.2 - Vendor default accounts changed or disabled"
+      - "# Check for default credentials on systems"
+    expected_output: "Configuration standards evidence, encryption verification, default credential status"
+    detection: "N/A — compliance evidence collection"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Requirement 3 - Protect Stored Account Data"
+    commands:
+      - "# 3.3.1 - SAD not retained after authorization"
+      - "# Evidence: Data flow diagrams showing no SAD storage, scan results"
+      - "# 3.4.1 - PAN rendered unreadable anywhere it is stored"
+      - "# Search for unencrypted PAN in databases and files"
+      - "grep -r '[0-9]\\{4\\}[- ]\\?[0-9]\\{4\\}[- ]\\?[0-9]\\{4\\}[- ]\\?[0-9]\\{4\\}' /var/www/ /tmp/ 2>/dev/null | head -10"
+      - "# Check database encryption"
+      - "aws rds describe-db-instances --query 'DBInstances[*].{ID:DBInstanceIdentifier,Encrypted:StorageEncrypted,KMSKey:KmsKeyId}' 2>/dev/null"
+      - "# 3.5.1 - PAN secured with strong cryptography"
+      - "# Evidence: Encryption algorithm documentation, key management procedures"
+      - "# 3.7 - Key management procedures"
+      - "aws kms list-keys 2>/dev/null | python3 -c \"import sys,json; d=json.load(sys.stdin); print(f'KMS Keys: {len(d[\\\"Keys\\\"])}')\" 2>/dev/null"
+      - "aws kms list-keys 2>/dev/null | python3 -c \"import sys,json; [print(k['KeyId']) for k in json.load(sys.stdin)['Keys']]\" 2>/dev/null | xargs -I{} aws kms describe-key --key-id {} --query 'KeyMetadata.{ID:KeyId,State:KeyState,Rotation:EnabledRotation}' 2>/dev/null"
+    expected_output: "PAN storage scan results, database encryption status, key management documentation"
+    detection: "N/A — compliance evidence collection"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "Requirement 7 and 8 - Access Control"
+    commands:
+      - "# 7.2.1 - Access to system components based on least privilege"
+      - "# Evidence: Access control matrix, role definitions, access reviews"
+      - "# 7.2.4 - Review user accounts quarterly"
+      - "aws iam generate-credential-report 2>/dev/null && sleep 5"
+      - "aws iam get-credential-report --query 'Content' --output text 2>/dev/null | base64 -d > /tmp/iam_report.csv"
+      - "python3 << 'EOF'\nimport csv, datetime\nwith open('/tmp/iam_report.csv') as f:\n    rows = list(csv.DictReader(f))\nprint(f'Total IAM users: {len(rows)}')\nnomfa = [r['user'] for r in rows if r.get('mfa_active','false') == 'false' and r.get('password_enabled','false') == 'true']\nprint(f'Users without MFA: {len(nomfa)}')\nfor u in nomfa[:5]: print(f'  - {u}')\nEOF"
+      - "# 8.2.1 - All users have unique ID"
+      - "# 8.3.6 - Passwords: minimum 12 chars, alpha+numeric"
+      - "aws iam get-account-password-policy 2>/dev/null"
+      - "# 8.4.2 - MFA for all access into CDE"
+      - "# Evidence: MFA enforcement policy, RADIUS/TACACS+ configs"
+      - "# 8.6.1 - System/app accounts managed by policies"
+      - "aws iam list-users --query 'Users[?contains(UserName, `svc`) || contains(UserName, `app`) || contains(UserName, `service`)]' 2>/dev/null"
+    expected_output: "Access control evidence including IAM users, MFA status, password policy"
+    detection: "N/A — compliance evidence collection"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "Requirement 10 - Log and Monitor All Access"
+    commands:
+      - "# 10.2 - Audit logs capture required events"
+      - "# Required events: user access, admin actions, access failures, log changes"
+      - "aws cloudtrail describe-trails 2>/dev/null"
+      - "aws cloudtrail get-trail-status --name [trail_name] 2>/dev/null | grep -E 'IsLogging|LatestDelivery'"
+      - "# 10.3.3 - Audit logs protected from destruction and modification"
+      - "aws s3api get-bucket-policy --bucket [cloudtrail_bucket] 2>/dev/null"
+      - "aws s3api get-object-lock-configuration --bucket [cloudtrail_bucket] 2>/dev/null"
+      - "# 10.4.1 - Review logs at least once daily"
+      - "# Evidence: SIEM alerting configs, log review procedures, SOC shift handoff"
+      - "# 10.5 - Retain audit logs for 12 months, 3 months immediately available"
+      - "aws logs describe-log-groups --query 'logGroups[*].{Name:logGroupName,RetentionDays:retentionInDays}' 2>/dev/null | head -20"
+      - "# 10.7 - Failures of critical controls detected and reported"
+      - "aws cloudwatch describe-alarms --alarm-name-prefix 'PCI' 2>/dev/null | head -20"
+    expected_output: "Logging configuration, retention periods, and alerting on critical events"
+    detection: "N/A — compliance evidence collection"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "Requirement 11 - Test Security of Systems and Networks"
+    commands:
+      - "# 11.3.1 - Internal vulnerability scans quarterly and after changes"
+      - "# Evidence: Vulnerability scan reports, remediation tracking"
+      - "# Check AWS Inspector for automated scanning"
+      - "aws inspector2 list-findings --filter-criteria '{\"findingSeverity\":[{\"comparison\":\"EQUALS\",\"value\":\"CRITICAL\"}]}' --query 'findings | length(@)' 2>/dev/null"
+      - "# 11.3.2 - External vulnerability scans via ASV"
+      - "# Evidence: ASV scan reports showing passing status quarterly"
+      - "# 11.4.1 - Penetration testing methodology"
+      - "# Evidence: Pentest scope, methodology document, pentest reports"
+      - "ls -la /security/pentest_reports/ 2>/dev/null"
+      - "# 11.4.3 - External penetration testing at least annually"
+      - "# Evidence: Annual pentest report, tester qualifications, remediation evidence"
+      - "# 11.5.1 - Intrusion detection/prevention covers CDE perimeter"
+      - "aws guardduty list-detectors 2>/dev/null"
+      - "aws guardduty get-findings-statistics --detector-id $(aws guardduty list-detectors --query 'DetectorIds[0]' --output text 2>/dev/null) --finding-statistic-types COUNT_BY_SEVERITY 2>/dev/null"
+    expected_output: "Vulnerability scan coverage, pentest history, IDS/IPS configuration"
+    detection: "N/A — compliance evidence collection"
+
+  - id: "step7"
+    phase: "enumeration"
+    action: "Requirement 6 - Develop and Maintain Secure Systems"
+    commands:
+      - "# 6.2.4 - Prevent common software attacks (SQLi, XSS, etc.)"
+      - "# Evidence: DAST scan results, WAF configuration, code review records"
+      - "# Check WAF on CDE-facing applications"
+      - "aws wafv2 list-web-acls --scope REGIONAL 2>/dev/null | python3 -c \"import sys,json; acls=json.load(sys.stdin)['WebACLs']; print(f'WAF ACLs: {len(acls)}')\""
+      - "# 6.3.1 - Security vulnerabilities identified and managed"
+      - "# Evidence: Vulnerability management program, patch SLA policy"
+      - "# 6.3.3 - All software components protected from known vulnerabilities"
+      - "# Check critical patch currency"
+      - "aws ssm describe-instance-patch-states --query 'InstancePatchStates[*].{ID:InstanceId,Missing:MissingCount,Critical:InstalledRejectedCount}' 2>/dev/null | head -20"
+      - "# 6.4.1 - Public-facing apps protected against known attacks"
+      - "aws wafv2 list-web-acls --scope CLOUDFRONT --region us-east-1 2>/dev/null"
+      - "# 6.5.1 - Changes to all system components managed via change control"
+      - "# Evidence: Change tickets, deployment logs, CAB approvals"
+    expected_output: "Application security testing results, WAF coverage, patch currency"
+    detection: "N/A — compliance evidence collection"
+
+compliance_controls:
+  - standard: "PCI DSS v4.0"
+    control: "Requirements 1-12"
+    description: "Full PCI DSS v4.0 assessment across all 12 requirements"
+  - standard: "NIST 800-53 Rev5"
+    control: "Multiple families"
+    description: "NIST control mapping for PCI requirements"
+  - standard: "CIS Controls v8"
+    control: "Multiple controls"
+    description: "CIS Controls mapping for PCI requirements"
+
+detection:
+  network_indicators:
+    - "N/A — compliance evidence collection"
+  log_indicators:
+    - "AWS read-only API calls for PCI evidence collection"
+    - "Vulnerability scan activity in CDE network"
+  endpoint_indicators:
+    - "Evidence artifacts stored in compliance repository"
+
+remediation:
+  immediate:
+    - "Enable MFA for all CDE access (Req 8.4.2)"
+    - "Encrypt all stored PAN with strong cryptography (Req 3.4.1)"
+    - "Enable logging for all CDE systems (Req 10.2)"
+    - "Deploy WAF for public-facing CDE applications (Req 6.4.1)"
+  long_term:
+    - "Implement automated PCI compliance scanning with Qualys PCI or Tenable.io"
+    - "Schedule quarterly ASV scans and annual penetration tests"
+    - "Deploy DLP to detect unencrypted PAN traversing the network"
+    - "Implement privileged access management (PAM) for CDE admin access"
+
+variables:
+  cde_vpc_id: "vpc-XXXXXXXX"
+  cde_range: "10.10.10.0/24"
+  admin_interface: "admin.example.com"
+  trail_name: "pci-cloudtrail"
+  cloudtrail_bucket: "pci-cloudtrail-bucket"
+
+assessment_questions:
+  - "What is the difference between PCI DSS SAQ A and SAQ D?"
+  - "How often must external vulnerability scans be performed per PCI DSS v4.0?"
+  - "What does PCI DSS Requirement 3 require for stored PAN data?"
+  - "What is the MFA requirement for CDE access in PCI DSS v4.0?"
+  - "How does PCI DSS v4.0 differ from v3.2.1 in requirements scope?"
+
+references:
+  - url: "https://www.pcisecuritystandards.org/document_library/"
+    title: "PCI DSS v4.0 Official Documentation"
+  - url: "https://www.pcisecuritystandards.org/assessors_and_solutions/approved_scanning_vendors"
+    title: "PCI ASV List"
+  - url: "https://docs.aws.amazon.com/whitepapers/latest/pci-dss-scoping-on-aws/welcome.html"
+    title: "PCI DSS Scoping on AWS"

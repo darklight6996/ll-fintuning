@@ -44,21 +44,24 @@ def build():
     metadata = []
 
     print("\nReading corpus documents...")
-    for filename in os.listdir(CORPUS_DIR):
-        if filename.endswith(".txt") or filename.endswith(".md"):
-            filepath = os.path.join(CORPUS_DIR, filename)
-            try:
-                with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
-                    text = f.read().strip()
-                    if text:
-                        documents.append(text)
-                        metadata.append({
-                            "filename": filename,
-                            "text": text,
-                            "chunk_id": os.path.splitext(filename)[0]
-                        })
-            except Exception as e:
-                print(f"[WARNING] Could not read {filename}: {e}")
+    for root, _, filenames in os.walk(CORPUS_DIR):
+        for filename in sorted(filenames):
+            if filename.endswith(".txt") or filename.endswith(".md"):
+                filepath = os.path.join(root, filename)
+                # Use relative path as display name
+                rel_path = os.path.relpath(filepath, CORPUS_DIR)
+                try:
+                    with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+                        text = f.read().strip()
+                        if text:
+                            documents.append(text)
+                            metadata.append({
+                                "filename": rel_path.replace("\\", "/"),
+                                "text": text,
+                                "chunk_id": os.path.splitext(rel_path)[0].replace("\\", "/")
+                            })
+                except Exception as e:
+                    print(f"[WARNING] Could not read {rel_path}: {e}")
 
     if not documents:
         print("[WARNING] No documents found in corpus directory.")

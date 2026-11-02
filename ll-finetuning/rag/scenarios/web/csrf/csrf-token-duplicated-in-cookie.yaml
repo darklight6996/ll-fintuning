@@ -1,0 +1,95 @@
+# Category: Cross-Site Request Forgery (CSRF)
+name: "CSRF where token is duplicated in cookie"
+id: "csrf-token-duplicated-cookie-001"
+category: "csrf"
+subcategory: "bypass"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  This scenario covers CSRF where the CSRF token is duplicated in a cookie.
+  The application validates the token by checking that the cookie value
+  matches the submitted parameter. An attacker can use a CRLF injection or
+  other vulnerability to set the cookie and submit a matching token.
+
+learning_objectives:
+  - Understand the double-submit cookie pattern
+  - Identify when token is duplicated in the cookie
+  - Exploit by setting the cookie value
+  - Perform CSRF attacks using crafted tokens
+
+tools:
+  - Burp Suite
+  - curl
+
+prerequisites:
+  - Target application with duplicated cookie token
+  - Ability to set the cookie via a vulnerability
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify cookie and token duplication"
+    commands:
+      - "# Observe that a cookie contains the same value as the CSRF token parameter"
+      - "# Note that the server validates the match"
+    expected_output: "Token is duplicated in the cookie"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Set the cookie and use a matching token"
+    commands:
+      - "# If you can set the cookie (e.g., via another vulnerability)"
+      - "# Set cookie to a known value and use the same value as the token parameter"
+      - "# Then submit the request"
+    expected_output: "Request is accepted with the matching cookie and token"
+    detection: "Application logs show token-cookie match"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Perform state-changing actions"
+    commands:
+      - "# Use the technique for sensitive operations"
+    expected_output: "Victim's account affected"
+    detection: "Audit logs show suspicious activity"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1204"
+    description: "User Execution"
+  - standard: "OWASP"
+    control: "A01:2021"
+    description: "Broken Access Control"
+
+detection:
+  network_indicators:
+    - "Requests with token-cookie inconsistencies"
+  log_indicators:
+    - "Token validation anomalies"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Tie the cookie value to the session, not user-controlled input"
+    - "Use secure random values for tokens"
+  long_term:
+    - "Implement proper CSRF protection with session binding"
+    - "Use anti-CSRF tokens with per-request uniqueness"
+
+variables:
+  target_url: "https://target.com/change-email"
+  cookie_name: "csrf_token"
+  token_value: "attacker_controlled"
+
+assessment_questions:
+  - "What is the double-submit cookie pattern?"
+  - "How can an attacker exploit duplicated tokens?"
+  - "What are the limitations of the double-submit cookie approach?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/csrf"
+    title: "OWASP CSRF"
+  - url: "https://portswigger.net/web-security/csrf/bypassing-token-validation"
+    title: "PortSwigger CSRF Bypass"

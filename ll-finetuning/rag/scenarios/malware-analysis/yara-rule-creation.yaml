@@ -1,0 +1,172 @@
+# Category: Blue Team - Detection Engineering - YARA Rules
+name: "YARA Rule Creation for Malware Detection"
+id: "blue-yara-001"
+category: "blue_team"
+subcategory: "detection_engineering"
+difficulty: "intermediate"
+estimated_time: "60 minutes"
+
+description: |
+  Create, test, and deploy YARA rules for detecting malware families, suspicious
+  scripts, and attacker tools. Covers string matching, byte patterns, PE header
+  analysis, and integration with scanning tools.
+
+learning_objectives:
+  - Understand YARA rule syntax and condition logic
+  - Write rules targeting malware strings, byte patterns, and PE characteristics
+  - Test rules with yarGen and retrohunt against file collections
+  - Integrate YARA scanning into incident response workflows
+
+tools:
+  - yara
+  - yargen
+  - cuckoo
+  - python3
+  - pe_studio
+  - strings_utility
+
+prerequisites:
+  - Basic understanding of malware analysis
+  - YARA installed on analysis system
+  - Sample malicious files or memory dumps for testing
+  - Hex editor or PE analysis tool
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Install YARA and analyze a suspicious file"
+    commands:
+      - "apt-get install -y yara"
+      - "pip3 install yara-python"
+      - "yara --version"
+      - "# Extract strings from suspicious binary"
+      - "strings -n 6 /tmp/suspicious.exe | sort -u > /tmp/strings_output.txt"
+      - "strings -a -n 6 /tmp/suspicious.exe | head -100"
+      - "# Wide strings (Unicode)"
+      - "strings -el /tmp/suspicious.exe | head -50"
+      - "# Hex dump"
+      - "xxd /tmp/suspicious.exe | head -50"
+      - "# File type identification"
+      - "file /tmp/suspicious.exe"
+      - "md5sum /tmp/suspicious.exe && sha256sum /tmp/suspicious.exe"
+    expected_output: "String list, hex patterns, and file metadata for rule authoring"
+    detection: "N/A — analysis phase on isolated system"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Create a basic YARA rule targeting unique strings"
+    commands:
+      - "cat > /tmp/suspicious_malware.yar << 'EOF'\nrule Suspicious_PowerShell_Downloader\n{\n    meta:\n        description = \"Detects suspicious PowerShell download cradle patterns\"\n        author = \"Security Team\"\n        date = \"2024-01-01\"\n        mitre_attack = \"T1059.001\"\n        severity = \"high\"\n\n    strings:\n        $ps1 = \"powershell\" nocase\n        $dl1 = \"DownloadString\" nocase\n        $dl2 = \"DownloadFile\" nocase\n        $dl3 = \"WebClient\" nocase\n        $dl4 = \"Net.WebClient\" nocase\n        $enc1 = \"-EncodedCommand\" nocase\n        $enc2 = \"-enc\" nocase wide\n        $bypass1 = \"ExecutionPolicy Bypass\" nocase\n        $bypass2 = \"-ep bypass\" nocase\n        $iex = \"IEX\" nocase\n        $iex2 = \"Invoke-Expression\" nocase\n\n    condition:\n        ($ps1 or $enc1 or $enc2) and\n        (1 of ($dl*)) and\n        (1 of ($iex*))\n}\nEOF"
+      - "yara /tmp/suspicious_malware.yar /tmp/suspicious.exe"
+    expected_output: "YARA rule file and match result against sample"
+    detection: "N/A — rule creation"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Create YARA rule using PE module for PE-based detection"
+    commands:
+      - "cat > /tmp/pe_malware.yar << 'EOF'\nimport \"pe\"\nimport \"hash\"\n\nrule Suspicious_PE_Characteristics\n{\n    meta:\n        description = \"Detects PE files with suspicious compilation characteristics\"\n        author = \"Security Team\"\n        date = \"2024-01-01\"\n\n    strings:\n        $mz = { 4D 5A }\n        $s1 = \"This program cannot be run in DOS mode\" nocase\n        $suspicious1 = \"VirtualAlloc\" nocase\n        $suspicious2 = \"WriteProcessMemory\" nocase\n        $suspicious3 = \"CreateRemoteThread\" nocase\n        $suspicious4 = \"NtUnmapViewOfSection\" nocase\n\n    condition:\n        uint16(0) == 0x5A4D and\n        filesize < 5MB and\n        pe.number_of_sections < 3 and\n        pe.characteristics & pe.DLL == 0 and\n        2 of ($suspicious*)\n}\n\nrule Mimikatz_Generic\n{\n    meta:\n        description = \"Detects Mimikatz credential dumping tool\"\n        author = \"Security Team\"\n        mitre_attack = \"T1003\"\n        severity = \"critical\"\n\n    strings:\n        $s1 = \"mimikatz\" nocase wide ascii\n        $s2 = \"sekurlsa\" nocase wide ascii\n        $s3 = \"lsadump\" nocase wide ascii\n        $s4 = \"kerberos::\" nocase wide ascii\n        $s5 = \"privilege::debug\" nocase wide ascii\n        $s6 = \"Benjamin DELPY\" ascii\n        $s7 = { 6D 00 69 00 6D 00 69 00 6B 00 61 00 74 00 7A 00 }\n\n    condition:\n        2 of them\n}\nEOF"
+      - "yara /tmp/pe_malware.yar /tmp/"
+      - "yara -r /tmp/pe_malware.yar /usr/bin/"
+    expected_output: "Matches on PE files with suspicious characteristics or Mimikatz signatures"
+    detection: "N/A — rule testing"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "Create YARA rule for webshell detection"
+    commands:
+      - "cat > /tmp/webshell_detection.yar << 'EOF'\nrule Generic_PHP_Webshell\n{\n    meta:\n        description = \"Detects common PHP webshell patterns\"\n        author = \"Security Team\"\n        date = \"2024-01-01\"\n        mitre_attack = \"T1505.003\"\n        severity = \"critical\"\n\n    strings:\n        $php = \"<?php\" nocase\n        $cmd1 = \"exec(\" nocase\n        $cmd2 = \"system(\" nocase\n        $cmd3 = \"passthru(\" nocase\n        $cmd4 = \"shell_exec(\" nocase\n        $cmd5 = \"popen(\" nocase\n        $eval = \"eval(\" nocase\n        $base64 = \"base64_decode(\" nocase\n        $input1 = \"$_GET\" nocase\n        $input2 = \"$_POST\" nocase\n        $input3 = \"$_REQUEST\" nocase\n        $input4 = \"$_COOKIE\" nocase\n\n    condition:\n        $php and\n        (1 of ($cmd*) or $eval) and\n        1 of ($input*)\n}\n\nrule ASPX_Webshell\n{\n    meta:\n        description = \"Detects ASPX webshell characteristics\"\n        severity = \"critical\"\n\n    strings:\n        $asp1 = \"<%@\" nocase\n        $exec1 = \"Process.Start\" nocase\n        $exec2 = \"cmd.exe\" nocase\n        $exec3 = \"Runtime.exec\" nocase\n        $request = \"Request[\" nocase\n\n    condition:\n        $asp1 and\n        1 of ($exec*) and\n        $request\n}\nEOF"
+      - "yara -r /tmp/webshell_detection.yar /var/www/html/"
+    expected_output: "Webshell detections in web root directory"
+    detection: "File system scan logs; EDR alerts for YARA scan"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Auto-generate YARA rules with yarGen"
+    commands:
+      - "git clone https://github.com/Neo23x0/yarGen.git /opt/yarGen"
+      - "pip3 install -r /opt/yarGen/requirements.txt"
+      - "cd /opt/yarGen && python3 yarGen.py --update"
+      - "# Generate rules from malware sample"
+      - "python3 /opt/yarGen/yarGen.py -m /tmp/malware_samples/ --excludegood -o /tmp/yargen_rules.yar"
+      - "# Generate with minimum string length 8"
+      - "python3 /opt/yarGen/yarGen.py -m /tmp/suspicious.exe -s 8 -o /tmp/yargen_single.yar"
+      - "# Review generated rules"
+      - "cat /tmp/yargen_rules.yar"
+    expected_output: "Auto-generated YARA rules targeting unique strings in malware samples"
+    detection: "N/A — automated rule generation"
+
+  - id: "step6"
+    phase: "post_exploitation"
+    action: "Deploy and run YARA scans across the environment"
+    commands:
+      - "# Scan running processes"
+      - "yara -p 8 /tmp/all_rules.yar /proc/ 2>/dev/null"
+      - "# Scan specific directory recursively"
+      - "yara -r /tmp/webshell_detection.yar /var/www/"
+      - "# Scan with all rule files"
+      - "find /tmp/yara_rules/ -name '*.yar' -exec yara {} /var/www/html/ \\;"
+      - "# Memory scan with volatility integration"
+      - "vol.py -f /tmp/memory.dmp windows.vadyarascan --yara-file /tmp/mimikatz.yar"
+      - "# Scan with output to JSON"
+      - "python3 -c \"\nimport yara, json, os\nrules = yara.compile('/tmp/all_rules.yar')\nresults = []\nfor root, dirs, files in os.walk('/var/www'):\n    for f in files:\n        fp = os.path.join(root, f)\n        try:\n            m = rules.match(fp)\n            if m: results.append({'file': fp, 'rules': [str(r) for r in m]})\n        except: pass\nprint(json.dumps(results, indent=2))\n\""
+    expected_output: "YARA scan results identifying matched files or processes"
+    detection: "High I/O activity during recursive filesystem scans; process memory access"
+
+compliance_controls:
+  - standard: "NIST 800-53 Rev5"
+    control: "SI-3"
+    description: "Malicious code protection"
+  - standard: "CIS Controls v8"
+    control: "10.1"
+    description: "Deploy and maintain anti-malware software"
+  - standard: "SOC2 CC7.1"
+    control: "CC7.1"
+    description: "Detection and monitoring of threats"
+  - standard: "PCI DSS v4.0"
+    control: "5.2.1"
+    description: "Anti-malware solution deployed and active"
+
+detection:
+  network_indicators:
+    - "N/A — YARA is a host-based detection mechanism"
+  log_indicators:
+    - "EDR alerts generated on YARA rule matches"
+    - "Antivirus/malware detection events in system logs"
+  endpoint_indicators:
+    - "YARA match output files with matched rule names"
+    - "Volatility YARA scan hits in memory dump analysis"
+
+remediation:
+  immediate:
+    - "Quarantine files that match YARA rules pending manual review"
+    - "Deploy new YARA rules to EDR platform for real-time file scanning"
+    - "Run retrohunt across historical file collection for new indicators"
+  long_term:
+    - "Maintain internal YARA rule repository with version control"
+    - "Subscribe to community rule feeds (Awesome-YARA, CAPE sandbox)"
+    - "Integrate YARA scanning into file upload endpoints and email gateways"
+    - "Conduct bi-weekly rule review to remove false positives"
+
+variables:
+  malware_sample: "/tmp/suspicious.exe"
+  scan_target: "/var/www/html"
+  rules_dir: "/tmp/yara_rules"
+  output_file: "/tmp/yara_results.json"
+
+assessment_questions:
+  - "What is the difference between YARA string modifiers 'nocase', 'wide', and 'ascii'?"
+  - "How does the YARA PE module enhance rule detection capabilities?"
+  - "When would you use a hex byte pattern versus a string in a YARA rule?"
+  - "How can yarGen help automate YARA rule creation from malware samples?"
+  - "What is the risk of false positives in broad YARA rules and how do you mitigate it?"
+
+references:
+  - url: "https://yara.readthedocs.io/en/stable/"
+    title: "YARA Documentation"
+  - url: "https://github.com/Neo23x0/yarGen"
+    title: "yarGen - YARA Rule Generator"
+  - url: "https://github.com/InQuest/awesome-yara"
+    title: "Awesome YARA Rules Repository"
+  - url: "https://github.com/VirusTotal/yara"
+    title: "YARA GitHub Repository"

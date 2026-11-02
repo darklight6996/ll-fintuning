@@ -1,0 +1,95 @@
+# Category: Clickjacking
+name: "Clickjacking with a frame buster script"
+id: "clickjacking-frame-buster-001"
+category: "clickjacking"
+subcategory: "frame_buster_bypass"
+difficulty: "apprentice"
+estimated_time: "30 minutes"
+
+description: |
+  This scenario covers clickjacking against sites that use frame-busting
+  JavaScript (e.g., `if (top != self) top.location = self.location`).
+  The attacker can bypass frame-busting by using the `sandbox` attribute
+  on the iframe or by using the `allow-top-navigation` restriction.
+
+learning_objectives:
+  - Understand frame-busting JavaScript techniques
+  - Identify frame-busting code in the target
+  - Use iframe sandbox attributes to bypass frame-busting
+  - Execute clickjacking despite frame-busting
+
+tools:
+  - Burp Suite
+  - Basic HTML/CSS
+
+prerequisites:
+  - Target uses frame-busting JavaScript
+  - No X-Frame-Options header
+  - Victim has an active session
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify frame-busting code"
+    commands:
+      - "# Look for JavaScript: if (top != self) top.location = self.location"
+      - "# Or similar protection mechanisms"
+    expected_output: "Frame-busting script identified"
+    detection: "None"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Bypass frame-busting using iframe sandbox"
+    commands:
+      - "# Use sandbox attribute without allow-top-navigation:"
+      - "<iframe sandbox='allow-scripts allow-forms' src='https://target.com/account'></iframe>"
+      - "# This prevents the frame from navigating the top window"
+    expected_output: "Frame-busting is bypassed; the iframe loads and overlay works"
+    detection: "Application logs show the framed request"
+
+  - id: "step3"
+    phase: "post_exploitation"
+    action: "Perform state-changing actions via clickjacking"
+    commands:
+      - "# Use the overlay technique to trick the user into clicking"
+    expected_output: "Victim's account changed"
+    detection: "Audit logs show the action"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1204"
+    description: "User Execution"
+  - standard: "OWASP"
+    control: "A04:2021"
+    description: "Insecure Design"
+
+detection:
+  network_indicators:
+    - "Requests from iframes with sandbox attribute"
+  log_indicators:
+    - "State-changing actions from unusual contexts"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Use X-Frame-Options or CSP frame-ancestors instead of JavaScript"
+    - "Frame-busting JavaScript is not reliable"
+  long_term:
+    - "Implement proper clickjacking protection headers"
+    - "Use a Content Security Policy"
+
+variables:
+  target_url: "https://target.com/account"
+  sandbox_attributes: "allow-scripts allow-forms"
+
+assessment_questions:
+  - "Why is JavaScript frame-busting not reliable?"
+  - "How does the sandbox attribute bypass frame-busting?"
+  - "What is the recommended way to prevent clickjacking?"
+
+references:
+  - url: "https://owasp.org/www-community/attacks/Clickjacking"
+    title: "OWASP Clickjacking"
+  - url: "https://portswigger.net/web-security/clickjacking"
+    title: "PortSwigger Clickjacking"

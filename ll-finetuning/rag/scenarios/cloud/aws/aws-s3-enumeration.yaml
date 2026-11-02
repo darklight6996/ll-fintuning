@@ -1,0 +1,202 @@
+name: "AWS S3 Bucket Enumeration and Misconfiguration Testing"
+id: "cloud-aws-s3-001"
+category: "Cloud Security"
+subcategory: "AWS / Storage"
+difficulty: "beginner"
+estimated_time: "45"
+
+tags:
+  - aws
+  - cloud-security
+  - s3
+  - storage
+  - bucket-enumeration
+  - public-access
+  - data-exfiltration
+  - s3scanner
+  - subdomain-takeover
+  - mitre-t1530
+
+description: |
+  Enumerate and test AWS S3 buckets for public access misconfigurations, weak ACLs,
+  and sensitive data exposure. Covers unauthenticated access, bucket takeover, and
+  data exfiltration scenarios.
+
+learning_objectives:
+  - Discover and enumerate S3 buckets associated with a target organization
+  - Test bucket permissions for public read/write access
+  - Identify sensitive data in publicly accessible buckets
+  - Map findings to AWS security best practices and compliance controls
+
+tools:
+  - "AWS CLI"
+  - "S3Scanner"
+  - "Bucket Finder"
+  - "TruffleHog"
+  - "GrayhatWarfare"
+  - "Curl"
+
+prerequisites:
+  - "AWS CLI configured (anonymous access for public bucket testing)"
+  - "Target organization name or domain for bucket name guessing"
+  - "Written authorization from target owner"
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Generate S3 bucket name wordlist based on target organization"
+    commands:
+      - "# Generate permutations of target name"
+      - "echo '[target_org]' > /tmp/base.txt"
+      - "cat > /tmp/gen_buckets.py << 'EOF'\nimport sys\nbase = sys.argv[1]\nsuffixes = ['','dev','staging','prod','backup','data','assets','static','media','logs','test','uat','internal','public','private','uploads','files','images']\nfor s in suffixes:\n    print(f'{base}-{s}' if s else base)\n    print(f'{base}.{s}' if s else base)\n    print(f'{s}-{base}' if s else base)\nEOF"
+      - "python3 /tmp/gen_buckets.py [target_org] > /tmp/bucket_list.txt"
+      - "wc -l /tmp/bucket_list.txt"
+    expected_output: "Wordlist of potential bucket names for enumeration"
+    detection: "No network activity at this stage"
+
+  - id: "step2"
+    phase: "reconnaissance"
+    action: "Scan for valid S3 buckets using S3Scanner"
+    commands:
+      - "pip3 install s3scanner"
+      - "s3scanner scan --buckets-file /tmp/bucket_list.txt"
+      - "s3scanner scan --bucket [target_org]"
+      - "s3scanner scan --bucket [target_org]-backup"
+      - "# Check specific bucket"
+      - "s3scanner scan --bucket [target_org]-dev --threads 10"
+    expected_output: "Valid bucket names with their access status (public-read, private, etc.)"
+    detection: "S3 ListBucket requests logged in CloudTrail for bucket owner"
+
+  - id: "step3"
+    phase: "enumeration"
+    action: "Test anonymous S3 bucket access with AWS CLI"
+    commands:
+      - "# List objects anonymously"
+      - "aws s3 ls s3://[bucket_name] --no-sign-request"
+      - "# Recursive listing"
+      - "aws s3 ls s3://[bucket_name] --no-sign-request --recursive"
+      - "# Check bucket ACL"
+      - "aws s3api get-bucket-acl --bucket [bucket_name] --no-sign-request"
+      - "# Check bucket policy"
+      - "aws s3api get-bucket-policy --bucket [bucket_name] --no-sign-request"
+      - "# Try writing a test file"
+      - "echo 'test' > /tmp/test.txt && aws s3 cp /tmp/test.txt s3://[bucket_name]/pentest-check.txt --no-sign-request"
+    expected_output: "Object listing if bucket is public; error if private"
+    detection: "CloudTrail events: GetBucketAcl, GetBucketPolicy, ListObjects from anonymous principal"
+
+  - id: "step4"
+    phase: "enumeration"
+    action: "Search for sensitive files in accessible buckets"
+    commands:
+      - "# Download all objects for offline analysis"
+      - "aws s3 sync s3://[bucket_name] /tmp/bucket_contents --no-sign-request"
+      - "# Look for credential files"
+      - "aws s3 ls s3://[bucket_name] --no-sign-request --recursive | grep -iE '\\.env|credentials|config|backup|password|secret|key|\\.pem|\\.p12|\\.pfx|\\.db|\\.sql'"
+      - "# TruffleHog scan for secrets"
+      - "trufflehog s3 --bucket=[bucket_name] --no-verification"
+    expected_output: "Sensitive files or credentials discovered in accessible bucket"
+    detection: "CloudTrail: GetObject for sensitive files; high-volume GetObject from external IP"
+
+  - id: "step5"
+    phase: "enumeration"
+    action: "Check for S3 bucket takeover (dangling CNAME)"
+    commands:
+      - "# Check if bucket name matches a CNAME pointing to S3"
+      - "host [subdomain].[target_domain]"
+      - "dig [subdomain].[target_domain] CNAME"
+      - "# If CNAME points to s3-website or s3.amazonaws.com and bucket doesn't exist"
+      - "aws s3api head-bucket --bucket [subdomain]-[target_domain] --no-sign-request"
+      - "# If bucket doesn't exist, create it to claim the subdomain"
+      - "aws s3 mb s3://[subdomain].[target_domain] --region us-east-1"
+    expected_output: "Dangling CNAME to non-existent bucket enables subdomain takeover"
+    detection: "New bucket creation matching target subdomain CNAME"
+
+  - id: "step6"
+    phase: "enumeration"
+    action: "Authenticated bucket assessment (with valid AWS credentials)"
+    commands:
+      - "# Configure AWS CLI with test credentials"
+      - "aws configure"
+      - "# List all buckets in account"
+      - "aws s3 ls"
+      - "# Check bucket encryption"
+      - "aws s3api get-bucket-encryption --bucket [bucket_name]"
+      - "# Check versioning"
+      - "aws s3api get-bucket-versioning --bucket [bucket_name]"
+      - "# Check logging"
+      - "aws s3api get-bucket-logging --bucket [bucket_name]"
+      - "# Check public access block settings"
+      - "aws s3api get-public-access-block --bucket [bucket_name]"
+      - "# List all object versions (may expose deleted sensitive files)"
+      - "aws s3api list-object-versions --bucket [bucket_name]"
+    expected_output: "Bucket configuration details including encryption, versioning, and public access settings"
+    detection: "CloudTrail events from authenticated principal reviewing bucket configurations"
+
+compliance_controls:
+  - standard: "CIS AWS Foundations Benchmark v1.5"
+    control: "2.1.2"
+    description: "Ensure S3 Bucket Policy is set to deny HTTP requests"
+  - standard: "CIS AWS Foundations Benchmark v1.5"
+    control: "2.1.1"
+    description: "Ensure all S3 buckets employ encryption-at-rest"
+  - standard: "PCI DSS v4.0"
+    control: "6.4.1"
+    description: "Public-facing web applications are protected against known attacks"
+  - standard: "NIST 800-53 Rev5"
+    control: "AC-3"
+    description: "Access enforcement"
+  - standard: "SOC2 CC6.1"
+    control: "CC6.1"
+    description: "Logical access security measures restrict access to information assets"
+
+detection:
+  network_indicators:
+    - "High volume of S3 API calls from external IPs (ListBucket, GetObject)"
+    - "Anonymous (unauthenticated) API calls to S3 service"
+    - "S3 data transfer to external IPs exceeding normal baseline"
+  log_indicators:
+    - "CloudTrail: ListObjects or ListBuckets from anonymous principal (principalId: Anonymous)"
+    - "CloudTrail: GetBucketPolicy, GetBucketAcl from external/unknown AWS account"
+    - "S3 server access logs: large number of GET requests from single IP"
+    - "CloudTrail: PutObject from anonymous principal (public write access)"
+  endpoint_indicators:
+    - "AWS Config rule s3-bucket-public-read-prohibited flagged"
+    - "AWS Security Hub finding for public S3 buckets"
+    - "AWS Macie sensitive data detection alerts"
+
+remediation:
+  immediate:
+    - "Enable S3 Block Public Access at account and bucket level"
+    - "Review and restrict all bucket policies and ACLs"
+    - "Rotate any credentials found in exposed S3 buckets immediately"
+    - "Enable S3 server access logging and CloudTrail"
+  long_term:
+    - "Enable Amazon Macie for automated sensitive data discovery"
+    - "Implement bucket policies requiring HTTPS and denying public access"
+    - "Enable default encryption (SSE-S3 or SSE-KMS) on all buckets"
+    - "Regular AWS Config rule checks for public bucket configurations"
+    - "Implement S3 Object Lock for critical data (immutability)"
+
+variables:
+  target_org: "acme"
+  target_domain: "acme.example.com"
+  bucket_name: "acme-backup"
+  subdomain: "assets"
+  aws_region: "us-east-1"
+
+assessment_questions:
+  - "What is the difference between S3 bucket ACLs and bucket policies?"
+  - "How does S3 Block Public Access override bucket-level ACL settings?"
+  - "What is an S3 subdomain takeover and what prerequisites are needed?"
+  - "Which AWS service automatically scans S3 for sensitive data?"
+  - "What CloudTrail event indicates anonymous access to an S3 bucket?"
+
+references:
+  - url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html"
+    title: "AWS S3 Security Best Practices"
+  - url: "https://github.com/sa7mon/S3Scanner"
+    title: "S3Scanner"
+  - url: "https://github.com/trufflesecurity/trufflehog"
+    title: "TruffleHog Secret Scanner"
+  - url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"
+    title: "S3 Block Public Access"

