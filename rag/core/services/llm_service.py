@@ -15,10 +15,16 @@ Usage:
         response = svc.generate("Explain SQL injection.")
 """
 
-from typing import Optional, Any
+from typing import Optional, Any, Dict
 
-_INSTANCE: Optional["LLMService"] = None
-_LOAD_ATTEMPTED: bool = False
+# M2: keyed by role ("default", "planner", ...) instead of a single instance, so an
+# optional planner-specific model (PLANNER_MODEL_NAME) can be loaded and cached
+# alongside the default one without reloading either on every call. When no
+# override is configured, every role resolves to the SAME cached "default"
+# instance -- see get_llm_service() below -- so this adds no memory cost for
+# anyone who hasn't opted in.
+_INSTANCES: Dict[str, "LLMService"] = {}
+_LOAD_ATTEMPTED: Dict[str, bool] = {}
 
 
 class LLMService:
@@ -33,14 +39,31 @@ class LLMService:
     * Expose mode, model_name for diagnostics.
     """
 
-    def __init__(self, verbose: bool = True):
+    def __init__(
+        self,
+        verbose: bool = True,
+        model_name_override: Optional[str] = None,
+        max_input_tokens_override: Optional[int] = None,
+        max_new_tokens_override: Optional[int] = None,
+    ):
         self._router = None
         self.mode: str = "cpu"
         self.model_name: str = ""
         self.tokenizer: Optional[Any] = None
-        self._load(verbose=verbose)
+        self._load(
+            verbose=verbose,
+            model_name_override=model_name_override,
+            max_input_tokens_override=max_input_tokens_override,
+            max_new_tokens_override=max_new_tokens_override,
+        )
 
-    def _load(self, verbose: bool = True) -> None:
+    def _load(
+        self,
+        verbose: bool = True,
+        model_name_override: Optional[str] = None,
+        max_input_tokens_override: Optional[int] = None,
+        max_new_tokens_override: Optional[int] = None,
+    ) -> None:
         try:
             import torch
             from core.model_router import ModelRouter
@@ -52,12 +75,14 @@ class LLMService:
 
             if torch.cuda.is_available():
                 self.mode = "gpu"
-                self.model_name = GPU_MODEL_NAME
-                max_in, max_new = GPU_MAX_INPUT_TOKENS, GPU_MAX_NEW_TOKENS
+                self.model_name = model_name_override or GPU_MODEL_NAME
+                max_in = max_input_tokens_override or GPU_MAX_INPUT_TOKENS
+                max_new = max_new_tokens_override or GPU_MAX_NEW_TOKENS
             else:
                 self.mode = "cpu"
-                self.model_name = CPU_MODEL_NAME
-                max_in, max_new = CPU_MAX_INPUT_TOKENS, CPU_MAX_NEW_TOKENS
+                self.model_name = model_name_override or CPU_MODEL_NAME
+                max_in = max_input_tokens_override or CPU_MAX_INPUT_TOKENS
+                max_new = max_new_tokens_override or CPU_MAX_NEW_TOKENS
 
             self._router = ModelRouter(
                 model_name=self.model_name,
@@ -109,20 +134,50 @@ class LLMService:
         return self._router
 
 
-def get_llm_service(verbose: bool = True) -> Optional[LLMService]:
+def get_llm_service(verbose: bool = True, role: str = "default") -> Optional[LLMService]:
     """
-    Return the process-wide LLMService singleton.
+    Return the process-wide LLMService singleton for the given role.
     Returns None if model loading failed.
 
     Parameters
     ----------
     verbose : bool
         Print load status on first initialization.
+    role : str
+        "default" for chat / scope-compliance / report synthesis (unchanged
+        behavior). "planner" for the autonomous AIPlanner's decide_next() calls
+        (M2) -- if core.config.PLANNER_MODEL_NAME is unset, this resolves to the
+        SAME cached "default" instance (no extra model load, no extra memory);
+        if it is set, a second LLMService is loaded and cached under "planner"
+        with that model, independent of (and in addition to) the default one.
     """
-    global _INSTANCE, _LOAD_ATTEMPTED
-    if not _LOAD_ATTEMPTED:
-        _LOAD_ATTEMPTED = True
-        _INSTANCE = LLMService(verbose=verbose)
-        if not _INSTANCE.is_available:
-            _INSTANCE = None
-    return _INSTANCE
+    global _INSTANCES, _LOAD_ATTEMPTED
+
+    if role != "default":
+        try:
+            from core.config import (
+                PLANNER_MODEL_NAME, PLANNER_MAX_INPUT_TOKENS, PLANNER_MAX_NEW_TOKENS,
+            )
+        except ImportError:
+            PLANNER_MODEL_NAME = None
+            PLANNER_MAX_INPUT_TOKENS = None
+            PLANNER_MAX_NEW_TOKENS = None
+        if role == "planner" and not PLANNER_MODEL_NAME:
+            # No override configured -- fall through to the shared default
+            # instance below. This is the path every existing caller takes.
+            role = "default"
+
+    if role not in _LOAD_ATTEMPTED or not _LOAD_ATTEMPTED[role]:
+        _LOAD_ATTEMPTED[role] = True
+        if role == "default":
+            instance = LLMService(verbose=verbose)
+        else:
+            instance = LLMService(
+                verbose=verbose,
+                model_name_override=PLANNER_MODEL_NAME,
+                max_input_tokens_override=PLANNER_MAX_INPUT_TOKENS,
+                max_new_tokens_override=PLANNER_MAX_NEW_TOKENS,
+            )
+        _INSTANCES[role] = instance if instance.is_available else None
+
+    return _INSTANCES.get(role)

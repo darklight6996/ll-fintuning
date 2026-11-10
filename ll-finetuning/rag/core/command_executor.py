@@ -14,6 +14,7 @@ Responsibilities
 
 import sys
 import time
+import ipaddress
 from typing import Dict, Any, List, Optional, Literal, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -23,6 +24,42 @@ if TYPE_CHECKING:
 import subprocess
 import shlex
 
+
+
+def _classify_target_kind(target_str: str) -> str:
+    """
+    MED-4: classify a non-local target string into one of the
+    ActionDefinition.allowed_target_kinds values ("ip", "cidr", "domain", "url").
+    Uses the stdlib `ipaddress` module for actual IP/CIDR validation rather than a
+    hand-rolled regex, so "999.999.999.999" or similar malformed strings correctly
+    fall through to "domain" instead of being misclassified as an "ip".
+    """
+    candidate = target_str.strip()
+
+    # URL: has an explicit scheme (http://, https://, ftp://, ...).
+    scheme_sep = candidate.find("://")
+    if 0 < scheme_sep <= 32:
+        scheme = candidate[:scheme_sep]
+        if scheme.isalnum() or all(c.isalnum() or c in "+-." for c in scheme):
+            return "url"
+
+    # CIDR: "<ip>/<prefix>" that ipaddress accepts as a network.
+    if "/" in candidate:
+        try:
+            ipaddress.ip_network(candidate, strict=False)
+            return "cidr"
+        except ValueError:
+            pass
+
+    # Bare IPv4 / IPv6 address.
+    try:
+        ipaddress.ip_address(candidate)
+        return "ip"
+    except ValueError:
+        pass
+
+    # Anything else (hostname, FQDN) is treated as a domain.
+    return "domain"
 
 class CommandPreview:
     """
@@ -269,6 +306,30 @@ class CommandExecutor:
                     "results": [],
                     "approval_record": {"policy": approval_policy, "timestamp": time.time(), "approved_by": None},
                     "rejection_reason": f"Target '{target_str}' is out of scope: {scope_reason}",
+                    "rejection_category": "out_of_scope",
+                }
+
+            # MED-4 fix: Gate 2 previously only checked the NEGATIVE case (a local target
+            # proposed against an action that doesn't allow "local"). It never checked the
+            # POSITIVE case: that a non-local target's actual kind (ip / cidr / domain /
+            # url) is one of the kinds the action declares in allowed_target_kinds. Without
+            # this, an action authored for allowed_target_kinds=["ip"] could be run against
+            # a URL or domain target as long as that string happened to pass
+            # scope.is_asset_in_scope() -- kind enforcement existed only in the type hints
+            # and the docs, never at the gate.
+            target_kind = _classify_target_kind(target_str)
+            if target_kind not in defn.allowed_target_kinds:
+                return {
+                    "status": "rejected",
+                    "action_id": action_id,
+                    "action_identity": action_identity,
+                    "results": [],
+                    "approval_record": {"policy": approval_policy, "timestamp": time.time(), "approved_by": None},
+                    "rejection_reason": (
+                        f"Target '{target_str}' was classified as kind '{target_kind}', which "
+                        f"is not in action '{action_id}''s allowed_target_kinds: "
+                        f"{defn.allowed_target_kinds}."
+                    ),
                     "rejection_category": "out_of_scope",
                 }
 

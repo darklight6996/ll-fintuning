@@ -10,6 +10,9 @@ CONTRACT:
 - NEVER call the AI or do I/O
 """
 
+import os
+import re
+import sys
 from typing import List
 
 
@@ -59,21 +62,68 @@ def build_read_file_argv(params) -> List[List[str]]:
     ]
 
 
+# MED-5: safe-component patterns for path_hijack_validation's AI-supplied strings.
+# fake_binary_name must be a bare filename (no '/', no '..') -- it is joined onto
+# work_dir below, and without this check a value like "../../etc/cron.d/x" could
+# escape work_dir entirely. work_dir / target_suid_binary are expected to be
+# absolute paths, so '/' is allowed in those but shell metacharacters are not.
+_SAFE_FILENAME_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
+_SAFE_ABS_PATH_RE = re.compile(r"^/[A-Za-z0-9_./-]*$")
+
+
+def _validate_safe_component(value, pattern, field_name):
+    if not value or ".." in value or not pattern.match(value):
+        raise ValueError(
+            f"path_hijack_validation: {field_name}={value!r} failed safety validation "
+            f"(must match {pattern.pattern!r} and must not contain '..'). Refusing to "
+            f"build a command from an unvalidated AI-supplied string."
+        )
+    return value
+
+
 def build_path_hijack_argv(params) -> List[List[str]]:
     """
     Validate a PATH hijack: create a fake binary in work_dir that spawns a shell,
     then run the SUID target with PATH prepended.
     Returns sequential steps as separate argv vectors.
+
+    MED-5 fix: the previous implementation interpolated AI-supplied
+    fake_binary_name / work_dir / target_suid_binary directly into `bash -c "..."`
+    strings -- the one place in the whole command-builder layer that bent the
+    "never build shell strings, every argv element is a literal, untrusted input is
+    never concatenated into a command line" contract every other builder in this
+    codebase follows. A value such as fake_binary_name="x; rm -rf /" would have been
+    executed as shell syntax, not treated as a literal filename.
+
+    This version (a) validates each component against a strict allow-list before
+    using it at all, and (b) never invokes a shell: the fake script is written via a
+    `python -c` helper that receives the path only as an argv string (sys.argv[1]),
+    never interpolated into source code, and the final PATH-prefixed invocation uses
+    the real `env` binary (`env VAR=value cmd`, which is argv -- not shell -- syntax)
+    instead of `bash -c "PATH=... cmd"`.
     """
-    work_dir = getattr(params, "work_dir", "/tmp")
-    fake_name = params.fake_binary_name
+    work_dir = _validate_safe_component(
+        getattr(params, "work_dir", "/tmp") or "/tmp", _SAFE_ABS_PATH_RE, "work_dir"
+    )
+    fake_name = _validate_safe_component(
+        params.fake_binary_name, _SAFE_FILENAME_RE, "fake_binary_name"
+    )
+    target = _validate_safe_component(
+        params.target_suid_binary, _SAFE_ABS_PATH_RE, "target_suid_binary"
+    )
     fake_path = f"{work_dir}/{fake_name}"
-    target = params.target_suid_binary
+
+    write_fake_script = (
+        "import sys, pathlib\n"
+        "p = pathlib.Path(sys.argv[1])\n"
+        "p.write_text('#!/bin/sh\\n/bin/sh -p\\n')\n"
+    )
+    current_path = os.environ.get("PATH", "")
 
     return [
-        ["bash", "-c", f"echo '#!/bin/sh\\n/bin/sh -p' > {fake_path}"],
+        [sys.executable, "-c", write_fake_script, fake_path],
         ["chmod", "+x", fake_path],
-        ["bash", "-c", f"PATH={work_dir}:$PATH {target}"],
+        ["env", f"PATH={work_dir}:{current_path}", target],
     ]
 
 

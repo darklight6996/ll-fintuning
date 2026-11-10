@@ -47,7 +47,17 @@ class AIActionProposal(BaseModel):
     Contract for AI planner decisions.
     The AI proposes structured parameters, NEVER shell commands or raw argv.
     """
-    decision: Literal["propose_action", "propose_completion"] = "propose_action"
+    # Full C1 extension: three evidence-chain decision verbs alongside the original
+    # two. form_hypothesis/record_validation/record_finding let the AI build the
+    # OBSERVATION -> HYPOTHESIS -> VALIDATION -> FINDING chain explicitly instead of
+    # relying solely on BaseAgent's deterministic satisfies_phase promotion as the
+    # only path to a Finding. Framework-side id verification (not this Pydantic model)
+    # is what stops a fabricated obs_id/hyp_id from being accepted -- see
+    # base_agent.run_autonomous() and AUDIT.md "Option A".
+    decision: Literal[
+        "propose_action", "propose_completion",
+        "form_hypothesis", "record_validation", "record_finding",
+    ] = "propose_action"
     action_id: Optional[str] = None
     target: Optional[str] = None
     parameters: Dict[str, Any] = Field(default_factory=dict)
@@ -131,8 +141,11 @@ class ActionRegistry:
         catalog = []
         for defn in self.actions.values():
             schema = {}
+            required_params: List[str] = []
             try:
-                schema = defn.params_model.model_json_schema().get("properties", {})
+                full_schema = defn.params_model.model_json_schema()
+                schema = full_schema.get("properties", {})
+                required_params = full_schema.get("required", [])
             except Exception:
                 pass
             catalog.append({
@@ -145,6 +158,7 @@ class ActionRegistry:
                 "requires_active_testing": defn.requires_active_testing,
                 "allowed_target_kinds": defn.allowed_target_kinds,
                 "parameters_schema": schema,
+                "required_params": required_params,
             })
         return catalog
 

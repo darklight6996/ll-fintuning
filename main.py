@@ -153,9 +153,17 @@ def gather_scope(os_info: OSInfo) -> Scope:
     auth_ref = prompt_string("Authorization Reference (Contract / Ticket / JIRA ID)", default="DEMO-AUTH-2026")
 
     print("\nExecution Authorization:")
-    print("  Safe/Passive Mode:  Runs non-destructive queries and scans (read_only=True).")
-    print("  Active Testing:     Authorizes simulated exploit validations and active probes.")
+    print("  These three authorizations are independent. Granting one does NOT grant the others.")
+    print("  Active Testing:       Authorizes simulated exploit validations and active probes (non read-only).")
     active_allowed = prompt_yes_no("Authorize Active Testing?", default=False)
+    print("  Active Network:       Authorizes actions that send live traffic to the target over the network.")
+    active_network_allowed = prompt_yes_no("Authorize Active Network Effects?", default=False)
+    print("  State-Changing:       Authorizes actions that modify target state or access credentials")
+    print("                        (e.g. PATH-hijack privesc validation, DCSync, credential dumping).")
+    state_changes_allowed = prompt_yes_no("Authorize State-Changing Actions?", default=False)
+    recon_only = False
+    if not (active_allowed or active_network_allowed or state_changes_allowed):
+        recon_only = prompt_yes_no("No active authorizations granted — restrict engagement to reconnaissance only?", default=True)
 
     return Scope(
         target=target,
@@ -165,7 +173,10 @@ def gather_scope(os_info: OSInfo) -> Scope:
         prohibited_tools=prohibited_tools,
         time_window=time_window,
         authorization_ref=auth_ref,
-        active_testing_allowed=active_allowed
+        active_testing_allowed=active_allowed,
+        active_network_allowed=active_network_allowed,
+        state_changes_allowed=state_changes_allowed,
+        recon_only_authorized=recon_only,
     )
 
 
@@ -207,6 +218,12 @@ def main():
     parser.add_argument("--mode", type=str, choices=["manual", "automated"], default=None, help="Execution mode")
     parser.add_argument("--autohunt", action="store_true", help="Launch agent in autonomous hunter mode")
     parser.add_argument("--target", type=str, default=None, help="Directly specify target identifier")
+    parser.add_argument("--authorize-active", action="store_true",
+                         help="Authorize active testing (simulated exploit validations, active probes)")
+    parser.add_argument("--authorize-network", action="store_true",
+                         help="Authorize actions with active network effects (live traffic to target)")
+    parser.add_argument("--authorize-state-change", action="store_true",
+                         help="Authorize state-changing / credential-access actions")
     args = parser.parse_args()
 
     print(BANNER)
@@ -230,15 +247,43 @@ def main():
             print(f"\n[+] Resumed existing session '{args.resume}'.")
             target = state.get("target", "127.0.0.1")
             agent_type = state.get("type", "pentest")
-            scope = Scope(target=target, in_scope=[target])
+
+            # --resume fix: reconstruct the FULL Scope (every authorization flag) from
+            # what BaseAgent.save_scope() persisted at session creation, instead of
+            # always rebuilding a bare Scope(target, in_scope) that silently drops
+            # active_testing_allowed / active_network_allowed / state_changes_allowed /
+            # recon_only_authorized and every other scope field. Sessions created before
+            # this fix have no "scope_full" key, so they fall back to the old (now
+            # explicitly flagged, rather than silent) unauthorized-by-default behavior.
+            persisted_scope = session_mgr.load_scope()
+            if persisted_scope:
+                scope = Scope(**persisted_scope)
+                print("[+] Restored full scope and authorization flags from saved session.")
+            else:
+                scope = Scope(target=target, in_scope=[target])
+                print(
+                    "[!] This session predates scope persistence -- resuming with a "
+                    "bare, fully-unauthorized scope (no active testing, no state "
+                    "changes). Re-run with --authorize-active / --authorize-network / "
+                    "--authorize-state-change if this session needs those."
+                )
+            resumed_mode = state.get("mode", "manual")
             agent = AgentRouter.instantiate_agent(
                 identifier=agent_type,
                 scope=scope,
-                mode=state.get("mode", "manual"),
+                mode=resumed_mode,
                 session_manager=session_mgr
             )
             print(f"[*] Handing control to resumed agent: {agent.agent_name}...")
-            agent.run()
+            # Related --resume fix: state["mode"] was never persisted anywhere before
+            # this fix, so this always read back the "manual" default and resumed an
+            # autonomous session as a manual one -- calling the phase-driven agent.run()
+            # instead of agent.run_autonomous_default(), silently discarding the rest of
+            # that session's autonomous evidence-driven assessment.
+            if resumed_mode == "automated" and hasattr(agent, "run_autonomous_default"):
+                agent.run_autonomous_default()
+            else:
+                agent.run()
             return
         except Exception as e:
             print(f"[!] Could not resume session '{args.resume}': {e}")
@@ -248,14 +293,36 @@ def main():
     agent_id = args.agent or select_agent()
 
     # 5. Scope Gathering
+    # NOTE: --target and --autohunt fast paths bypass the interactive scope wizard.
+    # They default to recon-only (no active/network/state-change authorization) unless
+    # the corresponding --authorize-* flag is explicitly passed. This is intentional:
+    # a fast path must not silently grant active testing on real targets.
     if args.target:
-        scope = Scope(target=args.target, in_scope=[args.target])
+        scope = Scope(
+            target=args.target,
+            in_scope=[args.target],
+            active_testing_allowed=args.authorize_active,
+            active_network_allowed=args.authorize_network,
+            state_changes_allowed=args.authorize_state_change,
+            recon_only_authorized=not (args.authorize_active or args.authorize_network or args.authorize_state_change),
+        )
     elif args.autohunt:
         # --autohunt without --target: prompt minimally (no full scope wizard)
         target = prompt_string("Target for autonomous hunt (IP, Domain, URL, CIDR)", default="127.0.0.1")
-        scope = Scope(target=target, in_scope=[target])
+        scope = Scope(
+            target=target,
+            in_scope=[target],
+            active_testing_allowed=args.authorize_active,
+            active_network_allowed=args.authorize_network,
+            state_changes_allowed=args.authorize_state_change,
+            recon_only_authorized=not (args.authorize_active or args.authorize_network or args.authorize_state_change),
+        )
     else:
         scope = gather_scope(os_info)
+
+    if (args.target or args.autohunt) and not (args.authorize_active or args.authorize_network or args.authorize_state_change):
+        print("[*] No --authorize-* flags passed: engagement restricted to passive reconnaissance only.")
+        print("    Use --authorize-active / --authorize-network / --authorize-state-change to unlock active actions.")
 
     # 6. Mode Selection
     if args.autohunt:

@@ -51,8 +51,14 @@ class ChatAssistant:
         intent_router: Optional[IntentRouter] = None,
         context_builder: Optional[ContextBuilder] = None,
         prompt_builder: Optional[PromptBuilder] = None,
-        intelligence_extractor: Optional[IntelligenceExtractor] = None
+        intelligence_extractor: Optional[IntelligenceExtractor] = None,
+        role: str = "default",
     ):
+        # M2: "default" (chat, scope-compliance, report synthesis) or "planner"
+        # (AIPlanner.decide_next()). Only changes behavior if
+        # core.config.PLANNER_MODEL_NAME is explicitly set -- see
+        # core/services/llm_service.py::get_llm_service() for the fallback.
+        self.role = role
         # Stored as instance references so tests can inject mocks
         self._llm_svc = None
         self._rag_svc = None
@@ -73,9 +79,9 @@ class ChatAssistant:
     # ------------------------------------------------------------------
 
     def _get_llm_router(self):
-        """Return the LLMService singleton (or None if unavailable)."""
+        """Return the LLMService singleton for this assistant's role (or None if unavailable)."""
         if self._llm_svc is None:
-            self._llm_svc = get_llm_service(verbose=True) or False
+            self._llm_svc = get_llm_service(verbose=True, role=self.role) or False
         return self._llm_svc if self._llm_svc is not False else None
 
     def _get_rag_engine(self):
@@ -516,6 +522,7 @@ class ChatAssistant:
         prompt: str,
         max_new_tokens: int = 512,
         system_prompt: Optional[str] = None,
+        action_id_choices: Optional[List[str]] = None,
     ) -> str:
         """
         Generate a raw text response from the LLM without any intent routing,
@@ -546,17 +553,30 @@ class ChatAssistant:
             })
 
         try:
-            # Build a combined prompt if system_prompt is provided
-            if system_prompt:
-                full_prompt = f"{system_prompt}\n\n{prompt}"
-            else:
-                full_prompt = prompt
+            # H3 fix: pass system_prompt through as the model's real system role instead
+            # of concatenating it into the user turn. ModelRouter._format_prompt applies
+            # its own default "pentest mentor" persona system message whenever no
+            # system_prompt kwarg is supplied — concatenation meant the planner's strict
+            # "return exactly one JSON object" contract was being demoted into user text
+            # and overridden by that generic persona.
+            # H4 fix: do_sample=False (greedy decoding) — generate_raw() exists solely to
+            # produce parseable structured JSON for AIPlanner, where sampling variance is
+            # a pure liability, not a feature.
+            gen_kwargs = {
+                "max_new_tokens": max_new_tokens,
+                "system_prompt": system_prompt,
+                "do_sample": False,
+            }
+            # M1: forwarded to ModelRouter.generate(), which only acts on it if
+            # non-empty -- see core/constrained_decoding.py for scope.
+            if action_id_choices:
+                gen_kwargs["action_id_choices"] = action_id_choices
 
             # Use the LLM service directly — bypass intent routing
             if hasattr(llm, "generate"):
-                return llm.generate(full_prompt, max_new_tokens=max_new_tokens)
+                return llm.generate(prompt, **gen_kwargs)
             elif hasattr(llm, "model_router") and hasattr(llm.model_router, "generate"):
-                return llm.model_router.generate(full_prompt, max_new_tokens=max_new_tokens)
+                return llm.model_router.generate(prompt, **gen_kwargs)
             else:
                 # Last resort: use the respond() path
                 return self.respond(prompt)

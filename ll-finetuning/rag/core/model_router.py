@@ -295,9 +295,22 @@ class ModelRouter:
         top_p: float = 0.9,
         do_sample: bool = True,
         system_prompt: Optional[str] = None,
+        max_new_tokens: Optional[int] = None,
+        action_id_choices: Optional[list] = None,
         **kwargs
     ) -> str:
-        """Generate a response from the loaded model."""
+        """
+        Generate a response from the loaded model.
+
+        action_id_choices (M1): when the caller is AIPlanner requesting a structured
+        proposal, this is the registry's list of valid action_id strings. If provided
+        (and non-empty), generation is nudged -- via a best-effort LogitsProcessor,
+        never a hard constraint -- toward producing a real action_id in the JSON
+        "action_id" field. See core/constrained_decoding.py for the exact scope and
+        why this is limited to just that one field. Any other caller (chat, report
+        synthesis, scope-compliance checks) simply doesn't pass this and is completely
+        unaffected.
+        """
         formatted_prompt = self._format_prompt(prompt, system_prompt=system_prompt)
         inputs = self._prepare_inputs(formatted_prompt)
         input_length = inputs["input_ids"].shape[1]
@@ -307,16 +320,44 @@ class ModelRouter:
         if im_end and im_end not in eos_ids:
             eos_ids.append(im_end)
 
+        # H2 fix: honor a per-call max_new_tokens override. Previously this parameter
+        # was accepted by every caller (e.g. AIPlanner requesting 512 tokens for a JSON
+        # proposal) but silently dropped here, so generation was always capped at the
+        # constructor's self.max_new_tokens — truncating structured JSON mid-object.
+        effective_max_new_tokens = max_new_tokens if max_new_tokens is not None else self.max_new_tokens
+
+        gen_kwargs = dict(
+            max_new_tokens=effective_max_new_tokens,
+            do_sample=do_sample,
+            pad_token_id=self.tokenizer.pad_token_id,
+            eos_token_id=eos_ids if eos_ids else None,
+        )
+        # H4 fix: temperature/top_p only apply under sampling; recent `transformers`
+        # versions warn (and some configs error) if they are passed with do_sample=False.
+        # Structured planning calls pass do_sample=False for deterministic, greedy decoding.
+        if do_sample:
+            gen_kwargs["temperature"] = temperature
+            gen_kwargs["top_p"] = top_p
+
+        if action_id_choices:
+            try:
+                from core.constrained_decoding import build_action_id_logits_processor
+                from transformers import LogitsProcessorList
+
+                processor = build_action_id_logits_processor(
+                    tokenizer=self.tokenizer,
+                    valid_action_ids=action_id_choices,
+                    prompt_length=input_length,
+                )
+                if processor is not None:
+                    gen_kwargs["logits_processor"] = LogitsProcessorList([processor])
+            except Exception:
+                # M1 is advisory -- never let a constrained-decoding setup failure
+                # block ordinary unconstrained generation.
+                pass
+
         with torch.no_grad():
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=self.max_new_tokens,
-                temperature=temperature,
-                top_p=top_p,
-                do_sample=do_sample,
-                pad_token_id=self.tokenizer.pad_token_id,
-                eos_token_id=eos_ids if eos_ids else None,
-            )
+            outputs = self.model.generate(**inputs, **gen_kwargs)
 
         if "t5" in self.model_name.lower() or "flan" in self.model_name.lower():
             decoded = self.tokenizer.decode(outputs[0], skip_special_tokens=True)

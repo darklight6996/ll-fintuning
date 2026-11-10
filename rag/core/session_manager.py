@@ -71,7 +71,8 @@ class SessionManager:
         name: str,
         scope: str = "",
         target: str = "",
-        target_type: str = ""
+        target_type: str = "",
+        mode: str = "",
     ) -> Dict[str, Any]:
         """
         Initialize a new assessment session folder and state.
@@ -103,6 +104,11 @@ class SessionManager:
             "target": target.strip(),
             "type": target_type.strip(),
             "scope": scope.strip(),
+            # Related --resume fix: persist the run mode ("manual"/"automated") too --
+            # previously unset entirely, so main.py's --resume path always read back
+            # state.get("mode", "manual") and silently resumed an autonomous session
+            # as a manual one, calling agent.run() instead of agent.run_autonomous().
+            "mode": mode.strip().lower() if mode else "manual",
             "status": "in_progress",
             "created_at": now,
             "updated_at": now,
@@ -163,6 +169,45 @@ class SessionManager:
             self.state = json.load(f)
 
         return self.state
+
+    def save_scope(self, scope: Any) -> None:
+        """
+        --resume fix: persist the FULL Scope object (every authorization flag, not
+        just the target) into session state, so resuming a session restores the exact
+        engagement boundaries and authorizations it was created with.
+
+        Before this, only a stringified `in_scope` list went into state["scope"] (set
+        once, at session creation, from `str(self.scope.in_scope)` -- see BaseAgent.run()
+        / run_autonomous()). Every other Scope field -- out_of_scope, prohibited_tests,
+        prohibited_tools, time_window, authorization_ref, and critically
+        active_testing_allowed / active_network_allowed / state_changes_allowed /
+        recon_only_authorized (the C3 independent authorization flags) -- was never
+        written anywhere, so main.py's --resume path had no way to recover them and
+        silently reconstructed a bare, fully-unauthorized `Scope(target, in_scope)`.
+        A resumed autonomous run would then have every active-testing action rejected
+        at Gate 3, even if the original session had explicitly authorized them.
+        """
+        import dataclasses
+
+        if dataclasses.is_dataclass(scope):
+            self.state["scope_full"] = dataclasses.asdict(scope)
+        else:
+            # Defensive fallback for a non-dataclass Scope-like object (e.g. a test
+            # double): persist whatever plain attributes we can find.
+            self.state["scope_full"] = {
+                k: v for k, v in vars(scope).items()
+                if isinstance(v, (str, bool, int, float, list, dict, type(None)))
+            }
+        self.save_current_state()
+
+    def load_scope(self) -> Optional[Dict[str, Any]]:
+        """
+        Return the full persisted Scope dict saved by save_scope(), or None if this
+        session predates that field (older sessions saved before this fix) -- callers
+        must fall back to a bare Scope(target, in_scope) in that case, exactly as
+        main.py's --resume path already did.
+        """
+        return self.state.get("scope_full")
 
     def save_current_state(self) -> None:
         """
