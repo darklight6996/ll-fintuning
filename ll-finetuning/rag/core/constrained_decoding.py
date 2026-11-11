@@ -24,6 +24,23 @@ find a clean constraint at some step (tokenizer boundary quirks, an unexpected
 template), it simply stops restricting for that step rather than risk masking every
 token to -inf (which would break generation outright) or ever being the thing a
 request's safety depends on.
+
+EXTENSION (found via live GPU smoke test with Qwen2.5-7B-Instruct + qwen-qlora,
+2026-11-11): once action_id's value is fully typed and closed, the model has
+repeatedly kept going right past the closing quote with a human-readable
+annotation copied from elsewhere in the prompt -- a parenthetical, a "//"
+comment, and (most recently) the REGISTERED ACTIONS catalog's own
+"[risk, network=..., state=...]" tag -- before finally emitting the delimiter
+that should have come immediately after the quote. core/ai_planner.py's
+_extract_json_object() repairs each of these variants after the fact with a
+targeted regex, but that is an ever-growing game of whack-a-mole against a
+model that keeps inventing new annotation styles. This processor now also
+constrains the single token immediately AFTER action_id's closing quote (only
+once the closed value is a real, registered action_id) to one of a small set
+of valid JSON continuations (",", ", ", a newline+comma, or "}"), which
+structurally prevents the whole class of "extra text right after action_id"
+bug regardless of what annotation style the model tries next -- rather than
+patching each new variant as it appears.
 """
 
 from __future__ import annotations
@@ -40,6 +57,17 @@ except ImportError:  # pragma: no cover - exercised only in environments without
 
 
 _ACTION_ID_TAIL_RE = re.compile(r'"action_id"\s*:\s*"([^"]*)$')
+# Matches once action_id's value has just been closed with its final quote --
+# i.e. the model has emitted a complete "action_id": "<value>" with nothing
+# after the closing quote yet. Used to constrain the very next token to a
+# real JSON delimiter instead of an annotation.
+_ACTION_ID_CLOSED_RE = re.compile(r'"action_id"\s*:\s*"([^"]*)"$')
+# Candidate continuations immediately after a closed, valid action_id value.
+# Best-effort / advisory like the rest of this file -- if none of these encode
+# to a usable first token for a given tokenizer, the processor simply falls
+# back to not constraining that step (see the "not allowed_token_ids" guard
+# below), never to masking everything to -inf.
+_DELIMITER_CONTINUATIONS = [",", ", ", ",\n", "}"]
 
 
 class ActionIdConstrainedLogitsProcessor(LogitsProcessor):
@@ -83,6 +111,26 @@ class ActionIdConstrainedLogitsProcessor(LogitsProcessor):
             decoded = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
         except Exception:
             return scores
+
+        closed_match = _ACTION_ID_CLOSED_RE.search(decoded)
+        if closed_match and closed_match.group(1) in self.valid_action_ids:
+            # action_id's value is a complete, real action_id and has just been
+            # closed with its final quote -- force the next token to be a plain
+            # JSON delimiter so the model cannot append an annotation here (the
+            # specific bug this extension fixes; see module docstring).
+            allowed_delim_ids = set()
+            for continuation in _DELIMITER_CONTINUATIONS:
+                tok = self._first_token_for_suffix(continuation)
+                if tok is not None:
+                    allowed_delim_ids.add(tok)
+            if allowed_delim_ids:
+                mask = torch.full_like(scores, float("-inf"))
+                allowed = torch.tensor(
+                    sorted(allowed_delim_ids), device=scores.device, dtype=torch.long
+                )
+                mask[:, allowed] = scores[:, allowed]
+                return mask
+            return scores  # couldn't resolve any delimiter token -- don't force -inf
 
         match = _ACTION_ID_TAIL_RE.search(decoded)
         if not match:

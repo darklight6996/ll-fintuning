@@ -5,8 +5,26 @@
 
 import os
 
-# Resolve paths relative to this config file's directory (core/)
-CORE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Resolve paths relative to this config file's directory (core/).
+#
+# BUG FIX (2026-11-11): core/__init__.py (repo root) extends its __path__ to
+# include a top-level `rag` entry that is actually a symlink/junction pointing
+# at ll-finetuning/rag -- NOT a real directory one level under the true repo
+# root. os.path.abspath(__file__) does NOT dereference that symlink, so the old
+# code here saw __file__ as "<repo_root>/rag/core/config.py" (via the symlink's
+# *logical* location) instead of its real physical path
+# "<repo_root>/ll-finetuning/rag/core/config.py" -- undercounting the real
+# nesting depth by one directory. That made ROOT_DIR silently equal the TRUE
+# repo root instead of the ll-finetuning/ folder the comment below (and
+# LORA_ADAPTER_PATH's "..") assume, so LORA_ADAPTER_PATH overshot one level
+# above the repo root into a directory that doesn't exist. The practical
+# effect: os.path.exists(LORA_ADAPTER_PATH) was always False, so
+# ModelRouter's LoRA auto-discovery (core/model_router.py _load_model() step 3)
+# silently never fired on ANY past run -- every assessment to date ran the
+# bare base model, never the fine-tuned adapter. os.path.realpath() resolves
+# the symlink first, fixing the depth count regardless of which path (direct
+# or via the `rag` symlink) was used to import this module.
+CORE_DIR = os.path.dirname(os.path.realpath(__file__))
 RAG_DIR = os.path.dirname(CORE_DIR)
 ROOT_DIR = os.path.dirname(RAG_DIR)  # project root (ll-finetuning/)
 
@@ -60,14 +78,28 @@ CPU_MAX_NEW_TOKENS = 200
 # GPU MODEL SETTINGS
 # ==============================
 
-GPU_MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-GPU_MAX_INPUT_TOKENS = 2048
-GPU_MAX_NEW_TOKENS = 256
-
-# Qwen target (swap in after download finishes):
-# GPU_MODEL_NAME = "Qwen/Qwen2.5-7B-Instruct"
+# Qwen2.5-7B-Instruct + the user's own qwen-qlora fine-tune (lora-adapters/qwen-qlora/,
+# trained via train_qlora.py: r=16, alpha=32, dropout=0.05, target_modules
+# q/k/v/o_proj, ChatML-formatted data/qwen_chatml.jsonl) is now the single model used
+# EVERYWHERE -- chat, report synthesis, scope-compliance checks, and the planner --
+# since PLANNER_MODEL_NAME below is left unset and therefore resolves to this same
+# GPU_MODEL_NAME (see llm_service.get_llm_service()). ModelRouter auto-discovers and
+# attaches the local lora-adapters/qwen-qlora adapter for any "qwen" model_name
+# (core/model_router.py _load_model() step 3), so no adapter_path needs passing here.
+GPU_MODEL_NAME = "Qwen/Qwen2.5-7B-Instruct"
 GPU_MAX_INPUT_TOKENS = 4096
 GPU_MAX_NEW_TOKENS = 1024
+
+# The qwen-qlora adapter was TRAINED in 4-bit NF4 (bitsandbytes QLoRA) specifically
+# for an 8GB RTX 3060 Ti. fp16 inference of a bare 7B model needs ~14GB VRAM, which
+# will not fit that card -- ModelRouter's GPU loader normally tries fp16 first and
+# only falls back to 4-bit NF4 on an OOM exception, which both wastes a doomed load
+# attempt and can leave CUDA in a dirty state after a partial OOM. Setting this to
+# True skips straight to the 4-bit NF4 path (matching training exactly) instead of
+# attempting the fp16 fast path first. Only affects models matched by
+# model_router.py's `use_large_model` check (7b/qwen/mistral/PEFT); set to False to
+# restore the old try-fp16-then-fallback behavior.
+GPU_FORCE_4BIT = True
 
 # ==============================
 # PLANNER MODEL OVERRIDE (M2)

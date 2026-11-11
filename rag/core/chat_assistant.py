@@ -521,6 +521,7 @@ class ChatAssistant:
         self,
         prompt: str,
         max_new_tokens: int = 512,
+        min_new_tokens: int = 40,
         system_prompt: Optional[str] = None,
         action_id_choices: Optional[List[str]] = None,
     ) -> str:
@@ -534,6 +535,11 @@ class ChatAssistant:
         Args:
             prompt: The user-facing prompt text.
             max_new_tokens: Maximum tokens to generate.
+            min_new_tokens: Floor below which eos/<|im_end|> is ineligible (see
+                ModelRouter.generate()'s "found via live GPU smoke test" note).
+                40 is enough room for the shortest real decision -- e.g.
+                propose_completion's summary -- without being so large it forces
+                padding past a legitimately short, valid completion.
             system_prompt: Optional system-level instruction override.
 
         Returns:
@@ -564,6 +570,7 @@ class ChatAssistant:
             # a pure liability, not a feature.
             gen_kwargs = {
                 "max_new_tokens": max_new_tokens,
+                "min_new_tokens": min_new_tokens,
                 "system_prompt": system_prompt,
                 "do_sample": False,
             }

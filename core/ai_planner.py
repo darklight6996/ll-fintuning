@@ -42,6 +42,7 @@ correctly.
 from __future__ import annotations
 
 import json
+import re
 import time
 from typing import Any, Dict, List, Optional
 
@@ -52,7 +53,7 @@ from core.action_contract import ActionRegistry, AIActionProposal
 # System prompt template for AI planner
 # ---------------------------------------------------------------------------
 
-_PLANNER_SYSTEM_PROMPT = """\
+_PLANNER_SYSTEM_PROMPT_TEMPLATE = """\
 You are a structured security assessment AI planner operating inside a safety-gated framework.
 
 YOUR ROLE:
@@ -110,23 +111,90 @@ RULES (NON-NEGOTIABLE):
 1. You MUST return exactly one JSON object — no markdown, no explanation outside JSON.
 2. You MUST only use action_id values from the "REGISTERED ACTIONS" list for propose_action.
 3. You MUST NOT emit shell commands, shell strings, or argv vectors.
-4. You MUST NOT propose an action that has already hit its retry budget (see RETRY STATUS).
+4. REGISTERED ACTIONS below already excludes any action whose retry budget is exhausted -- it is simply not listed as an option any more (see RETRY STATUS for which ones). If REGISTERED ACTIONS is empty, you MUST choose "propose_completion" or an evidence-chain decision instead of re-proposing something already exhausted.
 5. obs_id / hyp_id values MUST be copied verbatim from the sections below. An id you
    invent, paraphrase, or recall from memory instead of copying will be rejected — the
    framework checks every id against what actually exists in the evidence store.
 6. A hypothesis cannot become a Finding until it has been explicitly validated with
    "record_validation" and verdict="supports". Running an action is not enough by itself.
+7. Do NOT add commentary, annotations, or comments of ANY kind anywhere inside or
+   around the JSON object -- not a parenthetical note, not a // line comment, not a
+   /* */ block comment, nothing. For example, NEVER write
+   "action_id": "some_action" (from catalog), or
+   "action_id": "some_action" // from catalog -- standard JSON has no comment
+   syntax at all, and any such text breaks parsing and gets the entire proposal
+   rejected. Output ONLY the raw JSON object: no text before it, no text after it,
+   and no extra text of any kind inside it.
+8. The OUTPUT FORMAT example below is rebuilt fresh every turn from the CURRENT
+   REGISTERED ACTIONS and RETRY STATUS below -- its action_id and rationale are a
+   SHAPE to copy, not a recommendation. If you submit the exact same action_id and
+   rationale text on two different turns, that means you copied the example instead
+   of reasoning about the CURRENT state, and once that action's retry budget is
+   exhausted it will simply keep getting rejected every turn after. Always re-derive
+   action_id, parameters, and rationale from what REGISTERED ACTIONS, RETRY STATUS,
+   OBSERVATIONS, and ACTIVE HYPOTHESES actually say on THIS turn.
 
-OUTPUT FORMAT (propose_action example):
-{
-  "decision": "propose_action",
-  "action_id": "<action_id from catalog>",
-  "target": "<target or null>",
-  "parameters": {},
-  "rationale": "<one sentence>",
-  "confidence": 0.85
-}
+OUTPUT FORMAT (__EXAMPLE_DECISION__ example -- copy this JSON SHAPE, but replace every
+value with one that fits the CURRENT state above, not these example values):
+__EXAMPLE_JSON__
 """
+
+def _render_system_prompt(example_action_id, example_rationale: str) -> str:
+    """
+    Fill in the OUTPUT FORMAT example in _PLANNER_SYSTEM_PROMPT_TEMPLATE with a
+    *real, currently-available* action_id (and a rationale that names it) instead
+    of a single frozen literal.
+
+    BUG FIX (live GPU smoke test, 2026-11-11): the template used to hard-code a
+    literal example, e.g. "action_id": "environment_recon" with a fixed rationale
+    sentence. This 7B model reliably just copied that literal example verbatim as
+    its *answer* on step after step -- same action_id, same word-for-word
+    rationale -- regardless of current state, instead of treating it as a shape to
+    fill in. Once that action's retry budget was exhausted, every copy got
+    rejected, and the model never varied its output enough to try anything else
+    (confirmed: 5 consecutive REJECTED steps with byte-identical rationale text).
+
+    Rebuilding the example from the *current* first-available REGISTERED ACTION
+    each call fixes this without needing the model to reason correctly: even a
+    model that just copies the example now copies something valid and different
+    once the previous one is exhausted and filtered out of the catalog (see the
+    exhausted_action_ids filtering in _build_prompt), so copying becomes
+    self-correcting instead of a stuck loop.
+    """
+    if example_action_id is None:
+        example_decision = "propose_completion"
+        example_dict = {
+            "decision": "propose_completion",
+            "action_id": None,
+            "target": None,
+            "parameters": {},
+            "rationale": (
+                "Every registered action has exhausted its retry budget and no "
+                "further evidence-chain step is available; declaring the "
+                "assessment complete."
+            ),
+            "confidence": 0.6,
+        }
+    else:
+        example_decision = "propose_action"
+        example_dict = {
+            "decision": "propose_action",
+            "action_id": example_action_id,
+            "target": None,
+            "parameters": {},
+            "rationale": example_rationale,
+            "confidence": 0.85,
+        }
+    # json.dumps handles all quoting/escaping -- action descriptions are
+    # code-defined, but this removes any risk of a stray quote in a rationale
+    # string breaking the example's own JSON syntax.
+    example_json = json.dumps(example_dict, indent=2)
+    return (
+        _PLANNER_SYSTEM_PROMPT_TEMPLATE
+        .replace("__EXAMPLE_DECISION__", example_decision)
+        .replace("__EXAMPLE_JSON__", example_json)
+    )
+
 
 _PLANNER_USER_TEMPLATE = """\
 === ASSESSMENT STATE ===
@@ -207,6 +275,14 @@ class AIPlanner:
             execution_history=execution_history,
             retry_budget_status=retry_budget_status,
         )
+        # _build_prompt() sets these as a side effect (first currently-available
+        # action, if any) so the OUTPUT FORMAT example below is rebuilt from real,
+        # non-exhausted state every call instead of a frozen literal -- see
+        # _render_system_prompt()'s docstring for the bug this fixes.
+        system_prompt = _render_system_prompt(
+            getattr(self, "_example_action_id", None),
+            getattr(self, "_example_rationale", ""),
+        )
 
         raw_output: Optional[str] = None
         last_error: Optional[str] = None
@@ -216,7 +292,7 @@ class AIPlanner:
                 raw_output = self.chat_assistant.generate_raw(
                     prompt=prompt,
                     max_new_tokens=512,
-                    system_prompt=_PLANNER_SYSTEM_PROMPT,
+                    system_prompt=system_prompt,
                     # M1: nudge decoding toward a real, registered action_id in the
                     # "action_id" JSON field (advisory only -- see
                     # core/constrained_decoding.py). Gate 1 registry validation in
@@ -312,21 +388,78 @@ class AIPlanner:
         complete JSON object actually parses, regardless of markdown fences,
         leading/trailing commentary, or nesting depth.
         """
+        # BUG FIX (found via live GPU smoke test with Qwen2.5-7B-Instruct + qwen-qlora,
+        # 2026-11-11): the model sometimes appends a human-readable annotation directly
+        # after a string value, e.g. "action_id": "environment_recon" (from catalog), --
+        # syntactically invalid JSON that raw_decode correctly refuses to parse at that
+        # position (traced to the OUTPUT FORMAT example above using the placeholder
+        # "<action_id from catalog>", which the model partially echoed -- now fixed to
+        # show a concrete, literal example instead; the rule above and this repair are
+        # defense in depth for whenever a model still does this anyway). Without this
+        # repair, the loop below (by design) moves past the unparseable outer object to
+        # the NEXT '{' it can find -- which is often a trivial nested object like an
+        # empty "parameters": {} -- parses THAT successfully, and returns it
+        # immediately, silently discarding the real "decision"-bearing object. The
+        # regex targets exactly this shape: a closing quote, optional whitespace, a
+        # parenthetical note, then a JSON delimiter -- a pattern that cannot
+        # legitimately occur inside a string value's own content (a `"` immediately
+        # followed by a delimiter is already that string's own closing quote, not more
+        # of its text), so this is safe to strip unconditionally.
+        raw = re.sub(r'"\s*\([^)]{0,100}\)(\s*[,}\]])', r'"\1', raw)
+
+        # BUG FIX (found via live GPU smoke test, 2026-11-11, same incident as
+        # above): the model's next attempt at the same annotation habit used a
+        # JS/JSON5-style line comment instead of a parenthetical --
+        # `"action_id": "environment_recon" // from catalog` -- equally invalid in
+        # standard JSON. Same anchor logic as the parenthetical fix: a `"` directly
+        # followed by `//` can only be this artifact (a real string's own closing
+        # quote is never immediately followed by `//` in valid JSON), so stripping
+        # from the `//` to the end of that line is safe.
+        raw = re.sub(r'"\s*//[^\r\n]*', '"', raw)
+
+        # BUG FIX (found via live GPU smoke test, 2026-11-11, third variant of the
+        # same incident): once the OUTPUT FORMAT example started showing real
+        # per-action metadata in REGISTERED ACTIONS (e.g.
+        # "  - environment_recon [low risk, network=none, state=none]: ..."), the
+        # model started copying that bracketed tag directly after the action_id
+        # value too -- "action_id": "environment_recon" [low risk, network=none,
+        # state=none], -- same invalid-JSON-annotation habit, now with square
+        # brackets instead of parens or "//". Same anchor logic: a string's own
+        # closing quote in valid JSON is never immediately followed by "[", so
+        # stripping a bracketed run between a closing quote and the next
+        # delimiter is safe.
+        raw = re.sub(r'"\s*\[[^\]]{0,200}\](\s*[,}\]])', r'"\1', raw)
+
         decoder = json.JSONDecoder()
         search_from = 0
+        first_valid_dict: Optional[Dict[str, Any]] = None
         while True:
             start = raw.find("{", search_from)
             if start == -1:
-                raise ValueError(
-                    f"No JSON object found in AI response. Raw output: {raw[:300]!r}"
-                )
+                break
             try:
                 obj, _end = decoder.raw_decode(raw, start)
                 if isinstance(obj, dict):
-                    return obj
-                search_from = start + 1  # a '{'-start decode is always a dict; defensive only
+                    if "decision" in obj:
+                        return obj
+                    # Defensive robustness fix (same incident as above): don't settle
+                    # for the first dict that merely parses -- a small, valid-but-wrong
+                    # nested object (like {}) can parse successfully while the real,
+                    # intended top-level object sits elsewhere (or was unparseable and
+                    # already skipped above). Keep scanning for one that actually has
+                    # "decision"; only fall back to the first parseable dict, preserving
+                    # the original behavior, if nothing better is ever found.
+                    if first_valid_dict is None:
+                        first_valid_dict = obj
+                search_from = start + 1
             except json.JSONDecodeError:
                 search_from = start + 1
+
+        if first_valid_dict is not None:
+            return first_valid_dict
+        raise ValueError(
+            f"No JSON object found in AI response. Raw output: {raw[:300]!r}"
+        )
 
     def _build_prompt(
         self,
@@ -337,13 +470,42 @@ class AIPlanner:
         retry_budget_status: Dict[str, int],
     ) -> str:
         """Build the full planner prompt from current state."""
+        # BUG FIX (found via live GPU smoke test, 2026-11-11): compute exhausted
+        # actions up front so the catalog below can exclude them entirely, instead of
+        # relying on the model to cross-reference two separate lists (the full
+        # catalog + RETRY STATUS below) and compute "attempts >= max_retries" itself.
+        # RULE 4 already told it not to propose an exhausted action -- in practice,
+        # with this model, it kept re-proposing "environment_recon" every single step
+        # after its retry budget was exhausted on step 2, getting rejected 8/8 times
+        # and never reaching flag_capture, record_finding, or anything else. The
+        # framework's retry-budget rejection was never bypassed (nothing unsafe
+        # happened), it just made zero progress. Not offering an exhausted action as
+        # a choice at all is a stronger, more reliable nudge than a rule buried in a
+        # long system prompt.
+        exhausted_action_ids = set()
+        for action_id, attempts in retry_budget_status.items():
+            defn = self.registry.get(action_id)
+            max_r = defn.max_retries if defn else None
+            if max_r is not None and attempts >= max_r:
+                exhausted_action_ids.add(action_id)
+
         # Action catalog — from registry schema
         # C4 fix: render each action's parameter schema (field names, types, which are
         # required, and defaults). Previously only action_id + description were shown,
         # so the model had to guess parameter names — guesses that fail Pydantic's
         # extra="forbid" validation at Gate 1 and burn a step on every wrong guess.
         catalog_items = []
+        # Track the first currently-available action (and why) so decide_next() can
+        # rebuild the OUTPUT FORMAT example from it instead of a frozen literal --
+        # see _render_system_prompt() for the bug this fixes.
+        self._example_action_id = None
+        self._example_rationale = (
+            "No registered actions remain available; declare completion or advance "
+            "the evidence chain instead."
+        )
         for item in self.registry.to_prompt_schema():
+            if item["action_id"] in exhausted_action_ids:
+                continue  # retry budget exhausted -- don't even offer it as an option
             params_line = self._format_params_schema(
                 item.get("parameters_schema", {}),
                 item.get("required_params", []),
@@ -354,7 +516,19 @@ class AIPlanner:
                 f"{item['description']}\n"
                 f"      parameters: {params_line}"
             )
-        action_catalog = "\n".join(catalog_items) if catalog_items else "  (none registered)"
+            if self._example_action_id is None:
+                self._example_action_id = item["action_id"]
+                self._example_rationale = (
+                    f"{item['action_id']} is the first REGISTERED ACTION still within "
+                    f"its retry budget ({item['description']}); nothing in OBSERVATIONS "
+                    f"or ACTIVE HYPOTHESES yet needs a different step."
+                )
+        action_catalog = (
+            "\n".join(catalog_items) if catalog_items
+            else "  (none available -- every registered action has exhausted its retry "
+                 "budget. You MUST choose \"propose_completion\" or an evidence-chain "
+                 "decision (form_hypothesis / record_validation / record_finding) instead.)"
+        )
 
         # Completion status
         completion_status = self._format_completion_status(
@@ -368,7 +542,8 @@ class AIPlanner:
         for action_id, attempts in retry_budget_status.items():
             defn = self.registry.get(action_id)
             max_r = defn.max_retries if defn else "?"
-            retry_lines.append(f"  - {action_id}: {attempts}/{max_r} attempts used")
+            tag = " [EXHAUSTED -- no longer offered in REGISTERED ACTIONS above]" if action_id in exhausted_action_ids else ""
+            retry_lines.append(f"  - {action_id}: {attempts}/{max_r} attempts used{tag}")
         retry_status = "\n".join(retry_lines) if retry_lines else "  (no retries recorded)"
 
         # Recent execution history (last N steps)

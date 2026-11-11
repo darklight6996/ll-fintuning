@@ -120,3 +120,46 @@ def test_never_produces_an_all_negative_inf_row():
     proc = ActionIdConstrainedLogitsProcessor(tok, valid_ids, prompt_length=0)
     out = proc(input_ids, scores)
     assert bool((out[0] != float("-inf")).any())
+
+
+def test_forces_delimiter_immediately_after_a_closed_valid_action_id():
+    """EXTENSION (2026-11-11): once action_id's value is a complete, real,
+    registered action_id and has just been closed with its final quote, the very
+    next token must be restricted to a plain JSON delimiter (comma/brace/etc.) --
+    this is the fix for the model repeatedly appending an annotation right after
+    the closing quote (a parenthetical, a "//" comment, and a REGISTERED ACTIONS-
+    style "[risk, network=..., state=...]" tag were all observed live)."""
+    tok = _CharTokenizer()
+    valid_ids = ["port_scan", "port_scan_deep", "dir_brute"]
+    for s in valid_ids + ['"', ",", "}", " ", "\n", "["]:
+        tok.encode(s)
+    input_ids, scores = _make_input_and_scores(tok, '{"action_id": "port_scan"')
+    proc = ActionIdConstrainedLogitsProcessor(tok, valid_ids, prompt_length=0)
+    out = proc(input_ids, scores)
+
+    assert not torch.equal(out, scores)  # a constraint WAS applied
+    allowed_mask = out[0] != float("-inf")
+    allowed_ids = set(torch.nonzero(allowed_mask).flatten().tolist())
+    bracket_id = tok.encode("[")[0]
+    comma_id = tok.encode(",")[0]
+    brace_id = tok.encode("}")[0]
+    # The annotation-starting token ("[", and by the same logic "(" or "/") must
+    # NOT be among the allowed tokens -- that is the entire point of this fix.
+    assert bracket_id not in allowed_ids
+    assert allowed_ids <= {comma_id, brace_id}
+    assert allowed_ids  # never an all -inf row
+
+
+def test_closed_action_id_that_is_not_a_real_action_is_not_constrained():
+    """If the "closed" value doesn't match any real, registered action_id (the
+    model typed a plausible but hallucinated name and closed it), this extension
+    must NOT kick in -- Gate 1 registry validation downstream is what's supposed
+    to catch that, not this advisory processor."""
+    tok = _CharTokenizer()
+    valid_ids = ["port_scan", "dir_brute"]
+    for s in valid_ids + ['"', ",", "}"]:
+        tok.encode(s)
+    input_ids, scores = _make_input_and_scores(tok, '{"action_id": "totally_made_up"')
+    proc = ActionIdConstrainedLogitsProcessor(tok, valid_ids, prompt_length=0)
+    out = proc(input_ids, scores)
+    assert torch.equal(out, scores)  # passthrough -- no constraint applied

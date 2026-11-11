@@ -189,15 +189,12 @@ class ModelRouter:
             )
             if use_large_model and model_family == "causal":
                 try:
-                    print("[*] Loading in float16 with device_map=auto (fast path)...")
-                    self.model = AutoModelForCausalLM.from_pretrained(
-                        base_model_name,
-                        torch_dtype=torch.float16,
-                        device_map="auto",
-                    )
-                    print("[+] float16 load successful.")
-                except Exception as oom_err:
-                    print(f"[!] float16 load failed ({oom_err}), falling back to 4-bit NF4...")
+                    from core.config import GPU_FORCE_4BIT
+                except ImportError:
+                    GPU_FORCE_4BIT = False
+
+                def _load_4bit():
+                    print("[*] Loading in 4-bit NF4 (bitsandbytes QLoRA)...")
                     from transformers import BitsAndBytesConfig
                     bnb_config = BitsAndBytesConfig(
                         load_in_4bit=True,
@@ -205,12 +202,33 @@ class ModelRouter:
                         bnb_4bit_use_double_quant=True,
                         bnb_4bit_compute_dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
                     )
-                    self.model = AutoModelForCausalLM.from_pretrained(
+                    return AutoModelForCausalLM.from_pretrained(
                         base_model_name,
                         quantization_config=bnb_config,
                         device_map="auto",
                         attn_implementation="sdpa"
                     )
+
+                if GPU_FORCE_4BIT:
+                    # Skip the fp16 attempt entirely -- for models this config has
+                    # flagged (e.g. the qwen-qlora fine-tune, trained in 4-bit NF4 for
+                    # an 8GB card), fp16 is known to OOM, so trying it first just
+                    # wastes a doomed allocation and risks leaving CUDA in a dirty
+                    # state after the partial OOM. Go straight to 4-bit NF4.
+                    self.model = _load_4bit()
+                    print("[+] 4-bit NF4 load successful (forced).")
+                else:
+                    try:
+                        print("[*] Loading in float16 with device_map=auto (fast path)...")
+                        self.model = AutoModelForCausalLM.from_pretrained(
+                            base_model_name,
+                            torch_dtype=torch.float16,
+                            device_map="auto",
+                        )
+                        print("[+] float16 load successful.")
+                    except Exception as oom_err:
+                        print(f"[!] float16 load failed ({oom_err}), falling back to 4-bit NF4...")
+                        self.model = _load_4bit()
             else:
                 if model_family == "seq2seq":
                     self.model = AutoModelForSeq2SeqLM.from_pretrained(
@@ -286,6 +304,23 @@ class ModelRouter:
             sys_prefix = f"{system_prompt}\n\n" if system_prompt else ""
             return f"### Instruction:\n{sys_prefix}{prompt}\n\n### Response:\n"
 
+        # BUG FIX (found via live smoke test, 2026-11-11): every branch above only
+        # covers models with a chat template, or TinyLlama/Alpaca. Any OTHER model --
+        # critically, google/flan-t5-large, the actual default CPU_MODEL_NAME -- fell
+        # through to `return prompt`, silently DROPPING system_prompt entirely. That
+        # meant the planner's _PLANNER_SYSTEM_PROMPT (which contains the ONLY copy of
+        # "you must return exactly one JSON object" plus the full output format and
+        # decision-verb documentation) never reached the model at all on flan-t5 --
+        # it only ever saw the raw context dump with no task framing. Confirmed as the
+        # root cause of a real run that failed 5 consecutive planner JSON-parse
+        # attempts (MED-1's abort fired correctly, but the actual generation was never
+        # going to produce valid JSON in the first place). T5-style encoder-decoder
+        # models have no chat-role concept at all -- they expect the instruction simply
+        # prepended as plain text in the single input sequence (this is exactly what
+        # FLAN-T5 was instruction-tuned on), so that is the fallback here.
+        if system_prompt:
+            return f"{system_prompt}\n\n{prompt}"
+
         return prompt
 
     def generate(
@@ -296,6 +331,7 @@ class ModelRouter:
         do_sample: bool = True,
         system_prompt: Optional[str] = None,
         max_new_tokens: Optional[int] = None,
+        min_new_tokens: Optional[int] = None,
         action_id_choices: Optional[list] = None,
         **kwargs
     ) -> str:
@@ -332,6 +368,22 @@ class ModelRouter:
             pad_token_id=self.tokenizer.pad_token_id,
             eos_token_id=eos_ids if eos_ids else None,
         )
+        # BUG FIX (found via live GPU smoke test with Qwen2.5-7B-Instruct +
+        # qwen-qlora, 2026-11-11): structured planning calls (AIPlanner via
+        # generate_raw) got valid JSON up through the "action_id" field --
+        # confirming M1's constrained decoding worked correctly -- but then the
+        # model emitted <|im_end|>/eos on the very next (unconstrained) step,
+        # stopping before "parameters"/"rationale"/"confidence" were ever
+        # written. This is the model choosing to end its turn early (plausibly
+        # the qwen-qlora fine-tune's conversational ChatML training data making
+        # it eager to treat a short fragment as a complete turn), not a
+        # tokenization or masking bug. min_new_tokens is the standard mitigation:
+        # it makes eos_token_id ineligible until that many tokens have been
+        # generated, forcing the model past a premature stop it would otherwise
+        # take. Only applied when the caller passes it (generate_raw's JSON
+        # callers do; nothing else is affected).
+        if min_new_tokens is not None:
+            gen_kwargs["min_new_tokens"] = min_new_tokens
         # H4 fix: temperature/top_p only apply under sampling; recent `transformers`
         # versions warn (and some configs error) if they are passed with do_sample=False.
         # Structured planning calls pass do_sample=False for deterministic, greedy decoding.
