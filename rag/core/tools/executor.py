@@ -20,7 +20,7 @@ import shlex
 import subprocess
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from core.mode_controller import AssignmentMode, ModeController, get_mode_controller
 from core.tool_registry import ToolResult
