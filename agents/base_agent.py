@@ -156,6 +156,93 @@ class BaseAgent:
 
     _MODEL_AUTHORED_ACTIONS = {"self_script", "nuclei_template"}
 
+    # Shared rigor vocabulary (factored out 2026-11-26 so _confirmation_strength
+    # and _validate_supports_claim can't drift apart): phrases that mean "I am
+    # guessing from a diff/heuristic", and the XML-parser-error signatures that
+    # mean neither side of a control/attack pair ever reached real app logic.
+    _WEAK_EVIDENCE_PHRASES = (
+        "differ", "divergence", "different response", "!= 200", "status code",
+        "suggest", "might", "may indicate", "may be", "heuristic", "probably",
+        "appears", "could be", "seems", "status !=", "changed",
+    )
+    _XML_PARSER_ERROR_SIGNATURES = (
+        "saxparseexception", "content is not allowed in prolog",
+        "entities are not allowed", "doctype is disallowed",
+    )
+
+    def _validate_supports_claim(self, observation, reasoning: str) -> Tuple[bool, str]:
+        """
+        Structural rigor gate for record_validation's verdict='supports'.
+
+        BUG FIX (2026-11-26, found via a live run report): EvidenceStore.add_validation()
+        flips a Hypothesis to 'confirmed' on the AI's bare say-so -- there was NO check
+        that the cited observation's actual content supports the claim. In the reported
+        run, step 4's self_script was dead code (a `pass`-only loop that never sent a
+        request) yet printed a verdict and was marked SUCCESS; step 6 then cited a "504
+        timeout" that no recorded observation produced; and the planner's own tool_dead
+        worked example hardcoded `"verdict": "supports"` (see core/ai_planner.py), which
+        the model followed verbatim once its probe budget was spent. The combination
+        produced a false 'proven' SSRF finding that reached propose_completion and was
+        written into the training-trajectory JSONL files -- i.e. training-data
+        contamination, not just a bad report.
+
+        This runs BEFORE add_validation() for every verdict='supports' claim, regardless
+        of which action produced the cited observation -- the same discipline
+        _confirmation_strength already applies to engine-authored vuln_signals, applied
+        here to the AI's own evidence citation at the point a Hypothesis is allowed to
+        flip to 'confirmed' at all (the earliest point in the chain, per the fix priority
+        in that report). A failing check REJECTS the record_validation call outright
+        (never silently downgrades the verdict) so the planner must either cite real
+        evidence or honestly choose refutes/inconclusive on its next turn.
+
+        Returns (ok, reason).
+        """
+        facts = getattr(observation, "parsed_facts", None) or {}
+        vuln_signal = facts.get("vuln_signal") if isinstance(facts, dict) else None
+        if isinstance(vuln_signal, dict):
+            # The cited observation came from an engine/probe that already emits its
+            # own objective verdict -- the AI's "supports" judgement must agree with it,
+            # not override it.
+            if not vuln_signal.get("confirmed"):
+                return False, (
+                    "the cited observation's own vuln_signal reports confirmed=false (or no "
+                    "confirmation) -- verdict='supports' contradicts the probe's own verdict. "
+                    "Use 'refutes' or 'inconclusive', or cite an observation that actually "
+                    "confirms this."
+                )
+            return True, "engine-confirmed vuln_signal backs this claim"
+
+        raw = (getattr(observation, "raw_stdout", "") or "").strip()
+        if not raw:
+            return False, (
+                "the cited observation produced NO output at all (empty stdout) -- there is "
+                "nothing in it to support this hypothesis. Cite an observation that actually "
+                "ran and produced real output, or use 'inconclusive'."
+            )
+
+        reasoning_clean = (reasoning or "").strip()
+        if len(reasoning_clean) < 15:
+            return False, (
+                "reasoning is too short/generic to be a real evidence citation -- quote the "
+                "ACTUAL distinguishing output from the observation."
+            )
+
+        low = reasoning_clean.lower()
+        if any(sig in low for sig in self._XML_PARSER_ERROR_SIGNATURES):
+            return False, (
+                "reasoning cites an XML-parser error as support -- that means the request "
+                "never reached real application logic, which is not confirming evidence. Use "
+                "'refutes' or 'inconclusive'."
+            )
+        for w in self._WEAK_EVIDENCE_PHRASES:
+            if w in low:
+                return False, (
+                    f"reasoning rests on a weak/heuristic basis ({w!r}) instead of quoting "
+                    f"concrete evidence from the observation's actual output -- quote the real "
+                    f"distinguishing content, or use 'inconclusive'."
+                )
+        return True, "concrete evidence cited"
+
     def _confirmation_strength(self, action_id, vuln_signal):
         """
         General confirmation-rigor gate (2026-11-20). A CONFIRMED vuln_signal is
@@ -600,6 +687,64 @@ class BaseAgent:
                     strength="lead",
                 )
 
+    def _update_sweep_coverage(self, observations: List[Any], evidence_store: Any) -> None:
+        """
+        --sweep mode's deterministic ENUMERATE+CHARACTERIZE+gate bookkeeping.
+        Pure bookkeeping on EvidenceStore.surface_map/coverage_ledger -- never
+        creates a Hypothesis/Finding, never calls the AI. For every new
+        Observation, turns its parsed_facts into surface entries (name-based
+        characterization, see agents/common/surface_characterize.py), runs
+        the context gate to decide which vuln classes are even plausible for
+        each (endpoint, param), and upserts a coverage-ledger row for every
+        gated class not already tracked, so the planner's prompt (via
+        AIPlanner._format_sweep_coverage) shows a stable "what's covered,
+        what's next" ledger instead of nothing.
+
+        Only called when BaseAgent.run_autonomous(sweep=True).
+        """
+        from agents.common.surface_characterize import characterize_observation, CLASS_TO_ENGINE
+        from core.tools.class_gate import gate_classes_for_entry
+
+        for obs in observations:
+            action_id = getattr(obs, "action_id", None)
+            facts = getattr(obs, "parsed_facts", None) or {}
+            for entry in characterize_observation(action_id, facts):
+                endpoint_key = entry["endpoint_key"]
+                evidence_store.add_surface_entry(endpoint_key, **{k: v for k, v in entry.items() if k != "endpoint_key"})
+                for vuln_class in gate_classes_for_entry(entry):
+                    ledger_key = f"{vuln_class}::{endpoint_key}"
+                    if ledger_key in evidence_store.coverage_ledger:
+                        continue  # already tracked -- CONFIRM OR MOVE ON owns status updates from here.
+                    engine = CLASS_TO_ENGINE.get(vuln_class)
+                    status = "untested" if engine else "no_engine"
+                    note = None if engine else f"no typed engine for {vuln_class} -- low confidence (self_script fallback)"
+                    evidence_store.record_coverage(vuln_class, endpoint_key, status, engine=engine, note=note)
+
+            # CONFIRM OR MOVE ON: when an observation came from one of the
+            # typed engines and carries an objective vuln_signal, advance
+            # every ledger row of that vuln_class whose endpoint_key is a
+            # substring/prefix match of the engine's own target argv (a
+            # best-effort match -- this only drives DISPLAY/steering, never
+            # confirmation rigor, which stays entirely on
+            # _confirmation_strength/record_finding regardless of this
+            # ledger's contents).
+            vuln_signal = facts.get("vuln_signal") if isinstance(facts, dict) else None
+            if isinstance(vuln_signal, dict) and action_id in CLASS_TO_ENGINE.values():
+                sig_class = str(vuln_signal.get("vuln_class") or "").lower()
+                target_hint = " ".join(str(a) for a in (getattr(obs, "argv", None) or []))
+                new_status = "proven" if vuln_signal.get("confirmed") else "tested"
+                for key, row in evidence_store.coverage_ledger.items():
+                    if row.get("vuln_class") != sig_class and sig_class not in (row.get("vuln_class") or ""):
+                        continue
+                    ep = row.get("endpoint_key", "")
+                    endpoint_part = ep.split("::", 1)[0].split(" ", 1)[-1] if "::" in ep else ep
+                    if endpoint_part and endpoint_part in target_hint:
+                        if row.get("status") != "proven":
+                            evidence_store.record_coverage(
+                                row["vuln_class"], row["endpoint_key"], new_status,
+                                engine=row.get("engine"), note=row.get("note"),
+                            )
+
     def _handle_form_hypothesis(self, proposal, evidence_store) -> Dict[str, Any]:
         """
         AI decision verb (full C1 extension): create a Hypothesis from observations the
@@ -837,6 +982,24 @@ class BaseAgent:
             }
 
         observation = evidence_store.observations[observation_id]
+
+        # Structural rigor gate (2026-11-26): a verdict='supports' claim must be
+        # backed by the cited observation's ACTUAL content -- see
+        # _validate_supports_claim's docstring for the live false positive this
+        # closes. 'refutes'/'inconclusive' are never gated here (they do not
+        # advance a hypothesis toward being confirmed, so there is nothing to
+        # fabricate).
+        if verdict == "supports":
+            ok, why = self._validate_supports_claim(observation, reasoning)
+            if not ok:
+                return {
+                    "status": "rejected",
+                    "rejection_reason": (
+                        f"record_validation verdict='supports' REJECTED: {why} "
+                        f"(hypothesis {hypothesis_id} remains unconfirmed)."
+                    ),
+                }
+
         validation = Validation(
             hypothesis_id=hypothesis_id,
             action_id=observation.action_id,
@@ -1317,6 +1480,7 @@ class BaseAgent:
         evidence_store=None,
         max_steps: int = 50,
         manual_payload: bool = False,
+        sweep: bool = False,
     ) -> Dict[str, Any]:
         """
         Execute an autonomous, hypothesis-driven security assessment.
@@ -1341,6 +1505,7 @@ class BaseAgent:
 
         self._manual_payload_mode = manual_payload
         self._manual_payload_context = None
+        self._sweep_mode = sweep
 
         print("\n" + "=" * 70)
         print(f"  LAUNCHING AUTONOMOUS MODE: {self.agent_name.upper()}")
@@ -1349,6 +1514,7 @@ class BaseAgent:
         print(f"  Active Net Allowed: {getattr(self.scope, 'active_network_allowed', False)}")
         print(f"  State Changes Allowed: {getattr(self.scope, 'state_changes_allowed', False)}")
         print(f"  Manual Payload Mode: {'ON (human supplies self_script probes)' if manual_payload else 'OFF'}")
+        print(f"  Sweep Mode: {'ON (enumerate -> characterize -> context-gated class sweep)' if sweep else 'OFF'}")
         print("=" * 70 + "\n")
 
         # Ensure session exists
@@ -1713,6 +1879,8 @@ class BaseAgent:
                         observations=new_observations,
                         evidence_store=evidence_store,
                     )
+                    if sweep:
+                        self._update_sweep_coverage(new_observations, evidence_store)
 
                     # MANUAL PAYLOAD MODE: a human-supplied probe just ran and this
                     # step's promotion pass yielded a NEW proven finding -- emit the

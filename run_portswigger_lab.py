@@ -212,7 +212,7 @@ def _confirmed_vuln_from_history(history: list) -> bool:
 
 
 def run_lab(lab_url: str, lab_name: str = "", max_steps: int = 25, verbose: bool = True,
-            manual_payload: bool = False) -> dict:
+            manual_payload: bool = False, sweep: bool = False) -> dict:
     """
     Run ONE lab autonomously, log raw + ChatML trajectory, return a compact
     summary. Importable so a batch runner can loop over many labs in ONE process
@@ -249,6 +249,7 @@ def run_lab(lab_url: str, lab_name: str = "", max_steps: int = 25, verbose: bool
         completion_criteria=agent.get_completion_criteria(),
         max_steps=max_steps,
         manual_payload=manual_payload,
+        sweep=sweep,
     )
 
     history = session_mgr.state.get("autonomous_execution_history", [])
@@ -298,10 +299,23 @@ def main():
                              "instead, then read a human-pasted PAYLOAD:/CURL:/SCRIPT: from stdin and "
                              "run IT through the same gated executor + confirmation oracle. Requires "
                              "an interactive terminal (the HIGH-RISK approval gate still applies too).")
+    parser.add_argument("--sweep", action="store_true",
+                        help="METHODICAL CLASS-SWEEP hunter mode: enumerate the full surface, "
+                             "characterize it (cheap name-based tags), run the context gate to decide "
+                             "which vuln classes are even plausible per endpoint/param, and track a "
+                             "coverage ledger (surfaced to the planner) instead of tunnel-visioning on "
+                             "the first interesting endpoint. Raises the default --max-steps to 80 "
+                             "unless --max-steps is given explicitly (it's local; the only cost is "
+                             "wall-time). Does not change any gate -- same scope/approval/confirmation-"
+                             "rigor path as every other mode.")
     args = parser.parse_args()
     if args.blind:
         os.environ["PENTEST_BLIND_LAB"] = "1"
-    run_lab(args.lab_url, args.name, args.max_steps, verbose=True, manual_payload=args.manual_payload)
+    max_steps = args.max_steps
+    if args.sweep and max_steps == 25:  # user didn't override --max-steps
+        max_steps = 80
+    run_lab(args.lab_url, args.name, max_steps, verbose=True, manual_payload=args.manual_payload,
+            sweep=args.sweep)
 
 
 if __name__ == "__main__":

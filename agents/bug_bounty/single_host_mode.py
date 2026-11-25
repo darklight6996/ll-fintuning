@@ -76,6 +76,8 @@ SINGLE_HOST_ACTION_TO_PHASE: Dict[str, str] = {
     "raw_http": "vuln_validation",
     "browser_exec": "vuln_validation",
     "race_probe": "vuln_validation",
+    "xxe_probe": "vuln_validation",
+    "ssrf_probe": "vuln_validation",
     "xss_probe": "vuln_validation",
     "vuln_validation": "vuln_validation",
 }
@@ -160,6 +162,16 @@ def build_single_host_bug_bounty_registry(allow_scanners: bool = True) -> Action
         # Shape B reliable engine: race / limit-overrun (sequential control vs concurrent, robust CSRF).
         from agents.common.race_authoring import RACE_PROBE, build_race_probe
         registry.register(RACE_PROBE, build_race_probe)
+        # Class-sweep deterministic engines (2026-11-25): control-vs-attack, OBJECTIVE
+        # verdict oracles for the two classes previously had no typed engine at all --
+        # XXE and SSRF were only reachable via self_script's own hand-rolled logic,
+        # which is exactly what produced the live false-positive this task's own
+        # instructions flagged (self_script claimed "response changed" on two
+        # different XML-parser errors, neither ever reaching real app logic).
+        from agents.common.xxe_authoring import XXE_PROBE, build_xxe_probe
+        registry.register(XXE_PROBE, build_xxe_probe)
+        from agents.common.ssrf_authoring import SSRF_PROBE, build_ssrf_probe
+        registry.register(SSRF_PROBE, build_ssrf_probe)
         # Authoring + running a nuclei template is scanner-class; gate it with the
         # same allow_scanners switch so a no-automation program never gets it.
         if allow_scanners:

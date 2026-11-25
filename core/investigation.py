@@ -380,6 +380,52 @@ class EvidenceStore(BaseModel):
     refuted_hypotheses: Dict[str, Hypothesis] = Field(default_factory=dict)
     graph: EvidenceGraph = Field(default_factory=EvidenceGraph)
     app_model: AppModel = Field(default_factory=AppModel)
+    # --sweep mode (class-sweep hunter, 2026-11-25): the ENUMERATE+CHARACTERIZE
+    # surface map (one entry per endpoint/param observed, keyed by
+    # "<method> <endpoint>::<param>") and the CLASS-SWEEP coverage ledger
+    # (one entry per (vuln_class, endpoint_key) pair actually tested or
+    # gated-in, keyed by "<vuln_class>::<endpoint_key>"). Pure bookkeeping --
+    # neither ever creates a Finding; a sweep mode "proven" result still only
+    # ever comes from the SAME engines/_confirmation_strength path every
+    # other mode uses.
+    surface_map: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+    coverage_ledger: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+
+    def add_surface_entry(self, endpoint_key: str, **fields: Any) -> Dict[str, Any]:
+        """Upsert a surface-map entry (dedup by endpoint_key): later calls
+        merge new tags/facts into the existing entry rather than duplicating
+        it, so repeated characterization of the same endpoint/param across
+        steps accumulates evidence instead of overwriting it."""
+        entry = self.surface_map.setdefault(endpoint_key, {"endpoint_key": endpoint_key})
+        for k, v in fields.items():
+            if v is not None:
+                entry[k] = v
+        return entry
+
+    def record_coverage(
+        self, vuln_class: str, endpoint_key: str, status: str, engine: Optional[str] = None,
+        note: Optional[str] = None,
+    ) -> str:
+        """Upsert a (vuln_class, endpoint) coverage-ledger entry. status is one
+        of 'untested' | 'tested' | 'proven' | 'lead' | 'exhausted'
+        | 'no_engine' -- the CONFIRM-OR-MOVE-ON bookkeeping the sweep spec
+        asks for. Never itself promotes a Finding."""
+        key = f"{vuln_class}::{endpoint_key}"
+        self.coverage_ledger[key] = {
+            "vuln_class": vuln_class, "endpoint_key": endpoint_key, "status": status,
+            "engine": engine, "note": note,
+        }
+        return key
+
+    def coverage_summary_lines(self) -> List[str]:
+        """Human/model-readable render of the coverage ledger, stable order."""
+        lines = []
+        for key in sorted(self.coverage_ledger):
+            c = self.coverage_ledger[key]
+            tag = f" ({c['engine']})" if c.get("engine") else ""
+            note = f" -- {c['note']}" if c.get("note") else ""
+            lines.append(f"  [{c['status'].upper()}] {c['vuln_class']} @ {c['endpoint_key']}{tag}{note}")
+        return lines
 
     def update_app_model(self, **kwargs) -> None:
         self.app_model.update(**kwargs)
@@ -489,6 +535,8 @@ class EvidenceStore(BaseModel):
             "refuted_hypotheses": {k: v.model_dump() for k, v in self.refuted_hypotheses.items()},
             "graph": self.graph.to_dict(),
             "app_model": self.app_model.model_dump(),
+            "surface_map": self.surface_map,
+            "coverage_ledger": self.coverage_ledger,
         }
 
     @classmethod
@@ -508,4 +556,6 @@ class EvidenceStore(BaseModel):
             store.graph = EvidenceGraph.from_dict(data["graph"])
         if "app_model" in data:
             store.app_model = AppModel(**data["app_model"])
+        store.surface_map = dict(data.get("surface_map") or {})
+        store.coverage_ledger = dict(data.get("coverage_ledger") or {})
         return store

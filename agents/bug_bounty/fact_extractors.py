@@ -270,6 +270,14 @@ def extract_facts(action_id: str, stdout: str, stderr: str) -> Dict[str, Any]:
             from agents.common.race_authoring import extract_race_probe_facts
             return extract_race_probe_facts(stdout, stderr)
 
+        if action_id == "xxe_probe":
+            from agents.common.xxe_authoring import extract_xxe_probe_facts
+            return extract_xxe_probe_facts(stdout, stderr)
+
+        if action_id == "ssrf_probe":
+            from agents.common.ssrf_authoring import extract_ssrf_probe_facts
+            return extract_ssrf_probe_facts(stdout, stderr)
+
         if action_id == "subdomain_enum":
             subs = parse_line_list(stdout)
             return {"subdomains": subs} if subs else {}

@@ -356,6 +356,14 @@ back to your own judgement.
 
 === CAMPAIGN JUDGMENT (standing discipline -- applies every turn) ===
 {campaign_judgment}
+
+=== CLASS-SWEEP COVERAGE LEDGER (--sweep mode; empty outside it) ===
+Each line is a (vuln class, endpoint) pair the context gate already decided is
+worth testing, and whether it's been tested yet. Your job here is to ROUTE --
+pick the next UNTESTED/LEAD pair and confirm/pivot via its named engine, not
+to invent a payload yourself. Once a pair is PROVEN, EXHAUSTED, or NO_ENGINE,
+move to the next one instead of re-testing it.
+{sweep_coverage}
 {prior_reasoning}
 {final_instruction}
 """
@@ -881,8 +889,14 @@ class AIPlanner:
                     "parameters": {
                         "hypothesis_id": strongest.hyp_id,
                         "observation_id": obs_ref,
-                        "verdict": "supports",
-                        "reasoning": "<what the probe's ACTUAL output shows -- supports/refutes the suspicion>",
+                        # BUG FIX (2026-11-26): this literally hardcoded "supports" here --
+                        # a live run followed this worked example verbatim once its probe
+                        # budget was exhausted and confirmed a hypothesis its own probe
+                        # produced no evidence for (see work.md). The verdict must be
+                        # JUDGED from the real observation output, never defaulted.
+                        "verdict": "<supports|refutes|inconclusive -- judge HONESTLY from the "
+                                   "observation's ACTUAL output; do NOT default to supports>",
+                        "reasoning": "<what the probe's ACTUAL output shows -- quote it>",
                     },
                     "rationale": f"Probe budget for {strongest.hyp_id} is spent; judging the result it produced.",
                     "confidence": 0.7,
@@ -1046,6 +1060,7 @@ class AIPlanner:
             locked_tools=locked_tools,
             suspicion_candidates=suspicion_candidates,
             campaign_judgment=render_campaign_judgment(),
+            sweep_coverage=self._format_sweep_coverage(evidence_store),
             prior_reasoning=prior_reasoning,
             final_instruction=_FINAL_DECISION_INSTRUCTION,
         )
@@ -1493,6 +1508,20 @@ class AIPlanner:
                 )
         return ("\n".join(lines), classes)
 
+
+    def _format_sweep_coverage(self, evidence_store) -> str:
+        """
+        Render --sweep mode's coverage ledger (populated deterministically by
+        BaseAgent._update_sweep_coverage, never by the planner itself). Empty
+        EvidenceStore / non-sweep runs render the same fixed placeholder text
+        every time, so this is a byte-identical no-op for every existing
+        caller that never touches surface_map/coverage_ledger.
+        """
+        ledger = getattr(evidence_store, "coverage_ledger", None)
+        if not ledger:
+            return "  (no sweep coverage -- not in --sweep mode, or surface not characterized yet)"
+        lines = evidence_store.coverage_summary_lines()
+        return "\n".join(lines) if lines else "  (coverage ledger empty)"
 
     def _format_discovered_facts(self, evidence_store) -> str:
         """
