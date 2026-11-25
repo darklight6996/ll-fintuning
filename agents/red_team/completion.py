@@ -92,11 +92,25 @@ def verify_completion(
         )
 
     if not criteria.allow_unresolved_errors:
-        failed_actions = [
-            entry.get("action_id", "unknown")
-            for entry in execution_history
-            if entry.get("status") == "failed" and not entry.get("recovered", False)
-        ]
+        # BUG FIX (2026-11-25): a "recovered" key was checked here but nothing
+        # anywhere in the codebase ever SET it, so a failed action permanently
+        # blocked completion even after a later retry of the SAME action_id
+        # succeeded. Compute recovery from the history itself instead of
+        # depending on a flag nothing writes: a failed entry is recovered if
+        # any LATER entry for the same action_id succeeded (an explicit
+        # recovered=True on the entry itself still short-circuits too, for any
+        # caller that does set it directly).
+        failed_actions = []
+        for idx, entry in enumerate(execution_history):
+            if entry.get("status") != "failed" or entry.get("recovered", False):
+                continue
+            action_id = entry.get("action_id")
+            later_success = any(
+                e.get("action_id") == action_id and e.get("status") == "success"
+                for e in execution_history[idx + 1:]
+            )
+            if not later_success:
+                failed_actions.append(action_id or "unknown")
         if failed_actions:
             return False, (
                 f"Unresolved failed action(s) block completion: {failed_actions}. "
