@@ -2104,3 +2104,83 @@ rounds) -- a consistent, repeatedly-applied exclusion principle, not a one-off j
 - next: wait for the operator's two run transcripts, then write the blind-comparison report to
   work.md exactly as specified above, still never having been told or having looked up the lab's
   actual answer.
+
+### [2026-11-25 22:10 +05:00] claude-sonnet -- BLIND A/B run 1 (reason-then-format) surfaced + fixed a CRITICAL false-positive bug
+
+- run: lab https://0a4900fb04e3d0c5800e17e800a7003b.web-security-academy.net/, operator ran it
+  themselves in WSL (interactive, approved the HIGH-RISK gate live), `PLANNER_REASON_THEN_FORMAT=1`,
+  `--blind`. Result: `{"status":"completed","steps_run":5,"findings_count":2,"proven_findings":1,
+  "leads":0,"observations_count":3}` -- completed in only 5 steps.
+- Analyzed `state.json`'s `autonomous_execution_history` + `investigation.json` directly (never looked
+  at or requested the lab's actual solution/vuln class -- analysis is purely from what the AGENT
+  itself observed and concluded, per the blind constraint):
+  - **Step 1**: `recon_scan` (DNS/TLS/tech fingerprint). **Step 2**: `browser_probe` -- genuinely
+    characterized the surface, not pattern-matching: discovered `/product?productId=N` (1-20),
+    a REAL form at `POST /product/stock` with inputs `["productId", "storeId"]`, AND
+    `/resources/js/xmlStockCheckPayload.js` -- a JS resource filename literally containing "xml...
+    Payload", a strong clue (visible to the agent's own observations, not scrubbed by `--blind`,
+    which only strips the lab title/banner/solution link) that this endpoint's real request body is
+    XML, not form-encoded.
+  - **Step 3**: `form_hypothesis` -- "The 'storeId' parameter on POST /product/stock is likely used
+    to construct a server-side URL to fetch stock data... Passing an external IP (e.g., 169.25[4...])"
+    -- a SPECIFIC, surface-grounded SSRF hypothesis citing the real discovered parameter, not a
+    hallucinated one. Good reasoning so far.
+  - **Step 4**: `self_script` -- sent a FORM-ENCODED POST (`requests.post(url, data={...})`) to
+    `/product/stock`, missing its own observation's `xmlStockCheckPayload.js` clue entirely. BOTH the
+    control (`storeId=1`) and attack (`storeId=http://127.0.0.1` etc.) requests got XML-PARSER
+    errors back -- `"Content is not allowed in prolog"` (control) vs `"Entities are not allowed for
+    security reasons"` (attack) -- i.e. NEITHER request ever reached real application logic; the
+    different error MESSAGES are an artifact of which malformed text confused the parser differently,
+    not evidence of anything SSRF-related. The script's own naive logic (`if control_body !=
+    attack_body: found_ssrf = True`) reported this as `confirmed: true`, `vuln_class: ssrf`,
+    `summary: "SSRF via storeId parameter"`, `evidence: "Response body changed with
+    storeId=http://127.0.0.1. Control: ...Content is not allowed in prolog...\nAttack: ...Entities
+    are not allowed..."`.
+  - **CRITICAL BUG FOUND**: `_confirmation_strength()` then recorded this as a **PROVEN high-severity
+    SSRF finding** -- a genuine false positive. Root cause: the WEAK-signal keyword filter only had
+    "differ"/"divergence"/"different response", not "changed" -- the model's own wording ("Response
+    body **changed**") slipped past it untouched. This is EXACTLY the "request FORMAT is wrong, not
+    the hypothesis" pattern `self_scripting.py`'s own prompt guidance already teaches the model to
+    recognize (the SAXParseException/"Content is not allowed in prolog"/"Entities are not allowed"
+    signatures are literally named in that guidance, written during an earlier session) -- but
+    nothing stopped the model from reporting `confirmed: true` anyway despite ignoring that guidance,
+    and nothing in the framework's OWN rigor check caught it either.
+  - **Step 5**: `propose_completion` -- accepted (1 proven finding satisfied `minimum_findings=1`).
+    Run ended in 5 steps total, 1.1 LLM-call-pairs/step observed in the raw trajectory (every
+    propose_action step made 2 calls as reason-then-format requires; `FORM_HYPOTHESIS`/
+    `PROPOSE_COMPLETION` decisions also each cost 2 calls since they still go through `decide_next()`
+    -- no JSON-retry entries observed in this run, i.e. 0% JSON-repair-retry rate for both the
+    reasoning and format calls across all 5 steps).
+- **FIX (per the operator's own explicit instruction: strengthen, do not weaken, the gates)**:
+  `agents/base_agent.py::_confirmation_strength()` -- new structural check, run BEFORE the invariant-
+  violation/WEAK-keyword logic: if the evidence itself contains any of
+  `self_scripting.py`'s own documented XML-parser-error signatures (`SAXParseException`, "Content is
+  not allowed in prolog", "Entities are not allowed", "DOCTYPE is disallowed"), NO diff between
+  control and attack can be confirming evidence of anything (neither side ever reached real app
+  logic) -- unconditionally demoted to `lead` regardless of wording. Also added `"changed"` to the
+  WEAK keyword list as a general safety net (the exact synonym gap that let this specific case
+  through). Verified directly against the live evidence string (now correctly returns `lead`) BEFORE
+  writing the regression tests. 4 new tests in `tests/test_confirmation_rigor.py` (the exact live
+  evidence reproduced verbatim; confirms the check is structural, not just a keyword patch, by firing
+  on a DIFFERENT wording that avoids every WEAK-list word; confirms the bare "changed" safety net
+  fires too). `python -m pytest`: 488 passed, 8 skipped, 0 failed (still green; 4 new tests, up from
+  485). Committed as `a2f21124`.
+- **What this means for the A/B itself**: this run's "1 proven finding" result is NOT a valid signal
+  for the reason-then-format hypothesis either way -- it was a false positive, now caught. With the
+  fix applied, a re-run of this exact lab (same URL) would almost certainly end with 0 proven findings
+  at this point in the trajectory (the self_script's own evidence would now correctly demote to lead
+  and the run would continue past step 5 instead of completing early), making this specific run's
+  story about reason-then-format's efficacy INCONCLUSIVE until re-run post-fix. What IS a genuine,
+  valid signal from this run, independent of the false positive: Call 1's free-form reasoning (visible
+  in the raw trajectory log) correctly identified a real, specific, surface-grounded hypothesis
+  (storeId -> SSRF) citing the actual discovered form parameter -- the reasoning pass itself appears
+  to be working as intended at the HYPOTHESIS-FORMATION stage; the failure was downstream, in the
+  self_script's own test-design (ignoring the `xmlStockCheckPayload.js` clue) and in the framework's
+  rigor gate (now fixed), not in the reasoning pass's quality of thought.
+- next: re-run BOTH blind commands (terse vs reason-then-format) against a fresh lab now that the
+  rigor-gate fix is in place, so neither run's result is contaminated by this specific false-positive
+  pattern. Also worth considering, as a SEPARATE follow-on (not done in this pass, per the operator's
+  explicit priority): a deterministic typed SSRF/XXE confirmation oracle (parallel to the LFI/
+  open-redirect oracles already built in `core/tools/http_probe.py`) that would have correctly refused
+  to call this SSRF, and that could recognize the `xmlStockCheckPayload.js`-style clue to steer
+  self_script toward sending XML automatically -- flagged, not built in this pass.
