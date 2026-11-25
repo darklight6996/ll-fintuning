@@ -102,13 +102,26 @@ class AppModel(BaseModel):
                 if sr not in self.state_and_resources:
                     self.state_and_resources.append(sr)
         if components:
+            # BUG FIX (2026-11-25): roles/trust_boundaries/state_and_resources were
+            # already deduplicated above, but components never was -- every
+            # update(components=[...]) call unconditionally appended, so the same
+            # component (e.g. re-recorded across several update_app_model steps)
+            # accumulated once per call. Dedupe by name, same posture as the
+            # list-of-str fields above.
+            existing_names = {c.name for c in self.components}
             for c in components:
                 if isinstance(c, dict):
-                    self.components.append(Component(**c))
+                    comp = Component(**c)
                 elif isinstance(c, Component):
-                    self.components.append(c)
+                    comp = c
                 elif isinstance(c, str):
-                    self.components.append(Component(name=c))
+                    comp = Component(name=c)
+                else:
+                    continue
+                if comp.name in existing_names:
+                    continue
+                existing_names.add(comp.name)
+                self.components.append(comp)
         if data_flows:
             for df in data_flows:
                 if isinstance(df, dict):
