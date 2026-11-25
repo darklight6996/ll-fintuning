@@ -2184,3 +2184,143 @@ rounds) -- a consistent, repeatedly-applied exclusion principle, not a one-off j
   open-redirect oracles already built in `core/tools/http_probe.py`) that would have correctly refused
   to call this SSRF, and that could recognize the `xmlStockCheckPayload.js`-style clue to steer
   self_script toward sending XML automatically -- flagged, not built in this pass.
+
+### [2026-11-26 09:15 +05:00] claude-sonnet -- --sweep class-sweep hunter mode + typed XXE/SSRF engines
+
+- Task (separately requested, pasted instructions): build a METHODICAL CLASS-SWEEP hunter mode --
+  enumerate the full surface, characterize it cheaply, context-gate which vuln classes are even
+  plausible per endpoint/param, test only matching candidates via a typed engine (model = router, not
+  payload author), and track coverage so the run never tunnel-visions on the first interesting
+  endpoint. Required building/confirming the two typed engines previously flagged as missing (XXE,
+  SSRF) -- this directly closes the gap flagged in the 2026-11-25 22:10 entry above.
+- Built: `core/tools/class_gate.py` (pure context-gate table: tag -> plausible vuln classes; `idor`
+  is a COMBINATION rule requiring numeric/GUID id AND auth together, not either alone -- caught and
+  fixed a bug in my own first draft where it fired on either tag alone).
+  `agents/common/surface_characterize.py` (turns existing browser_probe/recon_scan Observations into
+  surface-map tags via NAME-based heuristics only -- stated honestly in its own docstring: this is a
+  cheap proxy for "does it reflect/error on quote", not a new differential probe; the actual reflect/
+  error signal still has to come from the engine the gate routes to).
+  `core/tools/xxe_probe_runner.py` + `agents/common/xxe_authoring.py` and
+  `core/tools/ssrf_probe_runner.py` + `agents/common/ssrf_authoring.py`: the two missing deterministic
+  engines, same control-vs-attack discipline as `race_probe_runner.py` -- the CONTROL request must
+  succeed (no XML-parser-error signature) before the attack side counts for anything, and a PROVEN
+  verdict requires an in-band `expect_marker` the control's response does NOT contain; a bare status/
+  body diff, or an SSRF connection-timeout/refusal with no marker, is always a `lead`, never `proven`.
+  Registered both as engines (NOT in `_MODEL_AUTHORED_ACTIONS` -- same trust posture as race_probe/
+  raw_http/browser_exec) in `agents/bug_bounty/single_host_mode.py` + `agents/bug_bounty/
+  fact_extractors.py`.
+  `core/investigation.py`: `EvidenceStore.surface_map`/`coverage_ledger` (pure bookkeeping, never
+  creates a Finding; round-trips through `to_dict`/`from_dict`).
+  `agents/base_agent.py`: `_update_sweep_coverage()` wires characterize+gate+ledger into
+  `run_autonomous(sweep=True)`, called right after `_promote_lead_findings_from_recon` each step.
+  `core/ai_planner.py`: a new "CLASS-SWEEP COVERAGE LEDGER" prompt section (renders a fixed
+  placeholder, so it is byte-identical outside `--sweep`/with an empty ledger -- verified the existing
+  `test_build_prompt_default_prior_reasoning_is_byte_identical` still passes unmodified).
+  `run_portswigger_lab.py`: `--sweep` CLI flag, raises the default `--max-steps` to 80 when `--sweep`
+  is set and `--max-steps` wasn't explicitly overridden.
+- Deliberately NOT built this pass (flagged, not silently dropped):
+  - Per-(action_id, endpoint, vuln_class) retry-BUDGET SCOPING. Today's retry budget stays global per
+    action_id (both the enforcement gate in `core/command_executor.py` and the planner's exhausted-
+    action-catalog exclusion in `core/ai_planner.py` key off action_id alone). Changing this safely
+    requires touching both the gate and the catalog-exclusion logic together (a composite key the
+    catalog has to parse back out to a real action_id to look up `max_retries`), which is a correctness-
+    sensitive coupled change I did not want to rush. The sweep's OWN coverage ledger gives a working
+    substitute for steering in the meantime (an exhausted/no_engine ledger entry already tells the
+    model to move on), but the actual retry COUNTER a new endpoint gets is still the same global one.
+  - Deeper CHARACTERIZE (does it actually reflect unencoded? does it error on a quote? what Content-
+    Type does the endpoint itself accept?) stayed name-based/heuristic, not a new differential probe --
+    stated explicitly in `surface_characterize.py`'s docstring rather than silently claimed as done.
+  - `ssti` has no typed engine yet (falls back to self_script/manual-payload per the task's own stated
+    fallback rule) -- `CLASS_TO_ENGINE` deliberately has no entry for it, tested explicitly.
+- `python -m pytest`: 523 passed, 8 skipped, 0 failed (35 new tests: `tests/test_class_sweep.py`,
+  `tests/test_xxe_ssrf_engines.py`).
+- next: hand back a blind `--sweep` WSL command for an interactive run; analyze the coverage ledger +
+  whatever it actually confirms the same way every prior live run in this log was analyzed.
+
+### [2026-11-26 09:40 +05:00] claude-sonnet -- CRITICAL: record_validation had NO evidence-content check at all (reported from a live run); fixed. Plus: Tuple NameError fix, and an explicit REFUSAL on the auto-approve-high-risk ask.
+
+- **Report received** (pasted analysis of session `bug_bounty_autohunt_1795628301`, verified against
+  the code before acting, not taken on faith): the run declared `proven_findings: 1` (SSRF) and
+  completed in 14 steps, but it was a false positive all the way down. Step 4's self_script was DEAD
+  CODE (decoded base64 -- the loop body is literally `pass`, no request ever sent) yet printed a JSON
+  verdict and the executor marked it SUCCESS. Step 5's script requested the attacker's own chosen URLs
+  directly from the SANDBOX, not through the target app -- that only proves the sandbox has outbound
+  HTTP, never SSRF. Step 6's hypothesis cited a "504 timeout" that no recorded observation produced.
+  Step 12 confirmed the hypothesis ("obs_87a099ca provides concrete evidence of SSRF") with NOTHING
+  backing it.
+- **Root cause, verified directly in code (not just the report's say-so)**: `core/investigation.py`'s
+  `EvidenceStore.add_validation()` flips a Hypothesis to `confirmed` on ANY `verdict="supports"`, with
+  ZERO check that the cited observation's actual content supports the claim. Worse,
+  `agents/base_agent.py::_handle_record_validation()` (the AI-decision-verb path) had never once called
+  `_confirmation_strength()` -- that rigor function only runs inside `_promote_evidence_if_warranted`,
+  the FRAMEWORK-driven promotion path for engine vuln_signals. The AI-driven evidence chain
+  (`form_hypothesis -> record_validation -> record_finding`) had NO content check at all, anywhere.
+  And `core/ai_planner.py`'s own "probe budget exhausted" worked example literally hardcoded
+  `"verdict": "supports"` as the example value -- the model copied it verbatim once its budget was
+  spent, exactly matching step 12's behavior. This is a MORE severe gap than the 2026-11-25 XML-parser-
+  error false positive (that one at least required a real probe to run); this one requires nothing at
+  all.
+- **Fix** (agents/base_agent.py, core/ai_planner.py -- see the 09:15 commit above, landed together with
+  --sweep because both touch the same files): new `_validate_supports_claim()`, called from
+  `_handle_record_validation()` BEFORE `add_validation()` for every `verdict='supports'` claim,
+  regardless of action_id. REJECTS outright (never silently downgrades the verdict) when: the cited
+  observation carries an engine `vuln_signal` saying `confirmed=false` (the AI can't override the
+  engine's own verdict); the observation produced NO output at all (closes the dead-`pass`-script
+  case exactly); the reasoning is under 15 chars; the reasoning cites an XML-parser-error signature; or
+  the reasoning rests on a weak/heuristic phrase (reusing the same vocabulary `_confirmation_strength`
+  already uses, now factored to shared class constants `_WEAK_EVIDENCE_PHRASES`/
+  `_XML_PARSER_ERROR_SIGNATURES` so the two checks can't drift apart). `refutes`/`inconclusive` are
+  never gated -- they can't fabricate a confirmed hypothesis. Separately, removed the hardcoded
+  `"verdict": "supports"` from the planner's worked example, replaced with an explicit "judge honestly,
+  do not default to supports" placeholder.
+- Also fixed in the same pass: `Tuple` NameError in `ll-finetuning/rag/core/tools/executor.py` (missing
+  from its `typing` import; `_split_command`'s own return-type annotation uses it) -- committed
+  separately (`4889a351`) since it's unrelated to the rigor fix.
+- 10 new tests in `tests/test_validation_rigor.py`, including an end-to-end reproduction of the exact
+  reported scenario (`test_record_validation_rejects_dead_script_claiming_supports`) and a control that
+  real evidence still confirms correctly (`test_record_validation_accepts_real_evidence_and_confirms_hypothesis`).
+  `python -m pytest`: 523 passed, 8 skipped, 0 failed (counted together with the --sweep commit above,
+  landed in the same pytest run).
+- **REFUSED, per CLAUDE.md's own MUST-PRESERVE #4**: the report's recommendation #6 and the
+  operator's own priority list both asked for a session-scoped `--auto-approve-high-risk` flag for
+  blind/batch runs. This is explicitly listed in this file's MUST-PRESERVE section as an
+  oversight-removal pattern (`PENTEST_LAB_AUTO_APPROVE`) that must never be added -- "never auto-
+  approve; never bypass CommandExecutor approval/safety gates... If a change seems to need it -> STOP,
+  log blocked/needs-human." Logged here as **blocked / needs-human**, not built. The real operational
+  friction this was meant to solve (HIGH-RISK gate prompts blocking unattended batch runs) is real and
+  worth solving differently -- e.g. a human pre-authorizing a BOUNDED batch of specific actions/targets
+  up front, still requiring a live human decision, rather than removing the gate -- but that redesign
+  needs the operator's explicit sign-off on exactly what "pre-authorized" would mean before any code is
+  written.
+- **Not yet done this pass (explicitly deferred, not silently dropped)** -- from the same report +
+  the operator's 5-item punch list:
+  1. Ground-truth "solved" verification for PortSwigger labs before accepting `propose_completion`
+     (report's recommendation #4) -- would need a reliable, scope-safe way to read the lab's own
+     solved-state without it becoming another thing `--blind` has to scrub; not designed yet.
+  2. Static validation that a self_script actually sent a request / isn't dead code before accepting
+     its exit-0 as "ran successfully" (report's recommendation #3) -- related to but NOT the same fix
+     as today's `_validate_supports_claim` (that one gates the record_validation CLAIM; this one would
+     gate the self_script OBSERVATION itself, e.g. rejecting the step 4 dead-`pass`-script case before
+     it ever becomes an Observation at all). Worth doing as a complementary, earlier gate.
+  3. `verified_solution`/quarantine field on trajectory JSONL records + retro-flagging already-logged
+     sessions that confirmed something with no runner-emitted `confirmed:true` backing it (report's
+     recommendation #5) -- the specific run reported here likely needs this treatment once a quarantine
+     field exists; not retroactively flagged yet.
+  4. Base64 payload truncation in console/argv logging, and `HF_HUB_OFFLINE=1`/`HF_TOKEN` to silence
+     the HF unauthenticated warning on local-Ollama-only runs (report's operational-friction items) --
+     small, low-risk, not done this pass purely for time.
+  5. Ruff config (exclude the `rag` symlink duplicate, run autofixes, add a baseline ratchet for new
+     commits), a minimal GitHub Actions CI running `pytest` + `ruff check`, moving one-off scripts to
+     `scripts/`, archiving old `work.md` entries, pinning `pytest` in dev requirements, and updating/
+     removing stale README test-count metrics (operator's punch-list items 2/3/5) -- all genuinely
+     useful repo hygiene, none of them touches a MUST-PRESERVE invariant or the live-run-correctness
+     path, so none was urgent enough to take priority over the two fixes above given this pass's time
+     budget. Flagged here so the next session picks them up instead of re-discovering them.
+  6. Per-(action,endpoint,class) retry-budget scoping (operator's punch-list item 4, P3) -- see the
+     09:15 --sweep entry above; same reason (needs the enforcement gate + catalog-exclusion logic
+     changed together, correctness-sensitive, not rushed).
+- next: the operator's two highest-priority asks (the evidence-binding fix, and NOT adding
+  auto-approve) are both resolved -- one fixed, one explicitly refused with a reason. Recommend doing
+  item 2 above (static self_script dead-code/no-request rejection) next, since it is the closest
+  complementary gate to today's fix and would have caught the SAME reported run one step earlier
+  (step 4, not step 12). Everything else in this entry's deferred list is backlog, not blocked.
