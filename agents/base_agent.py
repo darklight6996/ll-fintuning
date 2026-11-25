@@ -185,6 +185,37 @@ class BaseAgent:
         if not evidence or len(evidence) < 8:
             return "lead", "no concrete evidence captured (verdict only)"
 
+        # BUG FIX (2026-11-25, found via a live blind A/B run): a self_script sent a
+        # form-encoded POST to an endpoint that expects a raw XML body (confirmed by
+        # self_scripting.py's OWN documented signatures below). BOTH the control and
+        # the attack request got XML-PARSER errors -- "Content is not allowed in
+        # prolog" for the control, "Entities are not allowed" for the attack -- i.e.
+        # NEITHER request ever reached real application logic; the two different
+        # error MESSAGES are an artifact of which malformed-request text happened to
+        # confuse the parser differently, not evidence of anything the hypothesis
+        # claims. The model's own evidence string said "Response body changed with
+        # storeId=...", which slipped past the WEAK list below (that list has
+        # "differ"/"divergence"/"different response", not "changed") and got
+        # recorded as a PROVEN high-severity SSRF finding -- a real false positive.
+        # This is exactly the "request FORMAT is wrong, not the hypothesis" pattern
+        # self_scripting.py's own prompt guidance already teaches the model to
+        # recognize and fix (rewrite as XML) -- but nothing stopped the model from
+        # ignoring that guidance and reporting confirmed=True anyway. Structural fix:
+        # when the evidence itself contains one of these XML-parser-error
+        # signatures, NO diff between control and attack can be confirming evidence
+        # of anything (both sides never got past the parser), so this is checked
+        # BEFORE the invariant-violation branch and forces "lead" unconditionally.
+        _XML_PARSER_ERROR_SIGNATURES = (
+            "saxparseexception", "content is not allowed in prolog",
+            "entities are not allowed", "doctype is disallowed",
+        )
+        if any(sig_text in basis for sig_text in _XML_PARSER_ERROR_SIGNATURES):
+            return "lead", (
+                "confirmation rests on an XML-parser format error (the request body format was "
+                "wrong for this endpoint, not evidence of the suspected vulnerability -- rewrite "
+                "the control AND attack requests as well-formed XML before re-testing)"
+            )
+
         # Invariant / state violation checks:
         # A concrete violation of an invariant or assumption (e.g. single-use resource
         # consumed twice, quota/limit exceeded, illegal state reached) is a PROVEN
@@ -202,7 +233,11 @@ class BaseAgent:
 
         WEAK = ("differ", "divergence", "different response", "!= 200", "status code",
                 "suggest", "might", "may indicate", "may be", "heuristic", "probably",
-                "appears", "could be", "seems", "status !=")
+                "appears", "could be", "seems", "status !=",
+                # "changed" (2026-11-25): the exact synonym for "differ"/"divergence"
+                # that slipped a body-diff-only false positive past this filter --
+                # see the XML-parser-error check above for the live incident.
+                "changed")
 
         if invariant_violation:
             SPECULATIVE = ("suggest", "might", "may indicate", "may be", "heuristic", "probably", "appears", "could be", "seems")
