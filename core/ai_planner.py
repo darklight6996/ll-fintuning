@@ -44,7 +44,7 @@ from __future__ import annotations
 import json
 import re
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from core.action_contract import ActionRegistry, AIActionProposal, action_is_unlocked
 from core.campaign_judgment import render_campaign_judgment
@@ -465,7 +465,59 @@ class AIPlanner:
         approximating it with a regex: this scans for the first '{' from which a
         complete JSON object actually parses, regardless of markdown fences,
         leading/trailing commentary, or nesting depth.
+
+        BUG FIX (2026-11-25): the three annotation-stripping regexes below used to
+        run UNCONDITIONALLY, before any decode attempt -- including on otherwise
+        VALID JSON. Each one's "a string's own closing quote is never immediately
+        followed by X" reasoning is false when a string VALUE itself legitimately
+        starts with that pattern (the live case: `"target": "//evil.com/ssrf"` --
+        a protocol-relative URL, exactly the shape an SSRF/open-redirect proposal
+        needs to carry). The `//`-comment regex has no `\r\n` to stop at in a
+        single-line payload, so `[^\r\n]*` ate everything from that opening quote
+        to the end of the string, corrupting `raw` down to `'{"target": "'` and
+        destroying the whole proposal. Fix: try the UNMODIFIED text first; only
+        fall back to the regex repairs (and re-scan) when the first pass found no
+        dict carrying "decision" at all -- so valid JSON is never touched, and the
+        repairs still catch the actual annotation-habit artifacts they were
+        written for.
         """
+        decoder = json.JSONDecoder()
+
+        def _scan(text: str) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+            """Return (decision_dict_or_None, first_parseable_dict_or_None)."""
+            search_from = 0
+            first_valid_dict: Optional[Dict[str, Any]] = None
+            while True:
+                start = text.find("{", search_from)
+                if start == -1:
+                    break
+                try:
+                    obj, _end = decoder.raw_decode(text, start)
+                    if isinstance(obj, dict):
+                        if "decision" in obj:
+                            return obj, first_valid_dict
+                        # Defensive robustness fix (same incident as above): don't settle
+                        # for the first dict that merely parses -- a small, valid-but-wrong
+                        # nested object (like {}) can parse successfully while the real,
+                        # intended top-level object sits elsewhere (or was unparseable and
+                        # already skipped above). Keep scanning for one that actually has
+                        # "decision"; only fall back to the first parseable dict, preserving
+                        # the original behavior, if nothing better is ever found.
+                        if first_valid_dict is None:
+                            first_valid_dict = obj
+                    search_from = start + 1
+                except json.JSONDecodeError:
+                    search_from = start + 1
+            return None, first_valid_dict
+
+        decision_obj, first_valid_dict = _scan(raw)
+        if decision_obj is not None:
+            return decision_obj
+
+        # First pass found nothing decision-bearing -- NOW try the annotation
+        # repairs, on a copy, as a fallback (never mutating what already parsed).
+        repaired = raw
+
         # BUG FIX (found via live GPU smoke test with Qwen2.5-7B-Instruct + qwen-qlora,
         # 2026-11-11): the model sometimes appends a human-readable annotation directly
         # after a string value, e.g. "action_id": "environment_recon" (from catalog), --
@@ -473,27 +525,15 @@ class AIPlanner:
         # position (traced to the OUTPUT FORMAT example above using the placeholder
         # "<action_id from catalog>", which the model partially echoed -- now fixed to
         # show a concrete, literal example instead; the rule above and this repair are
-        # defense in depth for whenever a model still does this anyway). Without this
-        # repair, the loop below (by design) moves past the unparseable outer object to
-        # the NEXT '{' it can find -- which is often a trivial nested object like an
-        # empty "parameters": {} -- parses THAT successfully, and returns it
-        # immediately, silently discarding the real "decision"-bearing object. The
-        # regex targets exactly this shape: a closing quote, optional whitespace, a
-        # parenthetical note, then a JSON delimiter -- a pattern that cannot
-        # legitimately occur inside a string value's own content (a `"` immediately
-        # followed by a delimiter is already that string's own closing quote, not more
-        # of its text), so this is safe to strip unconditionally.
-        raw = re.sub(r'"\s*\([^)]{0,100}\)(\s*[,}\]])', r'"\1', raw)
+        # defense in depth for whenever a model still does this anyway).
+        repaired = re.sub(r'"\s*\([^)]{0,100}\)(\s*[,}\]])', r'"\1', repaired)
 
         # BUG FIX (found via live GPU smoke test, 2026-11-11, same incident as
         # above): the model's next attempt at the same annotation habit used a
         # JS/JSON5-style line comment instead of a parenthetical --
         # `"action_id": "environment_recon" // from catalog` -- equally invalid in
-        # standard JSON. Same anchor logic as the parenthetical fix: a `"` directly
-        # followed by `//` can only be this artifact (a real string's own closing
-        # quote is never immediately followed by `//` in valid JSON), so stripping
-        # from the `//` to the end of that line is safe.
-        raw = re.sub(r'"\s*//[^\r\n]*', '"', raw)
+        # standard JSON.
+        repaired = re.sub(r'"\s*//[^\r\n]*', '"', repaired)
 
         # BUG FIX (found via live GPU smoke test, 2026-11-11, third variant of the
         # same incident): once the OUTPUT FORMAT example started showing real
@@ -502,39 +542,16 @@ class AIPlanner:
         # model started copying that bracketed tag directly after the action_id
         # value too -- "action_id": "environment_recon" [low risk, network=none,
         # state=none], -- same invalid-JSON-annotation habit, now with square
-        # brackets instead of parens or "//". Same anchor logic: a string's own
-        # closing quote in valid JSON is never immediately followed by "[", so
-        # stripping a bracketed run between a closing quote and the next
-        # delimiter is safe.
-        raw = re.sub(r'"\s*\[[^\]]{0,200}\](\s*[,}\]])', r'"\1', raw)
+        # brackets instead of parens or "//".
+        repaired = re.sub(r'"\s*\[[^\]]{0,200}\](\s*[,}\]])', r'"\1', repaired)
 
-        decoder = json.JSONDecoder()
-        search_from = 0
-        first_valid_dict: Optional[Dict[str, Any]] = None
-        while True:
-            start = raw.find("{", search_from)
-            if start == -1:
-                break
-            try:
-                obj, _end = decoder.raw_decode(raw, start)
-                if isinstance(obj, dict):
-                    if "decision" in obj:
-                        return obj
-                    # Defensive robustness fix (same incident as above): don't settle
-                    # for the first dict that merely parses -- a small, valid-but-wrong
-                    # nested object (like {}) can parse successfully while the real,
-                    # intended top-level object sits elsewhere (or was unparseable and
-                    # already skipped above). Keep scanning for one that actually has
-                    # "decision"; only fall back to the first parseable dict, preserving
-                    # the original behavior, if nothing better is ever found.
-                    if first_valid_dict is None:
-                        first_valid_dict = obj
-                search_from = start + 1
-            except json.JSONDecodeError:
-                search_from = start + 1
+        decision_obj, repaired_first_valid_dict = _scan(repaired)
+        if decision_obj is not None:
+            return decision_obj
 
-        if first_valid_dict is not None:
-            return first_valid_dict
+        fallback = repaired_first_valid_dict if repaired_first_valid_dict is not None else first_valid_dict
+        if fallback is not None:
+            return fallback
         raise ValueError(
             f"No JSON object found in AI response. Raw output: {raw[:300]!r}"
         )
