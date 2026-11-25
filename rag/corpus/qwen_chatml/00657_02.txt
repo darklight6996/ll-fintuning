@@ -1,0 +1,1 @@
+dify the attribute via LDAP, then request the certificate. The core principle is exploiting write access to configure certificate-based authentication for yourself.

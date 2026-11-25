@@ -1,0 +1,36 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+int choice;
+scanf("%d", &choice);
+getchar(); // consume newline character left in
+switch (choice) {
+case 1:
+printf("Enter filename to open: ");
+fgets(filename, sizeof(filename), stdin);
+filename[strcspn(filename, "\n")] = '\0';
+open_file(filename, lines, &num_lines);
+break;
+case 2:
+edit_file(lines, &num_lines);
+break;
+case 3:
+printf("Enter filename to save: ");
+fgets(filename, sizeof(filename), stdin);
+filename[strcspn(filename, "\n")] = '\0';
+save_file(filename, lines, num_lines);
+break;
+case 4:
+printf("Exiting...\n");
+return 0;
+default:
+printf("Invalid choice. Please try again.
+}
+}

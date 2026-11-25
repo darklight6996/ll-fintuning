@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Explain the purpose and usage of the code/command in the following text: (Context: Writeup from Htb Eighteen Hacks Stuff)
+
+CONTEXT:
+Source: Htb Eighteen Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+Name : 0xdf$ The groups match the Administrator user’s groups: [*] Groups : 515, 513, 512, 520, 519, 518, 500 [*] Groups (decoded) : (515) Domain Computers [*] (513) Domain Users [*] (512) Domain Admins [*] (520) Group Policy Creator Owners [*] (519) Enterprise Admins [*] (518) Schema Admins [*] +1 Unknown custom group It’s the groups in the TGT that allow me to request a service ticket that can access things as administrator.

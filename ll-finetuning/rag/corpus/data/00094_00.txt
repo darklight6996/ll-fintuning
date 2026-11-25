@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you test credentials?
+
+CONTEXT:
+You want to authenticate against services.
+
+METHOD / ANSWER:
+Command: `netexec smb <target_ip> -u <username> -p <password>`
+Purpose: Verify supplied credentials.

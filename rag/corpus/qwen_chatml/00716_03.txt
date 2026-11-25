@@ -1,0 +1,27 @@
+Powered-By field, we understand that the web ap-
+plication framework is likely to be Mono. However, although this
+approach is simple and quick, this methodology doesn't work in
+100% of cases. It is possible to easily disable X-Powered-By head-
+er by a proper configuration. There are also several techniques
+that allow a web site to obfuscate HTTP headers (see an example
+in #Remediation chapter).
+So in the same example the tester could either miss the X-Pow-
+ered-By header or obtain an answer like the following:
+HTTP/1.1 200 OK
+Server: nginx/1.0.14
+Date: Sat, 07 Sep 2013 08:19:15 GMT
+Content-Type: text/html;charset=I|SO-8859-1
+Connection: close
+Vary: Accept-Encoding
+X-Powered-By: Blood, sweat and tears
+Sometimes there are more HTTP-headers that point at a certain
+web framework. In the following example, according to the in-
+formation from HTTP-request, one can see that X-Powered-By
+header contains PHP version. However, the X-Generator header
+points out the used framework is actually Swiftlet, which helps a
+penetration tester to expand his attack vectors. When perform-
+ing fingerprinting, always carefully inspect every HTTP-header for
+such leaks.
+HTTP/1.1 200 OK
+Server: nginx/1.4.1
+Da

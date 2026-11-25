@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Identify internal services accessible via SSRF.
+
+CONTEXT:
+Use fuzzing against upload to discover internal API endpoints.
+
+METHOD / ANSWER:
+Command: Use `ffuf` or similar tools to identify internal services.
+Purpose: Discover hidden APIs that may contain sensitive information.

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Structure findings in a report format.
+
+CONTEXT:
+Document all vulnerabilities and methods used.
+
+METHOD / ANSWER:
+Command: Use markdown or documentation software for structuring the report.
+Purpose: Create an easily digestible format for stakeholders.

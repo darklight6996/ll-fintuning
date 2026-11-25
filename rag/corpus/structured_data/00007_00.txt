@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you assess the security posture of the server running the application?
+
+CONTEXT:
+Context: Post-Exploitation. You have gained shell access (SSH or otherwise) to the application server 'example.com'.
+Principle to Apply: 'Assess the host's defensive configuration from within.'

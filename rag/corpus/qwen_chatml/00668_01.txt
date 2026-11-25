@@ -1,0 +1,10 @@
+Context:
+Context: Service Interrogation. An initial scan has revealed a set of open ports commonly associated with a Windows Domain Controller (e.g., 53, 88, 139, 445, 5985).
+Principle to Apply: 'Deeply interrogate identified services to determine exact versions, configurations, and potential vulnerabilities.'
+assistant
+**Assessment Phase**: Service Version & Script Scanning.
+**Core Principle**: Knowing the exact service and version (e.g., `Windows Server 2022`, `Apache 2.4.58`) allows for precise vulnerability matching. Default NSE scripts can reveal low-hanging fruit like anonymous access, information leaks, or known weaknesses.
+**Actionable Steps**:
+1.  **Targeted In-Depth Scan**: `nmap -p 53,88,139,389,445,464,593,636,3268,3269,5985 -vv -sCV 10.10.11.69`
+    *   **Reasoning**: The `-sV` probes for service versions. The `-sC` runs safe default scripts against these specific services (e.g., SMB script will enumerate shares, LDAP script may pull domain info). `-vv` gives verbose output for troubleshooting.
+**Guidance for Novel Context**: Always customize the port list (`-p ...`) based on your initial discovery scan results. If the service is unknown, apply the principle of 'manual

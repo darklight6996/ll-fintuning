@@ -1,0 +1,33 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Websites such as https://crt.sh allow you to obtain detailed certificate
+transparency information about any given domain. I created a tool called
+CertSPY that leverages certificate transparency logs accessible through the
+crt.sh site. You can access the tool source code at
+https://github.com/santosomar/certspy.
+You can install CertSPY by using the pip3 install certspy command.
+Example 9-13 demonstrates how to use the tool to obtain certificate
+information for the secretcorp.org domain.
+Example 9-13 Using CertSPY to Obtain Certificate Transparency
+Information
+┌──(omar㉿websploit)-[~]
+└─$ certspy secretcorp.org
+[
+{
+"issuer_ca_id": 183267,
+"issuer_name": "C=US, O=Let's Encrypt, CN=R3",
+"common_name": "secretcorp.org",
+"name_value": "secretcorp.org",
+"id": 10254588889,
+"entry_timestamp": "2023-08-30T08:49:46.284",
+"not_before": "2023-08-30T07:49:06",
+"not_after": "2023-11-28T07:49:05",
+"serial_number": "046cb5a18ef41e26f9867cfdb61d

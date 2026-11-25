@@ -1,0 +1,13 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 11-9 Azure AI Studio Model Deployment Screen
+Fine-Tuning AI Models
+Fine-tuning involves adjusting a pretrained model using a specific dataset to
+enhance its performance for particular tasks. This process is invaluable for

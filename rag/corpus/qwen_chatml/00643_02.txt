@@ -1,0 +1,1 @@
+ool changes: use a DNS-specific tool like `gobuster dns` or `dnsrecon`. Always combine brute-forcing with passive sources (SSL certificates, search engines).

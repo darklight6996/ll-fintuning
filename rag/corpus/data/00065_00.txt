@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What is the initial scanning command to identify open ports on the target?
+
+CONTEXT:
+You need to determine available services on the Dog box.
+
+METHOD / ANSWER:
+Command: `nmap -p- --min-rate 10000 10.10.11.58`
+Explanation: This command scans all TCP ports rapidly to identify which ports are open, aiding in reconnaissance.

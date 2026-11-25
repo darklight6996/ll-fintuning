@@ -1,0 +1,1 @@
+ides user.txt , there’s an interesting .exe file and a cleanup.ps1 script in the Administrator’s directory: evil-winrm-py PS C:\Users\Administrator> tree /f . Folder PATH listing Volume serial number is 00000201 E2B2:45D5 C:\USERS\ADMINISTRATOR ¦ HTB-Stability.exe ¦ +---3D Objects +---Contacts +---Desktop

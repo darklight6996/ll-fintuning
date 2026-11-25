@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+• Storage: 8 GiB
+Domains
+For phishing infrastructure, it is best to gather domains over time, have
+them age, and begin to categorize the domains. If you are in a situation
+where you do not have time to let them age, you can buy expired domains
+that are already aged from various organizations. Organizations implement
+filters in place when emails are coming through from newly registered
+domains. When buying domains, you should stick to buying generic named
+domains such as corp-internal.com and corp-files.com. This way, you can
+reuse domains and not be specific to an organization name unless that is
+your intended goal. Domains that are aged around a year provide more
+credibility when you are sending out phishing emails along with other
+characteristics. If you are trying to manually age your domain, it will take at
+least 30 dates to properly age that domain. Therefore, it’s best to avoid
+buying a domain that’s never been used and trying to use it right away
+because that will likely lead to your being burned.
+When categorizing your domain, you should ensure that your site appears to
+be legitimate as it goes through categorization. There are various providers,
+such as Sq

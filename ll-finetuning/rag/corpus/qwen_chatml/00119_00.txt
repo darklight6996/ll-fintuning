@@ -1,0 +1,23 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+There are multiple changes you will be making in this section, as illustrated
+in Figure 3-13:
+• Callback Host: The host for your traffic to call back to externally. This
+will be the first hop from an external perspective.
+• Callback Interval: How often your agent will call back to you in
+seconds; this number is in fixed intervals.
+• Callback Jitter: The jitter percentage for the callbacks of the agent; this
+adds randomness to the callback to make each agent check-in vary.
+• Callback Port: The port associated with your host that will be called back
+to.
+• Encryption Type: The encryption method used for the traffic.
+• Headers: Customization of the GET/POST messages.
+• Kill Date: End date for your agent to call back.

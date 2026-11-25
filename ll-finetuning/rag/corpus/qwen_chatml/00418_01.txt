@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+ways, such as featuring them in a hall of fame or providing certificates of
+recognition.
+Getting Started: Preparing Yourself as an Ethical Hacker in Bug
+Bounty Programs
+If you’re a beginner, let’s go over a few tips and a structured approach to
+get started in bug bounties. The first thing is to start with the basics. You
+don’t need to be a seasoned programmer. However, learning programming
+languages such as Python and JavaScript will help you understand the
+software's inner workings and identify vulnerabilities effectively.
+Learn networking! Familiarize yourself with the basics of networking
+concepts, including TCP/IP, HTTP/HTTPS, DNS, and more. This
+knowledge will aid in understanding how data moves through networks and
+potentially where security loopholes might be. Understanding general
+cybersecurity fundamentals is vital. You might want to research deep into
+concepts like cryptography, web application security, API security, and
+network security.
+Set up a lab. Create a virtual lab using tools like VirtualBox or Proxmox to
+set up a controlled environment where you can practice your skills without
+any legal consequence

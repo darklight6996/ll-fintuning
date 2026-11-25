@@ -1,0 +1,10 @@
+Context:
+Context: Active Directory Post-Compromise. You have compromised the machine account 'ANSIBLE_DEV$' and obtained its NTLM hash ('1c37d00093dc2a5f25176bf2d474afdc'). You have control over the Domain Controller 'dc01.tombwatcher.htb'.
+Principle to Apply: 'Leverage administrative control to modify user attributes for persistence or privilege escalation.'
+assistant
+**Assessment Phase**: Active Directory User Object Manipulation.
+**Core Principle**: With sufficient permissions (like those of a machine account with administrative context), you can directly alter user properties, including passwords, to establish new access methods.
+**Actionable Steps**:
+1.  **Password Reset via BloodyAD**: `bloodyAD -d tombwatcher.htb -u 'ANSIBLE_DEV$' -p '1c37d00093dc2a5f25176bf2d474afdc' --host dc01.tombwatcher.htb set password 'sam' '0xdf0xdf!'`
+    *   **Reasoning**: This command uses the compromised machine account's credentials to authenticate to the domain and directly set a new password for the 'sam' user account. This establishes a known credential for future use.
+**Guidance for Novel Context**: The tool (`bloodyAD`) is specific. The universal principle is: **use your current authenticat

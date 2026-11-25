@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: Writeup from Htb Agile Hacks Stuff)
+
+CONTEXT:
+Source: Htb Agile Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+file: With access to this key, it is easy to forge a Flask cookie for any user (like in Rainyday or Noter ). Reading the /etc/passwd file will give usernames to try, and then logged in as corum, it’s as simple as SSHing into Agile. This was patched by setting this to a random 32 characters on each application startup: app = flask . Flask ( __name__ ) app . config [ ' SECRET_KEY ' ] = os . urandom ( 32 ) This strategy has drawbacks - if the application restarts, then all existing cookies become invalid. That might bring real issues in the real world, but it works perfectly well for a HTB machine.

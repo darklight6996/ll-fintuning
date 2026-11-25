@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: Writeup from Htb Feline Hacks Stuff)
+
+CONTEXT:
+Source: Htb Feline Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+and the docker group. This is standard, and what allows only root and docker users to start containers. root@VirusBucket:~# ls -la /var/run/docker.sock srw-rw---- 1 root docker 0 Sep 3 01:56 /var/run/docker.sock Many articles about mapping /var/run/docker.sock into a container will say things like: This should only be done for trusted containers. That seems like a bit of an under-selling the risk to me. At the risk of jumping on a soapbox, if we’re learning anything following the news, there’s no such thing as a trusted computer. Defense in depth is built on making the attack go through many walls to get to the thing they want. And this just puts a door in one of them. Basically, if you can get access to that socket from within the container, you are as good as root on the host.

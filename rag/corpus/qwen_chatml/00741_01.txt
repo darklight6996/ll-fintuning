@@ -1,0 +1,30 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+» Exploitation of vulnerabilities in the IMAP/SMTP protocol
+« Application restrictions evasion
+» Anti-automation process evasion
+« Information leaks
+» Relay/SPAM
+How to Test
+The standard attack patterns are:
+« Identifying vulnerable parameters
+« Understanding the data flow and deployment structure
+of the client
+« IMAP/SMTP command injection
+Identifying vulnerable parameters
+In order to detect vulnerable parameters, the tester has to an-
+alyze the application's ability in handling input. Input validation
+testing requires the tester to send bogus, or malicious, requests
+to the server and analyse the response. In a secure application,
+the response should be an error with some corresponding action
+telling the client that something has gone wrong. In a vulnera-
+ble application, the malicious request may be processed by the
+back-end application that will answer with a “HTTP 200 OK" re-
+sponse message.
+Itis important to note that the requests being sent should match
+the technology being tested. Sending SQL injection strings for
+Microsoft SQL server when a MySQL server is being used will re-
+sult in false positive responses. In

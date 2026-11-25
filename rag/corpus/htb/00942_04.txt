@@ -1,0 +1,1 @@
+rd(s): 1 NIC(s) Installed. [01]: Intel(R) PRO/1000 MT Network Connection Connection Name: Local Area Connection DHCP Enabled: No IP address(es) [01]: 10.10.10.93 With no hotfixes,

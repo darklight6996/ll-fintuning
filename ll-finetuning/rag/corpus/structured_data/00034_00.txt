@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What can you do after accessing the system as Administrator?
+
+CONTEXT:
+Context: Post-Exploitation & Objective Completion. You have an interactive shell as the built-in Administrator on the primary Domain Controller.
+Principle to Apply: 'Complete the engagement objective and retrieve definitive proof of full compromise.'

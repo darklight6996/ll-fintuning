@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify unique user accounts on Linux.
+
+CONTEXT:
+Auditing logical access controls.
+
+METHOD / ANSWER:
+Command: `getent passwd | cut -d: -f1 | sort | uniq -d`
+Explanation: Ensures no duplicate user accounts exist.

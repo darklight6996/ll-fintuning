@@ -1,0 +1,19 @@
+et\Services" /s /f "edr" /k
+  ```
+- **Network Connections**:
+  ```powershell
+  # Cloud connections
+  netstat -ano | FindStr "ESTABLISHED"
+  # Look for connections to vendor clouds
+  # CrowdStrike: *.crowdstrike.com
+  # SentinelOne: *.sentinelone.net
+  # Carbon Black: *.carbonblack.io
+  # Microsoft Defender: *.wd.microsoft.com
+  ```
+- **ETW / Kernel Callbacks**:
+  ```powershell
+  # Check for ETW providers (EDR)
+  logman query providers | FindStr "Microsoft-Windows-Threat-Intelligence"
+  # Kernel callbacks (PsSetCreateProcessNotifyRoutine, etc.)
+  # Requires kernel debugger or specialized tools
+  ```

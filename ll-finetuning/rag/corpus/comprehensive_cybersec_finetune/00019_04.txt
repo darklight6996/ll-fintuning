@@ -1,0 +1,27 @@
+**Phase 6: Risk Evaluation & Prioritization**
+- **Compare Against Criteria**:
+  - Risk appetite thresholds
+  - Regulatory requirements
+  - Contractual obligations
+- **Risk Treatment Options**:
+  - Mitigate: Implement controls (preventive, detective, corrective)
+  - Accept: Documented, approved by risk owner
+  - Transfer: Insurance, outsourcing, contractual
+  - Avoid: Discontinue activity, decommission asset
+- **Cost-Benefit Analysis**:
+  - ALE (Annualized Loss Expectancy) vs control cost
+  - ROSI (Return on Security Investment)
+
+**Phase 7: Risk Treatment & Monitoring**
+- **Risk Treatment Plan**:
+  - Specific controls with owners, timelines, budget
+  - Control selection: NIST 800-53, ISO 27001 Annex A, CIS Controls
+  - Implementation tracking
+- **Residual Risk**:
+  - Re-assess after treatment
+  - Document acceptance
+- **Continuous Monitoring**:
+  - KRI (Key Risk Indicators): patch latency, incident count, control failures
+  - Automated: `cloud custodian`, `aws config`, `azure policy`
+  - Dashboard: risk heat map, trend analysis
+  - Review cycle: quarterly, annual, trigger-based

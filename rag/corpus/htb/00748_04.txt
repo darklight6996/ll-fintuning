@@ -1,0 +1,1 @@
+---------- ADMIN$ NO ACCESS Backups READ, WRITE C$ NO ACCESS IPC$ READ ONLY smbclient shows me the Backups share as

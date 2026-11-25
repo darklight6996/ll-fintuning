@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Share Content Examination & Exploitation.
+**Core Principle**: A writable network share is a potential vector for file upload. The contents of readable shares may contain credentials, configuration files, or information that reveals other attack paths.
+**Actionable Steps**:
+1.  **Connect and Explore**: Connect to the share using SMB client tools.
+    *   **Reasoning**: By connecting, you can list directory contents, download interesting files for analysis, and—critically—test if you can upload files. A writable share can be used to upload a malicious payload for execution via other means.
+**Guidance for Novel Context**: The method of connection varies (`smbclient`, `net use` in Windows, mounting). Once connected, look for files like `passwords.txt`, `web.config`, `*.kdbx`, scripts, or backups. The principle is to **thoroughly examine any new resource you gain access to for valuable information or exploitable conditions.**

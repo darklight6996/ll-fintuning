@@ -1,0 +1,26 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+4. Your server then sends back an acknowledgment in a standard DNS
+response.
+5. The process repeats until all parts of the file are exfiltrated.
+Tip
+Tools like dns2tcp (https://github.com/alex-sector/dns2tcp)
+and iodine (https://github.com/yarrick/iodine) can be used
+for DNS tunneling.
+HTTP/HTTPS Tunneling
+HTTP/HTTPS tunneling disguises C2 traffic as normal web traffic. Since
+web traffic is generally allowed and encrypted (in the case of HTTPS), this
+method provides a reliable and stealthy way for attackers to communicate
+with compromised systems.
+The malware on the compromised system packages C2 commands and data
+into HTTP or HTTPS requests. The attacker's web server receives the
+requests, extracts the commands or data, and processes them. The server
+then sends back responses embedded in HTTP/HTTPS responses, which are
+processed by the malware on the compromised system.

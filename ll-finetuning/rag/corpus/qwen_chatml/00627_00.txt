@@ -1,0 +1,25 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+C. Linear optimization for rapid advancement
+D. Logarithmic rational approximation
+8. What does RAG stand for in the context of AI and bug bounty hunting?
+A. Rapid attack generation
+B. Retrieval-augmented generation
+C. Risk assessment guide
+D. Responsive AI governance
+9. What is a potential challenge of using AI models with strong guardrails in
+bug bounty hunting?
+A. Increased accuracy in vulnerability detection
+B. Faster processing of large datasets
+C. Limited ability to generate potentially malicious payloads for testing
+D. Improved compliance with bug bounty program guidelines
+10. What is a confabulation in the context of AI-assisted bug bounty
+hunting?

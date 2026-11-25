@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+authentication mechanisms and whether the server allows plaintext
+passwords. The response from the server also provides you with additional
+information, such as the time and time zone the server is using. This is
+necessary information for many penetration testing tasks.
+• SMB_COM_SESSION_SETUP_ANDX: After the client and server
+have negotiated the protocols, flags, and options they will use for
+communication, the authentication process begins. Authentication is the
+primary function of the SMB_COM_SESSION_SETUP_ANDX message.
+The information sent in this message includes the client username,
+password, and domain. If this information is not encrypted, it is easy to sniff
+it right off the network. Even if it is encrypted, if the mechanism being used
+is not sufficient, the information can be revealed using simple tools (such as
+Lanman and NTLM in the case of Microsoft). An example of this being
+utilized is the smb-enum-users.nse script as shown here:
+nmap --script smb-enum-users.nse <host>
+Example 9-33 shows the results of the Nmap smb-enum-users script run
+against the target 192.168.88.251. As you can see, the results indicate that
+the script was able to enumerate the u

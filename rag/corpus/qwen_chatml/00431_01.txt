@@ -1,0 +1,28 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+4bf519790a18a27916c946f503c02b08 0a8550bc5b9b147d581a
+9e1d655c51c2e06aa2062d1f08f34abc 37947ac48403dc0da9af
+7567bb8fdf625b1a179e6fd6faf35be9 09488cb9
+[*] SOA ns-cloud-c1.googledomains.com 216.239.32.108
+[*] NS ns-cloud-c1.googledomains.com 216.239.32.108
+<output omitted for brevity>
+[*] MX alt3.aspmx.l.google.com 2a00:1450:400c:c0b::1b
+[*] MX alt4.aspmx.l.google.com 2a00:1450:4013:c02::1b
+[*] A h4cker.org 185.199.109.153
+[*] SPF v=spf1 include:_spf.google.com ~all
+[*] TXT h4cker.org v=spf1 include:_spf.google.com ~al
+[*] Enumerating SRV Records
+[+] 0 Records Found
+┌─[omar@websploit]─[~]
+└──╼ $
+From there, an attacker can begin to dig deeper by scanning the identified
+hosts. Once the attacker knows which hosts are alive on the target site, they
+would then need to determine what kind of services the hosts are running.
+To do this, the attacker might use the tried-and-true Nmap tool. Before we
+discuss this tool and others in depth, we need to look at the types of scans
+and enumerations you should perform and why. Nmap was once considered
+a simple port scanner; however, it has evolved into a much more robust tool
+that can pr

@@ -1,0 +1,31 @@
+obots.txt
+% Total
+% Received % Xferd Average Speed
+Time
+Time
+Time Current
+Dload Upload Total Spent
+Left Speed
+101 7074 07074
+O
+O 9410
+0 --!--!-- --!--!-- --!--!--
+27312
+cmlh$ head -n5 robots.txt
+User-agent: *
+Disallow: /search
+Disallow: /sdch
+Disallow: /groups
+Disallow: /images
+cmlh$
+robots.txt in webroot - with rockspider
+“rockspider’[3] automates the creation of the initial scope for Spiders/
+Robots/Crawlers of files and directories/folders of a web site.
+For example, to create the initial scope based on the Allowed: directive
+from www.google.com using “rockspider"[4]:
+cmlh$ ./rockspider.pl -www www.google.com
+“Rockspider” Alpha v0.1_
+2
+Copyright 2013 Christian Heinrich
+Licensed under the Apache License, Version 2.0
+1, Downloading http:/www.google.com/robots.txt

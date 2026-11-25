@@ -1,0 +1,27 @@
+ath In-
+jectionattack, whose goalistoreconstructthe whole datastructure.
+The technique is similar to inference based SQL Injection, as the
+approach is to inject code that creates a query that returns one bit
+of information. Blind XPath Injection is explained in more detail by
+Amit Klein in the referenced paper.
+References
+Whitepapers
+« Amit Klein: “Blind XPath Injection” -
+http:/www.modsecurity.org/archive/amit/blind-xpath-
+injection.pdf
+« XPath 1.0 specifications - http:/www.w3.org/TR/xpath
+Testing for IMAP/SMTP Injection
+(OTG-INPVAL-011)
+Summary
+This threat affects all applications that communicate with mail
+servers (IMAP/SMTP), generally webmail applications. The aim of
+this test is to verify the capacity to inject arbitrary IMAP/SMTP
+commands into the mail servers, due to input data not being prop-
+erly sanitized.
+The IMAP/SMTP Injection technique is more effective if the mail
+server is not directly accessible from Internet. Where full commu-
+nication with the backend mail server is possible, it is recommend-
+ed to conduct direct testing.
+An IMAP/SMTP Injection makes it possible to access a mail server
+which otherwise would not be directly accessible from the Inter-
+net. In som

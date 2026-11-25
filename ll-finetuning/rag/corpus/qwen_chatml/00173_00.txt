@@ -1,0 +1,29 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+generates phishing urls, importing parameters from
+<export_path>
+lures edit <id> hostname <hostname>
+sets custom phishing <hostname> for a lure with a
+lures edit <id> path <path>
+sets custom url <path> for a lure with a given <id
+lures edit <id> redirector <path>
+sets an html redirector directory <path> for a lur
+lures edit <id> ua_filter <regexp>
+sets a regular expression user-agent whitelist fil
+lures edit <id> redirect_url <redirect_url>
+sets redirect url that user will be navigated to o
+given <id>
+lures edit <id> phishlet <phishlet>
+change the phishlet, the lure with a given <id> ap
+lures edit <id> info <info>
+set personal information to describe a lure with a
+lures edit <id> og_title <title>
+sets opengraph title that will be shown in link pr

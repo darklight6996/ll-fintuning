@@ -1,0 +1,18 @@
+METHOD / ANSWER:
+from the intelligence assessment and the resulting actions the firm takes to
+mitigate those threats. It ensures that there is alignment with the
+organization's overall risk management strategy, ensuring accountability
+and continuous improvement in their cybersecurity posture. It is common to
+utilize this framework if you are based in the UK or performing work there.
+An example would be a UK-based payment processor that wants to evaluate
+its defenses against data exfiltration. This type of framework would be
+required. In an exercise, the participants include four teams:
+• Threat Intelligence Service Provider: This third-party team provides an
+external threat intelligence assessment, creates scenarios for the assessment,
+and completes the threat intelligence maturity assessment of the firm.
+• Penetration Test Service Provider: This third-party team plans and
+executes based on the threat intelligence scenario, completes the detection
+& response capability assessment, drafts the penetration test findings report,
+and provides feedback.
+• Firm/Control Group: The firm selects members for the control group.
+The control group coordinator (CGC) will coordinate all test activ

@@ -1,0 +1,19 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+: lures edit 0 redirector <htmldirectory>
+Formulating Your Email or Instant Message
+ChatGPT can be leveraged as a resource to create your campaigns similarly
+to the way you used phone pretexting earlier in this chapter (see Figure 5-9
+and Figure 5-10). It is important to keep your emails in plaintext and avoid
+flashy banners where you can, unless they match 1:1 to the company
+branding. Typically, most companies have branding resources you can use
+to understand their color scheme and vector artwork.
+Figure 5-9 ChatGPT: Spear Phishing Text Formulation

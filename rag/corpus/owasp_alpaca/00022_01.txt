@@ -1,0 +1,28 @@
+METHOD / ANSWER:
+71
+Web Application Penetration Testing
+References
+See the OWASP article on Brute Force Attacks.
+Remediation
+Apply account unlock mechanisms depending on the risk level. In
+order from lowest to highest assurance:
+[1] Time-based lockout and unlock.
+[2] Self-service unlock (Sends unlock email to registered email ad-
+dress).
+[3] Manual administrator unlock.
+[4] Manual administrator unlock with positive user identification.
+Testing for Bypassing Authentication Schema
+(OTG-AUTHN-004)
+Summary
+While most applications require authentication to gain access to
+private information or to execute tasks, not every authentication
+method is able to provide adequate security. Negligence, igno-
+rance, or simple understatement of security threats often result
+in authentication schemes that can be bypassed by simply skip-
+ping the log in page and directly calling an internal page that is
+supposed to be accessed only after authentication has been per-
+formed.
+In addition, it is often possible to bypass authentication mea-
+sures by tampering with requests and tricking the application into
+thinking that the user is already authenticated. This can be accom-
+plished either by modifying the

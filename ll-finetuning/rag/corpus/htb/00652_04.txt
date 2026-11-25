@@ -1,0 +1,1 @@
+ives: Exploit GPO I’ll use the pyGPOAbuse tool to get execution from a GPO. I’ll clone it to my host and make sure it has the metadata to run with uv : oxdf@hacky$ git clone https://github.com/Hackndo/pyGPOAbuse.git Cloning into 'pyGPOAbuse'... remote: Enumerating objects: 127, done. remote: Counting objects: 100% (90/90), done. remote: Compressing objects:

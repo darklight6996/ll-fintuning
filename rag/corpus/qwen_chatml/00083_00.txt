@@ -1,0 +1,27 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+specific threats. The chapter underscores how adversarial perspectives
+foster realistic security measures and adaptive defenses.
+We also explored key frameworks and methodologies, including
+• MITRE ATT&CK Framework: A detailed catalog of adversarial tactics
+and techniques
+• Unified Kill Chain: A comprehensive view of attack lifecycles tied to
+adversary goals
+• TIBER-EU and CBEST: Frameworks tailored for financial institutions,
+focusing on threat intelligence and consistent testing standards
+Various types of red team engagements are explained:
+• Full-Scope: Holistic assessments involving multiple attack vectors
+• Objective-Based: Assessments focused on achieving specific, measurable
+goals
+• Adversary Emulation: Simulations of realistic, end-to-end attack
+scenarios based on threat intelligence
+• Purple Teaming: Collaborative exercises between red and blue teams for
+real-time learning and improvement

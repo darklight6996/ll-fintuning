@@ -1,0 +1,1 @@
+N SLEEP 2000, 1 : PRINT "Password rejected." : END(1) IF LEN ( PassPhrase ) = 0 THEN END ( 1 ) PassPhrase = LEFT (( PassPhrase & CHR ( 3 , 141 , 59 , 26 , 53 , 58 , 97 , 93 , 238 , 46 , 26 , 43 , 38 , 32 , 79 , 50 , 28 , 8 )), 16 ) REM IF CheckPassPhrase() <>

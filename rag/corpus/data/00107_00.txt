@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you identify role assignments?
+
+CONTEXT:
+You want to audit role-based access.
+
+METHOD / ANSWER:
+Command: `az role assignment list --assignee <user_email>`
+Purpose: Lists all role assignments.

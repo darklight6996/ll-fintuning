@@ -1,0 +1,1 @@
+an login with the “LOGIN” link ( /login.php ). The site is a shell of the new HTB

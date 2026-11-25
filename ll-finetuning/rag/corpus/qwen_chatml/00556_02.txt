@@ -1,0 +1,5 @@
+ially mapping out the API and comprehending
+its capabilities.
+Tip
+Remember that API documentation serves as just the initial
+step. It's unwise to blindly trust that the documentation is

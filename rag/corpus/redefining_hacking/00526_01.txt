@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+intercepting requests, searching for API links and documentation, and
+gaining insight into the underlying business logic.
+Typically, the application should be evaluated from three angles: guests,
+authenticated users, and site administrators. Guests represent anonymous
+users, potentially exploring the site for the first time. If the platform mainly
+displays public information without necessitating user authentication, it
+might predominantly cater to guest users. Authenticated users, on the other
+hand, have undergone a registration procedure, acquiring a designated level
+of access. Administrators possess the rights to oversee and administer the
+API.
+The initial step involves browsing the website and assessing it from these
+varied viewpoints. Here are a few pertinent questions for each user
+category:
+• Guest: What would be the approach of a novice user toward this site? Is
+interaction with the API feasible for new users? Is the API documentation
+publicly accessible? What functionalities are available to this group?
+• Authenticated User: What additional privileges are available upon
+authentication compared to guest access? Is there an option to upload files
+or navigate

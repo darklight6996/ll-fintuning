@@ -1,0 +1,1 @@
+w:/home/administrator/maintain$ find . . ./gen.py ./pub ./pub/bobby.key.pub ./pub/lara.key.pub ./pub/wendy.key.pub ./pub/bryan.key.pub ./pub/arti.key.pub The gen.py

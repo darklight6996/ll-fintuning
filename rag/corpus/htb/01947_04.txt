@@ -1,0 +1,1 @@
+e : BiosInstallableLanguages : BiosInstallDate : BiosLanguageEdition : BiosListOfLanguages : BiosManufacturer : BiosName : BiosOtherTargetOS : BiosPrimaryBIOS : BiosReleaseDate : BiosSeralNumber : BiosSMBIOSBIOSVersion : BiosSMBIOSMajorVersion : BiosSMBIOSMinorVersion : BiosSMBIOSPresent : BiosSoftwareElementState :

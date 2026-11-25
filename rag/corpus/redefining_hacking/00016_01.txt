@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+penetration testing, it was a very manual process to identify vulnerabilities.
+Information was not shared as readily and neither were tools available. As
+the technology stack has advanced, so have methodologies and tooling
+availability.
+Similarly, red teaming has evolved from military-related “war gaming”
+exercises to highly sophisticated long-term engagements that emulate the
+tactics, techniques, and procedures (TTPs) of real-world threat actors and
+their attacks. Just as adversaries have grown in sophistication, so have
+operators. Most operations emulate advanced social engineering and
+malware development to assess an organization’s defenses.
+Finally, bug bounties have also gone through a maturation process. What
+started off as informal arrangements with limited scope and unknown
+rewards have become well-established programs. These days, many
+organizations have structured programs with substantial financial incentives
+for researchers to participate in programs. They leverage the collective
+expertise of the community to identify issues.
+The Early Days and Evolution of Penetration Testing
+During these early days of penetration testing, testing wasn’t as formal
+when

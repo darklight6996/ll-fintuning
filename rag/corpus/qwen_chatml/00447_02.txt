@@ -1,0 +1,2 @@
+ication is compromised, you should revoke the
+certificate and add its serial number to a CRL. OCSPs and

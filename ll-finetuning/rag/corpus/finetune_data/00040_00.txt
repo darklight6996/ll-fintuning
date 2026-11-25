@@ -1,0 +1,1 @@
+Document any escalated privileges and their implications.

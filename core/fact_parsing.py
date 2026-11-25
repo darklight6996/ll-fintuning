@@ -171,6 +171,73 @@ def parse_dns_addresses(stdout: str) -> List[str]:
         return []
 
 
+def parse_html_endpoints(stdout: str, max_items: int = 50) -> Dict[str, Any]:
+    """
+    Extract links, forms, and input parameters from an HTML body (or combined
+    headers+body produced by ``curl -i``). Looks for:
+      - href / src / action attribute values that look like relative/absolute paths
+      - <form action="..."> targets
+      - <input name="..."> / <select name="..."> parameter names
+    Returns {"endpoints": [...], "forms": [...], "params": [...]}.
+    All best-effort; never raises.
+    """
+    facts: Dict[str, Any] = {}
+    try:
+        body = stdout or ""
+        # Strip headers if curl -i was used (headers end at first blank line)
+        if body.startswith("HTTP/"):
+            sep = body.find("\r\n\r\n")
+            if sep == -1:
+                sep = body.find("\n\n")
+            if sep != -1:
+                body = body[sep:].lstrip("\r\n")
+
+        endpoints: List[str] = []
+        seen_ep: set = set()
+        for pat in (
+            r'href=["\']([^"\'#?][^"\']*)["\']',
+            r'src=["\']([^"\'#?][^"\']*)["\']',
+            r'action=["\']([^"\'#?][^"\']*)["\']',
+        ):
+            for m in re.finditer(pat, body, re.I):
+                val = m.group(1).strip()
+                if val and val not in seen_ep:
+                    seen_ep.add(val)
+                    endpoints.append(val)
+                if len(endpoints) >= max_items:
+                    break
+        if endpoints:
+            facts["endpoints"] = endpoints[:max_items]
+
+        forms: List[str] = []
+        seen_fm: set = set()
+        for m in re.finditer(r'<form[^>]*action=["\']([^"\']*)["\']', body, re.I):
+            val = m.group(1).strip()
+            if val not in seen_fm:
+                seen_fm.add(val)
+                forms.append(val)
+        if forms:
+            facts["forms"] = forms[:max_items]
+
+        params: List[str] = []
+        seen_pm: set = set()
+        for pat in (
+            r'<input[^>]+name=["\']([^"\']+)["\']',
+            r'<select[^>]+name=["\']([^"\']+)["\']',
+            r'<textarea[^>]+name=["\']([^"\']+)["\']',
+        ):
+            for m in re.finditer(pat, body, re.I):
+                val = m.group(1).strip()
+                if val not in seen_pm:
+                    seen_pm.add(val)
+                    params.append(val)
+        if params:
+            facts["params"] = params[:max_items]
+    except Exception:
+        return facts
+    return facts
+
+
 def parse_line_list(stdout: str, max_items: int = 50) -> List[str]:
     """
     Generic fallback for list-producing tools (subfinder, ffuf -silent, etc.):

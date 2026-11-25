@@ -1,0 +1,4 @@
+Handle Zero-Days: AI models may struggle to discover zero-
+day vulnerabilities, especially since they rely on training data. Zero-days
+are unknown vulnerabilities, meaning no data exists to train models on
+these flaws. This is a significant limitation when trying to use AI in

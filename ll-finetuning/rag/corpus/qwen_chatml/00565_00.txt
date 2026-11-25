@@ -1,0 +1,25 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+10. In the context of bug bounty programs, what does scope refer to?
+A. The range of rewards offered
+B. The range or domain within which researchers can find and report
+vulnerabilities
+C. The list of participants involved in the program
+D. The legal frameworks governing the program
+11. Which of the following tools is commonly used for directory and file
+brute-forcing?
+A. Amass
+B. Maltego
+C. Gobuster
+D. Ffuf
+12. What is the primary function of Ffuf?
+A. Network mapping
+B. Web fuzzing, file, and directory enumeration

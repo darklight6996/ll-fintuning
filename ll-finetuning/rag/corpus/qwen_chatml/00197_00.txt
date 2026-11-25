@@ -1,0 +1,28 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• Identify most-used entrances and exits.
+• Identify break and smoking areas.
+• Observe the security culture in place, taking note whether people are
+willing to help folks entering and exiting.
+Social Engineering in Person
+Tailgating and pretexting are not new topics of discussion because they are
+common social engineering methods to gain access into an organization.
+Tailgating occurs when a person walks behind another individual,
+pretending to be another employee for quick access. Pretexting occurs when
+you create a fake persona with the intention of making someone believe you
+are someone you are not. In both cases, you will always want to have a fake
+badge prepared for the organization or whoever else you are impersonating.
+The key with both of these social engineering methods is being adaptive.
+• Sample Personas
+• Employee from a different location
+• Delivery service
+• Elevator repairman
+• HVAC repair

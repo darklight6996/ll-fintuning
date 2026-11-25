@@ -1,0 +1,21 @@
+METHOD / ANSWER:
+New Users
+After you compromise a system, if you obtain administrator (root) access to
+the system, you can create additional accounts. These accounts can be used
+to connect to and interact with the victim system. Just as it is a best practice
+when configuring user accounts under normal circumstances, you (as an
+attacker) should create those alternate accounts with complex passwords.
+Command and Control (C2) and Covert Channels
+Command and Control (C2) refers to the infrastructure and protocols that
+attackers use to communicate with and control compromised systems within
+a target network. Effective C2 channels allow attackers to send commands,
+receive data, and maintain persistent control over their malicious
+operations. C2 channels must be stealthy to avoid detection by security
+defenses and monitoring systems.
+Covert channels are methods of communication that conceal the existence
+of the transmission. Attackers use covert channels to hide their C2 traffic
+from detection mechanisms. A few common covert channels used in C2
+communications include
+• DNS Tunneling
+• HTTP/HTTPS Tunneling
+• Using Nontraditional Protocols

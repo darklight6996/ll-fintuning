@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you generate a hosts file entry for the target?
+
+CONTEXT:
+Context: Hostname Resolution Setup. You have identified a target via IP (10.10.11.69) and need its hostname for tools that require proper DNS resolution (e.g., `netexec`, Active Directory tools).
+Principle to Apply: 'Ensure proper hostname resolution to prevent tool failures and to understand the target's role in the domain.'

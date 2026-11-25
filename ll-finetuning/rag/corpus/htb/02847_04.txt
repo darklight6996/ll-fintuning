@@ -1,0 +1,1 @@
+88/tcp open kerberos-sec Microsoft Windows Kerberos (server time: 2024-09-03 17:27:23Z) 135/tcp open msrpc Microsoft Windows RPC

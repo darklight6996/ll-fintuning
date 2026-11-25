@@ -1,0 +1,20 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 9-5 SMB Message Implementation
+The information contained in the responses to these messages enables you
+to reveal information about the server:
+• SMB_COM_NEGOTIATE: This message allows the client to tell the
+server what protocols, flags, and options it would like to use. The response
+from the server is also an SMB_COM_NEGOTIATE message. This
+response relays to the client which protocols, flags, and options it prefers.
+This information can be configured on the server itself. A misconfiguration
+sometimes reveals information that you can use in penetration testing. For
+instance, the server might be configured to allow messages without
+signatures. You can determine if the server is using share- or user-level

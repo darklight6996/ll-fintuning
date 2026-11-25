@@ -1,0 +1,37 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Subject: CN = websploit.org
+Subject Public Key Info:
+Public Key Algorithm: rsaEncryption
+Public-Key: (2048 bit)
+Modulus:
+00:ab:c7:1b:0c:ed:c6:01:f8:ea:a9:b3:cf
+4f:a2:cb:7c:34:c4:66:12:e6:ef:f3:98:17
+65:ee:66:4c:1f:9a:92:7d:33:ee:07:fa:2e
+<output omitted for brevity>
+Exponent: 65537 (0x10001)
+X509v3 extensions:
+X509v3 Key Usage: critical
+Digital Signature, Key Encipherment
+X509v3 Extended Key Usage:
+TLS Web Server Authentication, TLS Web Cl
+X509v3 Basic Constraints: critical
+CA:FALSE
+X509v3 Subject Key Identifier:
+63:4E:15:85:56:5A:A4:94:02:C2:16:42:A4:A5
+X509v3 Authority Key Identifier:
+14:2E:B3:17:B7:58:56:CB:AE:50:09:40:E6:1F
+Authority Information Access:
+OCSP - URI:http://r3.o.lencr.org
+CA Issuers - URI:http://r3.i.lencr.org/
+X509v3 Subject Alternative Name:
+DNS:websploit.org
+X509v3 Certificate Policies:
+Policy: 2.23.140.1.2.1

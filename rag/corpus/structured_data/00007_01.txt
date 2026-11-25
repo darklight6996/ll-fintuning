@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Host Security Hardening Review.
+**Core Principle**: An application is only as strong as its underlying host. Check for deviations from security benchmarks that could enable privilege escalation or lateral movement.
+**Actionable Steps**:
+1.  **Automated Security Audit**: `lynis audit system`
+    *   **Reasoning**: Lynis performs a comprehensive check against hundreds of controls from CIS benchmarks and other standards. It provides a prioritized list of warnings and suggestions, efficiently highlighting the most critical misconfigurations (e.g., file permissions, kernel parameters, vulnerable services).
+**Guidance for Novel Context**: Lynis is for Unix-like systems. On a Windows host, the principle remains ('audit configuration'), but the tool changes (e.g., `Secedit`, `Get-LocalGroupMember`). Always review the audit tool's output manually; automated tools can miss context-specific risks.

@@ -1,0 +1,31 @@
+**Section 4: Detailed Technical Findings (Per Finding)**
+- **Standardized Template**:
+  ```
+  Finding ID: PT-001
+  Title: SQL Injection in Customer Portal Login
+  Severity: Critical (CVSS 4.0: 9.8 - CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N)
+  Category: Injection / OWASP A03:2021
+  Affected Asset: https://portal.company.com/login.php
+  
+  Description:
+  The login endpoint fails to parameterize user input, allowing
+  authentication bypass and data exfiltration via UNION-based SQLi.
+  
+  Evidence:
+  - Request: POST /login.php {username: "admin' UNION SELECT 1,2,3--", password: "x"}
+  - Response: HTTP 200, session cookie set, dashboard accessible
+  - Screenshot: [PT-001-evidence-01.png]
+  - Burp Suite request/response: [PT-001-burp.xml]
+  
+  Impact:
+  - Authentication bypass for any account
+  - Full database read: customers, orders, PII (500K records)
+  - Potential RCE via INTO OUTFILE (if FILE privilege)
+  - Regulatory: GDPR Art. 32, PCI DSS Req 6.5.1
+  
+  Root Cause:
+  - String concatenation in PHP: $query = "SELECT * FROM users WHERE user='" . $_POST['username'] . "'";
+  - No input validation, no WAF rule
+  
+  Reproduction Steps:
+  1. Navigate to https://porta

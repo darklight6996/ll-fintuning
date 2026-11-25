@@ -1,0 +1,22 @@
+WwW. OWASP. O01
+The clickjacking code the create this page is presented below:
+<html>
+<head>
+<title>Trusted web page</title>
+<style type="text/css"
+><!--
+*{
+margin:O;
+padding:0;
+}
+body {
+background:#fffffFf;
+}
+button
+{
+padding:5px;
+background:#6699CC;
+left:275px;
+width:120px;
+border: 1px solid
+204

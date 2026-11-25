@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+potential password policies, and naming conventions that could be useful
+for social engineering or credential spraying attacks.
+RAG can also assist in payload generation by analyzing target environment
+specifications and suggesting customized malware variants or exploit
+combinations that are most likely to succeed while evading detection.
+Vector Embeddings
+In Figure 8-2, security-related documents (payloads,
+OSINT/reconnaissance, and vulnerability data) are transformed into vector
+representations, known as embeddings. This process captures the semantic
+meaning of the text in a high-dimensional space. Many techniques can be
+used. The following are a few examples:
+• Traditional methods such as Term Frequency–Inverse Document
+Frequency (TF-IDF) and principal component analysis (PCA). TF-IDF is
+used to evaluate the importance of a word in a document relative to a
+collection of documents (corpus). It’s commonly used in text mining and
+information retrieval to improve the representation of text data. PCA is a
+dimensionality reduction technique used to reduce the number of features in
+a dataset while retaining as much variance (information) as possible. It
+simplifies the

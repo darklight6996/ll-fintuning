@@ -1,0 +1,1 @@
+quest forgery. Beyond that, the post mentions using the Blind File Oracles technique to use this to read files from the local machine. SSRF POC To test this out, I’ll click “Books” –> “Create New Book”, fill out the form to create a

@@ -1,0 +1,15 @@
+# ruff.toml — lint + format for this repo. Ruff is the standard, every agent/model
+# understands `ruff check` / `ruff format`. Kept conservative so it's useful signal,
+# not noise, on an existing large codebase.
+target-version = "py310"
+line-length = 100
+extend-exclude = [
+    "data", "eval", "lora-adapters", "lora-output",
+    "ll-finetuning/data", "ll-finetuning/models", "ll-finetuning/logs",
+    "ll-finetuning/scratch", "ll-finetuning/notebooks",
+    "rag/corpus", "rag/faiss_index", "**/*.ipynb",
+]
+
+[lint]
+select = ["E", "F", "W", "I"]   # pyflakes (F), pycodestyle (E/W), isort (I)
+ignore = ["E501"]               # line length is the formatter's job, not a lint failure

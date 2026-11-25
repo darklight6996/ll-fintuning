@@ -1,0 +1,21 @@
+if __name__ == '__main__':
+    import sys, json
+    target = sys.argv[1] if len(sys.argv) > 1 else 'target.com'
+    print(json.dumps(detect_defenses(target), indent=2))
+```
+
+**Phase 7: Reporting Defensive Landscape**
+- **Document in Assessment**:
+  - Defensive technologies detected with confidence
+  - Configuration gaps (WAF in monitor mode, IPS not blocking)
+  - Evasion techniques successful/failed
+  - Blind spots (encrypted traffic, internal traffic)
+- **Risk Context**:
+  - Findings that bypassed defenses = higher risk
+  - Findings caught by defenses = lower risk (but still vuln)
+  - Defense-in-depth gaps
+- **Recommendations**:
+  - WAF: Enable blocking mode, tune rules, enable CRS
+  - IPS: Enable prevention mode, update signatures
+  - EDR: Enable tamper protection, configure response actions
+  - Network: Segment, encrypt, monitor east-west traffic

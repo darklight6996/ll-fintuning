@@ -1,0 +1,1 @@
+xlle.htb Subject: OSINT Application Testing Message-Id: <20240102013223.019081@bumbag> X-Mailer: swaks v20201014.0 jetmore.org/john/code/swaks/ Hi everyone, The Web Dev group is doing some development to figure out the best way to automate the checking and addition of URLs into the OSINT portal. We ask that you drop any web

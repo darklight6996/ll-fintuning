@@ -1,0 +1,31 @@
+(it only works in systems that are able
+to accept overlong UTF-8 sequences)
+..ocO%af represents ../
+bC1%9C represents ..\
+There are other OS and application framework specific consider-
+ations as well. For instance, Windows is flexible in its parsing of
+file paths.
+» Windows shell: Appending any of the following to paths used in
+a shell command results in no difference in function:
+« Angle brackets “>" and “<" at the end of the path
+« Double quotes (closed properly) at the end of the path
+» Extraneous current directory markers such as “./" or “\"
+» Extraneous parent directory markers with arbitrary items that
+may or may not exist
+Examples:
+— file.txt
+— file.txt...
+— file.txt<spaces>
+— filet"
+— file. txt<<<>>><
+— /././file.txt
+— nonexistant/../file.txt
+Windows API: The following items are discarded when used in any
+shell command or API call where a string is taken as a filename:
+periods
+spaces
+Windows UNC Filepaths: Used to reference files on SMB shares.
+Sometimes, an application can be made to refer to files on a remote
+UNC filepath. If so, the Windows SMB server may send stored
+credentials to the attacker, which can be captured and cracked. These
+may also be used with a self-refer

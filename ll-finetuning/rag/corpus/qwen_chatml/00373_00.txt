@@ -1,0 +1,27 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+returning pages with highly overlapping content, improving
+the user experience.
+RAG Fusion and RAPTOR
+There are several advanced techniques for RAG implementations. They
+include RAG-Fusion and RAPTOR. RAG-Fusion builds on the traditional
+RAG approach by incorporating Reciprocal Rank Fusion (RRF). This
+method generates multiple queries based on the original user query,
+retrieves documents for each query, and then uses RRF to rerank and fuse
+these documents into a comprehensive response.
+RAPTOR introduces a new approach by constructing a hierarchical tree
+structure through recursive clustering and summarization of text chunks.
+RAPTOR embeds, clusters, and summarizes chunks of text to create a tree
+that represents different levels of abstraction.
+Tip
+You can learn more about RAG-Fusion and RAPTOR at
+https://becomingahacker.org/1aa76fce6a5c. This article includes references
+to hands-on tutorials and sample code.

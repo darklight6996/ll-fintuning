@@ -1,0 +1,25 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 3-4 Compression and Caching Configurations
+C2 Server
+Prior to setting up Mythic, you should ensure that the A record for the
+domain being used points to the C2 IP. For SSL certificate generation, you
+will also need to temporarily open 80/443 to the world to retrieve
+certificates for the domain. You will change the firewall rules after this step
+to allow traffic only from your redirector IP.
+Example 3-5 demonstrates how to install certificates from Let’s Encrypt for
+your domain on your C2 server and move them into your Mythic directory.
+The $MYTHICDIRECTORY should be set to where your Mythic directory
+is stored on your C2 server.
+Example 3-5 Installing Certificates for Your Domain
+MYTHICDIRECTORY=(/opt/Mythic)
+sudo apt-get install certbot
+certbot certonly --standalone --preferred-challenges
+exampledomain.com --register-unsafely-without-email -
+cp /etc/letsencrypt/live/exampledomain.com/privkey.pe
+cp /etc/letsencrypt/live/exampledomain.com/fullchain.
+After the certificates are generated, lock down your instance to allow only
+your redirector’s IP access via HTTPS (443). Taking this step will prevent

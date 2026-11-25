@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Final Proof Collection.
+**Core Principle**: The ultimate goal in a structured test is to retrieve the final proof artifact, often called the "root flag" or "proof.txt," which is typically placed in a protected location like the Administrator's desktop.
+**Actionable Steps**:
+1.  **Retrieve the Final Flag**: `cat C:\Users\Administrator\Desktop\root.txt`
+    *   **Reasoning**: This command reads the final proof file. In CTF/HTB machines, this file's contents are the definitive marker that you have achieved full domain compromise (Domain Admin on the DC).
+**Guidance for Novel Context**: The flag's location may vary (e.g., `C:\root.txt`, in a hidden directory). The principle is to **search for final proof files in common administrative user directories or system roots.** In a real assessment, the final action might be to exfiltrate a specific sensitive file or document your access to a critical system.

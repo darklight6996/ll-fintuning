@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify tmp permissions.
+
+CONTEXT:
+Privilege escalation audit.
+
+METHOD / ANSWER:
+Command: `ls -ld /tmp`
+Explanation: Confirms sticky bit enforcement.

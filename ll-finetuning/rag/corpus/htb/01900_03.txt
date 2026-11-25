@@ -1,0 +1,1 @@
+d (): return False if not self . g2_valid (): return False if not self . g3_valid (): return False if not self . g4_valid (): return False if not self . cs_valid (): print ( ' [Critical] Checksum verification failed! ' ) return False return True I’m going to try to generate

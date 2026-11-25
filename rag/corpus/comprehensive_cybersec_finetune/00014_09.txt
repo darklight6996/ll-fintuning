@@ -1,0 +1,25 @@
+**Phase 6: Reverse Engineering & Anti-Tampering**
+- **Obfuscation**:
+  - ProGuard/R8 (Android), SwiftShield/Obfuscator (iOS)
+  - String encryption, control flow flattening
+  - Native libraries (NDK, `.so` / `.dylib`)
+- **Anti-Debugging**:
+  - `isDebuggerConnected()`, `ptrace`, `sysctl`
+  - Timing checks, self-debugging
+- **Anti-Hooking**:
+  - Frida detection (port, threads, modules)
+  - Xposed detection
+  - Substrate detection
+- **Integrity Checks**:
+  - Checksum/hash of code/resources
+  - Signature verification
+  - SafetyNet/Play Integrity / DeviceCheck / App Attest
+
+**Phase 7: Automated Testing**
+- **MobSF**: Static + Dynamic + API analysis
+- **QARK**: Android static analysis
+- **AndroBugs**: Android vulnerability scanner
+- **Needle**: iOS testing framework
+- **iMAS**: iOS security assessment
+- **Drozer**: Android IPC exploitation
+- **Frida Scripts**: `fridascript.com`, `codeshare.frida.re`

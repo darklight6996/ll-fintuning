@@ -1,0 +1,29 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+https://github.com/The-Art-of-
+Hacking/h4cker/tree/master/osint.
+Identifying Cloud vs. Self-Hosted Assets
+A company may own a domain and related subdomain, but its applications
+may be hosted in the cloud. For example, Netflix (at the time of writing)
+owns the domain netflix.com, which resolves to IPv4 addresses
+3.230.129.93, 52.3.144.142, and 54.237.226.164 (as demonstrated in
+Example 9-7 with the Linux host command).
+Example 9-7 DNS Name Resolution for netflix.com
+┌─[omar@websploit]─[~]
+└──╼ $host netflix.com
+netflix.com has address 3.230.129.93
+netflix.com has address 52.3.144.142
+netflix.com has address 54.237.226.164
+netflix.com has IPv6 address 2600:1f18:631e:2f80:77e5
+netflix.com has IPv6 address 2600:1f18:631e:2f82:c8cd
+netflix.com has IPv6 address 2600:1f18:631e:2f84:ceae
+netflix.com mail is handled by 1 aspmx.l.google.com.
+netflix.com mail is handled by 5 alt1.aspmx.l.google.
+netflix.com mail is handled by 5 alt2.aspmx.l.google.

@@ -1,0 +1,1 @@
+, the PHP scripts of Icinga Web 2 are deployed under

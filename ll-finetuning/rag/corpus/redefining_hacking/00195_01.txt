@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+techniques for implanting them, and strategies for avoiding detection,
+supported by technical examples.
+Post-Exploitation and Living-off-the-Land Case Study
+Volt Typhoon and Salt Typhoon are two highly sophisticated cyber
+espionage groups linked to China, each employing advanced techniques to
+infiltrate critical infrastructure and telecommunications networks. Their
+operations are notable for their stealth, persistence, and the potential for
+significant geopolitical impact.
+Volt Typhoon avoids traditional malware by using built-in system tools like
+PowerShell and Windows Management Instrumentation (WMI) to blend
+into legitimate network activity. This is also known as living off the land
+(LOTL). You will learn more about LOTL later in this chapter. LOTL makes
+detection extremely difficult because it does not leave behind typical
+malware signatures. Salt Typhoon targets core network infrastructure,
+including routers and network management systems, using LOTL
+techniques similar to Volt Typhoon.
+Types of Backdoors
+Application-level backdoors are malicious modifications or additions to
+legitimate applications that allow unauthorized access to a system or

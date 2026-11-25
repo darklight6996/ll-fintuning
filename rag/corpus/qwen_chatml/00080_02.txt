@@ -1,0 +1,5 @@
+he threat intelligence team refine their threat models, improve
+threat-hunting efforts, and provide more accurate and timely warnings
+within the organization. This collaborative loop ensures that the
+organization’s understanding of the threat landscape is continuously
+updated and aligned with the latest threats.

@@ -1,0 +1,1 @@
+alse ) SMB 10.10.11.22 445 DC1 [-] blazorized.htb\oxdf: STATUS_LOGON_FAILURE blazorized.htb - TCP 80 Site

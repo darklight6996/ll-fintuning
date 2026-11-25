@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Connect via SSH for shell access.
+
+CONTEXT:
+Use `sshpass` to establish a shell.
+
+METHOD / ANSWER:
+Command: `sshpass -p 'dev080217_devAPI!@' ssh dev@editorial.htb`
+Purpose: Confirm access to the user shell.

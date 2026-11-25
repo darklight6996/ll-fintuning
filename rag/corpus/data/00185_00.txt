@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify audit logging is enabled.
+
+CONTEXT:
+Monitoring control verification.
+
+METHOD / ANSWER:
+Command: `systemctl is-active auditd`
+Explanation: Confirms audit logging service is running.

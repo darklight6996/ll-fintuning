@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: ADCS Vulnerability Discovery.
+**Core Principle**: ADCS misconfigurations (like `ESC1`, `ESC2`, `ESC3`, etc.) are common privilege escalation vectors. Finding them requires authenticated enumeration of templates, their settings, and enrollment rights.
+**Actionable Steps**:
+1.  **Enumerate for Vulnerabilities**: `certipy find -u ca_svc@fluffy.htb -hashes <NTLM_hash> -vulnerable`
+    *   **Reasoning**: This command uses the provided credentials to query the ADCS environment, list all certificate templates, and highlight those with known dangerous configurations. It provides a roadmap for which attack (e.g., `ESC1`, `ESC16`) to attempt next.
+**Guidance for Novel Context**: The credentials can be provided as password (`-p`), hash (`-hashes`), or certificate (`-pfx`). The principle is to **leverage any domain credential to perform a thorough audit of the PKI environment, as low-privilege users can often see template configurations.**

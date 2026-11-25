@@ -1,0 +1,1 @@
+$ ls -la total 36 drwxr-xr-x 5 rosa rosa 4096 Jun 17 2024 . drwxr-xr-x 4 root root 4096 Jun

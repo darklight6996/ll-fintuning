@@ -1,0 +1,10 @@
+Context:
+Context: Privilege Escalation via Key Credential. You have gained `GenericWrite` permissions over a target service account (`winrm_svc`) through group manipulation or other means.
+Principle to Apply: 'Write a public key to the target user's `msDS-KeyCredentialLink` attribute to enable certificate-based authentication as that user.'
+assistant
+**Assessment Phase**: Shadow Credential Deployment.
+**Core Principle**: The `msDS-KeyCredentialLink` attribute stores information for Windows Hello for Business or FIDO2 keys. Writing a controlled key to this attribute allows you to request a certificate and authenticate as the user.
+**Actionable Steps**:
+1.  **Execute Shadow Auto Attack**: `certipy shadow auto -u p.agila@fluffy.htb -p 'prometheusx-303' -account winrm_svc`
+    *   **Reasoning**: This command automates the process: it authenticates as `p.agila`, adds a new key credential to the `winrm_svc` account, requests the corresponding certificate, and saves it as a `.pfx` file. You can now authenticate as `winrm_svc`.
+**Guidance for Novel Context**: This requires the `-auto` flag's conditions to be met (LDAPS, specific permissions). If not, perform manual steps: generate an RSA k

@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from 0Xdf Hacks Stuff Ctf Solutions, Malware Analysis, Home Lab Development)
+
+CONTEXT:
+Source: 0Xdf Hacks Stuff Ctf Solutions, Malware Analysis, Home Lab Development
+Section: Writeup

@@ -1,0 +1,1 @@
+small.txt -x html -t 40 -o scans/gobuster-root-small-html =============================================================== Gobuster v3.0.1

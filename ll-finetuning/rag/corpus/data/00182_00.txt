@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify inactive account lockout.
+
+CONTEXT:
+Access removal control audit.
+
+METHOD / ANSWER:
+Command: `useradd -D | grep INACTIVE`
+Explanation: Shows default inactivity lockout settings.

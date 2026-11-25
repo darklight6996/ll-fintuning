@@ -1,0 +1,25 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+16. What is an advantage of using HTTP/HTTPS tunneling for C2
+communications?
+A. It provides a stealthy method.
+B. It works faster in Linux environments.
+C. It requires sophisticated payloads.
+D. It provides less overhead, and related tools can be installed easily.
+17. What is the purpose of lateral movement in post-exploitation?
+A. To install security patches
+B. To move from one device to another within the network to avoid
+detection and exfiltrate sensitive data
+C. To clean up logs and traces of the attack
+D. To back up system files
+18. Which tool is commonly used for code obfuscation in Java applications?
+A. ProGuard
+B. PyArmor

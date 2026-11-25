@@ -1,0 +1,26 @@
+TECHNIQUE / QUESTION:
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+C. They can be conducted more frequently than red teaming engagements.
+D. They are fully automated.
+5. What is the primary difference between penetration testing and red
+teaming?
+A. Penetration testing focuses on specific vulnerabilities, while red teaming
+simulates real-world attacks.
+B. Penetration testing is typically conducted by external consultants, while
+red teaming is always performed by internal teams.
+C. Penetration testing is a one-time event, while red teaming is an ongoing
+process.
+D. Penetration testing is focused on technical testing, while red teaming
+also includes social engineering and physical security assessments.
+6. What is the role of "Control" in military-style red team exercises?
+A. To act as the opposing force during the exercise
+B. To oversee the exercise and ensure it stays on track
+C. To provide technical support to the red and blue teams
+D. To evaluate the performance of the red and blue teams

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How can you brute force subdomains that may exist for the domain?
+
+CONTEXT:
+The target domain is editor.htb.
+
+METHOD / ANSWER:
+Command: `ffuf -u http://10.10.11.80 -H "Host: FUZZ.editor.htb" -w /opt/SecLists/Discovery/DNS/subdomains-top1million-20000.txt -ac`
+Explanation: This command attempts to discover subdomains using a wordlist, monitoring responses to identify valid entries.

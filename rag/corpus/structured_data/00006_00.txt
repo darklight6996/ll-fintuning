@@ -1,0 +1,14 @@
+TECHNIQUE / QUESTION:
+What is the next step after confirming a SQL injection vulnerability?
+
+CONTEXT:
+Context: Successful Exploit. SQL injection confirmed on the 'username' parameter. Database interaction is possible.
+Principle to Apply: 'Follow the data to understand the system.'
+
+METHOD / ANSWER:
+**Assessment Phase**: Post-Exploitation Intelligence Gathering.
+**Core Principle**: Use established access to map the database structure and extract sensitive information to further the engagement.
+**Actionable Steps**:
+1.  **Data Exfiltration**: `sqlmap -u "http://example.com/login?username=admin&password=test" --dump`
+    *   **Reasoning**: Extracts table contents, which may include user credentials (hashed or plaintext), personal data, or application configuration secrets. This data can enable lateral movement or privilege escalation.
+**Guidance for Novel Context**: The `--dump` flag targets a specific table. First, use `--tables` to list them. The choice of which table to dump is based on context (e.g., `users`, `config`, `passwords`). The core principle is to systematically explore the accessible data landscape.

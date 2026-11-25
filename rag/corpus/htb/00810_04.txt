@@ -1,0 +1,1 @@
+e751cc3a91c174362:d:monkeybizness ...[snip]... It cracks in two seconds to “monkeybizness”. su That password works for root on Bizness: ofbiz@bizness:/opt/ofbiz/runtime/data$ su - Password: root@bizness:~# And I can get root.txt : root@bizness:~# cat root.txt 0a540d50************************

@@ -1,0 +1,28 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+<script src="https://code.jquery.com/jquery-3.5.1
+DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUe
+<script src="https://cdn.jsdelivr.net/npm/popper.
+integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH8
+crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/b
+integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57Ba
+crossorigin="anonymous"></script>
+</body>
+</html>
+Additional features in Evilginx are related to OpenGraph. OpenGraph is
+used for creating previews of sites when sharing them through various
+communication methods; these sites provide an end user with a quick
+preview of what they attempted to click. You can configure the OpenGraph
+settings when you generate the lure for your phishlet.
+Kuba provides an example (https://help.evilginx.com/docs/guides/lures) of
+the various options you can use with the OpenGraph settings. Table 5-3
+shows the OpenGraph settings you can customize.
+Table 5-3 OpenGraph Settings

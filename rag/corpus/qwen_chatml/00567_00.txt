@@ -1,0 +1,28 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+B. OSINT.
+C. Directory brute-forcing.
+D. Fast web fuzzing.
+Exercises
+EXERCISE 9.1: AI-Driven Recon Using Gorilla
+Task: Become familiar with generative AI tools and LLMs such as Gorilla.
+In this chapter, you learned about how the University of California,
+Berkeley, and Microsoft introduced Gorilla, a refined Llama-based model
+that apparently outperforms GPT-4 in crafting API calls. One of Gorilla’s
+standout features is its integration with a document retriever. This synergy
+empowers Gorilla to seamlessly adjust to modifications in documents
+during testing. Gorilla can significantly reduce the hallucination problem, a
+frequent hiccup encountered when directly prompting LLMs.
+Steps:
+1. Refer to this blog post: https://becomingahacker.org/using-gorilla-
+pioneering-api-interactions-in-large-language-models-for-cybersecurity-
+operations-252ce018be6b
+2. Deploy WebSploit Labs by following the instructions at websploit.org.

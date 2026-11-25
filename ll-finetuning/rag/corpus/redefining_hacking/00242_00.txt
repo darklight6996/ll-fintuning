@@ -1,0 +1,11 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 6-6 The Boot-Start Driver Before Infection
+Figure 6-7 demonstrates how the driver image is infected.

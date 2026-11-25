@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+you can use AI to provide tailored prioritization recommendations to your
+client that go beyond generic CVSS or EPSS scores.
+AI-enabled systems can continuously monitor threat intelligence feeds,
+including updates to the KEV Catalog, and automatically adjust
+vulnerability discovery priorities based on new information. You can
+leverage GenAI with NLP capabilities to analyze vulnerability descriptions,
+security advisories, and exploit discussions in forums to extract additional
+context and severity indicators. This information can be used to refine
+prioritization beyond what CVSS, EPSS, and KEV provide numerically.
+By analyzing the characteristics of vulnerabilities that have progressed from
+CVSS scoring to EPSS high-probability to KEV listing, you can potentially
+predict which newly discovered vulnerabilities are most likely to follow a
+similar path. This analysis can help prioritize vulnerabilities that may not
+yet have high EPSS scores or KEV entries but have characteristics
+suggesting they may soon become critical.
+Based on the vulnerability type and target system, AI could generate basic
+exploit templates or code ske

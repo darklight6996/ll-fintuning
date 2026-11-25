@@ -1,0 +1,38 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Shutter Speed Value : 1/887
+Aperture Value : 1.6
+Brightness Value : 7.700648484
+Exposure Compensation : 0
+Metering Mode : Multi-segment
+<output omitted for brevity>
+Composite Image : General Composite Ima
+GPS Version ID : 2.2.0.0
+GPS Latitude Ref : North
+GPS Longitude Ref : West
+GPS Altitude Ref : Above Sea Level
+GPS Speed Ref : km/h
+GPS Speed : 0.2300000042
+GPS Img Direction Ref : True North
+GPS Img Direction : 74.98474114
+GPS Dest Bearing Ref : True North
+GPS Dest Bearing : 74.98474114
+GPS Horizontal Positioning Error: 15.67681275 m
+Compression : JPEG (old-style)
+Thumbnail Offset : 2650
+Thumbnail Length : 6523
+XMP Toolkit : XMP Core 5.5.0
+Creator Tool : 14.6
+Date Created : 2024:06:20 17:45:44
+<output omitted for brevity>
+GPS Altitude : 112.7 m Above Sea Leve
+GPS Latitude : 35 deg 46' 78.6382" N
+GPS Longitude : 78 deg 38' 30.4793" W

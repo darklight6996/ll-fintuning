@@ -1,0 +1,1 @@
+mmands insecurely.** The exploit method could be `PATH` hijacking, library hijacking (`LD_PRELOAD`), or abuse of intended functionality.

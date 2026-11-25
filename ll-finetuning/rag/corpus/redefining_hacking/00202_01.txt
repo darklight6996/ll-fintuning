@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+You can also convert commands into their hexadecimal equivalents, making
+the code harder to read at first glance. For example, the command
+system('cat /etc/passwd'); could be encoded as
+73797374656d2827636174202f6574632f70617373776427293b13.
+Stripping out whitespace from code to make it more difficult to read and
+analyze can also be used for obfuscation.
+Compression techniques and tools like gzdeflate() can be used to reduce the
+size of the web shell's code while also making it less readable. The
+compressed code is decompressed at runtime, allowing the attacker to hide
+large portions of their script until it is executed. Another technique is
+embedding malicious code within legitimate files (e.g., index.php), making
+it harder for defenders to distinguish between normal and malicious activity.
+You can also configure web shells to respond only when specific HTTP
+headers are present in the request. It can be a custom header or a standard
+one like Authorization, which is checked before allowing access to the web
+shell. For example, a web shell might require a specific header (such as X-
+Access-Token) with a predefined value. If the header is missing or
+incorrect, the se

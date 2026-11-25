@@ -1,0 +1,33 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+websploit$ python3 h1_2_nuclei.py -handle security
+[i] Checking scope for: security
+[i] Parsing scope items
+[i] Wildcards in scope: 1
+[i] Hosts in scope: 19
+[i] Hosts out of scope: 3
+[i] Checking subdomains with chaos
+[i] Hosts in scope: 8
+[i] Hosts out of scope: 4
+[i] Removing out of scope items
+[i] Unique hosts in scope: 9
+[i] Saving hosts to: targets/security/chaos_security_
+[i] Resolving subdomains with httpx
+[i] Output saved to: targets/security/httpx_security_
+[i] Number of live targets: 9
+[i] Scanning targets with Nuclei
+[i] Output saved to: targets/security/nuclei_security
+[i] Vulnerabilities found: 8
+The tools shown in Example 11-1 can be obtained from
+https://github.com/vavkamil/h1_2_nuclei.
+To overcome the limitations of manual bug hunting, you should use
+automation that goes beyond vulnerability scanners and traditional hacking
+tools. Leveraging AI and machine learning can significantly help. You can

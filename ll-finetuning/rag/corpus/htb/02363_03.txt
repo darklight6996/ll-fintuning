@@ -1,0 +1,1 @@
+What do you wanna do: [1] View processes [2] View free memory [3] View listening sockets [4] Quit 2 Filesystem 1K-blocks Used Available Use% Mounted

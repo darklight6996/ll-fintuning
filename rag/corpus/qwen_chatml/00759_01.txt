@@ -1,0 +1,34 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+193
+Web Application Penetration Testing
+as attributes “style”.
+Gray Box testing
+Testing for CSS Injection vulnerabilities:
+Manual testing needs to be conducted and the JavaScript code
+analyzed in order to understand whether the attackers can in-
+ject its own content in CSS context. In particular we should be
+interested in how the website returns CSS rules on the basis of
+the inputs.
+The following is a basic example:
+<a id="a1">Click me</a>
+<b>Hi</b>
+<script>
+$(“a").click(function(){
+$(“b").attr(“style”color: “ + location.hash.slice(1));
+});
+</script>
+The above code contains a source “location.hash” that is con-
+trolled by the attacker that can inject directly in the attribute
+“style” of an HTML element. As mentioned above, this may lead
+to different results on the basis of the adopted browser and the
+supplied payload.
+It is recommended that testers use the jQuery function css(prop-
+erty, value) in such circumstances as follows, since this would
+disallow any damaging injections. In general, we recommend to
+use always a whitelist of allowed characters any time the input is
+reflected in the CSS context.
+<a id="a1">Click me

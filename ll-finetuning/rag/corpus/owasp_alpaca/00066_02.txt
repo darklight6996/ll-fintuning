@@ -1,0 +1,24 @@
+= Clickjacking
+Whitepapers
+= Marcus Niemietz: “Ul Redressing: Attacks and Countermeasures
+Revisited" - http://ui-redressing.mniemietz.de/uiRedressing.pdf
+= “Clickjacking” - https://en.wikipedia.org/wiki/Clickjacking
+= Gustav Rydstedt, Elie Bursztein, Dan Boneh, and Collin Jackson:
+“Busting Frame Busting: a Study of Clickjacking Vulnerabilities on
+Popular Sites” - http://seclab.stanford.edu/websec/framebusting/
+framebust.pdf
+= Paul Stone: “Next generation clickjacking” - https://media.blackhat
+com/bh-eu-10/presentations/Stone/BlackHat-EU-2010-Stone-
+Next-Generation-Clickjacking-slides.pdf
+Testing WebSockets (OTG-CLIENT-010)
+Summary
+Traditionally the HTTP protocol only allows one request/response
+per TCP connection. Asynchronous JavaScript and XML (AJAX) al-
+lows clients to send and receive data asynchronously (in the back-
+ground without a page refresh) to the server, however, AJAX requires
+the client to initiate the requests and wait for the server responses
+(half-duplex).
+HTML5 WebSockets allow the client/server to create a ‘full-duplex’
+(two-way) communication channels, allowing the client and server
+to truly communicate asynchronously. WebSockets conduct their
+initial ‘upgrade’

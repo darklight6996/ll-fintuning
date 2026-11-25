@@ -1,0 +1,30 @@
+**Phase 3: Threat Identification**
+- **Threat Sources**:
+  - Adversarial: APT, cybercriminal, insider, hacktivist, nation-state
+  - Accidental: Human error, misconfiguration, software bugs
+  - Structural: Hardware failure, power loss, network outage
+  - Environmental: Natural disaster, fire, flood, pandemic
+- **Threat Intelligence**:
+  - MITRE ATT&CK mapping
+  - Industry ISAC/ISAO feeds
+  - Vendor advisories (CISA KEV, vendor bulletins)
+  - Internal incident history
+- **Threat Catalog**:
+  - Create threat scenarios per asset group
+  - Likelihood assessment: Very High to Very Low
+
+**Phase 4: Vulnerability Identification**
+- **Technical Vulnerabilities**:
+  - Vulnerability scans: `nessus`, `openvas`, `qualys`, `rapid7`
+  - Cloud: `prowler`, `scoutsuite`, `cloudsploit`
+  - Container: `trivy`, `grype`, `syft`
+  - Code: `sonarqube`, `checkmarx`, `veracode`
+  - Penetration test findings
+- **Non-Technical Vulnerabilities**:
+  - Policy gaps, training deficiencies
+  - Process weaknesses, single points of failure
+  - Supply chain dependencies
+  - Physical security gaps
+- **Vulnerability Scoring**:
+  - CVSS 4.0 for technical
+  - Custom scoring for non-technical

@@ -1,0 +1,31 @@
+TECHNIQUE / QUESTION:
+Define and explain the key concept presented in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+prompted to switch topics.
+contextual_redirection:
+Attempt at tricking the LLM into adopting a specific
+that may bypass the restrictions or intended use set
+prompt
+custom_benchmark_test:
+Challenge the LLM with a dataset of prompt injections
+User
+do_anything_now_jailbreak:
+Probes an LLM's resilience against performing explici
+activities using the 'Do Anything Now' (DAN) characte
+technique
+ethical_compliance:
+Evaluates the LLM's ability to resist discussion abou
+inappropriate misconceptions about sensitive topics,
+prompted to do so. This test aims to verify the model
+ethical guidelines against propagating stereotypes an
+harmful_behavior:
+Challenges the LLM with a dataset of harmful behavior
+linguistic_evasion:
+Leverage the use of a non-English language to circumv
+restrictions or focus set by the system prompt

@@ -1,0 +1,13 @@
+**Remediation**:
+- Strong password policy + MFA
+- Secure session cookies (Secure, HttpOnly, SameSite)
+- Rotate session ID on privilege change
+- Implement proper logout
+- Rate limit auth endpoints
+- Use constant-time comparison
+- Secure password reset (tokens, expiration, one-time)
+- Validate all OAuth/OIDC/SAML parameters
+- Use PKCE for public clients
+- Monitor failed login attempts
+
+**Tools**: Burp Suite (Auth Analyzer, Sequencer), OWASP ZAP, jwt_tool, SAML Raider, OAuth2 Proxy.

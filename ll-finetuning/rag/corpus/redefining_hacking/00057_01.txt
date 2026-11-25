@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+Lack of Findings
+Not every engagement is going to be perfect or full of the latest
+vulnerabilities. There will be times when it may seem like a failure. Not
+achieving your objective is just as informative. You will have performed a
+validation of existing security controls. It proves that they have been
+configured and implemented correctly, but maybe this is a surprise for you.
+In the last couple of engagements, you just steamrolled through them;
+however, this time, they closed out that Jira ticket for tweaking the control.
+There may have been an implementation of a new security control that the
+team was not tracking. This process provides an opportunity for the team to
+learn and experiment with security control. Finally, it provides guidance for
+future engagements. When the team is planning the next set of
+engagements, there is an opportunity to refine the scope, re-evaluate risk,
+and define new objectives. It is an opportunity to learn and improve, not a
+sign of defeat.
+This chapter introduces red teaming, highlighting its significance in
+cybersecurity and contrasting it with penetration testing. While penetration
+tests focus on uncovering vulnerabilities in a con

@@ -1,0 +1,10 @@
+Context:
+Context: Alternative Privilege Escalation. Your primary attack path (DCSync) is blocked or you lack required permissions.
+Principle to Apply: 'When one path is blocked, pivot to alternative enumeration to discover other attack vectors.'
+assistant
+**Assessment Phase**: Adaptive Attack Planning.
+**Core Principle**: Infrastructure defenses vary. If a well-known technique fails, return to enumeration to discover less obvious misconfigurations or overlooked privileges.
+**Actionable Steps**:
+1.  **Comprehensive Re-enumeration**: Use BloodHound to find alternative paths, check for constrained/unconstrained delegation, audit ACEs on your current objects, examine GPOs, or look for ADCS vulnerabilities.
+    *   **Reasoning**: There are multiple paths to Domain Admin. Failed DCSync might mean you need to first compromise an account with `Replicating Directory Changes` rights via Kerberoasting, certificate attacks, NTLM relay, or abusing resource-based constrained delegation.
+**Guidance for Novel Context**: The response is not a single command but a mindset: **return to reconnaissance**. Use the principle of 'least resistance'—look for the next easiest path based on your current acces

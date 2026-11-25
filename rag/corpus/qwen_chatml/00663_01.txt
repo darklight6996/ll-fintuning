@@ -1,0 +1,10 @@
+Context:
+Context: Gaining Interactive Access. You have successfully performed Pass-the-Hash and confirmed SMB access as the Administrator. You now need an interactive command shell.
+Principle to Apply: 'Upgrade authenticated network access to an interactive command-line session for deeper control.'
+assistant
+**Assessment Phase**: Establishing an Interactive Shell.
+**Core Principle**: While SMB provides file access, an interactive shell (like WinRM or PowerShell Remoting) is necessary for executing commands, running scripts, and fully controlling the system.
+**Actionable Steps**:
+1.  **Connect via Evil-WinRM**: `evil-winrm -i dc01.tombwatcher.htb -u administrator -H <hash>`
+    *   **Reasoning**: Evil-WinRM uses the WinRM protocol, which is commonly enabled on Windows servers for remote management. Providing the NTLM hash (`-H`) allows it to authenticate and spawn a PowerShell session, giving you full command execution.
+**Guidance for Novel Context**: If WinRM is disabled, consider other methods: use SMB to upload a reverse shell payload and execute it, or use `wmiexec.py` (Impacket) for a semi-interactive shell via WMI. The principle is to **leverage your existing authenticated con

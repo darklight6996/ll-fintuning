@@ -1,0 +1,29 @@
+OxOa
+--> Testing HTTP Header response
+HSTS
+no
+Server
+Apache
+Application (None)
+--> Testing (Perfect) Forward Secrecy (P)FS)
+no PFS available
+Done now (2014-04-17 15:07) ---> owasp.org:443 <---
+user@myhost: %
+STARTTLS would be tested via testssl.sh -t smtp.gmail.com:587
+smtp, each ciphers with testssl -e <target>, each ciphers per
+protocol with testssl -E <target>. To just display what local ci-
+phers that are installed for openssl see testssl -V. For a thorough
+check it is best to dump the supplied OpenSSL binaries in the
+path or the one of testssl.sh.
+The interesting thing is if a tester looks at the sources they learn
+how features are tested, see e.g. Example 4. What is even bet-
+ter is that it does the whole handshake for heartbleed in pure /
+bin/bash with /dev/tcp sockets -- no piggyback perl/python/you
+name it.
+Additionally it provides a prototype (via “testssl.sh -V") of map-
+ping to RFC cipher suite names to OpenSSL ones. The tester
+needs the file mapping-rfc.txt in same directory.
+Example 8. Testing SSL/TLS with SSL Breacher
+This tool [99] is combination of several other tools plus some
+additional checks in complementing most comprehensive SSL
+tests. It supports the follow

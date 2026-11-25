@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+List users with sudo access.
+
+CONTEXT:
+Reviewing privileged access.
+
+METHOD / ANSWER:
+Command: `getent group sudo`
+Explanation: Identifies users with elevated privileges.

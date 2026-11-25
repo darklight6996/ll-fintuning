@@ -1,0 +1,15 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 3-26 Mythic Report Creation
+Figure 3-27 Downloading a Mythic Report
+Once the report is downloaded, you have detailed information on the
+operation metrics, callback, MITRE mappings, and artifacts, as illustrated
+in Figure 3-28.

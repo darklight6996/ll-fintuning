@@ -1,0 +1,18 @@
+METHOD / ANSWER:
+Attackers gain access to the system firmware, often through vulnerabilities
+in the firmware update process or physical access to the machine. Malicious
+code is injected into the firmware, modifying its normal operation.
+The backdoor code loads before the operating system, ensuring it runs
+every time the system is started. This persistence mechanism makes it
+extremely difficult to detect and remove because reinstalling the OS does
+not affect the firmware. The backdoor can manipulate the boot process to
+load additional malware or bypass security mechanisms. By operating
+below the OS level, these backdoors can remain hidden from traditional
+security tools. Full access to hardware allows attackers to manipulate
+system behavior and monitor activities without detection.
+Peripheral devices like network cards, hard drives, and other hardware
+components also have their own firmware, which can be targeted to create
+backdoors. Attackers compromise the firmware of peripheral devices
+through vulnerabilities in firmware update mechanisms, supply chain
+attacks, or physical access. The malicious firmware is loaded each time the
+device is powered on, ensuring persistent access. Eve

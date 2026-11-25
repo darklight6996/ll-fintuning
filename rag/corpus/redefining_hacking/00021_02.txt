@@ -1,0 +1,6 @@
+The VRTX was designed for real-time
+applications, where even minor bugs would have a significant impact. The
+reliability of the operating system was crucial for the company’s reputation.
+Hunter & Ready was so confident in it that the company published a full-
+page ad with the slogan “Get a bug if you find a bug.” It offered a
+Volkswagen Beetle or $1,000 in cash to anyone who could find one and

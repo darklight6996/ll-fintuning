@@ -1,0 +1,1 @@
+there’s another option on the “Backup” screen: That looks just like the file from Coder! { "559f7a5a-71f4-40a4-a3cf-18ca8a279fbd" : { "encrypted" : true , "hash" : "559f7a5a-71f4-40a4-a3cf-18ca8a279fbd"

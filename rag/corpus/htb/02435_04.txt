@@ -1,0 +1,1 @@
+CAި֩nmP72iex#ȃ^bʳgA~}N} *ENd]Ի}]Owu5{An}lT06(6eoQ:F끭oz$պݾ>Ub/lFn~lMjHÙ60e+>gw$R"b0MK<yPg+,HW(Zrs5u{bZzXk=g#9םg$1!D[f߂;>CicRAbPW1f`jGOYы=g#M/gdAd߄JJ.IENDB` That binary junk starts with the magic bytes for a PNG image. IDOR Looking more closely at the URL from the QR-Code, there are two pirces of data. I’ll call them the base64

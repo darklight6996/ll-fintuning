@@ -1,0 +1,5 @@
+rabilities, requiring red teams to
+tailor their attack strategies depending on the architecture (such as
+convolutional neural networks versus transformers). Many models
+incorporate defenses like adversarial training or input pre-processing,
+making it more challenging for red teams to bypass these protections.

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check storage public access.
+
+CONTEXT:
+Data exposure audit.
+
+METHOD / ANSWER:
+Command: `az storage account list --query "[].allowBlobPublicAccess"`
+Explanation: Confirms storage access restrictions.

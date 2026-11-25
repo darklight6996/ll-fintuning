@@ -1,0 +1,4 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+How do you perform a final authentication using the obtained certificate?

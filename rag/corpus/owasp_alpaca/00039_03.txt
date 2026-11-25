@@ -1,0 +1,34 @@
+validated against its DTD before any process-
+ing occurs.
+However, this problem can be solved, if the tester controls the value of
+some nodes preceding the offending node (userid, in this example). In
+fact, the tester can comment out such node, by injecting a comment
+start/end sequence:
+Username: tony
+Password: Un6R34kb!e</password><!--
+E-mail: --><userid>O</userid><mail>s4tan@hell.com
+In this case, the final XML database is:
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<users>
+<user>
+<username>gandalf</username>
+<password>!c3</password>
+<userid>O</userid>
+<mail>gandalf@middleearth.com</mail>
+</user>
+<user>
+<username>Stefan0</username>
+<password>w1S3c</password>
+<userid>500</userid>
+<mail>Stefano@whysec.hmm</mail>
+</user>
+<user>
+<username>tony</username>
+<password>Un6R34kb!e</pass-
+word><!--</password>
+<userid>500</userid>
+<mail>--><userid>O</userid><-
+mail>s4tan@hell.com</mail>
+</user>
+</users>
+136

@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+vectorization to ensure compatibility.
+The system processes the prompt or question and performs a semantic
+search against a vector database to find relevant information.
+Semantic Search and Document Retrieval
+Semantic search is an information retrieval technique that focuses on
+understanding the meaning and context of a search query rather than just
+matching keywords. Unlike traditional keyword-based search, which looks
+for exact matches of words in documents, semantic search aims to
+understand the intent behind the query and find documents that are relevant
+to that intent, even if they don’t contain the exact search terms.
+The core of semantic search involves converting both the query and the
+documents into dense vector embeddings. Once both the query and
+documents are embedded, semantic search measures the similarity between
+these vectors. Techniques like cosine similarity or dot product are often
+used to find the closest matches in the vector space. Because semantic
+search understands the context, it can return relevant results even if the
+exact terms aren't used. For example, a search for "best ways to create an
+exp

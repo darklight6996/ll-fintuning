@@ -1,0 +1,34 @@
+Lane
+LPT
+LB cs
+ek Stat Laven
+1 TENT;
+jee
+ennld oom
+acerca] ribs
+bay ad
+ee
+ecole Le:
+Finatsrel seertyps Soper «
+mt}
+Pheer lee ati pele a coated ac tet
+tec tie ah
+The HTML code following the injection:
+<input class="inputbox” type="text” name="email” size="40"
+value="aaa@aa.com”><script>alert(document.cookie)</
+script>
+The input is stored and the XSS payload is executed by the browser
+when reloading the page. If the input is escaped by the application,
+testers should test the application for XSS filters. For instance, if the
+string “SCRIPT” is replaced by a space or by a NULL character then this
+could be a potential sign of XSS filtering in action. Many techniques ex-
+ist in order to evade input filters (see testing for reflected XSS chapter).
+It is strongly recommended that testers refer to XSS Filter Evasion ,
+RSnake and Mario XSS Cheat pages, which provide an extensive list of
+XSS attacks and filtering bypasses. Refer to the whitepapers and tools
+section for more detailed information.
+Leverage Stored XSS with BeEF
+Stored XSS can be exploited by advanced JavaScript exploitation
+frameworks such as BeEF, XSS Proxy and Backframe.
+A typical BeEF exploitation scenario involves:
+« Inject

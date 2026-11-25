@@ -1,0 +1,25 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+A. TIBER-EU
+B. CBEST
+C. Unified Kill Chain
+D. MITRE ATT&CK
+3. Why is it important for red teams to emulate adversaries effectively?
+A. To demonstrate technical skills
+B. To validate existing assumptions
+C. To challenge assumptions of security controls
+D. To complete exercises quickly
+4. How does red teaming contribute to an organization’s resilience?
+A. Through enforcing strict adherence to policies
+B. By revealing potential risks and weaknesses
+C. Through reducing costs in strategic planning
+D. By prioritizing immediate implementation of changes
+5. What is a drawback of purple teaming?

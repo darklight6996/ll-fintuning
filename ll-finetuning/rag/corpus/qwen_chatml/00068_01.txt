@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Unified Kill Chain
+The Unified Kill Chain (UKC) is a conceptual framework that is the
+evolution of a number of previous efforts. It addresses the limitations of
+previous models through the integration of their strengths in a unified
+approach. It is designed to provide a holistic view of adversary behavior
+across the entire attack lifecycle.
+Unlike the MITRE ATT&CK Framework, which we previously mentioned,
+the Unified Kill Chain focuses on both the technical and strategic aspects of
+cyber attacks. It incorporates techniques from initial compromise,
+persistence, lateral movement, and impact while aligning with broader risk
+management and operational objectives. It focuses on end-to-end coverage
+of the attack. It ties specific technical actions to strategic goals for the
+attacker. This allows an organization to understand how these TTPs
+contribute to the broader adversary goals in isolation. The flexibility of the
+kill chain is that it complements other frameworks like MITRE ATT&CK,
+providing a unified narrative of adversarial campaigns. Lastly, it is utilized
+by red teams to emulate sophisticated attack sequences, helping

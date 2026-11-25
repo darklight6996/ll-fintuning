@@ -1,0 +1,3 @@
+ee that their device is out of sync. The employee
+needs to reauthenticate their device by visiting a portal controlled by you.
+Doing so will result in the you, the red teamer, gaining access to their

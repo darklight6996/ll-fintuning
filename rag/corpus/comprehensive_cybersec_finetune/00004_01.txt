@@ -1,0 +1,23 @@
+**Phase 3: Offline Hash Cracking**
+- Hashcat (mode 13100 = Kerberos 5 TGS-REP etype 23):
+  ```bash
+  hashcat -m 13100 kerberoast_hashes.txt /opt/SecLists/Passwords/Leaked-Databases/rockyou.txt --force
+  ```
+- John the Ripper:
+  ```bash
+  john --format=krb5tgs --wordlist=rockyou.txt kerberoast_hashes.txt
+  ```
+
+**Phase 4: Validate & Use Cracked Credentials**
+- Test: `netexec smb <DC> -u <service_account> -p <cracked_password>`
+- Service accounts often have elevated privileges (Domain Admin, local admin on servers)
+- Use for lateral movement, Silver Ticket creation, or further enumeration
+
+**Key Considerations**:
+- Target accounts with SPNs set (typically service accounts)
+- Weak passwords = quick cracks (service accounts often have human-set passwords)
+- AES256 hashes (etype 18) are harder to crack than RC4 (etype 23)
+- Consider targeted wordlists based on organization naming patterns
+- Pre-authentication not required - any domain user can request tickets
+
+**Defense**: Use Group Managed Service Accounts (gMSA), enforce long complex passwords for service accounts, monitor Event ID 4769 (TGS request) for anomalies.

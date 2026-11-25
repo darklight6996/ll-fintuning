@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you document findings?
+
+CONTEXT:
+Context: Engagement Reporting. You have completed testing and gathered evidence.
+Principle to Apply: 'Findings without clear communication are useless. Document methodology, evidence, and impact for stakeholders.'

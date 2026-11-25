@@ -1,0 +1,1 @@
+mum IKE_SA lifetime 10523s generating AGGRESSIVE request 0 [ HASH NAT-D NAT-D ] sending packet: from 10.10.14.60[500] to 10.129.13.71[500] (108 bytes) generating QUICK_MODE request 2816494625 [ HASH SA No ID ID ] sending packet: from 10.10.14.60[500] to 10.129.13.71[500] (164 bytes)

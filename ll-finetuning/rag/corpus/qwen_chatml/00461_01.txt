@@ -1,0 +1,32 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+usage: h8mail [-h] [-t USER_TARGETS [USER_TARGETS ...
+[-u USER_URLS [USER_URLS ...]] [-q USER_Q
+[-c CONFIG_FILE [CONFIG_FILE ...]] [-o OU
+[-j OUTPUT_JSON] [-bc BC_PATH] [-sk]
+[-k CLI_APIKEYS [CLI_APIKEYS ...]]
+[-lb LOCAL_BREACH_SRC [LOCAL_BREACH_SRC .
+[-gz LOCAL_GZIP_SRC [LOCAL_GZIP_SRC ...]]
+[-ch [CHASE_LIMIT]] [--power-chase] [--hi
+[--gen-config]
+Email information and password lookup tool
+optional arguments:
+-h, --help show this help message and exit
+-t USER_TARGETS [USER_TARGETS ...], --targets USER_
+Either string inputs or files. S
+matching from input or file, fil
+multiple arguments
+-u USER_URLS [USER_URLS ...], --url USER_URLS [USER
+Either string inputs or files. S
+matching from input or file, fil
+multiple arguments. Parse URLs p
+Requires http:// or https:// in
+-q USER_QUERY, --custom-query USER_QUERY
+Perform a custom query. Supports
+ip, hash, domain. Performs an im
+when searching locally
+--loose Allow loose search by disabling
+recognition. Use spaces as patte

@@ -1,0 +1,1 @@
+serialized. The path to the profile is: "/data/sessions/" + username + ".ser" ; I can generate a profile with admin set to true, upload it using the image upload, and use the username field in the cookie to do a path traversal attack to have it load that profile. The command that gets run is: "cat "

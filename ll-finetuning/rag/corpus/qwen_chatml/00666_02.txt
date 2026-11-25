@@ -1,0 +1,1 @@
+credentials to interact with the domain and map the account's permissions and accessible resources.**

@@ -1,0 +1,1 @@
+headers). ;zipkin_propagation = false # Setting this to true disables shared RPC spans. # Not disabling is the most common setting when using Zipkin elsewhere in your infrastructure. ;disable_shared_zipkin_spans =

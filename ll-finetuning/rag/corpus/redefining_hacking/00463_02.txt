@@ -1,0 +1,3 @@
+as entities. These entities can be anything like a
+person's name, a phone number, or an IP address.
+Note

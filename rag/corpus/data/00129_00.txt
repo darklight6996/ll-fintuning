@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Retrieve user credentials from Azure Key Vault.
+
+CONTEXT:
+You may have permissions to access the key vault.
+
+METHOD / ANSWER:
+Command: `az keyvault secret list --vault-name <vault_name>`
+Purpose: Enumerate available secrets in the key vault for sensitive data.

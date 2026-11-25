@@ -40,6 +40,22 @@ class ActionDefinition(BaseModel):
     timeout_seconds: int = 60
     max_retries: int = 2
     satisfies_phase: bool = True
+    # Request-volume hint for the stealth layer (core/stealth.py). "high" marks
+    # loud scanners (sqlmap --crawl, full nuclei, ffuf wordlists) that send many
+    # requests; on a real target under a stealth profile these are gated off in
+    # favor of surgical actions. Default "low" = unaffected, so existing actions
+    # and lab runs behave exactly as before.
+    request_volume: Literal["low", "high"] = "low"
+    # Suspicion gate (2026-11-16): the vuln class this action tests, and whether
+    # the planner may offer it ONLY after a matching suspicion (an open or
+    # confirmed Hypothesis) already exists. This enforces "form a suspicion
+    # BEFORE firing the tool" deterministically -- an offensive/loud action is
+    # withheld from the REGISTERED ACTIONS catalog until the evidence chain
+    # warrants it, instead of being offered every turn for the model to fire
+    # blindly (the list-walking failure mode). Recon/coverage actions leave both
+    # at their defaults and are therefore always offered. See action_is_unlocked().
+    vuln_class: Optional[str] = None
+    requires_suspicion: bool = False
 
 
 class AIActionProposal(BaseModel):
@@ -57,6 +73,7 @@ class AIActionProposal(BaseModel):
     decision: Literal[
         "propose_action", "propose_completion",
         "form_hypothesis", "record_validation", "record_finding",
+        "update_app_model",
     ] = "propose_action"
     action_id: Optional[str] = None
     target: Optional[str] = None
@@ -74,8 +91,44 @@ class AIActionProposal(BaseModel):
             "target": str(self.target or "").strip().lower(),
             "params": sorted(self.parameters.items()) if self.parameters else [],
         }
-        encoded = json.dumps(raw_key, sort_keys=True).encode("utf-8")
+        # MED-6 fix: json.dumps can raise TypeError for a parameter value that isn't
+        # JSON-serializable (bytes, datetime, a set, a custom object, ...). Typed
+        # Pydantic params make this unlikely in practice, but compute_identity() backs
+        # the retry-budget gate (Gate 6) -- an uncaught exception here would crash the
+        # whole action-identity computation (and the executor with it), which is a far
+        # worse failure than a slightly less precise identity hash. repr() can encode
+        # any Python object, so it's used as a fallback rather than letting this raise.
+        try:
+            encoded = json.dumps(raw_key, sort_keys=True).encode("utf-8")
+        except TypeError:
+            encoded = repr(raw_key).encode("utf-8", errors="backslashreplace")
         return hashlib.sha256(encoded).hexdigest()[:16]
+
+
+
+def action_is_unlocked(defn, open_vuln_classes, any_suspicion_exists: bool) -> bool:
+    """
+    Suspicion gate (2026-11-16). Decide whether an action may be offered to the
+    planner GIVEN the current evidence chain.
+
+    - An action with requires_suspicion=False is ALWAYS unlocked (recon/coverage).
+    - A gated action with a concrete vuln_class is unlocked only when an open or
+      confirmed Hypothesis of that SAME class exists (e.g. sqlmap unlocks once an
+      'sqli' suspicion is on record -- not before).
+    - A gated action with vuln_class=None (a generic weapon such as self_script,
+      vuln_validation, or a broad scanner like nuclei) is unlocked once ANY
+      suspicion exists at all -- i.e. the model has formed a hypothesis to test.
+
+    `open_vuln_classes` is the set of vuln_class strings carried by open/confirmed
+    hypotheses; `any_suspicion_exists` is True if at least one such hypothesis exists.
+    This is a pure function so the planner and the tests share one definition.
+    """
+    if not getattr(defn, "requires_suspicion", False):
+        return True
+    vc = getattr(defn, "vuln_class", None)
+    if vc:
+        return vc in (open_vuln_classes or set())
+    return bool(any_suspicion_exists)
 
 
 class ActionRegistry:
@@ -128,8 +181,35 @@ class ActionRegistry:
         if not defn:
             return False, None, f"Action '{proposal.action_id}' is not registered for agent '{self.agent_name}'."
 
+        # BUG FIX (found via live GPU smoke test, Qwen2.5-7B-Instruct + qwen-qlora,
+        # pentest agent, 2026-11-14): AIPlanner._parse_proposal() already resolves a
+        # safe top-level proposal.target (falling back to scope.target when the
+        # model's JSON omits it) -- but that fallback never reached the NESTED
+        # proposal.parameters dict that params_model actually validates against. A
+        # weak local model that supplies action_id and some params but forgets to
+        # repeat "target" inside "parameters" (observed on 10/10 steps of one run --
+        # host_discovery, service_scan, vuln_scan, web_enum, smb_enum all rejected on
+        # the exact same missing-field error) burned its entire retry budget on a
+        # value the framework had already safely resolved, never reaching Gate 2's
+        # real scope check at all.
+        #
+        # This fills proposal.parameters["target"] from the already-resolved
+        # proposal.target ONLY when: the action's params_model actually declares a
+        # "target" field, AND the model didn't already supply one itself (never
+        # overrides an explicit value), AND a fallback value exists. The injected
+        # value is proposal.target -- the SAME value Gate 2 (out-of-scope rejection)
+        # independently re-checks against scope.is_asset_in_scope() right after this
+        # -- so this does not bypass or weaken scope enforcement; it just stops an
+        # omittable, already-known value from failing Gate 1 before Gate 2 gets a
+        # chance to do the real authorization check.
+        params = dict(proposal.parameters or {})
+        if "target" in defn.params_model.model_fields and not params.get("target"):
+            fallback_target = getattr(proposal, "target", None)
+            if fallback_target:
+                params["target"] = fallback_target
+
         try:
-            typed_params = defn.params_model(**proposal.parameters)
+            typed_params = defn.params_model(**params)
             return True, typed_params, None
         except Exception as exc:
             return False, None, f"Parameter validation failed for '{proposal.action_id}': {exc}"
@@ -156,6 +236,9 @@ class ActionRegistry:
                 "network_effect": defn.network_effect,
                 "state_change": defn.state_change,
                 "requires_active_testing": defn.requires_active_testing,
+                "request_volume": defn.request_volume,
+                "vuln_class": defn.vuln_class,
+                "requires_suspicion": defn.requires_suspicion,
                 "allowed_target_kinds": defn.allowed_target_kinds,
                 "parameters_schema": schema,
                 "required_params": required_params,

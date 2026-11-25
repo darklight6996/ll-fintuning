@@ -1,0 +1,17 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 6-11 Vertical Privilege Escalation
+• Horizontal Privilege Escalation: With horizontal privilege escalation, as
+illustrated in Figure 6-12, a regular user accesses functions or content
+reserved for other non-root or non-admin users. For instance, say that after
+exploiting a system, you are able to get shell access as the user omar.
+However, that user does not have permissions to read some files on the
+system. You then find that another user, hannah, has access to those files.

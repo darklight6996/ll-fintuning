@@ -1,0 +1,1 @@
+k ) { int n ; int gotuser = 0 ; int gotpass = 0 ; char buffer [ 1024 ]; char strchr [ 2 ] = " \n\x00 " ; char * token ; char username [ 256 ]; char password [ 256 ]; debugmode = 0 ; memset ( buffer , 0 , 256 ); dup2 ( sock , STDOUT_FILENO ); dup2 ( sock , STDERR_FILENO ); printf ( "OK Ready. Send USER command. \n " ); fflush ( stdout ); It uses 256-byte buffers for the

@@ -1,0 +1,25 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+after exploitation, and you may also want to create your own. Alternatively,
+there are many tools, such as Metasploit, that have built-in scanning
+capabilities for post-exploitation (via Meterpreter).
+Tip
+An attacker needs to avoid raising alarms at this stage. If
+security defenders detect that there is a threat on the
+network, they will thoroughly sweep through it and thwart
+any progress that you have made. In some pen testing cases,
+you might start very stealthily and gradually increase the
+amount of traffic and automated tools used in order to also
+test the effectiveness of the security defenders (including the
+security operations center [SOC]).
+You can scan for SMB shares that you may be able to log in to with
+compromised credentials or that the logged-in user of the compromised
+system may have access to. You also can move files to or from other
+systems. Alternatively, you can instantiate an SMB share (via Samba or
+similar mechanisms) and copy files from a compromised system.
+You can use remote access protocols, including the following, to
+communicate with a compromised system:
+• Microsoft's Remote Desktop Protocol

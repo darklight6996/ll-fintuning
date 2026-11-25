@@ -1,0 +1,1 @@
+essage to the site: Interestingly, this form submits as a GET request, and the target is the HTML page: GET /contactus.html?firstname=asdf&lastname=asdf&country=australia&subject=asdfasdf HTTP / 1.1 This seems very unlikely to be functional. I did some basic

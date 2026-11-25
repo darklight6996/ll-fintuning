@@ -1,0 +1,8 @@
+tric filter
+  - **Networking**:
+    - 5.1: No unrestricted security groups (0.0.0.0/0)
+    - 5.2: No unrestricted NACLs
+    - 5.3: VPC flow logs enabled
+    - 5.4: Default security group restricts all traffic
+    - 5.5: No public access to RDS/ElastiCache
+  - **Tools**: `prowler -c aws-cis`, `scoutsuite --cis`, `cloud-custodian` policies

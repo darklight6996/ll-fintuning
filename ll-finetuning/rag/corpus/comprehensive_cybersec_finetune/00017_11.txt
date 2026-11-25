@@ -1,0 +1,27 @@
+**Protocol-Specific Testing**:
+- **Modbus (TCP/RTU/ASCII)**:
+  - Function code enumeration (01-127)
+  - Register mapping (coils, discrete, input, holding)
+  - Broadcast address (0)
+  - Exception codes (01-04, 06, 0A, 0B)
+  - `modbus-cli`, `pymodbus`, `mbpoll`, `modscan`
+- **DNP3 (Distributed Network Protocol)**:
+  - Object groups (1-128), variations
+  - Qualifiers (00-FF)
+  - Function codes (READ, WRITE, SELECT, OPERATE, DIRECT_OPERATE, FREEZE, CLEAR)
+  - `opendnp3`, `dnp3-cli`, `pydnp3`
+- **IEC 60870-5-104 (IEC 104)**:
+  - ASDU types (1-255), cause of transmission (1-47)
+  - Information objects, qualifiers
+  - `lib60870`, `cs104`, `iec104-cli`
+- **IEC 61850 (MMS/GOOSE/SV)**:
+  - MMS (Manufacturing Message Specification): VMD, domains, variables
+  - GOOSE (Generic Object Oriented Substation Event): Fast, multicast
+  - Sampled Values (SV): 9-2 LE, multicast
+  - `libiec61850`, `goose-publisher`, `sv-publisher`
+  - `wireshark` (GOOSE/SV dissection)
+- **OPC UA (Unified Architecture)**:
+  - Discovery, endpoints, security policies
+  - Namespace array, node IDs, references
+  - Services: Read, Write, Browse, Call, Subscribe, Monitor
+  - Security: Sign, Encrypt, UserIdentityToken (Anonymous

@@ -1,0 +1,11 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the methodology for detecting and identifying firewalls, WAFs, IPS/IDS, and antivirus/EDR solutions during a security assessment.
+
+Context:
+You are conducting a security assessment and need to identify what defensive technologies are in place. Explain the systematic approach to detect, fingerprint, and evade firewalls, WAFs, IPS/IDS, and AV/EDR solutions.
+assistant
+Defensive Technology Detection & Evasion Methodology:
+
+**Phase 1: Network Firewall Detection & Fingerprinting**

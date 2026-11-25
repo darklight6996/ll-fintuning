@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check S3 bucket encryption.
+
+CONTEXT:
+Data protection audit.
+
+METHOD / ANSWER:
+Command: `aws s3api get-bucket-encryption --bucket <bucket>`
+Explanation: Confirms encryption at rest.

@@ -1,0 +1,36 @@
+ix'],
+        }
+        
+        for vendor, sigs in waf_signatures.items():
+            for sig in sigs:
+                for h, v in headers.items():
+                    if sig.lower() in f"{h}: {v}".lower():
+                        results['waf']['detected'] = True
+                        results['waf']['vendor'] = vendor
+                        break
+    except:
+        pass
+    
+    # Firewall detection via port states
+    try:
+        # Quick scan of common ports
+        open_ports = []
+        filtered_ports = []
+        for port in [22, 80, 443, 3389, 445, 1433, 3306, 5432]:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(3)
+            result = sock.connect_ex((target, port))
+            sock.close()
+            if result == 0:
+                open_ports.append(port)
+            elif result == 113:  # Connection refused = closed
+                pass
+            else:
+                filtered_ports.append(port)
+        
+        if filtered_ports:
+            results['firewall']['detected'] = True
+            results['firewall']['type'] = 'stateful'
+            # Vendor fingerprinting would need more tests
+    except:
+        p

@@ -1,0 +1,25 @@
+uate the security
+controls described by the Developers Guide.
+[2] All chapters have been improved and test cases expanded to 87
+(64 test cases in v3) including the introduction of four new chapters
+and controls:
+« Identity Management Testing
+« Error Handling
+« Cryptography
+« Client Side Testing
+[3] This version of the Testing Guide encourages the community not
+to simply accept the test cases outlined in this guide. We encourage
+security testers to integrate with other software testers and devise
+test cases specific to the target application. As we find test cases that
+have wider applicability we encourage the security testing community
+to share them and contribute them to the Testing Guide. This will con-
+tinue to build the application security body of knowledge and allow
+the development of the Testing Guide to be an iterative rather than
+monolithic process.
+Copyright and License
+Copyright (c) 2014 The OWASP Foundation.
+This document is released under the Creative Commons 2.5 License.
+Please read and understand the license and copyright conditions.
+Revision History
+The Testing Guide v4 will be released in 2014. The Testing guide orig-
+inated in 2003 with Dan Cuthbert as one of the

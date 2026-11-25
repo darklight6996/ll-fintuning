@@ -1,0 +1,1 @@
+========================== ========================================= ======= SeAssignPrimaryTokenPrivilege Replace a process level token Enabled SeIncreaseQuotaPrivilege Adjust memory quotas for a

@@ -1,0 +1,1 @@
+systemd-logind[814]: New session 10 of user root. Mar 6 08:29:37 ubuntu su: (to margo) root on pts/1 Mar 6 08:29:37 ubuntu su: pam_unix(su:session): session opened for user margo(uid=1000) by root(uid=0)

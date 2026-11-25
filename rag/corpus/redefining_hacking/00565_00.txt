@@ -1,0 +1,35 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+program = session.query(Program).filter_by(name=pr
+if not program:
+print(f"Program {program_name} not found.")
+return
+root_domain = RootDomain(name=name, program=progra
+session.add(root_domain)
+session.commit()
+print(f"Added root domain: {name} under program {p
+def add_subdomain(name, root_domain_name):
+root_domain =
+session.query(RootDomain).filter_by(name=root_domain_
+if not root_domain:
+print(f"Root domain {root_domain_name} not foun
+return
+subdomain = Subdomain(name=name, root_domain=root_
+session.add(subdomain)
+session.commit()
+print(f"Added subdomain: {name} under root domain
+def add_ip(address, subdomain_name):
+subdomain =
+session.query(Subdomain).filter_by(name=subdomain_nam
+if not subdomain:
+print(f"Subdomain {subdomain_name} not found.")
+return
+ip = IP(address=address, subdomain=subdomain)
+session.add(ip)

@@ -1,0 +1,3 @@
+sers that are configured on this
+Windows target.
+Example 9-33 Enumerating SMB Users

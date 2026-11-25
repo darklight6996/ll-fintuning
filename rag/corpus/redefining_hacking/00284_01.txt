@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+phase. The following are a few best practices to keep in mind during the
+cleanup process:
+• Delete all user accounts used during the test.
+• Delete all files, executable binaries, scripts, and temporary files from
+compromised systems. A secure deletion method may be preferred. NIST
+Special Publication 800-88, Revision 1: "Guidelines for Media
+Sanitization," provides guidance for media sanitation. This methodology
+should be discussed with your client and the owner of the affected systems.
+• Return any modified systems and their configuration to their original
+values and parameters.
+• Remove all backdoors, daemons, services, and rootkits installed.
+• Remove all customer data from your systems, including attacking systems
+and any other support systems. Typically, you should do this after creating
+and delivering the penetration testing report to the client.
+Steganography
+Attackers can use steganography for obfuscation, evasion, and to cover
+their tracks. Steganography involves hiding a message or any other content
+inside an image or a video file. To accomplish this task, you can use tools
+such as steghide. You can easily install this tool in a Debian-based Linux

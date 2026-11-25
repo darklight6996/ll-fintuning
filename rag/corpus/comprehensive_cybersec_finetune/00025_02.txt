@@ -1,0 +1,4 @@
+XP-301 course |
+| OSEE | OffSec | Expert | Exploit Development (Advanced) | Practical (48h) + Report | 48h exam | OSED |
+| OSWA | OffSec | Advanced | Web App Assessment | Practical | 24h | AWAE/OSWE |
+| OSEP | OffSec | Expert | Evasion Techniques & Breaching Defenses | Practical (48h) + Report | 48h exam | PEN-300 course |

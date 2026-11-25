@@ -1,0 +1,57 @@
+METHOD / ANSWER:
+211
+Reporting
+Test ID
+Lowest version
+Information Gathering
+OTG-INFO-001
+OTG-INFO-002
+OTG-INFO-003
+OTG-INFO-004
+OTG-INFO-005
+OTG-INFO-006
+OTG-INFO-007
+OTG-INFO-008
+OTG-INFO-009
+OTG-INFO-010
+Configuration and Deploy Management Testing
+OTG-CONFIG-001
+OTG-CONFIG-002
+OTG-CONFIG-003
+OTG-CONFIG-004
+OTG-CONFIG-005
+OTG-CONFIG-006
+OTG-CONFIG-007
+OTG-CONFIG-008
+Identity Management Testing
+OTG-IDENT-001
+OTG-IDENT-002
+OTG-IDENT-003
+OTG-IDENT-004
+OTG-IDENT-005
+OTG-IDENT-006
+OTG-IDENT-007
+Authentication Testing
+OTG-AUTHN-001
+OTG-AUTHN-002
+OTG-AUTHN-003
+Testing for Weak lock out mechanism
+OTG-AUTHN-004
+OTG-AUTHN-005
+OTG-AUTHN-006
+OTG-AUTHN-007
+OTG-AUTHN-008
+OTG-AUTHN-009
+OTG-AUTHN-010
+Testing for Weaker authentication in alternative channel
+Conduct Search Engine Discovery and Reconnaissance for Information Leakage
+Fingerprint Web Server
+Review Webserver Metafiles for Information Leakage
+Enumerate Applications on Webserver
+Review Webpage Comments and Metadata for Information Leakage
+Identify application entry points
+Map execution paths through application
+Fingerprint Web Application Framework
+Fingerprint Web Application
+Map Application Architecture
+Test Network/Infrastructure Confi

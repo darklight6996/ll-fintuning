@@ -1,0 +1,1 @@
+s disabled. [*] Remarks ESC16 : Other prerequisites may be required for this to be exploitable. See the wiki for more details. Certificate Templates : [!] Could not find any certificate templates The output looks similar to what I ran

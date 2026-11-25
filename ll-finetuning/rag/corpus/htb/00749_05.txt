@@ -1,0 +1,1 @@
+second one works, providing access to what looks like a Windows file system root: root@kali# guestmount --add /mnt/WindowsImageBackup/L4mpje-PC/Backup

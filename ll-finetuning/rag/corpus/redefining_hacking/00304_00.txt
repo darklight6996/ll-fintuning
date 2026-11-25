@@ -1,0 +1,29 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+additional reconnaissance steps.
+Example 8-1 A Simple Example of AI-Powered OSINT
+__author__ = "Omar Santos"
+__version__ = "0.1.0"
+__license__ = "BSD 3-Clause"
+__description__ = "AI-powered OSINT Analysis of hosts
+transparency logs"
+__usage__ = "python3 ai_recon.py secretcorp.org"
+from certspy import certspy
+from dotenv import load_dotenv
+from langchain.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+import os
+import argparse
+import socket
+from ipwhois import IPWhois
+import dns.resolver
+def load_environment():
+load_dotenv()
+return ChatOpenAI(model="gpt-4o-mini")

@@ -1,0 +1,1 @@
+Impacket v0.12.0.dev1+20240308.164415.4a62f39 - Copyright 2023 Fortra At my listening nc , there’s a connection: oxdf@hacky$ rlwrap -cAr nc -lnvp 443 Listening on 0.0.0.0 443 Connection received on 10.10.11.4 53028

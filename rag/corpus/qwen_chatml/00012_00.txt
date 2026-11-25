@@ -1,0 +1,26 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the methodology for testing API security including REST, GraphQL, and gRPC APIs.
+
+Context:
+You are tasked with testing the security of modern APIs. Explain the systematic approach for REST, GraphQL, and gRPC API security testing.
+assistant
+API Security Testing Methodology:
+
+**Phase 1: API Discovery & Reconnaissance**
+- **Find API Endpoints**:
+  - Swagger/OpenAPI specs: `/swagger.json`, `/openapi.json`, `/api-docs`
+  - GraphQL introspection: `__schema`, `__type`
+  - gRPC reflection: `grpcurl -plaintext target:port list`
+  - JavaScript source mapping: `/static/js/*.js.map`
+  - Mobile app reverse engineering (APK/IPA)
+  - Network traffic capture (Burp, mitmproxy)
+  - Robots.txt, sitemap.xml, Wayback Machine
+  - Postman/Insomnia collections, developer docs
+- **Catalog Endpoints**:
+  - Methods, parameters, auth requirements
+  - Rate limits, versions, deprecations
+  - Data schemas (request/response)
+
+**Phase 2: REST API Testing**

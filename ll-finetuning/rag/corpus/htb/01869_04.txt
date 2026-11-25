@@ -1,0 +1,1 @@
+s. This is the default. Use /-C to disable display of separator. /D Same as wide but files are list sorted by column. /L Uses lowercase. /N New long list format where filenames are on the far right. /O List by files in sorted order. sortorder N By name (alphabetic) S By

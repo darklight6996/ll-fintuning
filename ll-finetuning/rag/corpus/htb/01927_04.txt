@@ -1,0 +1,1 @@
+* LISTEN 0 511 [::]:80 [::]:* LISTEN 0 128 [::]:22 [::]:* LISTEN 0 50 *:8080 *:* There are a few listening on localhost only. I’ll poke at 19999, 8125, and 43143. 3306 is the XWiki MySQL connection, and 33060 is likely related. Tunnels I’ll use SSH tunnels to create tunnels to these ports.

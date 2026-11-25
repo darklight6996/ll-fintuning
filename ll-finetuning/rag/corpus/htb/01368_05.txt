@@ -1,0 +1,1 @@
+It’s also worth noting that emails must be all lowercase. Sharing with Candido.Hackett@corporate.htb returns user not found, but candido.hackett@corporate.htb works. Calendar The calendar page ( /calendar ) just shows a static page of this month’s calendar

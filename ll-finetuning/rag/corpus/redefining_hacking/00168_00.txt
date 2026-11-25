@@ -1,0 +1,18 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+• https://proxmark.com/proxmark-3-hardware/icopy-x
+Next, let’s look at how to take the credentials picked up from an LF badge
+reader and clone them to a blank T5777 card. You will want to leverage a
+Proxmark 3 to clone your badge credentials to a blank badge.
+Connect to the Proxmark 3:
+./proxmark3 /dev/ttyACM0
+Clone the badge, as shown in Figure 5-17.
+Figure 5-17 Cloning Credentials
+Verify the clone has worked, as demonstrated in Figure 5-18.

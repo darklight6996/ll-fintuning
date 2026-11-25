@@ -1,0 +1,27 @@
+nt username
+Now, the tester should try to insert an invalid user ID and a wrong
+password and record the server answer (the tester should be con-
+fident that the username is not valid in the application). Record the
+error message and the server answer.
+Result Expected:
+If the tester enters a nonexistent user ID, they can receive a mes-
+sage similar to:
+This user is not active.
+Contact your system administrator.
+Return ta Login page
+or message like the following one:
+Login failed for User foo: invalid Account
+Generally the application should respond with the same error
+message and length to the different incorrect requests. If the re-
+sponses are not the same, the tester should investigate and find
+out the key that creates a difference between the two responses.
+For example:
+« Client request: Valid user/wrong password -->
+Server answer: The password is not correct’
+« Client request: Wrong user/wrong password -->
+Server answer:'User not recognized’
+The above responses let the client understand that for the first
+request they have a valid user name. So they can interact with the
+application requesting a set of possible user IDs and observing the
+answer.
+Looking at the second server res

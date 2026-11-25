@@ -1,0 +1,2 @@
+ns to evade detection. You can
+download Empire from https://github.com/BC-SECURITY/Empire.

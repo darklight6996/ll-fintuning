@@ -1,0 +1,2 @@
+earch string (or Google dork)
+that can reveal passwords of web applications:

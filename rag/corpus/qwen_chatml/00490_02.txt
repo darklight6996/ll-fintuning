@@ -1,0 +1,2 @@
+retcorp.org | while read domain;
+| awk

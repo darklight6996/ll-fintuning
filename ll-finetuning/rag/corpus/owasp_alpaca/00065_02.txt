@@ -1,0 +1,31 @@
+ount’] ‘ € suc-
+cessfully transfered to account: ‘ $_POST[‘account’] ! </p>’;
+echo ‘<p>Transfer KO</p>’;
+As you can see the code is protected from CSRF attack both with
+Web Application Penetration Testing
+a random token generated in the second step and accepting only
+variable passed via POST method. In this situation an attacker could
+forge a CSRF + Clickjacking attack to evade anti-CSRF protection and
+force a victim to do a money transfer without her consent.
+The target page for the attack is the second step of the money trans-
+fer procedure. Since the developers put the security controls only in
+the last step, thinking that this is secure enough, the attacker could
+pass the account and amount parameters via GET method. (Note:
+there is an advanced clickjacking attack that permits to force users
+to filla form, so also in the case in which is required to fill a form, the
+attack is feasible).
+The attacker's page may look a simple and harmless web page like
+the one presented below:
+@ MACs
+WOR PAG
+eee
+hy
+But playing with the CSS opacity value we can see what is hidden
+under a seemingly innocuous web page.
+“
+MAL ICUS WR PAGS
+= &
+|#§-
+fay ey
+WwW. OWASP. O01
+The clickjacking code the crea

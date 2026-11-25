@@ -1,0 +1,1 @@
+t fastapi bash . I’ll leave it here, though I’ll always recommend digging deeper into application source to understand how it works!

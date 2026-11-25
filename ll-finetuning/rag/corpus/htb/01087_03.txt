@@ -1,0 +1,1 @@
+rwxrwx 1 0 0 9 May 15 21:40 .bash_history -> /dev/null -rw-r--r-- 1 1001 1001 220 Feb 25 2020 .bash_logout -rw-r--r-- 1 1001 1001 3771 Feb 25 2020 .bashrc drwx------ 2 1001 1001 4096 May 23 19:17 .cache -rw-r--r-- 1 1001 1001 807 Feb 25 2020 .profile lrwxrwxrwx 1 0 0 9 May 27 09:16 .viminfo -> /dev/null -r-------- 1

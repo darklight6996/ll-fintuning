@@ -1,0 +1,3 @@
+n replacing the OS or
+hard drive will not remove the compromised firmware.
+Use Case: BadUSB

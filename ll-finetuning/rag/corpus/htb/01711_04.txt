@@ -1,0 +1,1 @@
+dig @10.129.56.255 oxdf.delegate.vl +noall +answer oxdf.delegate.vl. 180 IN A 10.10.14.35 It worked. Next I need to assign it an SPN. If I try without the --additional flag, it errors out, suggesting I add it: oxdf@hacky$ uv

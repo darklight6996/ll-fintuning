@@ -1,0 +1,1 @@
+Explore potential shared secrets in configurations for automation tools.

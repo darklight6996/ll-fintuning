@@ -1,0 +1,25 @@
+d platforms.
+To carry out this type of technique the attacker has to create a
+seemingly harmless web page that loads the target application
+through the use of an iframe (Suitably concealed through the use
+of CSS code). Once this is done, the attacker could induce the vic
+tim to interact with his fictitious web page by other means (like
+for example social engineering). Like others attacks, an usual
+prerequisite is that the victim is authenticated against the at-
+tacker’s target website.
+Once the victim is surfing on the fictitious web page, he thinks
+that he is interacting with the visible user interface, but effec
+tively he is performing actions on the hidden page. Since the hid-
+den page is an authentic page, the attacker can deceive users
+into performing actions which they never intended to perform
+through an “ad hoc” positioning of the elements in the web page.
+MASEL
+IFRAME
+= 4.
+a@ &
+WWW. OWS Dp. 0m
+The power of this method is due to the fact that the actions
+performed by the victim are originated from the authentic tar-
+get web page (hidden but authentic). Consequently some of the
+anti-CSRF protections, that are deployed by the developers to
+protect the web page from CSRF attac

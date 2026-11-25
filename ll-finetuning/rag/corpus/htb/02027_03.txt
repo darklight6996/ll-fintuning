@@ -1,0 +1,1 @@
+| 1 | | 1 | | 0 | +-----------------+ 42 rows in set (0.01 sec) There’s 42 ones and zeros because there’s 42 rows in that table. Error The error is going to come when I try to do a COUNT and a GROUPBY on a bunch of objects that repeat. For example, I’ll work from

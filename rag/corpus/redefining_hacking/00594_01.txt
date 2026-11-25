@@ -1,0 +1,18 @@
+METHOD / ANSWER:
+RAG and AI-driven tools can significantly enhance the quality, consistency,
+and efficiency of vulnerability reporting and documentation in the context
+of bug bounty hunting, red teaming, and traditional penetration testing.
+These advanced systems can take basic input about a discovered
+vulnerability and generate a structured report template, including standard
+sections like executive summary, technical details, impact assessment, and
+remediation recommendations. Automation can help you ensure that no
+crucial elements are overlooked in the reporting process.
+You learned that when it comes to vulnerability severity assessment, AI can
+analyze the vulnerability details against databases of known issues to
+suggest a severity rating based on frameworks like CVSS and EPSS. The AI
+can then justify the severity score, explaining which factors contributed
+most significantly to the rating. This approach provides a clear, objective
+basis for prioritizing vulnerabilities.
+One of the most valuable features of AI in this context is its ability to
+expand brief notes into clear, step-by-step reproduction instructions. It can
+suggest additional edge cases or variations to test, ensu

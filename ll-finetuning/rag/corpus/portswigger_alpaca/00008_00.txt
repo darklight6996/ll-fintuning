@@ -1,0 +1,5 @@
+TECHNIQUE / QUESTION:
+Explain the objectives and methodology for the PortSwigger lab: Lab: DOM XSS in jQuery selector sink using a hashc
+
+CONTEXT:
+Context: Lab: DOM XSS in jQuery selector sink using a hashchange event (Learning Module)

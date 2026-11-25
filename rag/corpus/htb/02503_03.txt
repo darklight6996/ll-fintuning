@@ -1,0 +1,1 @@
+grp == ( group * ) 0x0 ) goto LAB_00102a7d ; } gid = grp -> gr_gid ; LAB_00102a7d: client_fd = chown ( "/var/run/gaveld.sock" , 0 , gid ); if ( client_fd != 0 ) { perror ( "chown failed on socket" ); } client_fd = chmod ( "/var/run/gaveld.sock" , 0x1b0 ); if ( client_fd != 0 ) { perror ( "chmod failed on socket" ); } while ( true ) { while ( true ) { while ( client_fd = accept (

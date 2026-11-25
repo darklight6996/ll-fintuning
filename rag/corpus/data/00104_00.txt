@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you find existing Azure resources?
+
+CONTEXT:
+You want to audit available resources in a subscription.
+
+METHOD / ANSWER:
+Command: `az resource list --output table`
+Purpose: Lists resources.

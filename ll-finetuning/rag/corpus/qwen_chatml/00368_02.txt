@@ -1,0 +1,5 @@
+most semantically similar documents.
+Hybrid Search Retrieval
+You can combine semantic search with traditional keyword-based methods
+for improved results. The Best Match 25 (BM25) algorithm is often used
+alongside vector similarity for a balanced approach.

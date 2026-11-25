@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+Without this header, the page may return a generic error or appear as a
+normal web page.
+Additional Web Shell Examples at SecLists
+SecLists is a comprehensive repository of various types of lists used by
+security professionals during security assessments and penetration testing. It
+serves as an essential companion for security testers, providing a wide
+range of data sets that are critical for various testing and assessment
+activities. The project is designed to be a one-stop resource where testers
+can find all the necessary lists in one place, enabling them to efficiently
+perform their tasks without having to gather these lists from multiple
+sources. You can access web shells from SecLists at
+https://github.com/danielmiessler/SecLists/tree/master/Web-Shells
+However, SecLists include other useful wordlists such as
+• Usernames and Passwords: They are used for brute-force attacks,
+dictionary attacks, and password spraying to test the strength of
+authentication mechanisms.
+• URLs: They are used for discovering hidden directories, files, and
+endpoints on web servers. They include lists of common web directories
+like /admin, /login, /backup, and potential filenames that

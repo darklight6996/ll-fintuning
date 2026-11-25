@@ -1,0 +1,18 @@
+TECHNIQUE / QUESTION:
+Describe the methodology for testing Cross-Site Scripting (XSS) vulnerabilities including reflected, stored, and DOM-based variants.
+
+CONTEXT:
+You are testing a web application for XSS vulnerabilities. Explain the systematic approach to identify and exploit all three types of XSS.
+
+METHOD / ANSWER:
+XSS Testing Methodology - Comprehensive Approach:
+
+**Phase 1: Input Vector Enumeration**
+- Map all user-controllable inputs:
+  - URL parameters (GET)
+  - Form fields (POST)
+  - HTTP headers (User-Agent, Referer, X-Forwarded-For, cookies)
+  - JSON/XML API payloads
+  - File upload metadata (filenames, EXIF)
+  - WebSocket messages
+  - DOM sources (location.hash, location.search, document.referrer)

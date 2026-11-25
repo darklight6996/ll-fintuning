@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you crack the captured NTLM hash?
+
+CONTEXT:
+You have saved the captured hash to a file.
+
+METHOD / ANSWER:
+Command: `hashcat p.agila.hash /opt/SecLists/Passwords/Leaked-Databases/rockyou.txt`
+Explanation: This command uses Hashcat to crack the captured Net-NTLMv2 hash against a wordlist, which may reveal the plaintext password.

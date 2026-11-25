@@ -1,0 +1,1 @@
+ient_key: 'client.key', ) ... [ snip ] ... I also added two paths for scripts and executables. I won’t use those now, but if I like the tool, I could see starting to

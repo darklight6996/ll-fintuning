@@ -1,0 +1,7 @@
+POST request for file upload:
+POST /fileupload.aspx HTTP/1.1
+lao
+Content-Disposition: form-data; name="uploadfile1”;
+filename="C:\Documents and Settings\test\Desktop\test.txt”
+Content-Type: text/plain
+test

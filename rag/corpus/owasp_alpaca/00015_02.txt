@@ -1,0 +1,34 @@
+eywords that a search en-
+gine may use to improve the quality of search results.
+<META name="keywords” lang="en-us” content="OWASP, se-
+curity, sunshine, lollipops">
+Although most web servers manage search engine indexing via the
+robots.txt file, it can also be managed by Meta tags. The tag below
+Web Application Penetration Testing
+will advise robots to not index and not follow links on the HTML page
+containing the tag.
+<META name="robots” content="none">
+The Platform for Internet Content Selection (PICS) and Protocol for
+Web Description Resources (POWDER) provide infrastructure for as-
+sociating meta data with Internet content.
+Gray Box Testing
+Not applicable.
+Tools
+« Weet
+» Browser “view source” function
+» Eyeballs
+» Curl
+References
+Whitepapers
+[1]
+http:/www.w3.org/TR/1999/REC-html401-19991224
+HTML
+version 4.01
+[2] http:/www.w3.org/TR/2010/REC-xhtml-basic-20101123/ XHT-
+ML (for small devices)
+[3] http:/www.w3.org/TR/html5/ HTML version 5
+Identify application entry points (OTG-INFO-006)
+Summary
+Enumerating the application and its attack surface is a key precursor
+before any thorough testing can be undertaken, as it allows the tester
+to identify likely areas of weakness. This secti

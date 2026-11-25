@@ -1,0 +1,1 @@
+ervices (ADCS). A quick way to check for this is using crackmapexec (and it works as either sql_svc or Ryan.Cooper): oxdf@hacky$ crackmapexec ldap 10.10.11.202 -u ryan.cooper -p NuclearMosquito3 -M adcs SMB 10.10.11.202

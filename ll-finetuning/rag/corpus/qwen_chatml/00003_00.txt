@@ -1,0 +1,31 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain how to perform a Shadow Credential attack.
+
+Context:
+You have GenericWrite or GenericAll permissions over a target service account in Active Directory. Describe how to implant a key credential and authenticate as that account.
+assistant
+Shadow Credential Attack - Step by Step:
+
+**Prerequisites**:
+- Write permissions on target user's `msDS-KeyCredentialLink` attribute
+- Valid domain credentials with those permissions
+- LDAPS (port 636) accessible to DC
+
+**Attack Process**:
+
+1. **Verify Permissions**
+   - Check BloodHound for `GenericWrite`/`GenericAll` on target user
+   - Or use `bloodyAD` to verify: `bloodyAD -d <domain> -u <user> -p <pass> get object <target> --attr msDS-KeyCredentialLink`
+
+2. **Execute Shadow Auto Attack (Automated)**
+   ```bash
+   certipy shadow auto -u <attacker_user>@<domain> -p <pass> -account <target_user>
+   ```
+   This single command:
+   - Generates RSA key pair
+   - Creates KeyCredential structure
+   - Writes to target's `msDS-KeyCredentialLink` via LDAP
+   - Requests certificate for the key
+   - Outputs `.pfx` file and NTLM hash

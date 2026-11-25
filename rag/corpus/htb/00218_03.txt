@@ -1,0 +1,1 @@
+rop.txt . To call read , I’ll need to pass the socket descriptor in rsi , and the address to write to in rdi . So I need gadgets to pop into those registers. I’ll find these two: 0x4011dd: pop rdi; ret <--

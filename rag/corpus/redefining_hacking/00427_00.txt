@@ -1,0 +1,35 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Testing all IPv4 addresses (port 443): 185.199.109.15
+185.199.111.153 185.199.110.153
+-----------------------------------------------------
+----------------------
+Start 20:09:38 -->> 185.199.109.153:443 (websp
+Further IP addresses: 185.199.108.153 185.199.110.
+rDNS (185.199.109.153): cdn-185-199-109-153.github.c
+Service detected: HTTP
+Testing protocols via sockets except NPN+ALPN
+SSLv2 not offered (OK)
+SSLv3 not offered (OK)
+TLS 1 not offered
+TLS 1.1 not offered
+TLS 1.2 offered (OK)
+TLS 1.3 offered (OK): final
+NPN/SPDY not offered
+ALPN/HTTP2 h2, http/1.1 (offered)
+Testing cipher categories
+NULL ciphers (no encryption) not offe
+Anonymous NULL Ciphers (no authentication) not of
+Export ciphers (w/o ADH+NULL) not offe
+LOW: 64 Bit + DES, RC[2,4] (w/o export) not of
+Triple DES Ciphers / IDEA not offe
+Obsolete CBC ciphers (AES, ARIA etc.) offere
+Strong encryption (AEAD ciphers) offered
+Testing robust (perfect) forward secrecy, (P)FS -- om

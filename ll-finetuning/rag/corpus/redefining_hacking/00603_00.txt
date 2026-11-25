@@ -1,0 +1,24 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+A. A visual glitch in the AI interface
+B. A sudden increase in processing speed
+C. Generation of factually incorrect or made-up information
+D. A temporary loss of connection to the AI service
+11. Which of the following is NOT a metric group in the Common
+Vulnerability Scoring System (CVSS) version 4.x?
+A. Base
+B. Threat
+C. Environmental
+D. Exploitation
+12. What is the primary advantage of using QLoRA over traditional LoRA?
+A. It allows for fine-tuning of larger models on limited hardware.
+B. It increases the number of trainable parameters.
+C. It eliminates the need for GPU acceleration.
+D. It provides more accurate results in all scenarios.

@@ -1,0 +1,1 @@
+access Priv: notch –> root This may be the easiest root I’ve seen on HTB.

@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+DNS tunneling involves encapsulating data within DNS queries and
+responses. Since DNS traffic is often allowed through firewalls and
+monitoring systems, it can be a stealthy way to transmit data between the
+attacker and the compromised system.
+Attackers have increasingly leveraged legitimate services like Dropbox,
+Google Drive, and even X (previously known as Twitter) as C2 channels to
+evade detection by security systems. These platforms are trusted by
+organizations and often allowed through firewalls, making them ideal for
+blending malicious traffic with legitimate network activity.
+Dropbox, a popular cloud storage service, has been abused by malware
+operators to establish covert C2 channels. Attackers use Dropbox's API to
+upload and download encrypted files that contain commands or exfiltrated
+data. You can create a Dropbox account and configure malware on the
+victim’s machine to communicate with this account via the Dropbox API.
+The malware uploads files containing system information or exfiltrated data
+and checks the Dropbox folder for new commands. Since Dropbox is
+widely used in corporate environments, traffic to Dropbox servers may not
+raise alarms, making i

@@ -1,0 +1,1 @@
+"epi" Risher 🤓 ver: 2.2.1 ───────────────────────────┬────────────────────── 🎯 Target Url │ http://employees.crossfit.htb 🚀 Threads │ 50 📖 Wordlist │ /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt 👌 Status Codes │ [200, 204, 301, 302, 307, 308, 401, 403, 405] 💢 Status Code Filters │ [403] 💥 Timeout

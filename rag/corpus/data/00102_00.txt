@@ -1,0 +1,8 @@
+TECHNIQUE / QUESTION:
+What to do if DCSync fails?
+
+CONTEXT:
+Explore alternative escalation methods.
+
+METHOD / ANSWER:
+Response: Look for other areas of privilege escalation or consider social engineering.

@@ -1,0 +1,4 @@
+(information) as possible. It
+simplifies the dataset and helps in visualization and noise reduction.
+• Neural network-based embedding models like Word2Vec and FastText.
+Word2Vec is one of the first successful methods for learning word

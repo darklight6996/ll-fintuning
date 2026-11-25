@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Legitimate Utilities and Living-off the Land
+Many different legitimate Windows utilities, such as PowerShell, Windows
+Management Instrumentation (WMI), and Sysinternals, can be used for
+post-exploitation activities, as described in the following sections.
+Similarly, you can use legitimate tools and installed applications in Linux
+and macOS systems to perform post-exploitation activities. If a
+compromised system has Python installed, for example, you can use it for
+additional exploitation and exfiltration. Similarly, you can use the bash shell
+and tools like Netcat post-exploitation.
+Using legitimate tools to perform post-exploitation activities is often
+referred to as living off the land and, in some cases, as fileless malware. The
+term fileless malware refers to the idea that there is no need to install any
+additional software or binaries to the compromised system. The following
+sections discuss several examples of living-off-the-land post-exploitation
+techniques.
+PowerShell for Post-Exploitation Tasks
+You can use PowerShell to get directory listings, copy and move files, get a
+list of running processes, and perform ad

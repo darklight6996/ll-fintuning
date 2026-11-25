@@ -1,0 +1,21 @@
+**Identity & Access Management (IAM)**:
+- **Overprivileged Roles/Users**:
+  - `aws iam list-users`, `list-roles`
+  - Check attached policies: `aws iam list-attached-user-policies`
+  - Look for `AdministratorAccess`, `PowerUserAccess`, `*:*`
+  - Use `aws iam simulate-principal-policy` to test permissions
+- **Unused Credentials**:
+  - Access keys last used > 90 days: `aws iam get-access-key-last-used`
+  - Console login > 90 days
+- **MFA Enforcement**:
+  - `aws iam get-account-summary` → `AccountMFAEnabled`
+  - Check per-user MFA: `aws iam list-mfa-devices`
+- **Password Policy**:
+  - `aws iam get-account-password-policy`
+  - Min length, complexity, rotation, reuse
+- **Root Account Security**:
+  - MFA enabled, no access keys, hardware MFA
+- **Cross-Account Roles**:
+  - Trust policies allowing `*` principal
+  - ExternalId missing
+  - Condition keys not enforced

@@ -1,0 +1,41 @@
+METHOD / ANSWER:
+Test: 408 Request Time-out
+telnet <host target> 80
+GET / HTTP/1.1
+-
+Wait X seconds — (Depending on the target server, 21
+seconds for Apache by default)
+Result:
+HTTP/1.1 408 Request Time-out
+Date: Fri, 07 Dec 2013 00:58:33 GMT
+Server: Apache/2.2.22 (Ubuntu) PHP/5.3.10-1ubuntu3.9 with
+Suhosin-Patch
+Vary: Accept-Encoding
+Content-Length: 298
+Connection: close
+Content-Type: text/html; charset=iso-8859-1
+<title>408 Request Time-out</title>
+<address>Apache/2.2.22 (Ubuntu) PHP/5.3.10-1ubuntu3.9
+with Suhosin-Patch at <host target> Port 80</address>
+Test: 501 Method Not Implemented
+telnet <host target> 80
+RENAME /index.html HTTP/1.1
+Host: <host target>
+<CRLF><CRLF>
+Result:
+HTTP/1.1 501 Method Not Implemented
+Date: Fri, 08 Dec 2013 09:59:32 GMT
+Server: Apache/2.2.22 (Ubuntu) PHP/5.3.10-1ubuntu3.9 with
+Suhosin-Patch
+Allow: GET, HEAD, POST, OPTIONS
+Vary: Accept-Encoding
+Content-Length: 299
+Connection: close
+Content-Type: text/html; charset=iso-8859-1
+<title>501 Method Not Implemented</title>
+<address>Apache/2.2.22 (Ubuntu) PHP/5.3.10-1ubuntu3.9
+with Suhosin-Patch at <host target> Port 80</address>
+Test:
+Enumeration of directories by using access denied error mes-
+sages:<br>
+htt

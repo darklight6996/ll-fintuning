@@ -1,0 +1,1 @@
+2019 .cvsrc -rw-r--r-- 1 guly guly 359 Apr 13 2019 .login -rw-r--r-- 1 guly guly 175 Apr 13 2019 .mailrc -rw-r--r-- 1 guly guly 215 Apr 13 2019 .profile drwx------ 2 root wheel 512 Jun 26 2019 .ssh -rw------- 1 guly guly 0 Dec 15 17:05 .viminfo -rw-r----- 1 guly guly 13 Jun 26 2019 .vimrc -rwxrwxrwx 1 root guly 6789 Dec 4 09:07 gchecker.py -rw------- 1 guly guly 0

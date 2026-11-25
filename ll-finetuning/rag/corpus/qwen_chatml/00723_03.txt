@@ -1,0 +1,32 @@
+ray Box Testing
+If an attacker has been able to retrieve the application source code
+by exploiting a previously discovered vulnerability (e.g., directory
+traversal), or from a web repository (Open Source Applications),
+it could be possible to perform refined attacks against the
+implementation of the authentication process.
+In the following example (PHPBB 2.0.13 - Authentication Bypass
+Vulnerability), at line 5 the unserialize() function parses a user
+supplied cookie and sets values inside the $row array. At line
+10 the user’s MD5 password hash stored inside the back end
+database is compared to the one supplied.
+In PHP, a comparison between a string value and a boolean value
+1. if (isset(SHTTP_COOKIE_VARS[$cookiename .'_sid’]) ||
+2. {
+3. $sessiondata = isset( $HTTP_COOKIE_VARS[$cookiename
+.'_data’])?
+4,
+5. unserialize(stripslashes($HTTP _COOKIE_VARS[$cook-
+iename.‘_data’])) : array();
+6.
+7. $sessionmethod = SESSION _METHOD_ COOKIE;
+8. }
+9.
+10. if( md5($password) == $row['user_password'] &&
+$rowl‘user_active’] )
+11.
+12. {
+13. dautologin = ( isset($HTTP_POST_VARS[‘autologin’]) ) ?
+TRUE: 0;
+14. }
+(1 - “TRUE") is always “TRUE“ so by supplying the following string
+(the important part is

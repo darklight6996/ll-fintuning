@@ -1,0 +1,18 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+REX Sensor Bypass Gun
+The legendary REX Sensor is a tool that many organizations seem to love
+to have in place (see Figure 5-21)! A can of air is useful for this use case or
+picking up a REX Sensor Bypass Gun from the Physical Exploit team
+provides better ease of use for an operator. The trick with leveraging an air
+gun here is tricking the REX Sensor into thinking there's motion on the end
+you are spraying the air into. When you perform this trick, the REX Sensor
+will think that someone is trying to exit, providing you the access for entry.

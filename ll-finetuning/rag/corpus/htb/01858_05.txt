@@ -1,0 +1,1 @@
+rShell history file: [+] PowerShell Settings PowerShell v2 Version: 2.0 PowerShell v5 Version: 5.0.10240.17146 PowerShell Core

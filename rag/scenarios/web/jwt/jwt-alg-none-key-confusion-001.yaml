@@ -1,0 +1,116 @@
+# Category: JWT / Cryptographic Failures
+# Source: re-implemented (2026-11-25 harvest round) from the general JWT forgery
+# methodology in Claude-BugHunter (github.com/elementalsouls/Claude-BugHunter)
+# hunt-jwt-crypto skill, content licensed CC BY 4.0 International; adapted into
+# this framework's own scenario schema, not copied verbatim. See work.md.
+name: "JWT signature-verification bypass (alg:none and RS256->HS256 key confusion)"
+id: "jwt-alg-none-key-confusion-001"
+category: "jwt"
+subcategory: "signature_forgery"
+difficulty: "practitioner"
+estimated_time: "40 minutes"
+
+description: |
+  A JWT is header.payload.signature; the signature is the only thing
+  stopping an attacker from editing the payload (identity/role claims) and
+  replaying it. Two classic, generic verifier flaws make this possible
+  without knowing any secret: (1) the verifier trusts the token's OWN "alg"
+  header and will skip signature checking entirely if it says "none"; (2) if
+  the token is signed RS256 (asymmetric) but the verifier will also accept
+  HS256, the RSA PUBLIC key (which is, by definition, public) can be reused
+  as the HS256 HMAC secret, letting an attacker sign their own edited token.
+
+learning_objectives:
+  - Recognize JWT-based authentication (Authorization: Bearer eyJ..., or a token cookie)
+  - Decode a JWT header/payload and identify its declared algorithm
+  - Construct and test an alg:none forged token
+  - Construct and test an RS256->HS256 key-confusion forged token when an RSA public key is obtainable
+  - Confirm the forgery by observing the server actually grant the forged identity/role, not merely that a request was accepted
+
+tools:
+  - A JWT manipulation tool (jwt_tool, Burp's JWT Editor extension, or PyJWT) -- never hand-encode base64url, it is easy to get wrong silently
+  - curl
+
+prerequisites:
+  - The target authenticates with a JWT (decode an existing token first to confirm the claim structure)
+  - A legitimate low-privilege token to use as the template for the forged payload
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Decode a real token and identify its algorithm and claim shape"
+    commands:
+      - "# Base64url-decode the token's header and payload segments"
+      - "# Note the declared \"alg\" (e.g. HS256, RS256) and the claim names used for identity/role (sub, role, id, org_id, etc.)"
+      - "# Check for a JWKS/public-key endpoint: /.well-known/jwks.json, /jwks, or a public key embedded in a JS bundle"
+    expected_output: "The token's algorithm and exact claim shape, plus whether an RSA public key is obtainable if the alg is RS256"
+    detection: "None -- this only decodes a token the tester already holds"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Attempt alg:none forgery first (free, try regardless of the declared algorithm)"
+    commands:
+      - "# Build header {\"alg\":\"none\",\"typ\":\"JWT\"}, keep the real payload shape, edit the identity/role claim"
+      - "# Encode as header.payload. with an EMPTY signature segment (keep the trailing dot)"
+      - "# Some verifiers reject lowercase 'none' but accept case variants: None, NONE, nOnE -- try each"
+      - "curl -H \"Authorization: Bearer <forged_token>\" https://<target>/api/admin-only-endpoint"
+    expected_output: "If the verifier is vulnerable, the forged token is accepted and the server treats the request as the edited identity/role"
+    detection: "A JWT with alg:none and an empty signature segment reaching an authenticated endpoint"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "If alg:none fails and the token is RS256, attempt key confusion"
+    commands:
+      - "# Obtain the server's RSA public key as PEM (JWKS endpoint, JS bundle, or two captured tokens)"
+      - "jwt_tool <token> -X k -pk public.pem   # re-signs an edited payload with HS256 using the public key as the HMAC secret"
+      - "curl -H \"Authorization: Bearer <forged_token>\" https://<target>/api/admin-only-endpoint"
+    expected_output: "If the verifier accepts HS256 and uses the same key material for both algorithms, the forged token validates"
+    detection: "A JWT with alg:HS256 whose signature validates against a key that was published as an RSA PUBLIC key"
+
+  - id: "step4"
+    phase: "validation"
+    action: "Confirm the server actually granted the forged identity/role, not just a 2xx"
+    commands:
+      - "# Verify the response content reflects the EDITED identity (another user's data, or an admin-only action succeeding)"
+      - "# A 2xx with generic content is not proof; the response must demonstrate the forged claim was actually trusted"
+    expected_output: "Concrete evidence the server granted access/data belonging to the forged identity or role"
+    detection: "None beyond steps 2-3 -- this is analysis of the captured response"
+
+compliance_controls:
+  - standard: "OWASP"
+    control: "A02:2021"
+    description: "Cryptographic Failures"
+  - standard: "MITRE ATT&CK"
+    control: "T1606"
+    description: "Forge Web Credentials"
+
+detection:
+  network_indicators:
+    - "A JWT with alg:none or an unexpected alg downgrade reaching an authenticated endpoint"
+  log_indicators:
+    - "Authenticated requests whose claimed identity does not match any legitimately issued token for that user"
+  endpoint_indicators:
+    - "A JWKS/public-key endpoint exposed with no corresponding restriction on which algorithms the verifier will accept"
+
+remediation:
+  immediate:
+    - "Pin the expected algorithm explicitly in the verifier; never trust the token's own 'alg' header to select the verification method"
+    - "Never allow a single key to be valid for both an asymmetric (RS256) and symmetric (HS256) verification path"
+  long_term:
+    - "Use a well-maintained JWT library's strict-algorithm verification mode, never implement JWT verification from scratch"
+    - "Rotate signing keys and add automated tests asserting a forged alg:none or algorithm-confused token is rejected"
+
+variables:
+  target_url: "https://target.example/api/admin-only"
+  forged_claim: "role=admin"
+
+assessment_questions:
+  - "Why is alg:none always worth trying first, regardless of the token's declared algorithm?"
+  - "Why is an RSA public key dangerous to reuse as an HS256 secret?"
+  - "What distinguishes a confirmed JWT forgery from one that merely produced a 2xx response?"
+
+references:
+  - url: "https://portswigger.net/web-security/jwt"
+    title: "PortSwigger JWT attacks"
+  - url: "https://owasp.org/www-project-top-10/2021/A02_2021-Cryptographic_Failures"
+    title: "OWASP Cryptographic Failures"

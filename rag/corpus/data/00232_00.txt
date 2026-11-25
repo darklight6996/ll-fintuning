@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify login banners.
+
+CONTEXT:
+Compliance notice review.
+
+METHOD / ANSWER:
+Command: `cat /etc/issue`
+Explanation: Confirms legal access warnings.

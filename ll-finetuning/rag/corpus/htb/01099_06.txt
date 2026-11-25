@@ -1,0 +1,1 @@
+?url=http://127.0.0.1:3923/fw_logs" > Firewall Logs </a></li> <li><a href= "/download?url=http://127.0.0.1:3923/zk_logs" > Zookeeper Logs </a></li> <li><a href= "/download?url=http://127.0.0.1:3923/hadoop_logs"

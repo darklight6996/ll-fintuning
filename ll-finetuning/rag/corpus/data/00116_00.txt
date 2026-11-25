@@ -1,0 +1,8 @@
+TECHNIQUE / QUESTION:
+What to do if credential harvesting does not yield results?
+
+CONTEXT:
+Consider alternative techniques.
+
+METHOD / ANSWER:
+Response: Explore potential shared secrets in configurations.

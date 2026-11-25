@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify disk encryption.
+
+CONTEXT:
+Data protection review.
+
+METHOD / ANSWER:
+Command: `lsblk -f`
+Explanation: Confirms encrypted volumes are in use.

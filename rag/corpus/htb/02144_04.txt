@@ -1,0 +1,1 @@
+veto pagenumstr show } ifelse grestore } def %%EndResource /d_page_w 559 def /d_page_h 770 def /d_header_x 0 def /d_header_y 755 def /d_header_w 559 def /d_header_h 15

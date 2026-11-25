@@ -1,0 +1,34 @@
+**WAF Fingerprinting (Vendor Identification)**:
+- **Cloudflare**:
+  - `CF-RAY` header, `__cfduid` cookie
+  - Challenge page: `Checking your browser before accessing`
+  - `server: cloudflare`
+  - IP ranges: `173.245.48.0/20`, `103.21.244.0/22`, etc.
+- **AWS WAF / ALB / CloudFront**:
+  - `awselb/2.0`, `x-amz-cf-id`, `x-amzn-requestid`
+  - `x-amz-cf-pop`
+  - Error: `403 Forbidden - AWS WAF`
+- **Azure WAF / Front Door / Application Gateway**:
+  - `x-azure-ref`, `x-azure-fdid`
+  - `Server: Azure-Application-Gateway`
+  - `x-msedge-ref`
+- **Imperva / Incapsula**:
+  - `incap_ses_*`, `visid_incap_*` cookies
+  - `X-Iinfo` header
+  - Block page: `Incapsula incident ID`
+- **F5 ASM / BIG-IP**:
+  - `TS*` cookies, `BIGipServer*`
+  - `Server: BigIP`
+  - Block page: `The requested URL was rejected`
+- **Akamai**:
+  - `Akamai-GRN`, `Akamai-Origin-Hop`
+  - `Server: AkamaiGHost`
+  - `True-Client-IP` header
+- **ModSecurity (Open Source)**:
+  - `Mod_Security` in `X-Powered-By` or error page
+  - `ModSecurity: Access denied with code 403`
+  - OWASP CRS rules in error messages
+- **Barracuda**:
+  - `barracuda` in cookies/headers
+  - Block page: `Barracuda Web Application Firewall`
+- **Citrix / NetScaler**:

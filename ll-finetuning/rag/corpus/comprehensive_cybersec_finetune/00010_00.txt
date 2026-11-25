@@ -1,0 +1,29 @@
+TECHNIQUE / QUESTION:
+Describe the methodology for testing Authentication and Session Management vulnerabilities.
+
+CONTEXT:
+You are testing the authentication and session management mechanisms of a web application. Explain the systematic approach to identify vulnerabilities in login, password reset, MFA, and session handling.
+
+METHOD / ANSWER:
+Authentication & Session Management Testing Methodology:
+
+**Phase 1: Authentication Testing (OTG-AUTHN)**
+
+**OTG-AUTHN-001: Credentials Transport**
+- Verify all auth traffic over HTTPS
+- Check for credentials in URL (GET), Referer header
+- Test HTTP vs HTTPS login endpoints
+
+**OTG-AUTHN-002: Default Credentials**
+- Test common defaults: admin/admin, admin/password, root/root
+- Check vendor-specific defaults (CMS, appliances, databases)
+- Use `changeme`, `password123`, `admin123`
+
+**OTG-AUTHN-003: Weak Lockout Mechanism**
+- Test account lockout:
+  - 5-10 failed attempts → lockout?
+  - Lockout duration?
+  - IP-based vs account-based?
+  - Bypass via: username enumeration, distributed attacks, password spray
+- Test unlock mechanisms:
+  - Time-based, self-service email, admin unlock

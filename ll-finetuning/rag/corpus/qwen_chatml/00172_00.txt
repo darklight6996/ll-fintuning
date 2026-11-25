@@ -1,0 +1,27 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Example 5-10 Lures Options
+: help lures
+lures
+Shows all create lures and allows to edit or delete
+lures
+show all create lures
+lures <id>
+show details of a lure with a given <id>
+lures create <phishlet>
+creates new lure for given <phishlet>
+lures delete <id>
+deletes lure with given <id>
+lures delete all
+deletes all created lures
+lures get-url <id> <key1=value1> <key2=value2>
+generates a phishing url for a lure with a given <
+lures get-url <id> import <params_file> export <urls

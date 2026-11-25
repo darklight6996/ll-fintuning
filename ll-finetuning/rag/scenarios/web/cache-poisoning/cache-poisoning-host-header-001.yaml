@@ -1,0 +1,105 @@
+# Category: Web Cache Poisoning / Deception
+# Source: re-implemented (2026-11-25 harvest round) from the general cache-poisoning
+# methodology in Claude-BugHunter (github.com/elementalsouls/Claude-BugHunter)
+# hunt-cache-poison skill, content licensed CC BY 4.0 International; adapted into
+# this framework's own scenario schema, not copied verbatim. See work.md.
+name: "Host-header cache poisoning via an unkeyed input"
+id: "cache-poisoning-host-header-001"
+category: "cache_poisoning"
+subcategory: "unkeyed_input_poisoning"
+difficulty: "practitioner"
+estimated_time: "40 minutes"
+
+description: |
+  Many caches key their cache entries on the request path/query, but NOT on
+  every header that influences the response (an "unkeyed input"). If an
+  application reflects a header like X-Forwarded-Host, X-Forwarded-Scheme,
+  or X-Original-URL into the response body (e.g. to build an absolute URL or
+  a password-reset link), and a cache in front of it stores that response
+  keyed only on the path, an attacker can poison the cached response for
+  EVERY subsequent visitor with a single request.
+
+learning_objectives:
+  - Identify cache presence via response headers (X-Cache, CF-Cache-Status, Age, Via)
+  - Identify candidate unkeyed headers that get reflected into the response body
+  - Distinguish response reflection (a weaker signal) from an actually cached, served-to-others poisoned response (the real confirmation)
+  - Recognize the password-reset-link variant (host-header injection reaching an email, not necessarily a shared cache) as a related but separately-confirmable bug
+
+tools:
+  - curl
+  - Burp Suite (or any intercepting proxy)
+
+prerequisites:
+  - A target behind a CDN/cache (CloudFront, Fastly, Varnish, Cloudflare, or similar) OR an application that builds absolute URLs from request headers
+  - A distinctive marker value to inject so poisoning is unambiguously attributable
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify cache presence and candidate unkeyed headers"
+    commands:
+      - "curl -sI https://<target>/ | grep -iE \"x-cache|cf-cache-status|age|via|cache-control\""
+      - "# Send a GET request with an injected marker in each candidate unkeyed header, one at a time:"
+      - "curl -s -H \"X-Forwarded-Host: marker-injected.example\" https://<target>/some/cacheable/path | grep marker-injected"
+      - "# Repeat for X-Forwarded-Scheme, X-Original-URL, X-Rewrite-URL, Forwarded"
+    expected_output: "At least one header's injected marker value is reflected in the response body, AND the response carries a cache-indicating header (Age, X-Cache: MISS/HIT)"
+    detection: "None -- this step alone only observes reflection, not actual cache poisoning"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Confirm the poisoned response is actually cached and served to a SEPARATE request"
+    commands:
+      - "# Send the poisoning request once with the injected header"
+      - "# Immediately after, send a PLAIN request (no injected header) for the SAME path"
+      - "curl -s https://<target>/some/cacheable/path | grep marker-injected"
+    expected_output: "The plain, second request -- which never sent the injected header itself -- receives the poisoned content containing the marker. This is the actual confirmation; reflection alone (step 1) is not."
+    detection: "A response served without the attacker's injected header still containing the attacker's marker value"
+
+  - id: "step3"
+    phase: "validation"
+    action: "Assess blast radius and whether the poisoned content enables a further attack (XSS delivery, redirect, resource confusion)"
+    commands:
+      - "# If the reflected value lands in a script context or an href/src attribute, the cache poisoning may deliver a stored-XSS-like payload to every subsequent visitor"
+      - "# Document how long the poisoned entry persisted (Age header on subsequent requests) and how many cache nodes/edges served it"
+    expected_output: "A concrete description of what every subsequent visitor to that path received, and for how long"
+    detection: "None beyond step 2 -- this is impact analysis of the confirmed poisoning"
+
+compliance_controls:
+  - standard: "OWASP"
+    control: "A05:2021"
+    description: "Security Misconfiguration (cache key configuration)"
+  - standard: "MITRE ATT&CK"
+    control: "T1565.002"
+    description: "Transmitted Data Manipulation"
+
+detection:
+  network_indicators:
+    - "Requests carrying unusual values in X-Forwarded-Host/X-Forwarded-Scheme/X-Original-URL headers to cacheable paths"
+  log_indicators:
+    - "Cache entries whose content does not match what an unmodified request to that path should produce"
+  endpoint_indicators:
+    - "None beyond the application's own reflected-header logic"
+
+remediation:
+  immediate:
+    - "Configure the cache to include every header that influences the response in its cache key, or strip those headers before they reach the origin"
+    - "Stop reflecting client-supplied Host/X-Forwarded-* headers into response bodies; use a fixed, server-configured canonical host"
+  long_term:
+    - "Audit all CDN/cache configurations for unkeyed inputs that reach application logic"
+    - "Add a regression test that injects a marker in each candidate header and asserts it never appears in a response served without that header"
+
+variables:
+  target_url: "https://target.example/some/cacheable/path"
+  injected_header: "X-Forwarded-Host"
+  marker_value: "marker-injected.example"
+
+assessment_questions:
+  - "Why is a reflected header value alone not sufficient proof of cache poisoning?"
+  - "What makes an input 'unkeyed' and why does that matter for cache poisoning?"
+  - "How does this differ from the password-reset-link host-header injection variant?"
+
+references:
+  - url: "https://portswigger.net/web-security/web-cache-poisoning"
+    title: "PortSwigger Web Cache Poisoning"
+  - url: "https://portswigger.net/research/web-cache-entanglement"
+    title: "PortSwigger Research: Web Cache Entanglement"

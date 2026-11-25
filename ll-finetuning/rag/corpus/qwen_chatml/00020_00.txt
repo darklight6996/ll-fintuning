@@ -1,0 +1,9 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the process for developing a custom exploit for a buffer overflow vulnerability in a network service.
+
+Context:
+You have identified a stack-based buffer overflow in a custom TCP service running on Linux x64. The service has no ASLR, NX is enabled, and you control the instruction pointer. Describe the complete exploit development process from crash to shell.
+assistant
+Custom Buffer Overflow Exploit Development (Linux x64, NX Enabled, No ASLR):

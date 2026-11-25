@@ -1,0 +1,1 @@
+stty raw -echo ; fg nc -lnvp 443 reset reset: unknown terminal type unknown Terminal type? screen user@Backdoor:/home/user$ I’m told that there may be issues running gdb with a different version than the server.

@@ -1,0 +1,21 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+The URL represents specific web pages or API endpoints within the
+subdomain. These URLs may have parameters, authentication mechanisms,
+or other inputs that hackers target for testing vulnerabilities like XSS or
+SQL injection.
+Ports represent the specific network ports on the IP address that could be
+open and potentially expose services. For example, port 80 (HTTP) and port
+443 (HTTPS) are often tested.
+Let’s assume that now you want to automate the discovery, scanning,
+enumeration, and processing of these tasks using AI agents. You can use
+platforms like LangGraph and LangGraph Studio to create agents that will
+help accelerate these tasks with low-code requirements. Let’s take a look at
+the diagram in Figure 11-2.

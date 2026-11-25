@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check Azure subscriptions and resources.
+
+CONTEXT:
+You have access to Azure CLI.
+
+METHOD / ANSWER:
+Command: `az account list`
+Purpose: Lists all Azure subscriptions available to the current account.

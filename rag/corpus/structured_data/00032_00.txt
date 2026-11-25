@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What is the next step after obtaining the Administrator hash?
+
+CONTEXT:
+Context: Credential Access & Lateral Movement. You have acquired the NTLM hash for the built-in Administrator account through a technique like DCSync, LSASS dump, or certificate abuse.
+Principle to Apply: 'Use captured credential material (hashes) for authenticated access to systems and services.'

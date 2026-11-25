@@ -1,0 +1,5 @@
+bridge the gap between offensive and defensive
+security perspectives by providing a common language for discussing
+threats and vulnerabilities. This shared understanding facilitates
+collaboration between red teams, blue teams, and leadership within an
+organization. This collaboration ultimately results in more effective

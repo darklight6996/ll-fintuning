@@ -1,0 +1,1 @@
+isit http://enterprise.htb/wp-admin , and it redirects to a login page: I have one user name (william.riker) and four passwords. u*Z14ru0p#ttj83zS6 works: Webshell One way to get a shell in WordPress is to modify a theme file, since they are written in PHP. On the left menu, Appearance –> Themes –>

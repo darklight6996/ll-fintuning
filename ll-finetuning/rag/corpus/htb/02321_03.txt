@@ -1,0 +1,1 @@
+mented commands (type help <topic>): ======================================== dump_columns dump_data dump_dbs dump_tables exit help raw union > help dump_dbs Usage: dump_dbs [num dbs] I’ll also add in commands that allow me to

@@ -1,0 +1,28 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Onsite Reconnaissance
+There are multiple key points you want to cover once you’re onsite for an
+engagement. Having the right equipment is key for onsite recon. An ultra-
+zoom camera is recommended for capturing photos from a great distance.
+The Nikon COOLPIX P1000 is a great choice for its 125× optical zoom
+capability. Additionally, you will want to confirm information collection
+during remote recon and gather new information.
+• Confirming what was discovered during the remote recon:
+• Confirm and identify entry points based off a map you’ve created for
+reference.
+• Confirm current dress code by observing employees.
+• Confirm badge information matches what you’ve found during remote
+reconnaissance.
+• Gathering new information:
+• If no badge information was discovered during remote recon, your goal
+should be to obtain that information immediately when onsite from a
+stealthy perspective.
+• Take note of employees entering and exiting, noting big groups exiting
+during this time.

@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Hostname Discovery & Configuration.
+**Core Principle**: Many reconnaissance and exploitation tools perform better or require the target's hostname and domain name to function correctly. They may fail or return limited data when given only an IP address.
+**Actionable Steps**:
+1.  **Query for Hostname**: Use a tool like `netexec` to request the host's NetBIOS and DNS names.
+    *   **Reasoning**: The command queries the target (often via SMB or RPC) to discover its computer name and domain. The output is formatted as a line ready for your `/etc/hosts` file (e.g., `10.10.11.69 DC01.fluffy.htb`).
+**Guidance for Novel Context**: If automated tools fail, you may need to deduce the hostname from service banners (e.g., HTTP title, SSH host key) or DNS PTR records (`dig -x 10.10.11.69`). The principle is to **establish a reliable mapping between the target's IP and its fully qualified domain name (FQDN) before proceeding with domain-aware attacks.**

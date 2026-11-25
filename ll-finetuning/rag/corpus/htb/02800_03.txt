@@ -1,0 +1,1 @@
+, $backup will be set with my input. For example, to show how I can start building a string, if I start with a file containing: ; $c = $backup [ 1 ] + $backup [ 5 ] + $backup [ 3 ]; $c | iex ; # Then $backup will be that string. When $Command is set, it will look like: echo D | xcopy /E /R /C /Y /H /F /V E:\Backups\ ; $c = $backup [ 1 ] + $backup [ 5 ] + $backup [ 3 ]; $c | iex ;

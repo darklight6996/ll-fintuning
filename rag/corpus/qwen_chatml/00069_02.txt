@@ -1,0 +1,5 @@
+sible
+for the prevention, detection, and response capabilities.
+• Red Team: A third-party team that carries out the emulated attack against
+the financial institution.
+• White Team: Trusted agents internal to the financial institution.

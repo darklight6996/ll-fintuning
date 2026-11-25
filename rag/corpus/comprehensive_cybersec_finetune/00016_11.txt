@@ -1,0 +1,31 @@
+**Advanced SDR Attacks**:
+- **Replay Attacks**: Capture → replay (fixed code, rolling code desync)
+- **Rolling Code Attacks**:
+  - Predictive (weak LFSR)
+  - Jamming + replay (desync counter)
+  - `RollJam`, `RollBack`
+- **Jamming/Denial of Service**:
+  - Noise, tone, sweep, protocol-aware
+  - `hackrf_transfer -t jam.cfile`
+- **Signal Injection**:
+  - Spoofed ADS-B (aircraft), AIS (ships)
+  - Fake GPS (time/position)
+  - Emergency alerts (EAS, CMAS)
+- **Side-Channel**:
+  - Power analysis (simple, differential)
+  - Electromagnetic emanations (TEMPEST)
+  - Timing attacks
+
+**Legal/Regulatory**:
+- FCC Part 15 (US), ETSI (EU), Industry Canada
+- Licensed vs unlicensed bands
+- Transmit power limits
+- Harmful interference prohibition
+- Responsible disclosure
+
+**Tools Summary**:
+- **Wi-Fi**: Aircrack-ng, Wifite, Wifiphisher, Fluxion, Bettercap, Kismet, Wireshark
+- **Bluetooth**: Ubertooth, HackRF, btlejack, gattacker, BlueZ, BlueHydra
+- **RFID/NFC**: Proxmark3, ChameleonMini, Flipper Zero, ACR122U, mfoc, mfcuk
+- **SDR**: HackRF, BladeRF, LimeSDR, RTL-SDR, GNU Radio, URH, Inspectrum, GQRX
+- **Frameworks**: Bettercap (all wireless), Kismet (Wi-Fi/BLE/SDR)

@@ -1,0 +1,3 @@
+les, functions, and classes to
+meaningless or misleading names. Example 6-11 shows our original code.
+Example 6-11 Renaming Obfuscation Original Code

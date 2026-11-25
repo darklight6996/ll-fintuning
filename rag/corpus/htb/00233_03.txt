@@ -1,0 +1,1 @@
+re two each: The first line context is “WRITE”, which is what I was just looking at. Jumping to the “READ”, all of them land in FUN_2ac401dc0 , which has a bunch more strings to decode and uses the functions: This function ends up as the following pseudocode: hinternet = InternetOpenA

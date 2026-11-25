@@ -1,0 +1,1 @@
+cipals : CODER.HTB\Domain Admins CODER.HTB\Local System CODER.HTB\Enterprise Admins Write Owner Principals : CODER.HTB\Domain Admins CODER.HTB\Local System CODER.HTB\Enterprise Admins Write Dacl Principals : CODER.HTB\Domain Admins CODER.HTB\Local System CODER.HTB\Enterprise Admins Write Property Principals : CODER.HTB\Domain

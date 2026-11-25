@@ -1,0 +1,29 @@
+METHOD / ANSWER:
+[+] Attempting to map shares on 192.168.88.251
+//192.168.88.251/print$ Mapping: DENIED, Listing
+//192.168.88.251/secret_folder Mapping: DENIED
+=====================================================
+| Password Policy Information for 192.168.88.251
+====================================================
+[+] Attaching to 192.168.88.251 using a NULL share
+[+] Trying protocol 139/SMB...
+[+] Found domain(s):
+[+] VULNHOST-1
+[+] Builtin
+[+] Password Info for Domain: VULNHOST-1
+[+] Minimum password length: 5
+[+] Password history length: None
+<output omitted for brevity>
+=====================================================
+| Users on 192.168.88.251 via RID cycling (RIDS: 50
+=====================================================
+[I] Found new SID: S-1-22-1
+[I] Found new SID: S-1-5-21-2226316658-154127331-1048
+[I] Found new SID: S-1-5-32
+[+] Enumerating users using SID S-1-5-21-2226316658-1
+logon username '', password ''
+<output omitted for brevity>
+S-1-5-21-2226316658-154127331-1048156596-501 VULNHOST
+S-1-5-21-2226316658-154127331-1048156596-513 VULNHOST
+S-1-5-21-2226316658-154127331-1048156596-1000 VULNHOS
+<output omitted for brevity>

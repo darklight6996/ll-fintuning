@@ -1,0 +1,23 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 3-8 Editing the Config
+Example 3-10 http Config
+{
+"instances": [
+{
+"ServerHeaders": {
+"Server": "Microsoft-IIS/10.0",
+"Cache-Control": "max-age=0, no-cache
+"Pragma": "no-cache",
+"Connection": "keep-alive",
+"Content-Type": "text/html; charset=u
+},
+"port": 443,

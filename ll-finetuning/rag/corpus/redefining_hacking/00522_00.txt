@@ -1,0 +1,32 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+ffuf is another great tool written in Go. It's used for URL brute-forcing,
+fuzzing, and content discovery during the reconnaissance phase of a web
+application assessment. You can access the source code at
+https://github.com/ffuf/ffuf.
+Example 9-46 demonstrates a high-level example of how to use ffuf.
+Example 9-46 Using ffuf to Perform Directory Enumeration
+┌──(root㉿websploit)-[~]
+└─# ffuf -c -w words.txt -u http://10.6.6.23/FUZZ
+/'___\ /'___\ /'___\
+/\ \__/ /\ \__/ __ __ /\ \__/
+\ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\
+\ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/
+\ \_\ \ \_\ \ \____/ \ \_\
+\/_/ \/_/ \/___/ \/_/
+________________________________________________
+:: Method : GET
+:: URL : http://10.6.6.23/FUZZ
+:: Wordlist : FUZZ: /root/words.txt
+:: Follow redirects : false
+:: Calibration : false
+:: Timeout : 10
+:: Threads : 40
+:: Matcher : Response status: 200,204,301,302

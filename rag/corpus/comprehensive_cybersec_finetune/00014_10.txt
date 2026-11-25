@@ -1,0 +1,29 @@
+**Phase 8: Reporting & Remediation**
+- **OWASP MASVS (Mobile Application Security Verification Standard)**:
+  - MASVS-L1: Standard security
+  - MASVS-L2: Defense in depth
+  - MASVS-R: Resiliency (anti-tampering, reverse engineering)
+- **OWASP Mobile Top 10 (2024)**:
+  1. Improper Credential Usage
+  2. Inadequate Supply Chain Security
+  3. Insecure Authentication/Authorization
+  4. Insufficient Input/Output Validation
+  5. Insecure Communication
+  6. Inadequate Privacy Controls
+  7. Insufficient Binary Protections
+  8. Security Misconfiguration
+  9. Insecure Data Storage
+  10. Insufficient Cryptography
+
+**Remediation**:
+- Use platform keystores/keychains
+- Enable certificate pinning with backup pins
+- Encrypt sensitive local data (SQLCipher, Realm encryption)
+- Minimize permissions
+- Implement proper session management
+- Use biometric authentication (BiometricPrompt, FaceID/TouchID)
+- Regular security testing in CI/CD
+- Monitor for rooted/jailbroken devices
+- Implement RASP (Runtime Application Self-Protection)
+
+**Tools**: MobSF, Frida, Objection, Burp Suite, jadx, ghidra, hopper, radare2, apktool, class-dump, drozer, qark, androbugs, needle, idb, sslpinning bypass scripts.

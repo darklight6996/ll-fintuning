@@ -1,0 +1,10 @@
+Context:
+Context: Testing Target. A login form with a 'username' parameter. Suspicion: Input may not be sanitized.
+Principle to Apply: 'Trust no user input.'
+assistant
+**Assessment Phase**: Input Validation Testing.
+**Core Principle**: Probe all user-controllable inputs for injection flaws by submitting meta-characters and observing behavior.
+**Actionable Steps**:
+1.  **Automated Detection**: `sqlmap -u "http://example.com/login?username=admin&password=test" --risk=3 --level=5 --dbs`
+    *   **Reasoning**: `sqlmap` automates the detection and exploitation of SQLi. The `--risk` and `--level` flags increase test thoroughness. The URL provided must be a valid, accessible request captured from the application.
+**Guidance for Novel Context**: This approach is for GET parameters. For POST data, use `-data`. If the parameter is in a JSON body or a header, the principle remains the same ('test all inputs'), but the tool syntax changes. If `sqlmap` fails, apply the principle of 'manual verification' with payloads like `' OR '1'='1`.

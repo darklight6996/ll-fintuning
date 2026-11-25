@@ -1,0 +1,1 @@
+ile: I’ll change the config[mail_driver] to config[cache_driver] and change log to: file REDIS_HOST = 10.10.14.6 REDIS_PORT = 6379 SESSION_DRIVER = redis On sending this, I’ve injected three new configurations into the .env file. I’ll open WireShark and filter

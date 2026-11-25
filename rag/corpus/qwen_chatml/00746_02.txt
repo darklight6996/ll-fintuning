@@ -1,0 +1,41 @@
+HTTP/1.1
+host: <host target>
+<CRLF><CRLF>
+Result:
+HTTP/1.1 404 Not Found
+Date: Sat, 04 Nov 2006 15:26:48 GMT
+Server: Apache/2.2.3 (Unix) mod_ssl/2.2.3 OpenSSL/0.9.7¢
+Content-Length: 310
+Connection: close
+Content-Type: text/html; charset=iso-8859-1
+<title>404 Not Found</title>
+<address>Apache/2.2.3 (Unix) mod_ssl/2.2.3 OpenSSL/0.9.7¢
+at <host target> Port 80</address>
+Test:
+Network problems leading to the application being unable to
+access the database server
+Result:
+Microsoft OLE DB Provider for ODBC Drivers (Ox80004005) ’
+[MySQL][ODBC 3.51 Driver]JUnknown MySQL server host
+Test:
+Authentication failure due to missing credentials
+Result:
+Firewall version used for authentication:
+Error 407
+FW-1 at <firewall>: Unauthorized to access the document.
+» Authorization is needed for FW-1.
+» The authentication required by FW-1 is: unknown.
+» Reason for failure of last attempt: no user
+Test: 400 Bad Request
+telnet <host target> 80
+GET / HTTP/1.1
+<CRLF><CRLF>
+Result:
+HTTP/1.1 400 Bad Request
+Date: Fri, 06 Dec 2013 23:57:53 GMT
+Server: Apache/2.2.22 (Ubuntu) PHP/5.3.10-1ubuntu3.9 with
+Suhosin-Patch
+Vary: Accept-Encoding
+Content-Length: 301
+Connection: close
+Content-Type: text/html; charset=iso-

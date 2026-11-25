@@ -1,0 +1,25 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+scans using Nmap, interactive analysis with DevTools, and specialized
+scanning employing Burp Suite and OWASP ZAP.
+Browser Developer Tools Are Sometimes Underrated
+You can use browser developer tools to perform many tasks
+that can help you with reconnaissance. Chrome DevTools
+houses several often-overlooked tools for hacking web
+applications. The subsequent procedures will guide you in
+navigating through numerous lines of code adeptly, enabling
+you to identify sensitive data within page sources.
+Start by accessing your target page, and then launch Chrome
+DevTools either by pressing F12 or Ctrl+Shift+I. Modify
+the Chrome DevTools window dimensions to secure
+sufficient working space. Next, navigate to the Network tab
+and refresh the web page.
+Subsequently, scrutinize for notable files (it's possible to
+encounter one named “API”). On finding JavaScript files
+that pique your interest, right-click them and select Open in
+the Sources Panel to explore their source code. As an
+alternative, click XHR to view the Ajax requests being
+executed.

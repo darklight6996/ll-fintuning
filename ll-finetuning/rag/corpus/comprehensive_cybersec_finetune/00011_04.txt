@@ -1,0 +1,32 @@
+**Phase 9: OTG-BUSLOGIC-008: Upload of Unexpected File Types**
+- **Content-Type Bypass**:
+  - `image/png` with PHP content
+  - Polyglot files (valid image + valid script)
+  - SVG with XSS
+  - Office docs with macros
+- **Extension Bypass**:
+  - Double extension: `shell.php.png`
+  - Null byte: `shell.php%00.png`
+  - Case variation: `shell.pHp`
+  - Alternative extensions: `.php5`, `.phtml`, `.phar`
+- **Magic Byte Bypass**:
+  - Prepend valid file header
+  - `GIF89a<?php system($_GET[cmd]); ?>`
+- **Processing Vulnerabilities**:
+  - ImageMagick (CVE-2016-3714)
+  - ExifTool metadata injection
+  - PDF parsing XXE/RCE
+
+**Phase 10: OTG-BUSLOGIC-009: Upload of Malicious Files**
+- **Client-Side Validation Only**:
+  - JavaScript file type check
+  - HTML accept attribute
+- **Server-Side Validation Issues**:
+  - MIME type only (no content inspection)
+  - Extension only
+  - Insufficient sandboxing
+- **Execution Vectors**:
+  - Direct access to upload directory
+  - LFI/RCE via uploaded file
+  - Deserialization via uploaded object
+  - Template injection (SSTI)

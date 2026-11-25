@@ -1,0 +1,1 @@
+)). strip (). decode (). split ( " \n " ) ) print ( " [*] Generated hash extensions for 8 to 15 byte secrets " ) for test_hash in hash_extender : new_cookie_data = base64 . b64encode ( binascii . unhexlify ( test_hash . split ( " " )[ - 1 ]) ). decode () new_cookie_sig = base64 . b64encode ( binascii . unhexlify ( test_hash . split ( " " )[ - 2 ]) ). decode () new_cookie = f

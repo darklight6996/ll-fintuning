@@ -1,0 +1,22 @@
+METHOD / ANSWER:
+Circle Of Confusion : 0.006 mm
+Field Of View : 69.4 deg
+Focal Length : 5.1 mm (35 mm equivale
+GPS Position : 35 deg 46' 49.69" N, 7
+Hyperfocal Distance : 2.76 m
+Light Value : 12.8
+The highlighted lines in Example 9-16 show the GPS data of the location
+where the image was taken.
+Strategic Search Engine Analysis/Enumeration
+Most of us use search engines such as DuckDuckGo, Bing, Google, and
+Perplexity to locate information. What you might not know is that search
+engines, such as Google, can perform much more powerful searches than
+most people ever dream of. Not only can Google translate documents,
+perform news searches, and do image searches, but it can also be used by
+hackers and attackers to do something that has been termed Google
+hacking.
+When basic search techniques are combined with advanced operators,
+Google can become a powerful vulnerability search tool. The following are
+some advanced operators:
+• Filetype: Directs Google to search only within the text of a particular type
+of file. Example: filetype:xls

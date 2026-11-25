@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Extract sensitive data from the internal API.
+
+CONTEXT:
+Identify valuable endpoints such as user information.
+
+METHOD / ANSWER:
+Command: `curl http://editorial.htb/static/uploads/[uuid]` to access JSON data.
+Purpose: Obtain credentials or sensitive information.

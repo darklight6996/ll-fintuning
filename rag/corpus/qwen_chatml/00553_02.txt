@@ -1,0 +1,7 @@
+ess API by navigating to /wp-json/wp/v2. At this
+juncture, you ought to be familiar with the web application URLs and can
+commence brute-forcing uniform resource identifiers to uncover concealed
+directories and files. As these tools function, you can continually review the
+incoming results to conduct a more focused interactive analysis.
+Subsequent segments will elaborate on the instruments and methods to be
+utilized across the active reconnaissance stages, encompassing detection

@@ -1,0 +1,18 @@
+METHOD / ANSWER:
+Ultimately, this adversarial perspective promotes a more adaptive and
+realistic approach to security. It encourages organizations to constantly
+question their defenses, refine their assumptions, and stay ahead of evolving
+threats, making their security posture more robust and resilient.
+Emulating Industry-Specific Threats
+The specific threats an organization will likely face can vary depending on
+the industry. For example, a financial organization is often targeted by
+highly specialized groups, such as those involved in banking fraud or
+targeting payment systems. In contrast, healthcare organizations often face
+threats from ransomware groups seeking to disrupt critical systems or steal
+patient data. A tailored red team engagement might involve simulating
+ransomware propagation or exfiltration of electronic health records, testing
+not just the technical defenses but also the response protocols and business
+continuity plans. The exact TTPs are replicated in the red team
+engagements to test the relevant defenses that the organization is most
+likely to encounter. By replicating the exact threats an organization is likely
+to encounter, red teaming ensures that security

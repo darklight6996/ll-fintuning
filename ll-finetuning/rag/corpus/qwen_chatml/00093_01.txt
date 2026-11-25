@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+signatured in the wild by EDRs when default options are in use but
+typically require less customization than a public C2 option out of the box.
+Nighthawk (https://www.mdsec.co.uk/nighthawk/) was released in 2021
+and is the latest advanced tradecraft C2 framework; it is intended for use
+only by authorized red team operators. The MDSec team built the C2 by
+leveraging custom research and development, which empowers the
+advanced capabilities of the C2. The C2 supports multiple operators,
+advanced evasion techniques, custom loaders, malleable profiles, SOCKS5,
+Beacon Object Files (BOFs), covert communications, secure post
+exploitation options, and a custom PE generator for operators.
+Cobalt Strike (https://www.cobaltstrike.com/) was originally created by
+Raphael Mudge in 2012 as a commercially available C2 for operators to
+leverage during red team operations. Cobalt Strike comes with an Arsenal
+Kit that is a tool suite of custom tools to improve your operator capabilities
+for a successful engagement; it includes a sleep mask kit, custom loaders,
+and other options to choose from. Cobalt Strike is widely used by
+cybersecurity

@@ -1,0 +1,37 @@
+nd/style.css
+Possible versions based on result: 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8,
+7.9, 7.10, 7.11, 7.12, 7.13, 7.14
+Fingerprinting resulted in:
+7.14
+Best Guess: 7.14
+Wappalyzer
+Website: http:/wappalyzer.com
+Web Application Penetration Testing
+Wapplyzer is a Firefox Chrome plug-in. It works only on regular ex-
+pression matching and doesn't need anything other than the page to
+be loaded on browser. It works completely at the browser level and
+gives results in the form of icons. Although sometimes it has false
+positives, this is very handy to have notion of what technologies were
+used to construct a target website immediately after browsing a page.
+Sample output of a plug-in is presented on a screenshot below.
+4
+tr
+a
+Gera
+i
+|
+fitz
+ed
+attr
+em pee
+ey oe
+References
+Whitepapers
+» Saumil Shah: “An Introduction to HTTP fingerprinting” - http:/www.
+net-square.com/httprint_paper.html
+» Anant Shrivastava : “Web Application Finger Printing” - http:/anant-
+shri.info/articles/web_app_finger_printing.Atml
+Remediation
+The general advice is to use several of the tools described above and
+check logs to better understand what exactly helps an attacker to dis-
+close the web framework. By performing mu

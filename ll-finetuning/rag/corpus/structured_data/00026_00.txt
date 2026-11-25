@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you reset the password for the 'sam' user account through an administrative account?
+
+CONTEXT:
+Context: Active Directory Post-Compromise. You have compromised the machine account 'ANSIBLE_DEV$' and obtained its NTLM hash ('1c37d00093dc2a5f25176bf2d474afdc'). You have control over the Domain Controller 'dc01.tombwatcher.htb'.
+Principle to Apply: 'Leverage administrative control to modify user attributes for persistence or privilege escalation.'

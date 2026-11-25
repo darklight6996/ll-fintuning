@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+List running services.
+
+CONTEXT:
+System monitoring review.
+
+METHOD / ANSWER:
+Command: `systemctl list-units --type=service --state=running`
+Explanation: Shows active services for review.

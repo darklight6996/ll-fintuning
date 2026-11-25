@@ -1,0 +1,36 @@
+function() {
+prevent_bust++;
+};
+setinterval(
+function() {
+if (prevent_bust > 0) {
+prevent_bust -= 2;
+window.top.location =
+“http:/attacker.site/204.php";
+}
+}, 1);
+</script>
+<iframe src="http:/target site">
+XSS Filter
+Starting from Google Chrome 4.0 and from IE8 there were intro-
+duced XSS filters to protect users from reflected XSS attacks. Nava
+and Lindsay have observed that these kind of filters can be used to
+deactivate frame busting code by faking it as malicious code.
+= IE8 XSS filter: this filter has visibility into all requests and
+responses parameters flowing through the web browser and
+it compares them to a set of regular expressions in order to look
+for reflected XSS attempts. When the filter identifies a possible
+XSS attacks; it disable all inline scripts within the page, including
+frame busting scripts (the same thing could be done with external
+scripts). For this reason an attacker could induces a false positive
+by inserting the beginning of the frame busting script into a request
+parameters.
+Example: Target web page frame busting code:
+if ( top != self )
+{
+top.location=self.location;
+}
+</script>
+Attacker code:
+<iframe src="http:/target site/?param=<script>if">
+202

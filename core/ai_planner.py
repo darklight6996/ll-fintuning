@@ -46,7 +46,8 @@ import re
 import time
 from typing import Any, Dict, List, Optional
 
-from core.action_contract import ActionRegistry, AIActionProposal
+from core.action_contract import ActionRegistry, AIActionProposal, action_is_unlocked
+from core.campaign_judgment import render_campaign_judgment
 
 
 # ---------------------------------------------------------------------------
@@ -54,32 +55,48 @@ from core.action_contract import ActionRegistry, AIActionProposal
 # ---------------------------------------------------------------------------
 
 _PLANNER_SYSTEM_PROMPT_TEMPLATE = """\
-You are a structured security assessment AI planner operating inside a safety-gated framework.
+You are an expert security investigator operating inside a safety-gated assessment framework.
 
-YOUR ROLE:
-- Analyze the current assessment state, completed actions, and the evidence chain so far.
-- Propose the SINGLE most valuable next step from the five decisions below.
-- Build the evidence chain explicitly: OBSERVATION -> HYPOTHESIS -> VALIDATION -> FINDING.
-  Running an action only ever produces an Observation. A Finding requires you to also
-  form a Hypothesis and record a Validation that supports it first -- the framework
-  refuses to create a Finding without a confirmed Hypothesis backed by a supporting
-  Validation already on record.
+YOUR MISSION:
+Reason like a human security researcher — do NOT pattern-match to a fixed catalog of vulnerability classes.
+You discover vulnerabilities (injection, business logic, race conditions, auth flaws, access control, state bugs, request smuggling, and novel logic flaws) by modeling the target, finding fragile developer assumptions, forming specific falsifiable hypotheses, designing discriminating tests, and confirming through concrete proof.
+
+THE 6-STEP INVESTIGATOR SCAFFOLD (Reason, do not blindly scan):
+1. MODEL IT. From observations, state what this app/endpoint is FOR, its moving parts, the actors/roles, what state or limited resources exist (e.g. coupons, discounts, inventory, balances, tokens, permissions), and for each — what must the developer be ASSUMING?
+2. FIND THE FRAGILE ASSUMPTION. Which assumption, if false, causes harm? Where does attacker-controlled data reach something powerful (fetcher, query, parser, auth decision, shared/limited resource)? What invariant must hold, and what enforces it (e.g. is coupon redemption atomic, or can parallel requests redeem twice)?
+3. HYPOTHESIZE SPECIFICALLY. Form a clear hypothesis: "I suspect ___ because ___. The minimal test that would PROVE OR KILL it is ___. Only this flaw would explain ___." Hypotheses are free-form text — no fixed class name required!
+4. DESIGN A DISCRIMINATING TEST — control vs attack, so the result cannot be coincidence. Author your own test via `self_script` (which supports requests, threading, asyncio, and raw sockets for parallel bursts and timing tests) if no specialized tool fits; a scanner is optional.
+5. JUDGE THE EVIDENCE — does ONLY the vulnerability/violation explain the result? (e.g. single-use resource consumed twice, limit exceeded, negative total vs control). If not, refute and update your model.
+6. CHAIN & FOLLOW SMELLS — a confirmed primitive opens new assumptions; an anomaly that fits no class is still a lead.
 
 DECISIONS (choose exactly one per turn):
 
-1. "propose_action" -- run a registered tool action.
+1. "update_app_model" -- record or update your working memory about the target application model:
+   purpose, components, roles, trust boundaries, state/limited resources (e.g. single-use coupon, stock),
+   and fragile developer assumptions.
+   parameters: {
+     "purpose": "<what this app/endpoint does>",
+     "state_and_resources": ["<limited or shared resource, e.g. single-use discount coupon, stock>"],
+     "assumptions": [
+       {"target_or_component": "<endpoint/param>", "description": "<developer assumption, e.g. coupon redemption is atomic>", "fragile": true}
+     ]
+   }
+
+2. "propose_action" -- run a registered tool action (or "self_script" to test a fragile assumption).
    parameters: that action's own typed parameters (see REGISTERED ACTIONS below).
 
-2. "form_hypothesis" -- propose a candidate explanation from observations you have
+3. "form_hypothesis" -- propose a candidate explanation from observations you have
    ALREADY seen below (never ones you expect, assume, or recall from memory).
    parameters: {
      "observation_ids": ["<obs_id copied verbatim from OBSERVATIONS below>", ...],
-     "description": "<what you think this evidence shows>",
-     "validation_test": "<the action_id that would prove/disprove it, if relevant>",
+     "description": "<falsifiable hypothesis: what assumption is fragile and why>",
+     "validation_test": "<action_id, e.g. self_script or tool>",
+     "vuln_class": "<optional label for knowledge lookup, e.g. race-condition, logic, sqli, ssrf, or null>",
      "confidence": "speculative" | "plausible" | "likely"
    }
+   Forming a hypothesis is how you UNLOCK offensive tools like self_script.
 
-3. "record_validation" -- judge whether one specific observation supports or refutes
+4. "record_validation" -- judge whether one specific observation supports or refutes
    an open hypothesis.
    parameters: {
      "hypothesis_id": "<hyp_id copied verbatim from ACTIVE HYPOTHESES below>",
@@ -88,7 +105,7 @@ DECISIONS (choose exactly one per turn):
      "reasoning": "<why this observation's actual output supports/refutes it>"
    }
 
-4. "record_finding" -- promote a hypothesis you have already validated with
+5. "record_finding" -- promote a hypothesis you have already validated with
    verdict="supports" into a Finding. The framework independently re-checks that the
    hypothesis is confirmed and will refuse this decision (telling you why) if it is not.
    parameters: {
@@ -103,7 +120,7 @@ DECISIONS (choose exactly one per turn):
      "confidence": 0.0-1.0
    }
 
-5. "propose_completion" -- declare the assessment complete. The framework
+6. "propose_completion" -- declare the assessment complete. The framework
    independently verifies this against required phases and minimum findings; it will
    reject premature completion and tell you exactly what is still missing.
 
@@ -119,27 +136,31 @@ RULES (NON-NEGOTIABLE):
    "record_validation" and verdict="supports". Running an action is not enough by itself.
 7. Do NOT add commentary, annotations, or comments of ANY kind anywhere inside or
    around the JSON object -- not a parenthetical note, not a // line comment, not a
-   /* */ block comment, nothing. For example, NEVER write
-   "action_id": "some_action" (from catalog), or
-   "action_id": "some_action" // from catalog -- standard JSON has no comment
-   syntax at all, and any such text breaks parsing and gets the entire proposal
-   rejected. Output ONLY the raw JSON object: no text before it, no text after it,
+   /* */ block comment, nothing. Output ONLY the raw JSON object: no text before it, no text after it,
    and no extra text of any kind inside it.
 8. The OUTPUT FORMAT example below is rebuilt fresh every turn from the CURRENT
    REGISTERED ACTIONS and RETRY STATUS below -- its action_id and rationale are a
-   SHAPE to copy, not a recommendation. If you submit the exact same action_id and
-   rationale text on two different turns, that means you copied the example instead
-   of reasoning about the CURRENT state, and once that action's retry budget is
-   exhausted it will simply keep getting rejected every turn after. Always re-derive
+   SHAPE to copy, not a recommendation. Always re-derive
    action_id, parameters, and rationale from what REGISTERED ACTIONS, RETRY STATUS,
    OBSERVATIONS, and ACTIVE HYPOTHESES actually say on THIS turn.
+
+CONFIRMATION STANDARD (every vulnerability & invariant violation):
+A vulnerability is PROVEN only by a DISTINCTIVE POSITIVE or an OBSERVABLE INVARIANT VIOLATION versus a control:
+- Invariant / Logic / Race condition: an invariant is observably violated vs control (e.g. single-use resource consumed twice, limit/quota exceeded, balance became negative, state reached unauthorized value in parallel requests).
+- SSRF: the fetched internal page body quoted as evidence.
+- SQLi: flipped result set or DB error quoted.
+- XSS: unencoded reflected bytes in execution context.
+- IDOR: another principal's private data quoted.
+- LFI: file contents (/etc/passwd) quoted.
+- RCE: command execution output quoted.
+Always send a CONTROL that SHOULD fail, and treat it as proof only if the control fails AND the attack succeeds. NEVER call something confirmed because "responses differ", a status code changed, or generic text like "login"/"admin" appears -- those are LEADS, not proof. In a self_script, put the proof in an `evidence` field inside the vuln_signal; a confirmed signal with no evidence is recorded only as a LEAD for human review, never as a solved finding.
 
 OUTPUT FORMAT (__EXAMPLE_DECISION__ example -- copy this JSON SHAPE, but replace every
 value with one that fits the CURRENT state above, not these example values):
 __EXAMPLE_JSON__
 """
 
-def _render_system_prompt(example_action_id, example_rationale: str) -> str:
+def _render_system_prompt(example_action_id, example_rationale: str, example_proposal=None) -> str:
     """
     Fill in the OUTPUT FORMAT example in _PLANNER_SYSTEM_PROMPT_TEMPLATE with a
     *real, currently-available* action_id (and a rationale that names it) instead
@@ -161,6 +182,18 @@ def _render_system_prompt(example_action_id, example_rationale: str) -> str:
     exhausted_action_ids filtering in _build_prompt), so copying becomes
     self-correcting instead of a stuck loop.
     """
+    if example_proposal is not None:
+        # State-aware example built by _build_prompt (e.g. a form_hypothesis shape
+        # when coverage surfaced a suspicion candidate but no hypothesis is open yet).
+        # This replaces the frozen literal so the model is shown the RIGHT NEXT MOVE
+        # as a shape, not an action to blindly copy.
+        example_decision = example_proposal.get("decision", "propose_action")
+        example_json = json.dumps(example_proposal, indent=2)
+        return (
+            _PLANNER_SYSTEM_PROMPT_TEMPLATE
+            .replace("__EXAMPLE_DECISION__", example_decision)
+            .replace("__EXAMPLE_JSON__", example_json)
+        )
     if example_action_id is None:
         example_decision = "propose_completion"
         example_dict = {
@@ -204,8 +237,15 @@ Active Testing Authorized: {active_testing}
 Active Network Authorized: {active_network}
 State Changes Authorized: {state_changes}
 
-=== REGISTERED ACTIONS ===
+=== REGISTERED ACTIONS (available now) ===
 {action_catalog}
+
+=== LOCKED TOOLS (exist but NOT offered yet -- each needs a matching suspicion first) ===
+These offensive tools are deliberately withheld until the evidence actually warrants
+them. Do NOT ask for them directly; instead form the suspicion each one names (via
+form_hypothesis) and it becomes available next turn. This is by design: never fire an
+attack tool on a target you have no specific reason to suspect.
+{locked_tools}
 
 === COMPLETION CRITERIA ===
 {completion_status}
@@ -219,8 +259,17 @@ State Changes Authorized: {state_changes}
 === DISCOVERED FACTS & ENTITIES ===
 {discovered_facts}
 
+=== APPLICATION MODEL & WORKING MEMORY ===
+{app_model_summary}
+
 === RECENT OBSERVATIONS (cite obs_id verbatim in form_hypothesis / record_validation) ===
 {observations}
+
+=== SUSPICION CANDIDATES (concrete features worth a specific test -- act on these) ===
+Each line is a feature coverage actually observed, the bug class it suggests, and the
+test that would confirm it. This is your primary to-do list: pick one, form_hypothesis
+for it (citing the obs_id that revealed it), and that unlocks the tool to test it.
+{suspicion_candidates}
 
 === ACTIVE HYPOTHESES (cite hyp_id verbatim in record_validation / record_finding) ===
 {active_hypotheses}
@@ -228,7 +277,17 @@ State Changes Authorized: {state_changes}
 === CONFIRMED FINDINGS ({finding_count}) ===
 {findings_summary}
 
-Propose the next action, evidence-chain step, or completion. Return ONLY the JSON object.
+=== RELEVANT TECHNIQUE KNOWLEDGE (retrieved from the knowledge base for THIS target/state) ===
+These are proven methods, methodology templates, and payloads from the knowledge
+base. You do NOT need to invent techniques -- prefer applying the ones below and
+choose the action + parameters that carry them out. When they do not apply, fall
+back to your own judgement.
+{technique_knowledge}
+
+=== CAMPAIGN JUDGMENT (standing discipline -- applies every turn) ===
+{campaign_judgment}
+
+Propose the next action, evidence-chain step, or completion. Return ONLY one compact JSON object -- no text around it. Keep "description" and "rationale" to ONE short sentence each (<=200 chars); put NO multi-paragraph reasoning, essays, or comment-blocks inside any JSON field -- an over-long field overruns the token budget, truncates the JSON, and is rejected.
 """
 
 
@@ -282,6 +341,7 @@ class AIPlanner:
         system_prompt = _render_system_prompt(
             getattr(self, "_example_action_id", None),
             getattr(self, "_example_rationale", ""),
+            getattr(self, "_example_proposal", None),
         )
 
         raw_output: Optional[str] = None
@@ -291,7 +351,7 @@ class AIPlanner:
             try:
                 raw_output = self.chat_assistant.generate_raw(
                     prompt=prompt,
-                    max_new_tokens=512,
+                    max_new_tokens=3072,  # was 512 -- too small; verbose decisions truncated the JSON (run-abort root cause)
                     system_prompt=system_prompt,
                     # M1: nudge decoding toward a real, registered action_id in the
                     # "action_id" JSON field (advisory only -- see
@@ -306,9 +366,10 @@ class AIPlanner:
                 if attempt < self.MAX_JSON_RETRIES - 1:
                     # Add error context to prompt for retry
                     prompt += (
-                        f"\n\n[RETRY {attempt + 1}] Your previous response could not be "
-                        f"parsed as valid JSON: {last_error}. "
-                        f"Return ONLY the JSON object."
+                        f"\n\n[RETRY {attempt + 1}] Your previous response was truncated or could "
+                        f"not be parsed as valid JSON: {last_error}. Reply with ONLY one compact JSON "
+                        f"object and nothing else. Keep 'description' and 'rationale' to ONE short "
+                        f"sentence each -- do NOT narrate your reasoning inside the JSON."
                     )
 
         raise ValueError(
@@ -334,6 +395,7 @@ class AIPlanner:
         valid_decisions = (
             "propose_action", "propose_completion",
             "form_hypothesis", "record_validation", "record_finding",
+            "update_app_model",
         )
         if decision not in valid_decisions:
             raise ValueError(f"Invalid decision value: '{decision}'.")
@@ -355,21 +417,37 @@ class AIPlanner:
                 "affected_target", "evidence_summary",
             ),
         }
+        # Forgiving param extraction: small models frequently FLATTEN a verb's
+        # fields to the top level of the JSON instead of nesting them under
+        # "parameters" (observed abort loop: form_hypothesis with observation_ids/
+        # description/validation_test at top level -> "missing required parameters").
+        # Lift any non-proposal-level top-level key into parameters so a correctly
+        # reasoned proposal is never rejected over JSON SHAPE alone. base_agent /
+        # EvidenceStore still re-verify every id before anything is recorded.
+        _PROPOSAL_LEVEL = {"decision", "action_id", "target", "rationale", "confidence", "parameters"}
+        params = data.get("parameters")
+        params = dict(params) if isinstance(params, dict) else {}
+        for _k, _v in data.items():
+            if _k not in _PROPOSAL_LEVEL and _k not in params:
+                params[_k] = _v
+
         if decision in verb_required_params:
-            params = data.get("parameters") or {}
-            if not isinstance(params, dict):
-                raise ValueError(f"decision='{decision}' requires 'parameters' to be a JSON object.")
             missing = [k for k in verb_required_params[decision] if not params.get(k)]
             if missing:
                 raise ValueError(f"decision='{decision}' is missing required parameters: {missing}")
+
+        try:
+            _conf = float(data.get("confidence", 0.5))
+        except (TypeError, ValueError):
+            _conf = 0.5
 
         proposal = AIActionProposal(
             decision=decision,
             action_id=data.get("action_id"),
             target=data.get("target") or str(getattr(self.scope, "target", "local")),
-            parameters=data.get("parameters", {}),
+            parameters=params,
             rationale=str(data.get("rationale", ""))[:500],
-            confidence=float(data.get("confidence", 0.5)),
+            confidence=_conf,
         )
         return proposal
 
@@ -494,41 +572,202 @@ class AIPlanner:
         # required, and defaults). Previously only action_id + description were shown,
         # so the model had to guess parameter names — guesses that fail Pydantic's
         # extra="forbid" validation at Gate 1 and burn a step on every wrong guess.
+        # SUSPICION GATE (2026-11-16). Split the catalog into actions AVAILABLE now
+        # vs offensive tools LOCKED until a matching suspicion exists. "form a
+        # suspicion before firing the tool" is thereby enforced by the catalog, not
+        # left to the model. See core.action_contract.action_is_unlocked().
+        open_classes = self._open_vuln_classes(evidence_store)
+        any_suspicion = self._any_suspicion(evidence_store)
+
         catalog_items = []
-        # Track the first currently-available action (and why) so decide_next() can
-        # rebuild the OUTPUT FORMAT example from it instead of a frozen literal --
-        # see _render_system_prompt() for the bug this fixes.
+        locked_items = []
         self._example_action_id = None
+        self._example_proposal = None  # may be set to a state-aware example below
+        self._hyp_steer_note = ""
         self._example_rationale = (
             "No registered actions remain available; declare completion or advance "
             "the evidence chain instead."
         )
         for item in self.registry.to_prompt_schema():
-            if item["action_id"] in exhausted_action_ids:
+            aid = item["action_id"]
+            if aid in exhausted_action_ids:
                 continue  # retry budget exhausted -- don't even offer it as an option
+            defn = self.registry.get(aid)
             params_line = self._format_params_schema(
                 item.get("parameters_schema", {}),
                 item.get("required_params", []),
             )
+            unlocked = action_is_unlocked(defn, open_classes, any_suspicion) if defn is not None else True
+            if not unlocked:
+                vc = item.get("vuln_class")
+                if vc:
+                    why = (f'needs an open/confirmed hypothesis with vuln_class="{vc}" '
+                           f'-- form that suspicion first')
+                else:
+                    why = "needs at least one open hypothesis -- form any suspicion first"
+                locked_items.append(
+                    f"  - {aid} [{item['risk_level']} risk]: {item['description']}\n"
+                    f"      LOCKED: {why}"
+                )
+                continue
             catalog_items.append(
-                f"  - {item['action_id']} [{item['risk_level']} risk, "
+                f"  - {aid} [{item['risk_level']} risk, "
                 f"network={item['network_effect']}, state={item['state_change']}]: "
                 f"{item['description']}\n"
                 f"      parameters: {params_line}"
             )
             if self._example_action_id is None:
-                self._example_action_id = item["action_id"]
+                self._example_action_id = aid
                 self._example_rationale = (
-                    f"{item['action_id']} is the first REGISTERED ACTION still within "
-                    f"its retry budget ({item['description']}); nothing in OBSERVATIONS "
-                    f"or ACTIVE HYPOTHESES yet needs a different step."
+                    f"{aid} advances the assessment given the CURRENT observations and "
+                    f"hypotheses; re-derive the real action and parameters from state."
                 )
         action_catalog = (
             "\n".join(catalog_items) if catalog_items
-            else "  (none available -- every registered action has exhausted its retry "
-                 "budget. You MUST choose \"propose_completion\" or an evidence-chain "
-                 "decision (form_hypothesis / record_validation / record_finding) instead.)"
+            else "  (none available right now -- advance the evidence chain with "
+                 "form_hypothesis / record_validation / record_finding, or propose_completion.)"
         )
+        locked_tools = ("\n".join(locked_items) if locked_items
+                        else "  (none -- no gated tools remain, or all are already unlocked.)")
+
+        # Feature -> vuln-class bridge: turn coverage into concrete, testable leads.
+        suspicion_candidates, candidate_classes = self._suspicion_candidates(
+            evidence_store, open_classes, exhausted_action_ids
+        )
+
+        # If coverage surfaced a candidate but NO suspicion is open yet, show the
+        # model a form_hypothesis example (the right next move) instead of an action
+        # example -- this is what breaks the "walk the action list" failure mode and
+        # makes the loop reason feature -> hypothesis -> test.
+        # Steer the example to the RIGHT next move for the CURRENT state:
+        #   - a CONFIRMED hypothesis has no Finding yet -> record_finding NOW
+        #     (top priority -- see _confirmed_unpromoted_hypotheses's docstring:
+        #     this is cheap, already-earned progress; nothing else should
+        #     outrank cashing it in before the model wanders off);
+        #   - an open real suspicion exists  -> ACT on the strongest (do not form
+        #     yet another hypothesis: that was the observed form_hypothesis spam loop);
+        #   - candidates exist, no suspicion  -> form_hypothesis on the top candidate;
+        #   - otherwise                       -> the default action example set above.
+        confirmed_unpromoted = self._confirmed_unpromoted_hypotheses(evidence_store)
+        open_hyps = [
+            h for h in evidence_store.hypotheses.values()
+            if not getattr(h, "milestone", False) and h.status in ("open", "validating")
+        ]
+        if confirmed_unpromoted:
+            conf_rank = {"likely": 3, "plausible": 2, "speculative": 1}
+            strongest = sorted(
+                confirmed_unpromoted,
+                key=lambda h: (conf_rank.get(h.confidence, 0), h.created_at),
+                reverse=True,
+            )[0]
+            supporting = [
+                v for v in evidence_store.validations.values()
+                if v.hypothesis_id == strongest.hyp_id and v.verdict == "supports"
+            ]
+            evidence_hint = supporting[-1].reasoning[:150] if supporting else "<the supporting validation's reasoning>"
+            self._example_proposal = {
+                "decision": "record_finding",
+                "action_id": None,
+                "target": None,
+                "parameters": {
+                    "hypothesis_id": strongest.hyp_id,
+                    "title": "<short finding title>",
+                    "description": strongest.description[:150],
+                    "severity": "<info|low|medium|high|critical, matching the ACTUAL impact>",
+                    "affected_target": "<the exact endpoint/parameter this hypothesis names>",
+                    "evidence_summary": evidence_hint,
+                    "reproducible_steps": ["<step>"],
+                    "impact": "<practical impact>",
+                    "confidence": 0.8,
+                },
+                "rationale": f"Hypothesis {strongest.hyp_id} is already CONFIRMED by a supporting validation "
+                             f"-- promoting it to a Finding now instead of forming a new hypothesis.",
+                "confidence": 0.8,
+            }
+            self._hyp_steer_note = (
+                f"  >> Hypothesis {strongest.hyp_id} is CONFIRMED (a supporting validation was already "
+                f"recorded) but has NO Finding yet. Call record_finding on {strongest.hyp_id} NOW -- "
+                f"do NOT form a new hypothesis or re-test anything until this confirmed result is either "
+                f"recorded as a Finding or the framework tells you why it can't be."
+            )
+        elif open_hyps:
+            conf_rank = {"likely": 3, "plausible": 2, "speculative": 1}
+            strongest = sorted(
+                open_hyps,
+                key=lambda h: (conf_rank.get(h.confidence, 0), h.created_at),
+                reverse=True,
+            )[0]
+            tool = strongest.validation_test if strongest.validation_test in self.registry.actions else "self_script"
+            if tool in exhausted_action_ids:
+                tool = "self_script"
+            tool_dead = tool in exhausted_action_ids  # self_script itself is spent
+
+            if tool_dead:
+                # The hypothesis has already been probed and the probe budget is spent
+                # -> stop re-running the tool (the observed 10x reject->stall loop) and
+                # JUDGE the result instead: record_validation, then record_finding.
+                tested_obs = [o for o in evidence_store.observations.values()
+                              if o.action_id == strongest.validation_test]
+                obs_ref = (tested_obs[-1].obs_id if tested_obs else
+                           (list(evidence_store.observations.values())[-1].obs_id
+                            if evidence_store.observations else "<obs_id from OBSERVATIONS>"))
+                self._example_proposal = {
+                    "decision": "record_validation",
+                    "action_id": None,
+                    "target": None,
+                    "parameters": {
+                        "hypothesis_id": strongest.hyp_id,
+                        "observation_id": obs_ref,
+                        "verdict": "supports",
+                        "reasoning": "<what the probe's ACTUAL output shows -- supports/refutes the suspicion>",
+                    },
+                    "rationale": f"Probe budget for {strongest.hyp_id} is spent; judging the result it produced.",
+                    "confidence": 0.7,
+                }
+                self._hyp_steer_note = (
+                    f"  >> You have ALREADY tested hypothesis {strongest.hyp_id} and its probe budget is "
+                    f"spent -- do NOT propose {strongest.validation_test}/self_script for it again. "
+                    f"record_validation on {strongest.hyp_id} (verdict supports/refutes/inconclusive) "
+                    f"citing the probe's observation, then record_finding if it is supported."
+                )
+            else:
+                self._example_proposal = {
+                    "decision": "propose_action",
+                    "action_id": tool,
+                    "target": None,
+                    "parameters": ({
+                        "target": "<the EXACT in-scope endpoint your hypothesis names>",
+                        "hypothesis": "<one line: what this probe confirms or refutes>",
+                        "code": ("import requests\n"
+                                 "# 1) use the form's METHOD (POST form-encoded if POST; a GET query may be ignored).\n"
+                                 "# 2) send a CONTROL that SHOULD fail plus the real payload; confirm ONLY if the\n"
+                                 "#    control fails AND the payload returns a DISTINCTIVE positive you can quote.\n"
+                                 "# 3) print EXACTLY one JSON line: a vuln_signal object with keys confirmed (true/false),\n"
+                                 "#    vuln_class, severity, summary, and evidence (the quoted proof). No evidence = LEAD."),
+                    } if tool == "self_script" else {}),
+                    "rationale": f"Testing open hypothesis {strongest.hyp_id}: {strongest.description[:70]}",
+                    "confidence": 0.8,
+                }
+                self._hyp_steer_note = (
+                    f"  >> You have {len(open_hyps)} OPEN hypothesis(es). TEST the strongest "
+                    f"({strongest.hyp_id}) NOW with {tool}, against the EXACT parameter and endpoint it "
+                    f"names -- do NOT form another hypothesis until you have tested one."
+                )
+        elif candidate_classes and not any_suspicion:
+            self._example_proposal = {
+                "decision": "form_hypothesis",
+                "action_id": None,
+                "target": None,
+                "parameters": {
+                    "observation_ids": ["<obs_id copied from OBSERVATIONS that revealed the feature>"],
+                    "description": ("<the suspicion, naming the EXACT parameter + endpoint, e.g. "
+                                    "'stockApi on /product/stock takes a URL -> possible SSRF'>"),
+                    "validation_test": "self_script",
+                    "confidence": "plausible",
+                },
+                "rationale": "<which SUSPICION CANDIDATE you are acting on and why it is plausible>",
+                "confidence": 0.7,
+            }
 
         # Completion status
         completion_status = self._format_completion_status(
@@ -566,12 +805,25 @@ class AIPlanner:
             hist_lines.append(line)
         execution_hist_text = "\n".join(hist_lines) if hist_lines else "  (no history)"
 
-        # Active hypotheses
+        # Active hypotheses. A CONFIRMED hypothesis with no Finding yet stays
+        # listed here too (tagged, not silently dropped) -- otherwise its
+        # hyp_id vanishes from the model's view the instant it's confirmed,
+        # and record_finding's "copied verbatim from ACTIVE HYPOTHESES below"
+        # requirement becomes impossible to satisfy (diagnosed 2026-11-25 from
+        # a live run that confirmed 2 hypotheses and recorded 0 findings).
+        confirmed_unpromoted_ids = {h.hyp_id for h in confirmed_unpromoted}
         hyp_lines = []
         for hyp in evidence_store.hypotheses.values():
             if hyp.status in ("open", "validating"):
                 hyp_lines.append(f"  [{hyp.hyp_id}] {hyp.status}: {hyp.description[:100]}")
+            elif hyp.hyp_id in confirmed_unpromoted_ids:
+                hyp_lines.append(
+                    f"  [{hyp.hyp_id}] CONFIRMED (no Finding yet -- call record_finding on this "
+                    f"hyp_id): {hyp.description[:100]}"
+                )
         active_hypotheses = "\n".join(hyp_lines) if hyp_lines else "  (none)"
+        if getattr(self, "_hyp_steer_note", ""):
+            active_hypotheses = active_hypotheses + "\n" + self._hyp_steer_note
 
         # Confirmed findings
         findings_lines = []
@@ -592,6 +844,19 @@ class AIPlanner:
         # from the execution-history section, which is not an id the framework can verify.
         observations_text = self._format_observations(evidence_store)
 
+        # RAG/YAML technique knowledge for THIS state. Cross-agent: this runs for
+        # every agent via the shared planner. Fully fail-silent -- an empty string
+        # when the knowledge base isn't built/available, so the prompt and the
+        # planner's behavior are byte-identical to before when RAG is off.
+        technique_knowledge = self._retrieve_technique_knowledge(
+            evidence_store=evidence_store,
+            available_action_ids=[
+                item["action_id"] for item in self.registry.to_prompt_schema()
+                if item["action_id"] not in exhausted_action_ids
+            ],
+            candidate_classes=candidate_classes,
+        )
+
         return _PLANNER_USER_TEMPLATE.format(
             target=getattr(self.scope, "target", "local"),
             mode="automated",
@@ -609,16 +874,117 @@ class AIPlanner:
             history_count=len(recent_history),
             execution_history=execution_hist_text,
             discovered_facts=discovered_facts,
+            app_model_summary=getattr(evidence_store, "get_app_model_summary", lambda: "  (no app model)")(),
             observations=observations_text,
             active_hypotheses=active_hypotheses,
             finding_count=len(evidence_store.findings),
             findings_summary=findings_summary,
+            technique_knowledge=technique_knowledge,
+            locked_tools=locked_tools,
+            suspicion_candidates=suspicion_candidates,
+            campaign_judgment=render_campaign_judgment(),
         )
+
+    def _retrieve_technique_knowledge(
+        self,
+        evidence_store,
+        available_action_ids: List[str],
+        candidate_classes: Optional[set] = None,
+    ) -> str:
+        """
+        Build a retrieval query from the current assessment state and ask the
+        framework-level TechniqueAdvisor (RAG corpus + YAML scenario templates)
+        for relevant methods/payloads.
+
+        Cross-agent and fail-silent: the query is composed generically from
+        state (agent domain, target, discovered facts, recent findings,
+        available actions), so it works for any agent; and any failure or an
+        unbuilt index yields "(no matching technique knowledge retrieved ...)",
+        never an exception. See core/technique_advisor.py.
+        """
+        try:
+            from core.technique_advisor import get_technique_advisor
+
+            domain = getattr(self.registry, "agent_name", "") or ""
+            target = getattr(self.scope, "target", "") or ""
+
+            parts: List[str] = []
+            if domain:
+                parts.append(str(domain))
+            if target:
+                parts.append(f"target {target}")
+
+            # Hypothesis free text: semantic retrieval query from researcher's active reasoning
+            for hyp in getattr(evidence_store, "hypotheses", {}).values():
+                if getattr(hyp, "milestone", False):
+                    continue
+                if getattr(hyp, "status", "") in ("open", "validating"):
+                    desc = getattr(hyp, "description", "")
+                    if desc:
+                        parts.append(desc[:150])
+
+            # Candidate vuln classes observed in the current surface are the
+            # strongest retrieval signal -- pull the playbook for what we actually
+            # see (e.g. "ssrf", "idor"), not just the generic action list.
+            if candidate_classes:
+                parts.append("suspected: " + ", ".join(sorted(candidate_classes)))
+
+            # Most salient state: recent confirmed findings + discovered-fact keys.
+            recent_findings = list(evidence_store.findings.values())[-3:]
+            for fnd in recent_findings:
+                title = getattr(fnd, "title", "")
+                if title:
+                    parts.append(str(title))
+
+            # The available actions encode which vuln classes/techniques are in
+            # play right now -- a strong retrieval signal.
+            if available_action_ids:
+                parts.append("techniques: " + ", ".join(available_action_ids[:10]))
+
+            query = " ; ".join(p for p in parts if p).strip()
+            # Keep this tight: a concise hint, not a wall of prose. A long block
+            # here both eats the prompt budget and gives a small model text to
+            # get lost echoing (observed live 2026-11-16). 700 chars keeps the
+            # top methodology hit without crowding out the decision instruction.
+            advice = get_technique_advisor().advise(query, rag_k=2, yaml_k=1, max_chars=700)
+
+            # Deterministic payload pack (2026-11-25 4-repo harvest, asset 8) for
+            # the single strongest candidate class -- same "suspected:" signal
+            # already used above, so this never does its own retrieval/scoring,
+            # just a fixed-cost lookup keyed on the class the model already
+            # suspects. Advisory text only, same posture as campaign_judgment.py.
+            pack = ""
+            if candidate_classes:
+                try:
+                    from core.payload_pack import build_payload_pack
+                    pack = build_payload_pack(sorted(candidate_classes)[0], max_chars=900)
+                except Exception:
+                    pack = ""
+
+            combined = "\n".join(p for p in (advice, pack) if p)
+            return combined or "(no matching technique knowledge retrieved for this state)"
+        except Exception:
+            # Absolutely never let retrieval break planning.
+            return "(no matching technique knowledge retrieved for this state)"
 
     def _format_params_schema(self, schema: Dict[str, Any], required: List[str]) -> str:
         """
         Render a Pydantic-derived JSON schema's properties as a compact,
         model-readable parameter list: 'name:type (required)' or 'name:type=default'.
+
+        BUG FIX (2026-11-25, found live: a carefully-written field-level
+        Field(description=...) -- e.g. self_script's "code" field, which
+        teaches the model to recognize an XML-parser-error signature
+        (SAXParseException / "Entities are not allowed") and rewrite its
+        probe as raw XML instead of mislabeling the result as SQLi -- had NO
+        EFFECT on a live run, because this function only ever read `type`
+        and `default` off each property spec and silently dropped
+        `description` entirely. The guidance was written, present in
+        `defn.params_model.model_json_schema()`, and simply never reached the
+        model's prompt. This renders it now. This model's context window is
+        262144 tokens (see work.md), so the real constraint historically was
+        OUTPUT token budget, not input size -- field descriptions are shown
+        close to verbatim (capped generously, not aggressively truncated).
         """
         if not schema:
             return "(no parameters)"
@@ -626,14 +992,18 @@ class AIPlanner:
         for name, spec in schema.items():
             ptype = spec.get("type", "any")
             if name in required:
-                parts.append(f"{name}:{ptype} (required)")
+                header = f"{name}:{ptype} (required)"
             else:
                 default = spec.get("default")
-                if default is not None:
-                    parts.append(f"{name}:{ptype}={default!r}")
-                else:
-                    parts.append(f"{name}:{ptype} (optional)")
-        return ", ".join(parts)
+                header = f"{name}:{ptype}={default!r}" if default is not None else f"{name}:{ptype} (optional)"
+            desc = (spec.get("description") or "").strip()
+            if desc:
+                if len(desc) > 2200:
+                    desc = desc[:2197] + "..."
+                parts.append(f"{header} -- {desc}")
+            else:
+                parts.append(header)
+        return "\n          ".join(parts)
 
     def _format_observations(self, evidence_store, limit: int = 10) -> str:
         """
@@ -655,13 +1025,58 @@ class AIPlanner:
             )
         return "\n".join(lines)
 
-    def _format_discovered_facts(self, evidence_store) -> str:
+    # ------------------------------------------------------------------
+    # Suspicion gate + feature->vuln-class bridge (2026-11-16)
+    # ------------------------------------------------------------------
+    def _open_vuln_classes(self, evidence_store) -> set:
+        """vuln_class strings carried by open/validating/confirmed hypotheses."""
+        classes = set()
+        for hyp in evidence_store.hypotheses.values():
+            if getattr(hyp, "milestone", False):
+                continue  # benign phase marker, not a real suspicion
+            if hyp.status in ("open", "validating", "confirmed"):
+                vc = getattr(hyp, "vuln_class", None)
+                if vc:
+                    classes.add(vc)
+        return classes
+
+    def _any_suspicion(self, evidence_store) -> bool:
+        """True once at least one non-refuted hypothesis exists."""
+        for hyp in evidence_store.hypotheses.values():
+            if getattr(hyp, "milestone", False):
+                continue  # benign phase marker, not a real suspicion
+            if hyp.status in ("open", "validating", "confirmed"):
+                return True
+        return False
+
+    def _confirmed_unpromoted_hypotheses(self, evidence_store) -> List[Any]:
         """
-        Aggregate Observation.parsed_facts (C5) across the whole run into a compact,
-        model-readable summary: list-valued facts are unioned and deduplicated
-        (capped so one noisy observation can't blow out the prompt), dict-valued
-        facts are merged, everything else keeps the most recent value.
+        Hypotheses the model (or the framework floor) already marked
+        status="confirmed" via record_validation, but that have NOT yet been
+        turned into a Finding via record_finding.
+
+        FIX (2026-11-25, diagnosed from a live lab run: 2 hypotheses reached
+        'confirmed' status via record_validation, findings_count stayed 0,
+        and the run burned its remaining steps on form_hypothesis instead).
+        ROOT CAUSE: a hypothesis disappears from BOTH the "ACTIVE HYPOTHESES"
+        prompt section (which only lists open/validating) and the example-
+        steering ladder (which only looks at open_hyps) the instant it becomes
+        "confirmed" -- so the model loses all visibility into it and has no
+        nudge to call record_finding, even though that is the only decision
+        left that actually counts toward completion. This method restores
+        that visibility; see its two call sites below.
         """
+        promoted_hyp_ids = {f.hypothesis_id for f in evidence_store.findings.values()}
+        return [
+            hyp for hyp in evidence_store.hypotheses.values()
+            if not getattr(hyp, "milestone", False)
+            and hyp.status == "confirmed"
+            and hyp.hyp_id not in promoted_hyp_ids
+        ]
+
+    def _aggregate_facts(self, evidence_store) -> Dict[str, Any]:
+        """Union/merge Observation.parsed_facts across the whole run (shared by
+        _format_discovered_facts and _suspicion_candidates)."""
         aggregated: Dict[str, Any] = {}
         for obs in evidence_store.observations.values():
             facts = getattr(obs, "parsed_facts", None) or {}
@@ -680,6 +1095,248 @@ class AIPlanner:
                         aggregated[key] = value
                 else:
                     aggregated[key] = value
+        return aggregated
+
+    def _suspicion_candidates(self, evidence_store, open_classes, exhausted_action_ids=None):
+        """
+        THE FEATURE -> SUSPICION SURFACE. Scan every parameter / form input /
+        endpoint coverage has surfaced and flag the ones carrying EVIDENCE of being
+        interesting (an attacker-controllable value reaching the server, a reflected
+        input, a single-use resource on a state-changing endpoint). These surface
+        NEUTRALLY, ranked by how much evidence they carry -- NOT by vuln-class
+        identity. The reasoning step decides what each one means; a class label,
+        when attached, is only a retrieval hint, never a verdict.
+
+        Returns (formatted_text, candidate_classes:set).
+        """
+        from urllib.parse import urlsplit, parse_qsl
+
+        facts = self._aggregate_facts(evidence_store)
+
+        # --- gather (name, value, endpoint) across all surfaced inputs ---
+        pairs = []
+        param_method = {}   # param name -> HTTP method of the form it belongs to (e.g. "POST")
+        def add_pair(name, value, ep):
+            if name and isinstance(name, str):
+                pairs.append((name, value, ep))
+
+        for key in ("discovered_endpoints", "network_endpoints", "js_endpoints",
+                    "urls", "endpoints", "links"):
+            v = facts.get(key)
+            if isinstance(v, list):
+                for u in v:
+                    if not isinstance(u, str):
+                        continue
+                    try:
+                        parts = urlsplit(u)
+                        ep = parts.path or u
+                        for nm, val in parse_qsl(parts.query, keep_blank_values=True):
+                            add_pair(nm, val, ep)
+                    except Exception:
+                        continue
+        for key in ("parameters", "params", "discovered_params"):
+            v = facts.get(key)
+            if isinstance(v, list):
+                for nm in v:
+                    add_pair(nm, None, None)
+        forms = facts.get("forms")
+        if isinstance(forms, list):
+            for f in forms:
+                if isinstance(f, dict):
+                    ep = f.get("action")
+                    meth = str(f.get("method") or "get").upper()
+                    for nm in (f.get("inputs") or []):
+                        add_pair(nm, None, ep)
+                        param_method.setdefault(nm, meth)
+        reflected = set()
+        for rk in ("reflected_params", "reflections", "reflected"):
+            rv = facts.get(rk)
+            if isinstance(rv, list):
+                reflected.update(x for x in rv if isinstance(x, str))
+
+        if not pairs and not reflected:
+            return ("  (none yet -- run coverage first: endpoint_discovery, param_fuzz, "
+                    "browser_probe to surface parameters, forms, and endpoints.)", set())
+
+        # --- signature table (general, class-keyed) ---
+        SSRF = {"url","uri","link","src","source","dest","destination","redirect","redir",
+                "return","returnurl","next","continue","callback","cb","feed","host","hostname",
+                "site","domain","page","path","out","view","load","target","image","img","imageurl",
+                "avatar","data","ref","reference","api","stock","stockapi","fetch","proxy","remote",
+                "resource","u","to","go","document","server","endpoint","webhook","upstream","forward"}
+        REDIRECT = {"redirect","redir","return","returnurl","returnuri","next","continue","url",
+                    "dest","destination","goto","go","out","target","forward","rurl","r"}
+        IDOR = {"id","uid","userid","user","user_id","account","acct","accountid","order","orderid",
+                "order_id","invoice","invoiceid","doc","docid","document_id","pid","productid",
+                "product_id","itemid","number","no","num","key","record","recordid","row","customerid",
+                "customer","profile","profileid","groupid","group","fileid","objectid","oid","ticket",
+                "ticketid","msgid","messageid"}
+        SQLI = {"id","category","cat","search","q","query","filter","sort","order","orderby","name",
+                "user","username","product","productid","page","limit","offset","from","year","month",
+                "day","code","ref","group","select","where"}
+        LFI = {"file","filename","path","filepath","template","tpl","include","inc","page","doc",
+               "document","folder","dir","directory","download","load","lang","language","view",
+               "style","theme","pdf","report","log","conf","config","module","layout","content","locale"}
+        CMD = {"cmd","exec","command","run","ping","host","ip","query","q","search","jump","code",
+               "do","func","function","action","call","shell","system","process"}
+        RACE_LOGIC = {"coupon","code","promo","discount","voucher","gift","giftcard","cart",
+                      "checkout","order","quantity","qty","item","stock","balance","transfer",
+                      "amount","credit","points","vote","like","redeem","apply","claim","token",
+                      "ticket","withdraw","deposit","pay","payment"}
+
+        import re as _re
+        def urlish(v):
+            if not v: return False
+            vv = v.strip().lower()
+            return (vv.startswith(("http://","https://","//")) or "://" in vv
+                    or vv.startswith("/") or bool(_re.match(r"^[a-z0-9.-]+\.[a-z]{2,}(/|$|:)", vv)))
+        def numish(v):
+            if v is None: return False
+            vv = v.strip()
+            return bool(_re.fullmatch(r"\d+", vv)) or bool(_re.fullmatch(r"[0-9a-fA-F-]{8,}", vv))
+        def pathish(v):
+            if not v: return False
+            vv = v.strip()
+            return ("/" in vv) or ("\\" in vv) or (".." in vv) or bool(
+                _re.search(r"\.(php|txt|log|conf|ini|xml|json|pdf|html?|bak|yml|yaml|env)$", vv.lower()))
+        def hit(low, names): return any(k == low or k in low for k in names)
+
+        # Per-class playbooks: how to CONFIRM (with a control + a distinctive positive)
+        # and the common VARIANTS to try. The confirmation bar is the same for every
+        # class -- a distinctive positive you can quote as evidence, never "responses
+        # differ", a bare status code, or generic page text.
+        HINTS = {
+            "ssrf": ("PROVE the server fetched an internal target: use an unroutable CONTROL "
+                     "(http://127.0.0.1:1/) vs a live internal URL, and capture a DISTINCTIVE "
+                     "internal body (e.g. an admin page) as evidence. Variants: localhost/127.x; "
+                     "internal ranges 192.168.0.0/24, 10.0.0.0/8, 172.16/12 (often :8080); cloud "
+                     "metadata 169.254.169.254; filter bypasses (127.1, [::1], decimal IP, @ / # tricks). "
+                     "'another back-end system' => SCAN the internal subnet for the admin host."),
+            "open-redirect": ("PROVE a 3xx with a Location header to YOUR external host. Variants: "
+                              "//evil, https:evil, /\\evil, @evil, whitelisted-host.evil."),
+            "idor": ("PROVE you read ANOTHER principal's data: force an adjacent/other id and quote "
+                     "distinctive content that isn't yours. Same data for your own id is NOT proof. "
+                     "Variants: numeric increment, GUID swap, param pollution, method change."),
+            "sqli": ("PROVE it: a boolean pair must FLIP the result set (1=1 vs 1=2), OR a time "
+                     "payload adds a measurable delay, OR an error names the DB -- quote it. "
+                     "'Responses differ' is NOT proof. Variants: error / boolean-blind / time-blind / "
+                     "UNION; confirm depth with sqli_deep_scan."),
+            "lfi": ("PROVE file disclosure: ../../../../etc/passwd must return 'root:x:0:0' content "
+                    "(quote it). Variants: depth, URL/double-encoding, null byte, php://filter, absolute paths."),
+            "cmd-injection": ("PROVE execution: ;id / |id / $(id) returns 'uid=' output (quote it), OR "
+                              ";sleep 5 adds a delay. Variants: ; | && $() backticks newline."),
+            "xss": ("PROVE the payload reflects UNENCODED in its context (quote the reflected bytes); "
+                    "a canary returned HTML-encoded is NOT XSS. Variants: HTML body, attribute, JS "
+                    "string, href/URL, template context."),
+            "race-condition": ("PROVE timing window / invariant violation: send a sequential CONTROL "
+                               "(which properly enforces single-use or limit) vs a BURST of parallel concurrent "
+                               "requests using self_script (threading / concurrent.futures). Quote the multi-redemption "
+                               "or limit overrun as proof. Variants: simultaneous coupon redemption, balance overdraft, "
+                               "cart checkout race, double-spend."),
+            "business-logic": ("PROVE state invariant failure: submit unexpected sequencing, negative quantities, "
+                               "or bypass step validation. Compare against control."),
+        }
+        TOOL = {"ssrf":"self_script","open-redirect":"self_script","lfi":"self_script",
+                "cmd-injection":"self_script","idor":"idor_probe","sqli":"sqli_probe","xss":"xss_probe",
+                "race-condition":"self_script","business-logic":"self_script"}
+
+        # --- score ---
+        best = {}  # (cls,name) -> dict(weight, ep, cls, name)
+        # Strong URL/fetch-shaped names: a param whose NAME implies the server will
+        # fetch a URL is a high-confidence SSRF/redirect lead -- more specific than
+        # "a number might be IDOR". These outrank a bare numeric-id IDOR guess.
+        STRONG_SSRF = {"url", "uri", "link", "src", "dest", "destination", "redirect",
+                       "redir", "returnurl", "return", "next", "continue", "callback",
+                       "feed", "host", "site", "domain", "fetch", "proxy", "remote",
+                       "webhook", "upstream", "forward", "api", "stock", "stockapi",
+                       "imageurl", "resource", "endpoint", "load", "image", "img"}
+
+        def consider(name, val, ep):
+            low = name.lower()
+            out = []
+            # Weight by the EVIDENCE an observation carries, never by vuln-class
+            # identity: a shape we can SEE in the value (confirmed) outranks a bare
+            # name match (speculative). No class is privileged -- the reasoning step,
+            # not this table, decides what is worth pursuing.
+            CONFIRMED, NAMEONLY = 3, 2
+            if urlish(val):
+                out.append(("ssrf", CONFIRMED))          # value IS a URL -> server may fetch it
+            elif hit(low, SSRF) or any(tok == low or tok in low for tok in STRONG_SSRF):
+                out.append(("ssrf", NAMEONLY))           # name only -- speculative, not privileged
+            if hit(low, REDIRECT):
+                out.append(("open-redirect", CONFIRMED if urlish(val) else NAMEONLY))
+            if hit(low, RACE_LOGIC) or (ep and any(tok in ep.lower() for tok in ("coupon", "cart", "checkout", "discount", "redeem", "gift", "balance", "voucher"))):
+                _state_ep = param_method.get(name) in ("POST", "PUT", "PATCH", "DELETE")
+                out.append(("race-condition", CONFIRMED if _state_ep else NAMEONLY))
+            if hit(low, IDOR):
+                out.append(("idor", CONFIRMED if numish(val) else NAMEONLY))
+            if hit(low, LFI):
+                out.append(("lfi", CONFIRMED if pathish(val) else NAMEONLY))
+            if hit(low, SQLI) and val is not None:
+                out.append(("sqli", NAMEONLY))
+            if hit(low, CMD):
+                out.append(("cmd-injection", NAMEONLY))
+            if name in reflected:
+                out.append(("xss", CONFIRMED))           # reflection is observed evidence
+            # keep this param's top 2 classes only, to avoid spamming every class
+            out.sort(key=lambda t: t[1], reverse=True)
+            for cls, w in out[:2]:
+                k = (cls, name)
+                if k not in best or w > best[k]["weight"]:
+                    best[k] = {"weight": w, "ep": ep, "cls": cls, "name": name}
+
+        for name, val, ep in pairs:
+            consider(name, val, ep)
+        for name in reflected:
+            consider(name, None, None)
+
+        if not best:
+            return ("  (parameters/forms were seen but none match a known vuln signature; "
+                    "use param_fuzz / browser_probe for deeper coverage, or self_script for a "
+                    "bespoke test if you suspect something specific.)", set())
+
+        ranked = sorted(best.values(), key=lambda d: d["weight"], reverse=True)[:6]
+        lines = []
+        classes = set()
+        exhausted = exhausted_action_ids or set()
+        for d in ranked:
+            cls = d["cls"]; classes.add(cls)
+            on = f' on {d["ep"]}' if d.get("ep") else ""
+            method = param_method.get(d["name"])
+            method_hint = (f" Submit it with the {method} method (the form's method), "
+                           f"form-encoded if POST -- a GET query is ignored.") if method and method != "GET" else ""
+            tool = TOOL.get(cls, "self_script")
+            if tool in exhausted:
+                tool = "self_script"
+            mtag = method or "GET"
+            if cls in open_classes:
+                lines.append(
+                    f'  - param "{d["name"]}"{on} [{mtag}] -> {cls.upper()} (hypothesis already OPEN). '
+                    f'Test: {HINTS.get(cls, "")}{method_hint} '
+                    f'Act: run {tool} against this exact parameter+endpoint, or record_validation on the '
+                    f'open hypothesis. Do NOT form_hypothesis for this again.'
+                )
+            else:
+                _spec = "" if tool == "self_script" else f", or {tool} if that specialist clearly fits"
+                lines.append(
+                    f'  - param "{d["name"]}"{on} [{mtag}] -- attacker-controllable input reaching the server. '
+                    f'REASON about what the app DOES with it and which assumption it trusts; '
+                    f'a known angle worth checking ({cls}): {HINTS.get(cls, "")}{method_hint} '
+                    f'Act: form_hypothesis citing the obs_id that revealed it, describing the fragile '
+                    f'assumption in your OWN words (name a class only if you recognize one); '
+                    f'then test it (use self_script{_spec}).'
+                )
+        return ("\n".join(lines), classes)
+
+
+    def _format_discovered_facts(self, evidence_store) -> str:
+        """
+        Aggregate Observation.parsed_facts (C5) across the whole run into a compact,
+        model-readable summary: list-valued facts are unioned and deduplicated
+        (capped so one noisy observation can't blow out the prompt), dict-valued
+        facts are merged, everything else keeps the most recent value.
+        """
+        aggregated = self._aggregate_facts(evidence_store)
 
         if not aggregated:
             return "  (no structured facts extracted yet)"
@@ -706,11 +1363,41 @@ class AIPlanner:
 
         lines = []
         completed_action_ids = {
-            e.get("action_id") for e in execution_history if e.get("status") == "success"
-        }
+            e.get("action_id") for e in execution_history
+            if e.get("status") == "success" and e.get("action_id")
+        }  # action_id is None for evidence-verb steps (form_hypothesis/...); drop it so sorted() can't hit str<None
         required = getattr(criteria, "required_phases", [])
         lines.append(f"  Required phases: {required}")
         lines.append(f"  Successful actions so far: {sorted(completed_action_ids)}")
+
+        # FIX (live WSL smoke test, 2026-11-13): previously this only listed the
+        # required phase NAMES with no indication of which action_id would
+        # satisfy an unmet one. On the live run the model kept re-proposing
+        # suid_audit/find_writable (already satisfied) for all 8 steps and
+        # never once proposed flag_search, because nothing told it "flag_capture"
+        # specifically needed that action. phase_actions is an OPTIONAL mapping
+        # (phase name -> action_ids) a completion module can attach to its
+        # CompletionCriteria; when present, call out exactly which unmet phases
+        # still need action and which action_id(s) would satisfy each one. This
+        # stays fully agent-agnostic: if phase_actions isn't set, this section is
+        # skipped and behavior is unchanged from before.
+        phase_actions = getattr(criteria, "phase_actions", None)
+        if phase_actions:
+            unmet_phases = []
+            for phase in required:
+                candidates = phase_actions.get(phase, [])
+                phase_satisfied = any(a in completed_action_ids for a in candidates)
+                if not phase_satisfied:
+                    unmet_phases.append((phase, candidates))
+            if unmet_phases:
+                lines.append("  Unmet required phases -- propose one of the listed actions for each:")
+                for phase, candidates in unmet_phases:
+                    if candidates:
+                        lines.append(f"    - '{phase}': try {candidates}")
+                    else:
+                        lines.append(f"    - '{phase}': (no action in the catalog maps to this phase)")
+            else:
+                lines.append("  All required phases are satisfied by a successful action.")
 
         min_findings = getattr(criteria, "minimum_findings", 0)
         current_findings = len(evidence_store.findings)

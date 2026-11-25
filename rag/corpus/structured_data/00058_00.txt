@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you utilize credential dumps?
+
+CONTEXT:
+Context: Post-Compromise Credential Access. You have gained privileged access to a system and can extract stored credentials.
+Principle to Apply: 'Extract and leverage credential material from compromised systems to enable lateral movement and privilege escalation.'

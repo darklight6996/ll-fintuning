@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check failed login attempts.
+
+CONTEXT:
+Security monitoring review.
+
+METHOD / ANSWER:
+Command: `faillog -a`
+Explanation: Detects brute-force attempts.

@@ -1,0 +1,1 @@
+ist and checking if any are in the url. Web Server Config (and Requests / FTP?) To answer the question “how does requests fetch over FTP?” I went on a bit of an exploration. And this is the kind of exploration I recommend everyone do whenever they root a box - Try to understand as much of how the box works as you can. Here’s the video :

@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+You can start with WebSploit Labs. WebSploit Labs is a learning
+environment that I created for different cybersecurity ethical hacking, bug
+hunting, incident response, digital forensics, and threat hunting training
+sessions. WebSploit Labs includes several intentionally vulnerable
+applications running in Docker containers on top of Kali Linux or Parrot
+Security OS, several additional tools, and thousands of cybersecurity
+resources. WebSploit Labs has been used by many colleges and universities
+in different countries. It comes with over 500 distinct exercises.
+You can also use platforms like Hack The Box (https://hackthebox.com),
+TryHackMe (https://tryhackme.com), and Pentester Lab
+(https://pentesterlab.com), or participate in capture-the-flag (CTF) events.
+Being informed about the latest trends and advancements in the field is
+necessary. You can follow communities, forums, and social media channels
+that focus on cybersecurity.
+Choose the right bug bounty platform for you, not for your neighbor or for a
+YouTuber. Platforms like HackerOne, Bugcrowd, and Intigriti are popular
+choices where you can start your bug bounty jou

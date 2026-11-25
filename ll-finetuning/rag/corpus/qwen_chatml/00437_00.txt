@@ -1,0 +1,38 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Registry Admin ID:
+Admin Name: Domain Administrator
+Admin Organization: DNStination Inc.
+Admin Street: 3450 Sacramento Street, Suite 405
+Admin City: San Francisco
+Admin State/Province: CA
+Admin Postal Code: 94118
+Admin Country: US
+Admin Phone: +1.4155319335
+Admin Phone Ext:
+Admin Fax: +1.4155319336
+Admin Fax Ext:
+Admin Email: admin@dnstinations.com
+Registry Tech ID:
+Tech Name: Domain Administrator
+Tech Organization: DNStination Inc.
+Tech Street: 3450 Sacramento Street, Suite 405
+Tech City: San Francisco
+Tech State/Province: CA
+Tech Postal Code: 94118
+Tech Country: US
+Tech Phone: +1.4155319335
+Tech Phone Ext:
+Tech Fax: +1.4155319336
+Tech Fax Ext:
+Tech Email: admin@dnstinations.com
+Name Server: edns69.ultradns.org
+Name Server: edns69.ultradns.net

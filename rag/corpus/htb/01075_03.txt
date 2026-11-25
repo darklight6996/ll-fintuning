@@ -1,0 +1,1 @@
+n that executes their desired commands, pickle an instance of that class, and pass that string to canape. www-data Shell Outline Scripted up getting a shell: Creates

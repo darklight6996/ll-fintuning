@@ -1,0 +1,34 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+}
+strcpy(lines[*num_lines], buffer);
+(*num_lines)++;
+}
+}
+void save_file(char *filename, char lines[MAX_LINES][
+num_lines) {
+FILE *file = fopen(filename, "w");
+if (!file) {
+perror("Could not save file");
+return;
+}
+for (int i = 0; i < num_lines; i++) {
+fputs(lines[i], file);
+}
+fclose(file);
+printf("File saved successfully.\n");
+}
+int main() {
+printf("Welcome to the Text Editor!\n");
+char lines[MAX_LINES][MAX_LINE_LENGTH];
+int num_lines = 0;
+char filename[100];
+while (1) {
+display_menu();

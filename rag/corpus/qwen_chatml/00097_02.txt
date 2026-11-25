@@ -1,0 +1,5 @@
+c user agents, allowing only certain
+source IPs or other specific conditions to protect the infrastructure.
+Redirector Types
+The following are redirector types, beginning with basic methods to more
+sophisticated methods:

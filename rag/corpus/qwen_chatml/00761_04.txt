@@ -1,0 +1,12 @@
+= 0;
+while (v2 < v3.length) {
+Locale.strings[v3[v2]._resname] = v3[v2].source.__
+text;
++4+V2;
+}
+on_load\();
+selse }
+};
+if (_root.language != undefined) {
+Locale. DEFAULT_LANG = _ root.language;
+}

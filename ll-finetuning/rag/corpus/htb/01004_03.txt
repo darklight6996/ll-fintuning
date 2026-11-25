@@ -1,0 +1,1 @@
+s an extension that must be one of the directory names in extensions , and then performs one or more actions of bumping a version, creating a zip, and removing temp files. extension_utils.py holds two functions, validate_manifest and clean_temp_files . Exactly what they do isn’t super important. Python Cache Hijack PyCache Background When I

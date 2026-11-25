@@ -1,0 +1,33 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+22/tcp open ssh
+135/tcp open msrpc
+139/tcp open netbios-ssn
+445/tcp open microsoft-ds
+3306/tcp open mysql
+3389/tcp open ms-wbt-server
+MAC Address: 08:00:27:1B:A4:60 (Oracle VirtualBox vir
+Host script results:
+| smb-enum-groups:
+| Builtin\Administrators (RID: 544): Administrator,
+| Builtin\Users (RID: 545): vagrant, sshd, sshd_serv
+luke_skywalker, han_solo, artoo_detoo, c_three_pio, b
+anakin_skywalker, jarjar_binks, lando_calrissian, bob
+chewbacca, kylo_ren
+| Builtin\Guests (RID: 546): Guest, ben_kenobi
+| Builtin\Power Users (RID: 547): boba_fett
+| Builtin\Print Operators (RID: 550): jabba_hutt
+| Builtin\Backup Operators (RID: 551): leia_organa
+| Builtin\Replicator (RID: 552): chewbacca
+| Builtin\Remote Desktop Users (RID: 555): greedo
+| Builtin\Network Configuration Operators (RID: 556)
+| Builtin\Performance Monitor Users (RID: 558): land
+| Builtin\Performance Log Users (RID: 559): jarjar_b
+| Builtin\Distributed COM Users (RID: 562): artoo_de
+| Builtin\IIS_IUSRS (RID: 568): darth_vader
+| Builtin\Cryptographic Operators (RID: 569): han_so
+| Builtin\Event Log Readers (RID: 573): c_three_pio
+| Builtin\Certificate Service D

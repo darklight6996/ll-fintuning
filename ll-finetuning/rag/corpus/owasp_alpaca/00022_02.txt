@@ -1,0 +1,27 @@
+given URL parameter, by manipu-
+lating the form, or by counterfeiting sessions.
+Problems related to the authentication schema can be found at
+different stages of the software development life cycle (SDLC), like
+the design, development, and deployment phases:
+» In the design phase errors can include a wrong definition of
+application sections to be protected, the choice of not applying
+strong encryption protocols for securing the transmission of
+credentials, and many more.
+» In the development phase errors can include the incorrect
+implementation of input validation functionality or not following
+the security best practices for the specific language.
+« In the application deployment phase, there may be issues during
+the application setup (installation and configuration activities)
+due to alack in required technical skills or due to the lack of good
+documentation.
+How to Test
+Black Box testing
+There are several methods of bypassing the authentication sche-
+ma that is used by a web application:
+« Direct page request (forced browsing)
+» Parameter modification
+» Session ID prediction
+Direct page request
+If
+a web application implements access control only on the log in
+page, the authentica

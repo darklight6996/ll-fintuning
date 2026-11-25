@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How can you start an SMB session with the provided user credentials?
+
+CONTEXT:
+You have the username and password for the Olivia account.
+
+METHOD / ANSWER:
+Command: `netexec smb 10.10.11.42 -u olivia -p 'ichliebedich'`
+Explanation: This command authenticates against the SMB service using the provided user credentials.

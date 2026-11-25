@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Active Directory User Object Manipulation.
+**Core Principle**: With sufficient permissions (like those of a machine account with administrative context), you can directly alter user properties, including passwords, to establish new access methods.
+**Actionable Steps**:
+1.  **Password Reset via BloodyAD**: `bloodyAD -d tombwatcher.htb -u 'ANSIBLE_DEV$' -p '1c37d00093dc2a5f25176bf2d474afdc' --host dc01.tombwatcher.htb set password 'sam' '0xdf0xdf!'`
+    *   **Reasoning**: This command uses the compromised machine account's credentials to authenticate to the domain and directly set a new password for the 'sam' user account. This establishes a known credential for future use.
+**Guidance for Novel Context**: The tool (`bloodyAD`) is specific. The universal principle is: **use your current authenticated context to modify target user credentials.** If you had different tools (e.g., `net` from a shell, `Set-ADAccountPassword` from PowerShell), the command changes, but the goal (password reset) and required permissions remain the same.

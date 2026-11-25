@@ -1,0 +1,31 @@
+TECHNIQUE / QUESTION:
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+CRLs are used to verify whether a certificate has been
+revoked (that is, invalidated by the issuing authority.
+Now, let’s look at the digital certificate assigned to websploit.org shown in
+Example 9-11. This certificate shows the organization that issued the
+certificate (in this case Let’s Encrypt [letsencrypt.org]), the serial number,
+validity period, and public key information (including the algorithm and
+key size). Attackers can use this information to reveal any weak
+cryptographic configuration or implementation.
+Example 9-11 Obtaining the Certificate Information from a Website Using
+OpenSSL
+$ openssl s_client -connect websploit.org:443 -server
+2>/dev/null | openssl x509 -text -noout
+Certificate:
+Data:
+Version: 3 (0x2)
+Serial Number:
+03:c3:a1:8f:c6:d7:88:53:9c:0b:fe:e1:6e:58:5a
+Signature Algorithm: sha256WithRSAEncryption
+Issuer: C = US, O = Let's Encrypt, CN = R3
+Validity
+Not Before: Aug 15 22:14:30 2024 GMT
+Not After : Nov 13 22:14:29 2024 GMT

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you identify misconfigured role assignments?
+
+CONTEXT:
+Audit role assignments within Azure.
+
+METHOD / ANSWER:
+Command: `az role assignment list --output json`
+Purpose: Analyze for misconfigurations.

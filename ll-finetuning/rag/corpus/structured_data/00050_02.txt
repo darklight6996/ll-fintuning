@@ -1,0 +1,2 @@
+lating your privileges to domain admin.
+**Guidance for Novel Context**: The exact template name (`WebServer`) and CA (`fluffy-DC01-CA`) must be identified during enumeration. ESC16 is one of several ADCS vulnerabilities. Others include ESC1 (template allows enrollment for authentication, permits SAN specification), ESC2 (template allows any purpose), and ESC3 (template allows enrollment for certificate request agent). The principle remains: **identify templates with overly permissive settings that allow you to obtain a certificate for a more privileged identity.**

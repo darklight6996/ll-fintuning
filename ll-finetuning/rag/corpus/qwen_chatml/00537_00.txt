@@ -1,0 +1,33 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+will not be shown, you would have to be root to see
+Active Internet connections (servers and established)
+Proto Recv-Q Send-Q Local Address Foreign A
+PID/Program name
+tcp 0 0 0.0.0.0:9000 0.0.0.0:*
+tcp 0 0 0.0.0.0:9001 0.0.0.0:*
+tcp 0 0 0.0.0.0:9002 0.0.0.0:*
+tcp 0 0 0.0.0.0:3306 0.0.0.0:*
+tcp 0 0 0.0.0.0:139 0.0.0.0:*
+tcp 0 0 0.0.0.0:80 0.0.0.0:*
+tcp 0 0 0.0.0.0:8881 0.0.0.0:*
+tcp 0 0 0.0.0.0:8882 0.0.0.0:*
+tcp 0 0 0.0.0.0:8883 0.0.0.0:*
+tcp 0 0 0.0.0.0:8884 0.0.0.0:*
+<output omitted for brevity>
+Example 9-44 shows the details about the process and program name
+associated with the opened port.
+Example 9-44 Netstat Example with Root-Level Access
+omar@vulnhost-1 ~ % sudo netstat -tunap
+Active Internet connections (servers and established)
+Proto Recv-Q Send-Q Local Address Foreign Add
+PID/Program name
+tcp 0 0 0.0.0.0:9000 0.0.0.0:*

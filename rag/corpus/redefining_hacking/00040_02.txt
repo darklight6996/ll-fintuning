@@ -1,0 +1,6 @@
+measures are aligned with
+the realities of the threat landscape.
+Red teaming provides an opportunity for organizations to gain insight into
+how effectively they can detect, respond to, and recover from real-life cyber
+attacks. The emulation of adversarial attacks gives the security operations
+center (SOC) the ability to evaluate current detections and alerts. Creating

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check Kubernetes RBAC.
+
+CONTEXT:
+Cluster access review.
+
+METHOD / ANSWER:
+Command: `kubectl get rolebindings --all-namespaces`
+Explanation: Identifies access permissions.

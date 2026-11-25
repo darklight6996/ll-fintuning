@@ -1,0 +1,19 @@
+if __name__ == '__main__':
+    import sys
+    target = sys.argv[1] if len(sys.argv) > 1 else 'target.com'
+    result = classify_environment(target)
+    print(json.dumps(result, indent=2))
+```
+
+**Phase 6: Reporting Environment Context**
+- **Document in Findings**:
+  - Environment type tested
+  - Confidence level
+  - Limitations (e.g., "Testing performed in staging; production may have additional WAF rules")
+  - Data sensitivity implications
+  - Exploitability differences
+- **Risk Adjustment**:
+  - Development: Lower business impact, but may reveal code vulnerabilities
+  - Staging: High fidelity for technical vulnerabilities, lower for business logic
+  - Production: Highest risk, but testing constraints
+  - Sandbox/Honeypot: Findings may not reflect real environment

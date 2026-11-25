@@ -1,0 +1,19 @@
+server.exe`
+  - `C:\Program Files\Palo Alto Networks\Cortex`
+  - Network: `*.traps.paloaltonetworks.com`
+- **Trend Micro Apex One / Deep Security**:
+  - `ntrtscan.exe`, `tmlisten.exe`, `ds_agent.exe`
+  - `C:\Program Files\Trend Micro`
+  - Network: `*.trendmicro.com`
+- **Sophos Intercept X**:
+  - `SophosEndpoint.exe`, `SophosEDR.exe`
+  - `C:\Program Files\Sophos`
+  - Network: `*.sophos.com`
+- **Bitdefender GravityZone**:
+  - `bdagent.exe`, `epag.exe`
+  - `C:\Program Files\Bitdefender`
+  - Network: `*.bitdefender.com`
+- **Kaspersky Endpoint Security**:
+  - `avp.exe`, `kavfs.exe`
+  - `C:\Program Files\Kaspersky Lab`
+  - Network: `*.kaspersky.com`

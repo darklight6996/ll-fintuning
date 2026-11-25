@@ -1,0 +1,1 @@
+e and manage development certificates. fsi Start F# Interactive / execute F# scripts. sql-cache SQL Server cache command-line tools. user-secrets Manage development user secrets. watch Start a file watcher that runs a command when files change. Run 'dotnet [command] --help' for more information

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How can you validate existing access controls during the pentest?
+
+CONTEXT:
+You want to ensure that Role-Based Access Control (RBAC) is properly implemented.
+
+METHOD / ANSWER:
+Command: `getsebool -a | grep httpd`
+Explanation: This command checks SELinux boolean settings related to the web server, helping to assess whether they have been securely configured.

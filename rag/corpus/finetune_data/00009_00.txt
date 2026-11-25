@@ -1,0 +1,1 @@
+Assess access to critical resources like storage accounts and VMs.

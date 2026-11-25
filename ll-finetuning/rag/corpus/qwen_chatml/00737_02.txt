@@ -1,0 +1,37 @@
+is not well formed.
+» Double quote: “ - this character has the same meaning as sin-
+gle quote and it could be used if the attribute value is enclosed in
+Web Application Penetration Testing
+double quotes.
+<node attrib="$inputValue’/>
+So if:
+¢inputValue = foo”
+the substitution gives:
+<node attrib="foo""/>
+and the resulting XML document is invalid.
+» Angular parentheses: > and < - By adding an open or closed an-
+gular parenthesis in a user input like the following:
+Username = foo<
+the application will build a new node:
+<user>
+<username>foo<</username>
+<password>Un6R34kb!e</password>
+<userid>500</userid>
+<mail>s4tan@hell.com</mail>
+</user>
+but, because of the presence of the open ‘<’ the resulting XML
+document is invalid.
+» Comment tag: <!--/--> - This sequence of characters is inter-
+preted as the beginning/end of a comment. So by injecting one of
+them in Username parameter:
+Username = foo<!--
+the application will build a node like the following:
+<user>
+<username>foo<!--</username>
+<password>Un6R34kb!e</password>
+<userid>500</userid>
+<mail>s4tan@hell.com</mail>
+</user>
+which won't be a valid XML sequence.
+» Ampersand: & - The ampersand is used in the XML syntax to
+represent entities.

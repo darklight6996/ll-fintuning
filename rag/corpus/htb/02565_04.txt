@@ -1,0 +1,1 @@
+false , $ctx ); echo $r ; ?> The exploit is in the URL. The %AD is a Windows

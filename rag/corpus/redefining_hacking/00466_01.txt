@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+kubectl recon secretcorp.org
+» amass enum -d secretcorp.org
+: #Do nothing
+The Gorilla CLI provides several options. Some options may be incorrect.
+However, in many cases the output is impressively good. The highlighted
+line in Example 9-27 shows the correct option. It uses Amass to correctly
+enumerate the secretcorp.org domain.
+Note
+Chapter 11, “Automating a Bug Hunt and Leveraging the
+Power of AI,” covers many other examples on how to use
+generative AI to learn and automate different tasks in a bug
+hunt during a bug bounty engagement.
+Using Open-Interpreter to Interact with Recon Tools
+Open Interpreter is an open-source tool designed to enable developers to
+work with large language models (LLMs) on their local machines. It
+provides a natural language interface for interacting with a computer's
+general-purpose capabilities, such as running code, analyzing data,
+controlling web browsers, and creating or editing media files like photos
+and videos. Unlike hosted solutions like OpenAI's Code Interpreter, Open

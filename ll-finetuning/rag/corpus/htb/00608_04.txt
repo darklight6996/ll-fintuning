@@ -1,0 +1,1 @@
+quest at my webserver: 10.10.11.185 - - [17/Feb/2023 12:15:16] "GET /test HTTP/1.1" 200 - With the root shell, I can even see the results in

@@ -1,0 +1,14 @@
+issue at hand.
+The findings section should include:
+»
+Screenshots and command lines to indicate what tasks were
+undertaken during the execution of the test case
+« The affected item
+»
+A technical description of the issue and the affected function
+or object
+» Asection on resolving the issue
+« The severity rating [1], with vector notation if using CVSS
+The following is the list of controls that were tested during the
+assessment:
+210

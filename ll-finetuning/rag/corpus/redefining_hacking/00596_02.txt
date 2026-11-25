@@ -1,0 +1,4 @@
+soring may lead to false
+negatives, where the model fails to help detect a valid vulnerability in
+scanners, fuzzers, and other systems because it is avoiding potentially
+"dangerous" outputs.

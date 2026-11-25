@@ -1,0 +1,22 @@
+METHOD / ANSWER:
+testing are recommended to assess vulnerabilities and
+posture of the domain.
+The GitHub repository at https://github.com/santosomar/certspy_aiincludes
+another version of the script shown in Example 8-1 with an example of the
+results from that script.
+LangChain, Prompt Templates, LangSmith, LangGraph, and
+LlamaIndex
+LangChain, LangSmith, LangGraph, and LlamaIndex are powerful tools
+and frameworks designed to enhance the development and deployment of
+applications using large language models. Each of these tools serves a
+unique purpose in the ecosystem of AI-driven applications.
+LangChain
+LangChain is an open-source framework that simplifies the creation of
+applications powered by LLMs. It provides a comprehensive set of tools
+and components that enable developers to build, customize, and deploy
+applications that can interact with language models and external data
+sources. LangChain's core features include the interaction with language
+models to manage inputs and extract outputs. It allows the transformation
+and retrieval of data through queries and chains of multiple prompts, tasks,
+and other components to build complex AI-powered applications. It is used
+to orchestr

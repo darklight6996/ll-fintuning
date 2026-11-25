@@ -1,0 +1,1 @@
+e vulnerability is in the location /assets . That should have a trailing / . Without it, I can do what I did above.

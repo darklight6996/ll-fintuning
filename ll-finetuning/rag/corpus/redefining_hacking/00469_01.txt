@@ -1,0 +1,22 @@
+METHOD / ANSWER:
+Example 9-29 The “plan of action” created by Open Interpreter
+To perform passive reconnaissance using Amass on the
+follow these steps:
+1 Install Amass if it's not already installed.
+2 Run Amass to gather information about the domain.
+3 Analyze the output to gather insights
+4 Save the output and the analysis to a file called
+Let's start with the first step: checking if Amass is
+it if necessary.
+amass -version
+Amass is already installed (version 4.2.0). Now, I'll
+passive reconnaissance data for the domain secretcorp
+command.
+amass enum -passive -d secretcorp.org -o secretcorp_
+After Open Interpreter creates the plan of action and excutes the commands
+shown in Example 9-29, it performs the analysis of Amass’s output and
+saves that analysis to a file. The contents of the file created by Open
+Interpreter is shown in Example 9-30. This file is also available in my
+GitHub repository at https://github.com/The-Art-of-
+Hacking/h4cker/tree/master/ai_research/open-interpreter-examples.
+Example 9-30 The contents of the file created by Open Interpreter

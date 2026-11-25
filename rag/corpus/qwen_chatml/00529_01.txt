@@ -1,0 +1,30 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Example 9-42 shows an example of the output of a Nikto scan being run
+against the same host.
+Example 9-42 Sample Nikto Scan
+┌─[root@websploit]─[~]
+└──╼ #nikto -h 192.168.88.251
+- Nikto v2.1.6
+-----------------------------------------------------
++ Target IP: 192.168.88.251
++ Target Hostname: 192.168.88.251
++ Target Port: 80
+-----------------------------------------------------
++ Server: nginx/1.17.2
++ The anti-clickjacking X-Frame-Options header is not
++ The X-XSS-Protection header is not defined. This he
+agent to protect against some forms of XSS
++ The X-Content-Type-Options header is not set. This
+to render the content of the site in a different fash
++ No CGI Directories found (use '-C all' to force che
++ OSVDB-3092: /admin/: This might be interesting...
++ /admin/index.html: Admin login page/section found.
++ /wp-admin/: Admin login page/section found.
++ /wp-login/: Admin login page/section found.
++ 7916 requests: 0 error(s) and 7 item(s) reported on
++ End Time: 2024-06-22 11:57:59 (GMT-4) (15 s
+-----------------------------------------------------

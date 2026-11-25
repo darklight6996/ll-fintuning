@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you clear logs after exploitation?
+
+CONTEXT:
+You want to minimize detection by system administrators.
+
+METHOD / ANSWER:
+Command: `Clear logs`.
+Purpose: Remove traces of activities.

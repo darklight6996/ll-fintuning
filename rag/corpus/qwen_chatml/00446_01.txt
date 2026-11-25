@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Social Media Scraping
+Attackers can easily gather valuable information about their victims by
+scraping social media sites such as X (previously known as Twitter),
+LinkedIn, Facebook, Instagram, and others. People post too many things
+online. They publicly talk about their hobbies, what restaurants they visit,
+what they do for work, if they got a promotion, where they travel for
+business and pleasure, and much more.
+Often attackers use other information such as key contacts (company
+stakeholders) and their job responsibilities. Attackers can use all that
+information to perform different types of social engineering attacks
+(including spear phishing and whaling). You learned details about social
+engineering attacks in Chapter 5, “Social Engineering Attacks and Physical
+Assessments.”
+Attackers often leverage job listings in websites like Indeed, LinkedIn,
+Career Builder, and individual company websites to obtain information
+about what technologies each company is using (that is, the technology
+stack of the organization). Let’s say that the company is looking for a Cisco
+firewall administrator, a LangChain expert, and a Mong

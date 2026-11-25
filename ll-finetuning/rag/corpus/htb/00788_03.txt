@@ -1,0 +1,1 @@
+ract with the document. I can throw this code into tio.run . I don’t need the document statements as they are (there won’t be a document object to interact with), so I’ll add console.log statements to print out what those lines would have done: var _0x4b18 = [ " \ x76 \ x61 \ x6C \ x75 \ x65 " , " \ x75 \ x73 \ x65 \ x72 \ x5F \ x6C \ x6F \ x67 \

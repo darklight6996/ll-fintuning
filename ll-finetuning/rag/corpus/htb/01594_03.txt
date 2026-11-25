@@ -1,0 +1,1 @@
+e ([ "status" => "error" , "message" => "Unauthorized" ], 403 ); } } It checks that the x-api-key header in the request is set to a hard-coded value, “22892e36-1770-11ee-be56-0242ac120002”. Path Traversal Snyk identifies this as a case where “Unsanitized

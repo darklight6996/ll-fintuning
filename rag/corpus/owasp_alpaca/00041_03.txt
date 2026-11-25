@@ -1,0 +1,26 @@
+c/read_body.php?passed_
+id=46106&startMessage=1
+The final result of the above testing gives the tester three pos-
+sible situations:
+$1 - The application returns a error code/message
+$2 - The application does not return an error code/message, but
+it does not realize the requested operation
+$3 - The application does not return an error code/message and
+realizes the operation requested normally
+Situations $1 and S2 represent successful IMAP/SMTP injection.
+An attacker's aim is receiving the S1 response, as it is an indi-
+cator that the application is vulnerable to injection and further
+manipulation.
+Let's suppose that a user retrieves the email headers using the
+following HTTP request:
+http:/<webmail>/src/view_header.php?mailbox=INBOX&-
+passed_id=46105&passed_ent_id=0
+An attacker might modify the value of the parameter INBOX by
+injecting the character “ (%22 using URL encoding):
+http:/<webmail>/src/view_header.php?mailbox=INBOX-
+%22&passed_id=46105&passed_ent_id=0
+In this case, the application answer may be:
+ERROR: Bad or malformed request.
+Query: SELECT “INBOX””
+Server responded: Unexpected extra arguments to Select
+140

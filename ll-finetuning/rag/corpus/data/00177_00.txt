@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Review available SUID binaries for exploitation.
+
+CONTEXT:
+Assess the permissions of binaries related to Enlightenment.
+
+METHOD / ANSWER:
+Command: `find / -perm -4000 2>/dev/null`
+Purpose: Identify SUID binaries that could be leveraged for privilege escalation.

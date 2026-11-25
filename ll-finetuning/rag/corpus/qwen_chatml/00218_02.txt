@@ -1,0 +1,3 @@
+d
+pivoting through regular accounts, you may uncover ways to exploit
+systems without triggering PAM defenses directly. Familiarize yourself with

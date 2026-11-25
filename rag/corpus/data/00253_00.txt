@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check shell history settings.
+
+CONTEXT:
+Forensic readiness.
+
+METHOD / ANSWER:
+Command: `echo $HISTFILE`
+Explanation: Confirms command logging.

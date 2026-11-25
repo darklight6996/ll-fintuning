@@ -1,0 +1,1 @@
+tion: Bearer $token " {"error":"Invalid coordinates. Please provide numeric values for

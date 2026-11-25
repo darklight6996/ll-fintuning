@@ -9,6 +9,36 @@ determines whether required reconnaissance, enumeration, and finding thresholds 
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
+# Single source of truth for action_id -> phase, mirroring the pattern already
+# applied to agents/ctf/completion.py and agents/pentest/completion.py: one
+# module-level dict instead of a copy living inline inside verify_completion(),
+# plus a reverse mapping so AIPlanner._format_completion_status() can tell the
+# planner exactly which action_id(s) satisfy an unmet required phase (the same
+# planner-guidance gap fixed for CTF's flag_capture and pentest's phases).
+ACTION_TO_PHASE: Dict[str, str] = {
+    "subdomain_enum": "subdomain_enum",
+    "port_scan": "recon",
+    "endpoint_discovery": "endpoint_discovery",
+    "browser_probe": "endpoint_discovery",
+    "dir_brute": "endpoint_discovery",
+    "param_fuzz": "param_fuzzing",
+    "header_analysis": "recon",
+    "recon_scan": "recon",
+    "idor_probe": "vuln_validation",
+    "sqli_probe": "vuln_validation",
+    "sqli_deep_scan": "vuln_validation",
+    "nuclei_scan": "vuln_validation",
+    "dalfox_scan": "vuln_validation",
+    "http_probe": "vuln_validation",
+    "self_script": "vuln_validation",
+    "xss_probe": "vuln_validation",
+    "vuln_validation": "vuln_validation",
+}
+
+_PHASE_TO_ACTIONS: Dict[str, List[str]] = {}
+for _action_id, _phase in ACTION_TO_PHASE.items():
+    _PHASE_TO_ACTIONS.setdefault(_phase, []).append(_action_id)
+
 
 @dataclass
 class BugBountyCompletionCriteria:
@@ -16,6 +46,11 @@ class BugBountyCompletionCriteria:
     evidence_required_for_phases: List[str] = field(default_factory=list)
     minimum_findings: int = 1
     allow_unresolved_errors: bool = False
+    # Opt-in: reverse mapping (milestone phase name -> action_id(s) that satisfy
+    # it), consumed by AIPlanner._format_completion_status() via getattr() if
+    # present. Left as {} on any criteria instance that doesn't set it, which
+    # is a byte-identical no-op for callers that predate this field.
+    phase_actions: Dict[str, List[str]] = field(default_factory=dict)
 
 
 BUG_BOUNTY_COMPLETION = BugBountyCompletionCriteria(
@@ -23,6 +58,7 @@ BUG_BOUNTY_COMPLETION = BugBountyCompletionCriteria(
     evidence_required_for_phases=["recon", "endpoint_discovery"],
     minimum_findings=1,
     allow_unresolved_errors=False,
+    phase_actions=_PHASE_TO_ACTIONS,
 )
 
 
@@ -41,22 +77,9 @@ def verify_completion(
         if entry.get("status") == "success"
     }
 
-    action_to_phase = {
-        "subdomain_enum": "subdomain_enum",
-        "port_scan": "recon",
-        "endpoint_discovery": "endpoint_discovery",
-        "dir_brute": "endpoint_discovery",
-        "param_fuzz": "param_fuzzing",
-        "header_analysis": "recon",
-        "idor_probe": "vuln_validation",
-        "sqli_probe": "vuln_validation",
-        "xss_probe": "vuln_validation",
-        "vuln_validation": "vuln_validation",
-    }
-
     completed_phases = set()
     for action_id in completed_actions:
-        phase = action_to_phase.get(action_id)
+        phase = ACTION_TO_PHASE.get(action_id)
         if phase:
             completed_phases.add(phase)
 
@@ -67,12 +90,8 @@ def verify_completion(
                 f"Completed phases: {sorted(completed_phases)}"
             )
 
-    phase_to_action_ids = {}
-    for action_id, phase in action_to_phase.items():
-        phase_to_action_ids.setdefault(phase, []).append(action_id)
-
     for evidence_phase in criteria.evidence_required_for_phases:
-        phase_action_ids = phase_to_action_ids.get(evidence_phase, [])
+        phase_action_ids = _PHASE_TO_ACTIONS.get(evidence_phase, [])
         has_observation = any(
             obs.action_id in phase_action_ids
             for obs in evidence_store.observations.values()
@@ -83,7 +102,7 @@ def verify_completion(
                 f"in the EvidenceStore, but none found."
             )
 
-    confirmed_findings = len(evidence_store.findings)
+    confirmed_findings = evidence_store.proven_finding_count  # proven only -- leads/milestones don't count
     if confirmed_findings < criteria.minimum_findings:
         return False, (
             f"Minimum {criteria.minimum_findings} confirmed Finding(s) required, "
@@ -104,4 +123,3 @@ def verify_completion(
             )
 
     return True, "Completion criteria satisfied."
-

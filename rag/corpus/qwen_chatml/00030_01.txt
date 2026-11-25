@@ -1,0 +1,21 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+The objective for this red team engagement was to gain access to our
+artificial intelligence/machine learning (AI/ML) research division and
+attempt to taint training data, access proprietary information, and exfil
+private datasets. I knew it would be a bit more of a learning curve than a
+usual engagement, but I didn't know what I was in store for.
+“Taint training data?” I scoffed to myself when I first saw the objective.
+“That’s like trying to poison a unicorn’s dreams.” I figured it'd be another
+walk in the park—do a little phishing, find a vulnerability, exploit it, move
+laterally, game over. But, boy, was I wrong.
+I think my arrogance got the best of me when I thought this would be quick
+to set up. I had to get my head around AI vulnerabilities; a standard crash
+course on a topic was not going to cut it. This was not going to be a
+straightforward prompt injection, which wasn’t a strong suit either. I knew
+it would be related to data poisoning and attacking the integrity of the
+model. I immediately dug in and realized most training and research I was
+finding were geared toward prompt engineering. Now, I am used to jus

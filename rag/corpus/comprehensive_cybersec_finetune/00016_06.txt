@@ -1,0 +1,22 @@
+**Frequency Bands**:
+- **Low Frequency (LF)**: 125-134 kHz (HID Prox, Indala, EM4100)
+- **High Frequency (HF)**: 13.56 MHz (NFC, Mifare, iCLASS, DESFire, FeliCa)
+- **Ultra High Frequency (UHF)**: 860-960 MHz (EPC Gen2, ISO 18000-6C)
+- **Microwave**: 2.45 GHz, 5.8 GHz (active tags)
+
+**Hardware**:
+- **Proxmark3** (RDV4, Easy): LF/HF/UHF, standalone
+- **ChameleonMini / RevEng**: HF emulation
+- **Flipper Zero**: Sub-GHz, RFID, NFC, Infrared
+- **HackRF One / BladeRF / LimeSDR**: SDR (all frequencies)
+- **ACR122U / PN532**: NFC reader/writer
+- **iCopy / MTools**: Mifare cloning
+
+**LF (125 kHz) Testing**:
+- **EM4100 / EM4200**: Fixed code, no crypto
+  - `proxmark3> lf em4x read`
+  - Clone to T5577: `lf t55xx write -d <data>`
+- **HID Prox / Indala**: Proprietary encoding
+  - `lf hid read`, `lf indala read`
+  - Clone to T5577
+- **Tools**: `proxmark3`, `rfidler`, `flipper zero`

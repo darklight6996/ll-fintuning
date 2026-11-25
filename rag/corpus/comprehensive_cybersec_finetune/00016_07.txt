@@ -1,0 +1,26 @@
+**HF (13.56 MHz) Testing**:
+- **ISO 14443A (Mifare Classic)**:
+  - Crypto1 weaknesses
+  - `hf mf autopwn` (nested/hardnested)
+  - `hf mf nested` (known key → others)
+  - `hf mf hardnested` (no known key)
+  - `hf mf sim` (emulate tag)
+  - Magic cards (Gen1a/Gen2/Gen3) for UID rewriting
+- **Mifare Ultralight / NTAG21x**:
+  - No crypto, UID only
+  - `hf mfu read`, `hf mfu dump`
+  - Password auth (NTAG213/215/216): `hf mfu pwd`
+- **Mifare DESFire (EV1/EV2/EV3)**:
+  - AES/3DES/3K3DES
+  - `hf mfdes info`, `hf mfdes enum`
+  - Default keys (00...00, FF...FF)
+  - Side-channel (timing, power)
+- **iCLASS / SEOS**:
+  - `hf iclass read`, `hf iclass dump`
+  - Elite/SEOS: AES, harder
+- **NFC (ISO 18092 / NFC Forum)**:
+  - NDEF records
+  - `hf 14a read`, `hf 14a list`
+  - Tag types 1-5
+  - Peer-to-peer (P2P), Card Emulation, Reader/Writer
+- **Tools**: `proxmark3`, `nfc-tools` (`nfc-list`, `nfc-mfclassic`), `mfoc`, `mfcuk`, `flipper zero`

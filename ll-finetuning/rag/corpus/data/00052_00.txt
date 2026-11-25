@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you begin the exploitation of the Fluffy box?
+
+CONTEXT:
+You have the credentials for the user account j.fleischman with the password J0elTHEM4n1990!.
+
+METHOD / ANSWER:
+Command: `netexec smb dc01.fluffy.htb -u j.fleischman -p 'J0elTHEM4n1990!'`
+Explanation: This command authenticates against the SMB service on the target, establishing your session on the Domain Controller.

@@ -1,0 +1,1 @@
+nd that is the pointer that is used to read a byte, and then is incremented. The

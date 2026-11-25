@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+for fixing the issues can really cause conflicts. You don’t want someone
+chasing down findings in your report just to find out that they are false
+positives.
+Understanding the Types of Vulnerability Scans
+The type of vulnerability scan to use is usually driven by scan policy that is
+created in the automated vulnerability scanning tool. Each tool has many
+options available for scanning. You can often just choose to do a full scan
+that will operate all scanning options, although you might not be able to use
+every option (for instance, if you are scanning a production environment or
+a device that is prone to crashing when scanning occurs). In such situations,
+you must be careful to select only the scan options that are less likely to
+cause issues. The sections that follow take a closer look at the typical scan
+types.
+Unauthenticated Scans
+By default, vulnerability scanners do not use credentials to scan a target. If
+you provide only the IP address of the target and click Scan, the tool will
+begin enumerating the host from the perspective of an unauthenticated
+remote attacker. An unauthenticated scan shows only the network

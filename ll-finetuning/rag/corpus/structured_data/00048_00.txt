@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you obtain a shell access using the shadow credential?
+
+CONTEXT:
+Context: Gaining Interactive Access via Certificate. You have obtained a `.pfx` certificate file for the `winrm_svc` account via a Shadow Credential attack and have its corresponding NTLM hash (often output by Certipy).
+Principle to Apply: 'Use the credential material (certificate or derived hash) from the shadow credential attack to establish an interactive session.'

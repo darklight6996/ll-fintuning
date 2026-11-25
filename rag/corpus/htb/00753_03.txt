@@ -1,0 +1,1 @@
+ons.xml file, and prints all the decrpyted passwords it can find. root@kali# ./mRemoteNG-decrypt.py confCons.xml-orig [+] Found nodes: 2 Username: Administrator Password: thXLHM96BeKL0ER2 Username: L4mpje Password: bureaulampje This

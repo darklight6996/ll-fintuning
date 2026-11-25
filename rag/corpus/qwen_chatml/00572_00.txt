@@ -1,0 +1,27 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Chapter 11. Automating a Bug Hunt and
+Leveraging the Power of AI
+Chapter Objectives
+After reading this chapter and completing the exercises, you will be able to
+do the following:
+• Use traditional bug hunting methods
+• Employ AI-powered automation in bug hunting
+• Understand AI model training, fine-tuning, and retrieval-augmented
+generation (RAG)
+• Understand the challenges of using AI for bug bounty hunting
+In Chapter 8, “The Future of Red Teaming Beyond the AI Revolution,” you
+learned about the current state of AI in red teaming, examining AI-powered
+offensive tools and techniques, fine-tuned uncensored AI models, and the
+application of retrieval-augmented generation (RAG) for red teaming
+purposes.
+In this chapter, we will explore how to leverage AI for bug bounty hunting.
+You will learn about the methodologies and tools that can enhance your

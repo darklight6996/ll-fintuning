@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check login history.
+
+CONTEXT:
+Access monitoring.
+
+METHOD / ANSWER:
+Command: `last`
+Explanation: Reviews user login activity.

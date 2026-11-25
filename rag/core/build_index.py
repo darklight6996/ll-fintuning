@@ -12,8 +12,15 @@ import faiss
 # Resolve system paths
 CORE_DIR = os.path.dirname(os.path.abspath(__file__))
 RAG_DIR = os.path.dirname(CORE_DIR)
-if RAG_DIR not in sys.path:
-    sys.path.insert(0, RAG_DIR)
+# rag/core/__init__.py does `from rag.core.config import *`, which needs the
+# REPO ROOT (the dir CONTAINING the `rag` package) on sys.path, not rag/ itself
+# -- otherwise `python3 rag/core/build_index.py` dies with
+# `ModuleNotFoundError: No module named 'rag'`. abspath (not realpath) keeps the
+# repo's `rag` symlink/junction view, so dirname(RAG_DIR) is the real root.
+REPO_ROOT = os.path.dirname(RAG_DIR)
+for _p in (RAG_DIR, REPO_ROOT):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)  # REPO_ROOT ends up first -> canonical `core` + importable `rag`
 
 from core.config import (
     CORPUS_DIR,

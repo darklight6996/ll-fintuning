@@ -1,0 +1,34 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+You can use other basic DNS tools such as nslookup, host, and the Linux
+dig command to perform name resolution and obtain additional information
+about a domain. Example 9-3 shows how the dig tool is used to show the
+DNS resolution details for h4cker.org.
+Example 9-3 Using dig to Obtain Information About a Given Domain
+┌─[omar@websploit]─[~]
+└──╼ $dig h4cker.org
+; <<>> DiG 9.16.6-Debian <<>> h4cker.org
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 6
+;; flags: qr rd ra ad; QUERY: 1, ANSWER: 4, AUTHORITY
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;h4cker.org. IN A
+;; ANSWER SECTION:
+h4cker.org. 172 IN A 185.
+h4cker.org. 172 IN A 185.
+h4cker.org. 172 IN A 185.
+h4cker.org. 172 IN A 185.
+;; Query time: 72 msec
+;; SERVER: 208.67.222.222#53(208.67.222.222)
+;; MSG SIZE rcvd: 103

@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you identify role assignments?
+
+CONTEXT:
+Context: Azure RBAC Audit. You need to understand who has what permissions on Azure resources.
+Principle to Apply: 'Role-Based Access Control (RBAC) assignments define "who can do what where." Auditing these reveals over-permissioned identities.'

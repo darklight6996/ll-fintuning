@@ -1,0 +1,14 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 3-14 Customizing the Output Filename
+All generated payloads for the operation you are currently using on Mythic
+are available at https://127.0.0.1:7443/new/payloads, as illustrated in Figure
+3-15.

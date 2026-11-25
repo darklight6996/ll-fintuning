@@ -1,0 +1,1 @@
+as user "postgres". There are two tables: dripmail=# \ dt List of relations Schema | Name | Type |

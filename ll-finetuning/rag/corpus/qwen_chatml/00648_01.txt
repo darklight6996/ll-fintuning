@@ -1,0 +1,10 @@
+Context:
+Context: Exploit Execution. You have uploaded your malicious binary to a writable directory (`/dev/shm`) on the target.
+Principle to Apply: 'Control the execution environment to subvert security checks.'
+assistant
+**Assessment Phase**: Triggering the Exploit.
+**Core Principle**: To exploit a `PATH` hijack vulnerability, you must ensure the target process searches your directory before the legitimate system directory.
+**Actionable Steps**:
+1.  **Manipulate the PATH Variable**: `PATH=/dev/shm:$PATH /opt/netdata/usr/libexec/netdata/plugins.d/ndsudo nvme-list`
+    *   **Reasoning**: This command prepends `/dev/shm` (where your malicious `nvme-list` binary resides) to the `PATH` environment variable for the duration of the `ndsudo` command. When `ndsudo` tries to execute `nvme-list`, it finds your version first and executes it with root privileges.
+**Guidance for Novel Context**: The directory you prepend (`/dev/shm`) must be writable by you. Other common writable directories include `/tmp` or world-writable application directories. This technique is specific to `PATH` hijacking. For other SUID abuse primitives (e.g., writing to a file owned by root), the principle of 'environm

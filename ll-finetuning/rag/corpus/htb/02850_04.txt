@@ -1,0 +1,1 @@
+ID USERNAME: a.walker@infiltrator.htb 2024/09/03 16:32:26 > [+] VALID USERNAME: m.harris@infiltrator.htb 2024/09/03 16:32:26 > [+] VALID USERNAME: e.rodriguez@infiltrator.htb 2024/09/03 16:32:27 > [+] VALID USERNAME: l.clark@infiltrator.htb 2024/09/03 16:32:27 > Done! Tested 104 usernames (7 valid)

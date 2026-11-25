@@ -1,0 +1,60 @@
+li-
+cation by using disassemblers. In this case, various sections are
+scanned for signatures of vulnerable assembly fragments. This
+is often termed as reverse engineering and is a tedious process.
+As asimple example, consider the following technique employed
+while testing an executable “sample.exe” for stack overflows:
+#include<stdio.h>
+int main(int argc, char *argv[])
+{
+char buff[20];
+printf(“copying into buffer”);
+strcpy(buff,argv[1]);
+return O;
+}
+File sample.exe is launched in a debugger, in our case OllyDbg.
+til
+wala
++DoeeE
+= | Pe Td
+as
+iSprciex:
+a
+pee
+het
+na
+Gras
+ahd
+SAUL
+cnr eared
+ieee
+toa _
+i
+|
+Pimaeni bepay eect
+“iy f oer
+7
+toca
+|
+ia |) SS
+Since the application is expecting command line arguments, a
+large sequence of characters such as ‘A’, can be supplied in the
+argument field shown above.
+On opening the executable with the supplied arguments and
+continuing execution the following results are obtained.
+Registers (CFPU)
+=
+EAs SBRERRER
+ECs BBS2FB4
+EO 68414141
+EBs *FFODRHE
+ESF @612FEEC ASCII "ARARAARARAAARARAAAAAA-
+EBP 41414141
+ESI §6868A25
+EDT SBBBBERBE
+IF 41414141
+ES 8623 32bit @lFFFFFFFF)
+CS BE1B S2bit BLFFFFFFFF)
+SS BE2S S2bit BLFFFFFFFF)
+DS 823 S2bit BLFFFFFFFF)
+FS 8636

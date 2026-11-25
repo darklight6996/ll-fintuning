@@ -1,0 +1,1 @@
+-11ee-be56-0242ac120002" {"status":"success","message":["0xdflog-1701258393.log"]} I can read that log: oxdf@hacky$ curl http://webhooks-api-beta.cybermonday.htb/webhooks/ $UUID /logs -H "x-access-token: $ADMIN " -d '{"action": "read", "log_name": "0xdflog-1701258393.log"}' -H "Content-type: application/json" -H "x-api-key:

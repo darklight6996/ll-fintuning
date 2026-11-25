@@ -1,0 +1,8 @@
+rs when paths passed to “include” statements are
+not properly sanitized, in a blackbox testing approach, we should
+look for scripts which take filenames as parameters.
+Consider the following example:
+http:/vulnerable_host/preview.php?file=example.html
+This looks as a perfect place to try for LFI. If an attacker is lucky
+enough, and instead of selecting the appropriate page from the
+142

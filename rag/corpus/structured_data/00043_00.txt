@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you initiate the Responder tool to capture NTLM hashes?
+
+CONTEXT:
+Context: Credential Interception Setup. You have triggered or anticipate an authentication attempt (e.g., via a malicious file, LLMNR poisoning) to your IP address.
+Principle to Apply: 'Listen on network interfaces to capture and respond to name resolution and authentication protocols, harvesting hashes.'

@@ -1,0 +1,5 @@
+t results. For instance,
+let's say you want to summarize cybersecurity specific
+documentation, MMR will help the system's summary to
+cover diverse elements of the content rather than focusing
+repeatedly on a single topic. In search results, it avoids

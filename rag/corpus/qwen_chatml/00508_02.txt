@@ -1,0 +1,3 @@
+protocol,
+which uses TCP port 445. Figure 9-5 shows how a typical SMB
+implementation works.

@@ -1,0 +1,14 @@
+# PortSwigger batch lab list -- one lab per line:   <url> | <name> | <expected_class>
+# Open each lab in your browser first (fresh instance), paste its URL here, then:
+#   python3 run_portswigger_batch.py --file labs.txt --max-steps 30
+# Lines starting with '#' and blank lines are ignored. <name>/<expected_class> are
+# for the summary only -- the agent is NOT told the answer.
+#
+# Spread across vuln classes to test the GENERAL brain (replace the hashes):
+#
+# https://REPLACE.web-security-academy.net/ | Basic SSRF against the local server | ssrf
+# https://REPLACE.web-security-academy.net/ | SQL injection UNION, retrieving data | sqli
+# https://REPLACE.web-security-academy.net/ | Reflected XSS into HTML context | xss
+# https://REPLACE.web-security-academy.net/ | IDOR / access control on account page | idor
+# https://REPLACE.web-security-academy.net/ | File path traversal, simple case | lfi
+# https://REPLACE.web-security-academy.net/ | Open redirection in parameter | open-redirect

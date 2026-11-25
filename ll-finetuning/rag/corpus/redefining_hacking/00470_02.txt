@@ -1,0 +1,3 @@
+DN) --> aaaa_record
+(IPAddress)
+ns-cloud-b4.googledomains.com (FQDN) --> a_record -->

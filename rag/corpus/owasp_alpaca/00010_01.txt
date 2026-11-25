@@ -1,0 +1,41 @@
+METHOD / ANSWER:
+Phase 5: Maintenance and Operations
+Phase 5.1: Conduct Operational Management Reviews
+There needs to be a process in place which details how the oper-
+ational side of both the application and infrastructure is managed.
+Phase 5.2: Conduct Periodic Health Checks
+Monthly or quarterly health checks should be performed on both
+the application and infrastructure to ensure no new security risks
+have been introduced and that the level of security is still intact.
+The OWASP Testing Framework
+Phase 5.3: Ensure Change Verification
+After every change has been approved and tested in the QA envi-
+ronment and deployed into the production environment, it is vital
+that the change is checked to ensure that the level of security has
+not been affected by the change. This should be integrated into the
+change management process.
+A Typical SDLC Testing Workflow
+The following figure shows a typical SDLC Testing Workflow.
+OWASP TESTING FRAMEWORK WORK FLOW
+Before
+Review SDLC
+Development
+Process
+Metrics
+V
+Criteria
+Measurement
+Traceability
+Standards
+Policy Review
+Review
+Requirements || Design and
+Create /
+Create /
+Definition
+Review
+Architecture
+Review UML || Review Threat
+and Design
+Review
+mo

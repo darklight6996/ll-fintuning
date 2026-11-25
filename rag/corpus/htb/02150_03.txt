@@ -1,0 +1,1 @@
+:/ $ su :/ # id uid=0(root) gid=0(root) groups=0(root) context=u:r:su:s0 I’ll run find to locate the flag (as there’s no /root ) in /data : :/ # find / -name root.txt 2>/dev/null /data/root.txt :/ # cat /data/root.txt f04fc82b************************

@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+performed internally and externally. When it is performed externally, you
+typically want to limit the IP addresses you are scanning to just the ones
+that are part of the scope of the test. Doing so reduces the chance of
+inadvertently scanning an IP address that you are not authorized to test.
+When performing an internal host enumeration, you typically scan the full
+subnet or subnets of IP addresses being used by the target. Host
+enumeration is usually performed using a tool such as Nmap or Masscan;
+however, vulnerability scanners also perform this task as part of their
+automated testing. In earlier versions of Nmap, the -sn option was -sP. For
+additional information about the Nmap host discovery capabilities, visit
+https://nmap.org/book/man-host-discovery.html.
+User Enumeration
+Gathering a valid list of users is the first step in cracking a set of
+credentials. When you have the username, you can then begin brute-force
+attempts to get the account password. You perform user enumeration when
+you have gained access to the internal network. On a Windows network,
+you can do this by manipulating the Server Message Block (SMB) protocol,
+which uses TCP port 445. Figure 9-5

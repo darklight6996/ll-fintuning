@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Map the attack surface.
+
+CONTEXT:
+Identify entry and exit points of potential attacks.
+
+METHOD / ANSWER:
+Command: Create a comprehensive map of services connected and exposed.
+Purpose: Visual tool for assessing potential threats.

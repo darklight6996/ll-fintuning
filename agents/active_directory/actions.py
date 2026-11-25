@@ -249,15 +249,38 @@ AD_REPORT = ActionDefinition(
 def build_ad_registry() -> ActionRegistry:
     """Build and return the ActionRegistry for ActiveDirectoryAgent."""
     registry = ActionRegistry()
-    registry.register(DC_DISCOVERY)
-    registry.register(AD_ENUM)
-    registry.register(KERBEROAST)
-    registry.register(ASREP_ROAST)
-    registry.register(DCSYNC_AUDIT)
-    registry.register(ACL_AUDIT)
-    registry.register(TRUST_AUDIT)
-    registry.register(GPO_AUDIT)
-    registry.register(TIER0_IMPACT)
-    registry.register(AD_REPORT)
+    from agents.active_directory.command_builders import (
+        build_acl_audit,
+        build_ad_enum,
+        build_ad_report,
+        build_asrep_roast,
+        build_dc_discovery,
+        build_dcsync_audit,
+        build_gpo_audit,
+        build_kerberoast,
+        build_tier0_impact,
+        build_trust_audit,
+    )
+
+    registry.register(DC_DISCOVERY, build_dc_discovery)
+    registry.register(AD_ENUM, build_ad_enum)
+    registry.register(KERBEROAST, build_kerberoast)
+    registry.register(ASREP_ROAST, build_asrep_roast)
+    registry.register(DCSYNC_AUDIT, build_dcsync_audit)
+    registry.register(ACL_AUDIT, build_acl_audit)
+    registry.register(TRUST_AUDIT, build_trust_audit)
+    registry.register(GPO_AUDIT, build_gpo_audit)
+    registry.register(TIER0_IMPACT, build_tier0_impact)
+    registry.register(AD_REPORT, build_ad_report)
+    # Framework-level shared primitives (cross-agent): HTTP primitive,
+    # headless-browser coverage, and opt-in self-scripting -- the same
+    # capabilities every agent gets, wired identically.
+    from agents.common.http_primitive import HTTP_PROBE, build_http_probe
+    registry.register(HTTP_PROBE, build_http_probe)
+    from agents.common.browser_primitive import BROWSER_PROBE, build_browser_probe
+    registry.register(BROWSER_PROBE, build_browser_probe)
+    from agents.common.self_scripting import SELF_SCRIPT, build_self_script, self_scripting_enabled
+    if self_scripting_enabled():
+        registry.register(SELF_SCRIPT, build_self_script)
     return registry
 

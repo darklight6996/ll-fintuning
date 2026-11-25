@@ -1,0 +1,3 @@
+window. Example 9-18 shows the command and the initial menu that
+Recon-ng starts with.
+Example 9-18 Starting Recon-ng

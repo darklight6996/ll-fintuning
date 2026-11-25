@@ -1,0 +1,1 @@
+ft Windows [Version 6.0.6002] Copyright (c) 2006 Microsoft Corporation. All rights reserved. C:\nginx> whoami piedpiper\nelson I can

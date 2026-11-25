@@ -1,0 +1,26 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+11
+Testing Guide Introduction
+vide enough time for patch installation, since the time between a vul-
+nerability being uncovered and an automated attack against it being
+developed and released is decreasing every year.
+There are several incorrect assumptions in the patch-and-penetrate
+model. Many users believe that patches interfere with normal op-
+erations and might break existing applications. It is also incorrect to
+assume that all users are aware of newly released patches. Conse-
+quently not all users of a product will apply patches, either because
+they think patching may interfere with how the software works or be-
+Vulerability is know
+to the vendor
+phases may change depending on the SDLC model used by an orga-
+nization, each conceptual phase of the archetype SDLC will be used to
+develop the application (i.e., define, design, develop, deploy, maintain).
+Each phase has security considerations that should become part of
+the existing process, to ensure a cost-effective and comprehensive
+security program.
+There are several secure SDLC frameworks that exist that provide
+both descriptive and prescriptive advice. Whether a

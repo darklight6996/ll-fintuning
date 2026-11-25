@@ -1,0 +1,14 @@
+TECHNIQUE / QUESTION:
+How do you look for configuration files?
+
+CONTEXT:
+Context: Web Application Post-Compromise. You have file read access on a web server.
+Principle to Apply: 'Search for configuration files as they often contain credentials, API keys, or sensitive application settings.'
+
+METHOD / ANSWER:
+**Assessment Phase**: Configuration File Discovery.
+**Core Principle**: Applications store connection strings, secrets, and settings in configuration files that are often accessible or poorly protected.
+**Actionable Steps**:
+1.  **Retrieve Web Config**: `curl http://<target>/<path_to_config>`
+    *   **Reasoning**: Common configuration files like `web.config`, `.env`, `config.php`, or `application.properties` may contain database credentials, API keys, or other secrets in plaintext or easily reversible formats.
+**Guidance for Novel Context**: The exact path varies by framework. Use directory traversal (`../../../`), known default locations, or fuzzing to discover files. Also search file systems with `grep -r "password" /var/www/ 2>/dev/null` when you have shell access.

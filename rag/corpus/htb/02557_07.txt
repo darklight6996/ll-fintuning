@@ -1,0 +1,1 @@
+d class="e">Compression </td><td class="v">supported </td></tr> <tr><td class="e">core

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify log rotation.
+
+CONTEXT:
+Log retention control.
+
+METHOD / ANSWER:
+Command: `cat /etc/logrotate.conf`
+Explanation: Confirms logs are rotated and retained.

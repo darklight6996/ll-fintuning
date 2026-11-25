@@ -1,0 +1,39 @@
+**Phase 2: WAF (Web Application Firewall) Detection & Fingerprinting**
+
+**WAF Presence Detection**:
+- **Automated Detection**:
+  ```bash
+  # wafw00f - comprehensive WAF fingerprinting
+  wafw00f https://target.com
+  
+  # Nmap WAF scripts
+  nmap --script http-waf-detect,http-waf-fingerprint -p 80,443 target.com
+  
+  # Nuclei WAF templates
+  nuclei -t technologies/waf/ -u https://target.com
+  ```
+- **Behavioral Detection**:
+  ```bash
+  # Send malicious payloads, observe blocking
+  curl "https://target.com/?id=1' UNION SELECT 1,2,3--"
+  curl "https://target.com/?q=<script>alert(1)</script>"
+  curl "https://target.com/?file=../../etc/passwd"
+  curl -X POST -d "<script>alert(1)</script>" https://target.com/api
+  
+  # Observe:
+  # - HTTP 403/406/501 with WAF error page
+  # - Connection reset (RST)
+  # - Challenge page (CAPTCHA, JS challenge)
+  # - Request blocked, logged
+  ```
+- **Header Analysis**:
+  ```bash
+  curl -I https://target.com
+  # Look for:
+  # Server: cloudflare, awselb/2.0, Azure-Application-Gateway
+  # X-Powered-By: Mod_Security
+  # X-WAF: Barracuda, F5, Imperva
+  # CF-RAY: Cloudflare
+  # X-Azure-Ref: Azure Front Door
+  # X-Amz-Cf-Id: CloudFront
+  ```

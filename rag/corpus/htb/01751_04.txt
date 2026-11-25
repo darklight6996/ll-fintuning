@@ -1,0 +1,1 @@
+functions: The Main function calls the anti-debug functions, prints the message, and exits: // ConsoleApp2.Program // Token: 0x06000001 RID: 1 RVA: 0x00002050 File Offset: 0x00000250 private static void Main ( string []

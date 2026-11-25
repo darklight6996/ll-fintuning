@@ -1,0 +1,4 @@
+.003)**: `SharpChrome`, `LaZagne`
+- **Unsecured Credentials (T1552)**:
+  - Files (T1552.001), Registry (T1552.002), Bash History (T1552.003)
+  - Private Keys (T1552.004), Cloud Instance Metadata (T1552.005)

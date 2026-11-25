@@ -1,0 +1,25 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+lures edit <id> og_des <title>
+sets opengraph description that will be shown in l
+lures edit <id> og_image <title>
+sets opengraph image url that will be shown in lin
+lures edit <id> og_url <title>
+sets opengraph url that will be shown in link prev
+To start your phish, leverage the options in Example 5-11 inside the
+Evilginx window.
+Example 5-11 Configuring the Evilginx Server
+: config domain yourdomain.com
+: config ip XX.XX.XX.XXX
+: config redirect_url https://google.com
+: phishlets hostname o365 yourdomain.com
+: phishlets enable xyz_phishlet
+: lures create xyz_phishlet

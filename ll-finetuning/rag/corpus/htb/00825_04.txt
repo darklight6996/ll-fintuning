@@ -1,0 +1,1 @@
+3268/tcp open ldap Microsoft Windows Active Directory LDAP (Domain: blazorized.htb0., Site: Default-First-Site-Name) 3269/tcp open tcpwrapped 5985/tcp open http Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP) |_http-server-header: Microsoft-HTTPAPI/2.0 |_http-title: Not Found 9389/tcp open mc-nmf .NET Message Framing Service Info: Host: DC1; OS:

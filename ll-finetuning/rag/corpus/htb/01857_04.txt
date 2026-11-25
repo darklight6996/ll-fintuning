@@ -1,0 +1,1 @@
+rce (like hashcat ). I used this technique on the Insane

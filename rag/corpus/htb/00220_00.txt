@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Explain the purpose and usage of the code/command in the following text: (Context: Writeup from Buffer Overflow In Htb Smasher Hacks Stuff)
+
+CONTEXT:
+Source: Buffer Overflow In Htb Smasher Hacks Stuff
+Section: Writeup

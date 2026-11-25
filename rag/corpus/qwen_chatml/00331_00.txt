@@ -1,0 +1,34 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+except Exception as e:
+print(f"Error retrieving certificate info: {e}"
+return None
+def resolve_dns(hostname):
+try:
+return socket.gethostbyname(hostname)
+except socket.gaierror:
+return None
+def get_whois_info(ip):
+try:
+obj = IPWhois(ip)
+results = obj.lookup_rdap(depth=1)
+org = results.get('network', {}).get('name')
+cidr = results.get('network', {}).get('cidr')
+return org, cidr
+except Exception:
+return None, None
+def analyze_hostnames(cert_info):
+additional_info = []
+for hostname in cert_info:
+ip = resolve_dns(hostname)
+if ip:
+org, cidr = get_whois_info(ip)
+additional_info.append(f"Hostname: {hostname

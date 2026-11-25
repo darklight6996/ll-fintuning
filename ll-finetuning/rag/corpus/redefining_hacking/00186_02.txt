@@ -1,0 +1,3 @@
+is a key objective for many attackers. Red
+teamers use these techniques to test the effectiveness of endpoint protection,
+patch management, and other security controls designed to prevent or detect

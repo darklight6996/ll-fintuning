@@ -1,0 +1,18 @@
+**Phase 11: Collection (TA0009)**
+- **Data from Local System (T1005)**: `SharpDrive`, `LaZagne`, `Seatbelt`
+- **Data from Network Shared Drive (T1039)**: `SharpShare`, `SMBMap`
+- **Data from Information Repositories (T1213)**:
+  - SharePoint (T1213.002), Confluence (T1213.003), Code Repos (T1213.004)
+- **Email Collection (T1114)**:
+  - Local Email Collection (T1114.001): `Outlook`, `Thunderbird`
+  - Remote Email Collection (T1114.002): `EWS`, `IMAP`, `MAPI`, `Graph API`
+- **Screen Capture (T1113)**: `SharpShooter`, `ScreenCapture`
+- **Keylogging (T1056.001)**: `SharpHook`, `LogKeys`
+- **Clipboard Data (T1115)**: `Get-Clipboard`, `SharpClipboard`
+- **Data Staged (T1074)**:
+  - Local Data Staging (T1074.001)
+  - Remote Data Staging (T1074.002)
+- **Archive Collected Data (T1560)**:
+  - Archive via Utility (T1560.001): `7z`, `tar`, `gzip`
+  - Archive via Library (T1560.002): `SharpCompress`
+- **Automated Collection (T1119)**: `Seatbelt`, `BloodHound`, `SharpHound`

@@ -1,0 +1,5 @@
+trolled scope, red teaming
+adopts a broader, adversarial approach to assess an organization’s overall
+resilience, including people, processes, and technology.
+We then discussed the importance of red teaming in identifying critical
+vulnerabilities, challenging security assumptions, and simulating industry-

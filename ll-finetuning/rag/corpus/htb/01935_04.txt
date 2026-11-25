@@ -1,0 +1,1 @@
+l use jq to pretty-print it): oxdf@hacky$ curl http://editorial.htb/static/uploads/010e1c29-3180-4777-857c-4112dfed8536 -s | jq

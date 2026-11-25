@@ -1,0 +1,4 @@
+o database architect
+in Raleigh, North Carolina. The attacker doesn’t have to launch any tools to
+learn that the company is using Cisco firewalls, Mongo databases, and
+probably using LangChain for AI-driven automation in the Raleigh office.

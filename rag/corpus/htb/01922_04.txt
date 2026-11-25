@@ -1,0 +1,1 @@
+ing Ubuntu 22.04 jammy [LTS]. All of the ports show a TTL of 63, which matches the expected TTL for Linux one hop away. The website on port 80 is redirecting to editor.htb . Subdomain Brute Force Given the use of domain name based routing and the

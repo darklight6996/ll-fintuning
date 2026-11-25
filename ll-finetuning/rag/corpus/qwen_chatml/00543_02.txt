@@ -1,0 +1,3 @@
+plications and potentially have vulnerabilities. The following sections
+describe several other techniques and methodologies that can be followed to
+perform reconnaissance of web applications and APIs.

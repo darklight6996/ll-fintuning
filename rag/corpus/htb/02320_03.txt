@@ -1,0 +1,1 @@
+code ( base64 . b64decode ( urllib . parse . unquote ( self . registered )). decode (). replace ( " Null " , " True " ). encode ())) Cmd .

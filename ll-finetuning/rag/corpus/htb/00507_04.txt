@@ -1,0 +1,1 @@
+in. There’s an SSH key pair in /home/spanishdancer/.ssh : root@beehive:/home/spanishdancer/.ssh# ls authorized_keys id_rsa id_rsa.pub And authorized_keys contains the public key: root@beehive:/home/spanishdancer/.ssh# diff authorized_keys

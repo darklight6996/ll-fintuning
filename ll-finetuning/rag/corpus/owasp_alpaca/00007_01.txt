@@ -1,0 +1,25 @@
+METHOD / ANSWER:
+Testing Guide Frontispiece
+Testing Guide Frontispiece
+“Open and collaborative knowledge: that is the
+OWASP way."
+With V4 we realized a new guide that will be the
+standard de-facto guide to perform Web Application
+Penetration Testing
+“Open and collaborative knowledge: that is the OWASP way.’
+With V4 we realized a new guide that will be the standard de-fac-
+to guide to perform Web Application Penetration Testing. - Matteo
+Meucci
+OWASP thanks the many authors, reviewers, and editors for their
+hard work in bringing this guide to where it is today. If you have any
+comments or suggestions on the Testing Guide, please e-mail the
+Testing Guide mail list:
+http:/lists.owasp.org/mailman/listinfo/owasp-testing
+Or drop an e-mail to the project leaders: Andrew Muller and Matteo Meucci
+Version 4.0
+The OWASP Testing Guide version 4 improves on version 3 in three ways:
+[1] This version of the Testing Guide integrates with the two other
+flagship OWASP documentation products: the Developers Guide and
+the Code Review Guide. To achieve this we aligned the testing cate-
+gories and test numbering with those in other OWASP products. The
+aim of the Testing and Code Review Guides is to eval

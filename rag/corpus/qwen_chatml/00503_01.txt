@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• Script Header: Contains metadata like script name, description,
+categories, and so on
+• Rule Function: Defines when the script should be executed
+• Action Function: Contains the main logic of the script
+For debugging and development of scripts, NSE provides various verbose
+and debug levels that can be adjusted using -d and -v options, respectively.
+Tip
+This book is not about Nmap. To learn more, you can get
+numerous examples of how to use Nmap, along with
+different exercises, at my GitHub repository at
+https://hackerrepo.org.
+Creating Your Own Scanner Using Python
+Creating your own scanner using Python involves utilizing libraries such as
+socket and scapy to craft and send packets to network hosts and then
+analyze the responses. Initially, you'd define the target IP address and the
+range of ports to scan. Using the socket library, you can create a connection
+to each port and check whether it is open or closed based on the response
+received. For more advanced scanning features, the scapy library can be
+employed to craft custom packets, enabling you to perform tasks such as

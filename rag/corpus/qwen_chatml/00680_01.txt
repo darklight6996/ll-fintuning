@@ -1,0 +1,9 @@
+Context:
+Context: ADCS Exploitation - ESC16. Enumeration has revealed a vulnerable configuration where low-privilege users have enrollment rights on a template that allows requesters to specify a Subject Alternative Name (SAN).
+Principle to Apply: 'Enroll in a certificate template where you can specify the SAN, and set the SAN to a privileged account name to receive a certificate that authenticates as that account.'
+assistant
+**Assessment Phase**: ESC16 Exploitation.
+**Core Principle**: If a certificate template allows requesters to specify the SAN and has enrollment rights for your user, you can request a certificate with the SAN set to a privileged account (e.g., `Administrator`). This certificate can then be used for authentication as that privileged account.
+**Actionable Steps**:
+1.  **Request a Certificate with Spoofed SAN**: `certipy req -u ca_svc -hashes <NTLM_hash> -ca fluffy-DC01-CA -template WebServer -upn administrator@fluffy.htb`
+    *   **Reasoning**: This command requests a certificate from the specified template (`WebServer`), but overrides the Subject Alternative Name (SAN) with the Administrator's User Principal Name (`-upn administrator@fluffy.htb`). If the templa

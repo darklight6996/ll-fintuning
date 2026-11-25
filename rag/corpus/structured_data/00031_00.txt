@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you perform a final authentication using the obtained certificate?
+
+CONTEXT:
+Context: ADCS Post-Exploitation Authentication. You have successfully obtained a `.pfx` certificate file for a privileged account (e.g., `administrator.pfx`) through an ADCS exploit.
+Principle to Apply: 'Use a certificate for PKINIT authentication to obtain a Ticket Granting Ticket (TGT) and access domain resources.'

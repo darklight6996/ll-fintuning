@@ -1,0 +1,35 @@
+.cgi
+The component called “main.cgi” is located in the same directory as
+the normal HTML static files used by the application. In some cases
+the tester needs to encode the requests using special characters (like
+the “" dot, “%00" null, ...) in order to bypass file extension controls or to
+prevent script execution.
+Tip: It's
+acommon mistake by developers to not expect every form of
+encoding and therefore only do validation for basic encoded content.
+If at first the test string isn’t successful, try another encoding scheme.
+Each operating system uses different characters as path separator:
+Unix-like OS:
+root directory: “/"
+directory separator: “/"
+Windows OS’ Shell’:
+root directory: “/"
+directory separator: “/”
+Classic Mac OS:
+root directory: “<drive letter>:"
+ua
+directory separator:
+*:
+We should take in to account the following character encoding mech-
+anisms:
+» URL encoding and double URL encoding
+%2e%2e%2F represents ../
+%2e%2e/ represents ../
+.o2f represents ../
+%2e%2e%5c represents ..\
+%2e%2e\ represents ..\
+.5C represents ..\
+%252e0%252e%255c represents ..\
+255C represents ..\ and so on.
+» Unicode/UTF-8 Encoding (it only works in systems that are able
+to accept overlong UTF-8 s

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify account lockout policy.
+
+CONTEXT:
+Access protection audit.
+
+METHOD / ANSWER:
+Command: `pam_tally2 --user root`
+Explanation: Confirms lockout enforcement.

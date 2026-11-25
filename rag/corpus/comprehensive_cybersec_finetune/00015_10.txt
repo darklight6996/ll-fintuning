@@ -1,0 +1,26 @@
+**Phase 8: Credential Access (TA0006)**
+- **OS Credential Dumping (T1003)**:
+  - LSASS Memory (T1003.001): `Mimikatz`, `comsvcs.dll`, `procdump`, `werfault`
+  - SAM (T1003.002): `reg save HKLM\SAM`, `reg save HKLM\SYSTEM`
+  - NTDS (T1003.003): `ntdsutil`, `vssadmin`, `DiskShadow`
+  - LSA Secrets (T1003.004): `reg save HKLM\SECURITY`
+  - DCSync (T1003.006): `Mimikatz lsadump::dcsync`, `secretsdump.py`
+- **Network Sniffing (T1040)**: `Wireshark`, `tcpdump`, `Responder`
+- **Input Capture (T1056)**:
+  - Keylogging (T1056.001)
+  - GUI Input Capture (T1056.002)
+  - Credential API Hooking (T1056.003)
+- **Brute Force (T1110)**:
+  - Password Guessing (T1110.001)
+  - Password Spraying (T1110.003)
+  - Credential Stuffing (T1110.004)
+- **Two-Factor Authentication Interception (T1111)**:
+  - SIM Swap, SS7, Push Fatigue
+- **Forced Authentication (T1187)**:
+  - `Responder`, `ntlmrelayx`, `PetitPotam`, `PrinterBug`
+- **Exploitation for Credential Access (T1212)**:
+  - Kerberoasting, AS-REP Roasting
+  - ADCS, Shadow Credentials
+- **Credentials from Password Stores (T1555)**:
+  - Keychain (T1555.001), Chrome (T1555.003), Windows Credential Manager (T1555.004)
+- **Credentials from Web Browsers (T1555

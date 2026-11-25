@@ -1,0 +1,1 @@
+ve ( 'ruleCheck' ); } runkit_function_add ( 'ruleCheck' , '$current_bid, $previous_bid, $bidder' , $rule ); error_log ( "Rule: " . $rule ); $allowed = ruleCheck ( $current_bid , $previous_bid , $bidder ); } catch ( Throwable $e ) { error_log ( "Rule error: " . $e -> getMessage ()); $allowed = false ; } if ( ! $allowed ) {

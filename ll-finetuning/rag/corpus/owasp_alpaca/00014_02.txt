@@ -1,0 +1,33 @@
+/groups
+Disallow: /images
+Disallow: /catalogs
+Web spiders/robots/crawlers can intentionally ignore the Disallow
+directives specified in a robots.txt file [3], such as those from So-
+cial Networks[2] to ensure that shared linked are still valid. Hence,
+robots.txt should not be considered as a mechanism to enforce re-
+strictions on how web content is accessed, stored, or republished
+by third parties.
+robots.txt in webroot - with “wget” or “curl”
+The robots.txt file is retrieved from the web root directory of the web
+server. For example, to retrieve the robots.txt from www.google.com
+using “weet” or “curl”:
+cmlh$ wget http:/www.google.com/robots.txt
+--2013-08-11 14:40:36-- http:/www.google.com/robots.txt
+Resolving www.google.com... 74.125.237.17, 74.125.237.18,
+74,.125.237.19, ...
+Connecting to www.google.com|74.125.237.17|:80... connect-
+ed.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/plain]
+Saving to: ‘robots.txt. 1'
+[ <=>
+17,074 = --.-K/s inOs
+2013-08-11 14:40:37 (59.7 MB/s) - ‘robots.txt’ saved [7074]
+cmlh$ head -n5 robots.txt
+User-agent: *
+Disallow: /search
+Disallow: /sdch
+Disallow: /groups
+Disallow: /images
+cmlh$
+cmlh$ curl -O http:/www.google.com/r

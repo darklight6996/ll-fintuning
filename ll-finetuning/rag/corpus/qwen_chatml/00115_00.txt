@@ -1,0 +1,27 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Then you can test your traffic flow by hitting your CDN endpoint. In this
+case, you should receive a 405 error, which indicates the traffic is passing
+through properly because you are not specifying a specific endpoint on the
+server; however, it shows the traffic hits end to end, as demonstrated in
+Example 3-11.
+Example 3-11 Checking the Connection from End to End
+curl -I https://examplenameplaceholder.azureedge.net
+HTTP/2 405
+date: Sun, 23 Jun 2024 20:20:25 GMT
+content-type: text/plain
+content-length: 22
+x-azure-ref: <snipped>
+x-fd-int-roxy-purgeid: 0
+x-cache: TCP_MISS
+Now, you can generate payloads for Mythic by using the Apollo agent.
+Select the Windows option for the Target Operating System, as illustrated in
+Figure 3-10.

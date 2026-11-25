@@ -1,0 +1,10 @@
+Context:
+Context: Offline Password Cracking. You have captured a NetNTLMv2 hash (e.g., `p.agila::FLUFFY:...`) and saved it to a file.
+Principle to Apply: 'Use offline brute-force or dictionary attacks against captured password hashes to recover plaintext credentials.'
+assistant
+**Assessment Phase**: Hash Cracking.
+**Core Principle**: NetNTLMv2 hashes are vulnerable to offline cracking if the user's password is weak and appears in your wordlist. Recovering the plaintext password allows you to use it directly for authentication.
+**Actionable Steps**:
+1.  **Launch Dictionary Attack**: `hashcat -m 5600 p.agila.hash /opt/SecLists/Passwords/Leaked-Databases/rockyou.txt`
+    *   **Reasoning**: Hashcat mode `5600` is for NetNTLMv2. This command tries every password in the `rockyou.txt` wordlist against the captured hash. If the password (`prometheusx-303`) is in the list, it will be recovered.
+**Guidance for Novel Context**: The hash mode (`-m`) must match the hash type. For NTLM hashes (not NetNTLMv2), use `-m 1000`. Use `--show` to display cracked passwords. The principle is: **apply computational power to test candidate passwords against the captured hash until a match is found.**

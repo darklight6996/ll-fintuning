@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+List installed packages.
+
+CONTEXT:
+Software inventory review.
+
+METHOD / ANSWER:
+Command: `dpkg -l`
+Explanation: Provides full software inventory.

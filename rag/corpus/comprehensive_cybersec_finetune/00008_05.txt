@@ -1,0 +1,1 @@
+**Tools**: XXEinjector, OXMLEntity, XXEServ, Burp Suite XXE plugin, custom DTD hosting.

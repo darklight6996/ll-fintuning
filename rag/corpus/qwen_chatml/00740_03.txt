@@ -1,0 +1,26 @@
+irectly accessible from the Inter-
+net. In some cases, these internal systems do not have the same
+level of infrastructure security and hardening that is applied to the
+front-end web servers.Therefore, mail server results may be more
+vulnerable to attacks by end users (see the scheme presented in
+Figure 1).
+WEBMAIL USER
+1
+INTERNET
+PUBLIC ZONE
+2
+WEBMAIL APPLICATION
+2
+3
+PRIVATE ZONE (HIDDEN SERVERS)
+MAIL SERVERS
+Figure 1 depicts the flow of traffic generally seen when using
+webmail technologies. Step 1 and 2 is the user interacting with
+the webmail client, whereas step 2 is the tester bypassing the
+webmail client and interacting with the back-end mail servers
+directly.
+This technique allows a wide variety of actions and attacks. The
+possibilities depend on the type and scope of injection and the
+mail server technology being tested.
+Some examples of attacks using the IMAP/SMTP Injection tech-
+nique are:

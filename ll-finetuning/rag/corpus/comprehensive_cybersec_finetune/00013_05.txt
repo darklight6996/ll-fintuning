@@ -1,0 +1,39 @@
+**Microsoft Entra ID (Azure AD)**:
+- **Conditional Access**:
+  - MFA enforcement
+  - Named locations
+  - Risk-based policies
+  - Device compliance
+- **Privileged Identity Management (PIM)**:
+  - Just-in-time access
+  - Approval workflows
+  - Permanent vs eligible assignments
+- **Enterprise Apps / Service Principals**:
+  - Ownerless apps
+  - Excessive permissions (Graph, ARM)
+  - Client secrets/certificates expiration
+  - App registration restrictions
+- **Guest Users**:
+  - Access reviews
+  - Invitation restrictions
+
+**Compute (VM, AKS, Functions, Container Apps)**:
+- **VM**:
+  - Public IPs
+  - NSG rules (0.0.0.0/0 on 22, 3389)
+  - Just-in-time VM access
+  - Disk encryption (CMK vs PMK)
+  - Boot diagnostics
+  - Update management
+- **AKS**:
+  - Private cluster
+  - Azure AD integration
+  - Network policies
+  - Azure Policy for AKS
+  - Workload identity
+  - Microsoft Defender for Containers
+- **Functions/Container Apps**:
+  - Authentication (Easy Auth)
+  - VNet integration
+  - Managed identity
+  - Secrets in Key Vault

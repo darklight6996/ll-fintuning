@@ -1,0 +1,1 @@
+was subclassing Thread , it’s __init__() method was being called when I created a new object. Once I override the __init__ method, it will no longer automatically call the init from Thread, and that will break things. I’ll fix that with a call to super().__init()__() . ... 7 class dns_sniff (

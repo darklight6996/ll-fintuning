@@ -1,0 +1,24 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 6-7 The Boot-Start Driver After Infection
+Tip
+This method of infecting executables in the PE format,
+which is the primary format for Windows executables and
+dynamic link libraries (DLLs), is typical for virus infectors
+but less common for rootkits. The PE header and the section
+table are essential components of any PE file. The PE header
+contains critical information about the locations of code and
+data, system metadata, stack size, and so on, while the
+section table provides details about the executable's sections
+and their locations.
+To complete the infection, the malware overwrites the .NET
+metadata directory entry in the PE header with the values
+from the security data directory entry. This change is likely
+intended to hinder static analysis of the infected files,

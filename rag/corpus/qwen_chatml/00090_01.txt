@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+for more flexible, scalable, and resilient infrastructures. The ability to
+dynamically spin up new instances or scale services based on the size of an
+engagement has reduced the operational overhead.
+Additionally, cloud services often integrate with content delivery networks
+(CDNs), which can help blend C2 traffic with legitimate cloud provider
+traffic, adding an additional layer of obfuscation. CDNs such as Cloudflare
+or Azure’s Classic CDN are increasingly used to route C2 traffic through
+legitimate and trusted web infrastructure. Red teamers can abuse CDNs by
+blending in their traffic using these providers. This technique makes it more
+difficult for incident response teams to distinguish malicious traffic from
+legitimate traffic.
+Another noticeable shift has been around the adoption of DNS over HTTPS
+for red teamers’ C2 communication channels. These communications send
+DNS queries over HTTPS (DoH) connections, thus bypassing traditional
+network monitoring systems. It is critical to note that while DoH provides
+obfuscation, it also introduces challenges in ensuring stable and reliable
+communication because some corpor

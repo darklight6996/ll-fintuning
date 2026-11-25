@@ -1,0 +1,29 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+41
+Web Application Penetration Testing
+« List of spreadsheet software
+« Diagramming software
+References
+Whitepapers
+[1] http:/en.wikipedia.org/wiki/Code_coverage
+Fingerprint Web Application Framework
+(OTG-INFO-008)
+Summary
+Web framework[*] fingerprinting is an important subtask of the infor-
+mation gathering process. Knowing the type of framework can auto-
+matically give a great advantage if such a framework has already been
+tested by the penetration tester. It is not only the known vulnerabili-
+ties in unpatched versions but specific misconfigurations in the frame-
+work and known file structure that makes the fingerprinting process
+so important.
+Several different vendors and versions of web frameworks are widely
+used. Information about it significantly helps in the testing process,
+and can also help in changing the course of the test. Such information
+can be derived by careful analysis of certain common locations. Most
+of the web frameworks have several markers in those locations which
+help an attacker to spot them. This is basically what all automatic tools
+do, they look for a marker from a predefined location and the

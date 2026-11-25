@@ -1,0 +1,3 @@
+cause external systems are
+the most exposed to potential attackers, and companies want
+to ensure these systems are as secure as possible. External

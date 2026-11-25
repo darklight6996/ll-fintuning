@@ -1,0 +1,1 @@
+T_APK_NAME = " $( echo ${ IN_APK_NAME ##*/ } | cut -d '.' -f1 ) _verified.apk" APK_NAME = "

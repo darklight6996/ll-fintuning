@@ -1,0 +1,40 @@
+—
+File Edit View Search Terminal Help
+test@localhost:-§ cat
+> opttons.http.
+txt
+OPTIONS /index Atal HTTP/1.1
+Ost: wWew.exanple.com
+test@localhast:-5 nc wew.example.com 6&6
+< options http. txt
+‘TTP/i.1 200 OK
+Allow: OPTIONS, GET, HEAD,
+POST
+Sache-Control: max-age=sf64806
+ate: Tue, 26 Aug 2613 15:39:19 GAT
+upires:
+Tue@,
+27 Aug 7613 15:39:19 GAT
+server:
+EOS (laxe04/2621)
+Content-Length:
+6
+test@localhost:-5
+Automated HTTP verb tampering testing
+If you are able to analyze your application via simple HTTP status
+codes (200 OK, 501 Error, etc) - then the following bash script will
+test all available HTTP methods.
+Code copied verbatim from the Penetration Testing Lab blog [5]
+References
+Whitepapers
+» Arshan Dabirsiaghi: “Bypassing URL Authentication and Autho-
+rization with HTTP Verb Tampering” - http:/www.aspectsecurity.
+com/research-presentations/bypassing-vbaac-with-http-verb-
+tampering
+Testing for HTTP Parameter pollution
+(OTG-INPVAL-004)
+Summary
+Supplying multiple HTTP parameters with the same name may
+Cause an application to interpret values in unanticipated ways. By
+exploiting these effects, an attacker may be able to bypass input
+validation, trigger application errors or modify int

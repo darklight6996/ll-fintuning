@@ -1,0 +1,28 @@
+unctionalities (QTG-AUTHN-009)
+Testing for Weaker authentication in alternative channel (OTG-AUTHN-010)
+Authorization Testing
+Testing Directory traversal/file include (OTG-AUTHZ-001)
+Testing for bypassing authorization schema (OTG-AUTHZ-002)
+Testing for Privilege Escalation (OTG-AUTHZ-003)
+Testing for Insecure Direct Object References (OTG-AUTHZ-004)
+Session Management Testing
+Testing for Bypassing Session Management Schema (OTG-SESS-001)
+Testing for Cookies attributes (OTG-SESS-002)
+Testing for Session Fixation (OTG-SESS-003)
+Testing for Exposed Session Variables (OTG-SESS-004)
+Testing for Cross Site Request Forgery (CSRF) (OTG-SESS-005)
+Testing for logout functionality (OTG-SESS-006)
+Test Session Timeout (OTG-SESS-007)
+Testing for Session puzzling (OTG-SESS-008)
+Input Validation Testing
+Testing for Reflected Cross Site Scripting (OTG-INPVAL-001)
+Testing for Stored Cross Site Scripting (OTG-INPVAL-O02)
+Testing for HTTP Verb Tampering (OTG-INPVAL-003)
+Testing for HTTP Parameter pollution (OTG-INPVAL-004)
+Testing for SQL Injection (OTG-INPVAL-005)
+Oracle Testing
+MySQL Testing
+SQL Server Testing
+Testing PostgreSQL (from OWASP BSP)
+MS Access Testing
+Testing Guide Foreword - Table of c

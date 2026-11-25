@@ -1,0 +1,3 @@
+Guardrails
+Censorship and guardrails refer to the restrictions imposed on AI models to
+prevent them from generating harmful, unethical, or legally problematic

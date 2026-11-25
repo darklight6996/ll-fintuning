@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+extensive time investment can lead to delayed vulnerability discovery,
+resulting in a slow threat response. The lengthy process of manual analysis
+can postpone the identification of critical security issues, increasing the risk
+window and providing attackers with more opportunities to exploit
+vulnerabilities.
+Human error is an inevitable factor in manual bug hunting. You may
+overlook vulnerabilities due to cognitive limitations such as making
+assumptions or focusing on familiar attack vectors while neglecting others.
+Fatigue and attention lapses can occur during extended periods of manual
+testing, leading to decreased concentration and missed flaws. Knowledge
+gaps also contribute to oversight because no individual can have exhaustive
+knowledge of all potential vulnerabilities across diverse technologies.
+Many individuals currently automate a lot of the bug bounty activities to
+learn about new bug bounties in platforms like HackerOne, Bugcrowd,
+Intigriti, and others. For example, you may scan any HackerOne program
+(bug bounty) with Nuclei, as shown in Example 11-1. Nuclei is an open-
+source vulnerability scanner developed by ProjectDiscovery, known for its
+speed, ef

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check authentication logs.
+
+CONTEXT:
+SOC 2 logging evidence.
+
+METHOD / ANSWER:
+Command: `tail /var/log/auth.log`
+Explanation: Shows recent authentication events.

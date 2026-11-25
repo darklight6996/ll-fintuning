@@ -1,0 +1,1 @@
+DC01 IPC$ READ Remote IPC SMB 10.10.11.31 445 DC01 NETLOGON READ Logon server share SMB 10.10.11.31 445 DC01 SYSVOL READ Logon server share There’s nothing interesting on them. Auth

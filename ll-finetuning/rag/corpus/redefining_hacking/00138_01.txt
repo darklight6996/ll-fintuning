@@ -1,0 +1,21 @@
+METHOD / ANSWER:
+• force_post: This feature is extremely useful in the event that a user has
+the Remember Me setting enabled. This option will force the user to
+authenticate with the defined parameters in this section of the template.
+Example 5-4 demonstrates this option by leveraging a regular expression
+for the key-value pair in the body of a POST request. When a POST request
+is sent to the /sessions path, it will look for any key related to the request
+that needs to be present to be able to insert or replace the arguments. In this
+case, it will look for the key string user with any characters afterward
+because any value can be supplied for this key due to the wildcard for the
+user.*\ key defined. For the key pass, it will also look for the string that
+patches pass with at least four characters afterward. For example, you could
+look for passCODE or passWORD, and any value for the key can be
+supplied because the search regular expression allows any value.
+Example 5-4 A force_post Section
+force_post:
+- path: '/sessions'
+search:
+- {key: 'session\[user.*\]', search: '.*'}
+- {key: 'session\[pass[a-z]{4}\]', search: '.*
+force:

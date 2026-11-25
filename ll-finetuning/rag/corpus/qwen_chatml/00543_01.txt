@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+risk of crashing the device or completely exempt the specific device from
+being scanned. Unfortunately, by exempting the specific device, you reduce
+the overall security of the environment.
+IoT devices are often considered “fragile systems.” Historically, these
+devices have not been able to withstand vulnerability scanning attempts.
+With the surge in IoT devices, today many more devices may be considered
+fragile, and you need to consider them when planning for vulnerability
+scanning. The typical way to address fragile devices is to exempt them from
+a scan; however, these devices can pose a risk to the environment and do
+need to be scanned. To address this issue, you can “throttle” the scan
+frequency as well as the options used in the scan policy to reduce the
+likelihood of crashing the device.
+Performing Web Application and API Recon
+There are several techniques and tools to perform reconnaissance of modern
+web applications and APIs. You already learned about some of these
+techniques, such as subdomain enumeration using tools like Sublist3r and
+Amass to identify subdomains of the main domain that might host different
+ap

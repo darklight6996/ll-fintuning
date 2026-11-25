@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+How can AI help with bug hunting in this architecture? AI can correlate
+information between different components, such as IPs, URLs,
+vulnerabilities flagged, and open ports, to paint a complete picture of
+potential attack surfaces. It can even analyze historical data from other
+scans to similar applications. AI could predict which services or ports are
+more likely to have security flaws based on the type of system,
+configuration, or past exploitation data.
+AI models can be trained to identify common web vulnerabilities, such as
+XSS or SQL injection, by scanning and analyzing the URLs, parameters,
+and request-response patterns. AI can automate the process of identifying
+malicious input or output behavior, improving detection accuracy and
+reducing false positives.
+AI can accelerate subdomain enumeration by using predictive models that
+recognize patterns in domain naming conventions, automatically suggesting
+potential subdomains or previously undiscovered targets. AI-driven DNS
+reconnaissance tools can quickly uncover new subdomains linked to root
+domains by cross-referencing large datasets from DNS history and
+certificates.
+What if we give the explanation of Figure 1

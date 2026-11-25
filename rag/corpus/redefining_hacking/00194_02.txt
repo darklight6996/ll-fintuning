@@ -1,0 +1,6 @@
+ms, and
+Create Backdoors
+Using persistence mechanisms and creating backdoors are important
+components of post-exploitation activities. They enable you (an ethical
+hacker) to maintain access to compromised systems over an extended
+period, often without detection. Let’s explore different types of backdoors,

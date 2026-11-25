@@ -1,0 +1,1 @@
+101: icmp_seq=1 ttl=64 time=0.048 ms 64 bytes

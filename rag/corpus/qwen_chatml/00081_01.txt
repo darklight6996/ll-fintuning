@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Red team engagements can be leveraged to create compelling security
+awareness training for employees. By demonstrating real-world attack
+scenarios and their potential impact, the red team can educate users about
+common threats like phishing, social engineering, and malware. This
+practical approach helps employees understand the importance of security
+protocols and encourages them to adopt secure behaviors, ultimately
+reducing the organization’s vulnerability. This approach can take on many
+forms from something as simple as a “brown bag lunch demo” to a
+presentation during an internal conference. A more hands-on and focused
+approach will be discussed in the next paragraph.
+By collaborating with engineering teams, red teams can provide insights
+into secure coding practices and design considerations. This effort can
+involve vulnerability assessments of new applications and threat modeling
+during the development lifecycle. This is not the red team performing this
+function but providing expertise if it is necessary. Nor does this replace
+formal training in these specialties, but it provides just-in-time and
+proactive guidanc

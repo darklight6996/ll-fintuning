@@ -1,0 +1,38 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+permissions in the domain, identify potential attack
+about privileged accounts. Once the data is collected
+highlight the most critical attack vectors in the env
+},
+{
+"model_id": "white-rabbit-neo",
+"answer": "To perform an Active Directory enumer
+BloodHound."
+},
+{
+"model_id": "llama3.1",
+"answer": "You can perform Active Directory enum
+list domain users and groups."
+}
+],
+"feedbackBy": "savannah@redteamvillage.io",
+"question": "How can I perform Active Directory enum
+exercise?",
+"ranking": [
+{
+"rank": 0,
+"model_id": "phi-3"
+},
+{
+"rank": 1,
+"model_id": "white-rabbit-neo"
+},
+{

@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 9-2 The Internet Archive Wayback Machine
+Public Source-Code Repositories, Secrets, and Other Sensitive
+Information
+An attacker can obtain extremely valuable information from public source-
+code repositories such as GitHub and GitLab. Most of the applications and
+products we consume today use open-source software. The source code can
+be obtained in public repositories. Attackers can find vulnerabilities in those
+software packages and use them to their advantage. Similarly, as a
+penetration tester, you can obtain valuable information from these public
+repositories. Even if you do not immediately find security vulnerabilities in
+the code, these repositories can give you insights into the architecture and
+underlying code used in the organization’s applications and infrastructure.
+TruffleHog is a good tool used primarily for digging deep into the
+repositories and other data sources to find secrets that might be buried there.
+You can obtain the tool from https://github.com/trufflesecurity/trufflehog.
+You can install TruffleHog easily by cloning the GitHub repository and
+using the go install command, as shown in Example

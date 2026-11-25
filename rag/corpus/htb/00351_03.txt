@@ -1,0 +1,1 @@
+cannot set terminal process group (3231): Inappropriate ioctl for device bash: no job control in this shell root@admirertoo:/#

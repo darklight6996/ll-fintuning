@@ -1,0 +1,2 @@
+e master boot record (MBR) or
+Unified Extensible Firmware Interface (UEFI), allowing the malware to

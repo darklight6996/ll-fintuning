@@ -1,0 +1,32 @@
+METHOD / ANSWER:
+33
+Web Application Penetration Testing
+2. Create the list of directories that are to be avoided by Spiders, Ro-
+bots, or Crawlers.
+How to Test
+robots.txt
+Web Spiders, Robots, or Crawlers retrieve a web page and then re-
+cursively traverse hyperlinks to retrieve further web content. Their
+accepted behavior is specified by the Robots Exclusion Protocol of
+the robots.txt file in the web root directory [1].
+As an example, the beginning of the robots.txt file from http://www.
+google.com/robots.txt sampled on 11 August 2013
+is quoted below:
+User-agent: *
+Disallow: /search
+Disallow: /sdch
+Disallow: /groups
+Disallow: /images
+Disallow: /catalogs
+The User-Agent directive refers to the specific web spider/robot/
+crawler. For example the User-Agent: Googlebot refers to the spider
+from Google while “User-Agent: bingbot"[1] refers to crawler from
+Microsoft/Yahoo!. User-Agent: * in the example above applies to all
+web spiders/robots/crawlers [2] as quoted below:
+User-agent: *
+The Disallow directive specifies which resources are prohibited by
+spiders/robots/crawlers. In the example above, directories such as
+the following are prohibited:
+Disallow: /search
+Disallow: /sdch
+Disallow:

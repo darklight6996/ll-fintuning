@@ -1,0 +1,7 @@
+**Tools for Environment Detection**:
+- **Reconnaissance**: `amass`, `subfinder`, `dnsrecon`, `crt.sh`
+- **Fingerprinting**: `whatweb`, `wappalyzer`, `httpx`, `nuclei`
+- **Sandbox Detection**: `pafish`, `al-khaser`, `RedPill`, `NoVirt`
+- **Honeypot Detection**: `honeypot-detector`, custom scripts
+- **Cloud Metadata**: `cloud-metadata-exfiltrator`, `ec2-metadata`
+- **Automation**: Custom Python/Go classifiers integrated in recon pipeline

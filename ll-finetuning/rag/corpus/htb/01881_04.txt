@@ -1,0 +1,1 @@
+ot when running as root): audit deny @ { HOME } /. * mrwkl,

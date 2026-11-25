@@ -1,0 +1,1 @@
+df@hacky$ smbmap -H 10.10.11.106 -u 0xdf -p 0xdf [!] Authentication error on 10.10.11.106 oxdf@hacky$ smbclient -N

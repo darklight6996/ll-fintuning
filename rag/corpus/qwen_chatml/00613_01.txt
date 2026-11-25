@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+The following are additional details about the fine-tuning parameters
+shown:
+• Batch Size: The per_device_train_batch_size is set to 10, meaning each
+GPU will process one batch at a time.
+• Gradient Accumulation Steps: This parameter is set to 8, meaning
+gradients will accumulate over 8 batches before updating the model
+weights, helping manage memory constraints.
+• Max Sequence Length: The model will process sequences of up to 4096
+tokens at a time.
+• Max Steps: This parameter is set to −1, which suggests there is no limit
+on the number of steps for training.
+• Epochs: Training will run for 1.0 epochs, meaning the entire dataset will
+be passed through the model once.
+• Precision: Fine-tuning is performed using 4-bit precision (fine-
+tuning_precision_mode), which helps reduce the memory usage while still
+being performant.
+• Learning Rate: The learning rate is set to 5e-5 (0.00005), which controls
+how much the model adjusts weights with each training step.

@@ -1,0 +1,1 @@
+nciple is: **place a file in a location where it will be processed by the target, and have that file contain a reference to a resource on your attacker-controlled server.** Other examples include `.scf`, `.url`, or `desktop.ini` files. Always set up a listener (like Responder) *before* placing the file.

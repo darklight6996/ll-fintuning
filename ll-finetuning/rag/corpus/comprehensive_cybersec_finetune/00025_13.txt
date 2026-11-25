@@ -1,0 +1,18 @@
+**Phase 5: Expert - Exploit Development (24-48 months)**
+- **ASEP (Advanced Stack Exploitation Professional) - INE**
+  - **Prerequisites**: eCPPTX or OSCP + exploit dev basics
+  - **Exam**: 7-day practical (exploit development challenges)
+  - **Topics**:
+    - **Windows x64**: Stack cookies, CFG, ACG, CET
+    - **Heap Exploitation**: LFH, VS, segment heap
+    - **Kernel Exploitation**: Pool feng shui, token stealing
+    - **Browser Exploitation**: V8, SpiderMonkey, JIT bugs
+    - **Mitigation Bypass**: ROP/JOP, ret2dir, ret2usr
+    - **Fuzzing**: AFL++, LibFuzzer, WinAFL, grammar-based
+  - **Study Resources**:
+    - INE ASEP course
+    - "Windows Kernel Exploitation" by Ashfaq
+    - "Browser Exploitation" by Saelo
+    - Pwn2Own writeups, Project Zero blogs
+  - **Cost**: ~$800 (INE subscription)
+  - **ROI**: Exploit developer, vulnerability researcher

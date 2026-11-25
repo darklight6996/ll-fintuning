@@ -1,0 +1,3 @@
+n be made to both open-source and proprietary
+software, making them difficult to detect and dangerous once deployed. In
+open-source software, attackers download the source code from repositories

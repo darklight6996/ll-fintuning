@@ -1,0 +1,13 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 3-5 Mythic Login
+After you are logged in, navigate to the Agents & C2 Section on the left
+panel, as illustrated in Figure 3-6. You will need to edit the C2 profile to
+include the certificates you previously generated.

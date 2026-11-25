@@ -1,0 +1,25 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+}
+int main() {
+reverse_shell();
+printf("Welcome to the Text Editor!\n");
+// additional lines omitted for brevity
+return 0;
+}
+The highlighted lines show that a reverse shell function is added. When the
+text editor is opened, it establishes a connection to the attacker's machine
+and provides a remote shell.
+Reverse Shells vs. Bind Shells
+In the previous examples, we explored reverse shells, but what exactly are
+they? How are they different from bind shells? Reverse shell and bind shell
+are common methods used by attackers to gain remote control over a
+compromised machine. Both have distinct characteristics and use cases.
+A reverse shell is a type of shell where the target machine initiates a
+connection to the attacker's machine. This connection reversal allows the
+attacker to bypass certain network security measures, such as firewalls that
+block incoming connections but allow outgoing ones.
+Figure 6-3 illustrates how a reverse shell works.

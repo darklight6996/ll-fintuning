@@ -1,0 +1,21 @@
+METHOD / ANSWER:
+• -T5 (Insane): This option is extremely fast and likely to be detected by an
+IDS.
+The Nmap Scripting Engine (NSE) is one of Nmap's most powerful and
+flexible features. It allows users to write (and share) simple scripts to
+automate a wide variety of networking tasks. Those scripts are executed in
+parallel, and the results are integrated into Nmap's regular output. These
+scripts can be used for more advanced network discovery, vulnerability
+detection, and exploitation. The following is a detailed explanation of
+different aspects of the NSE:
+• Scripts are written in Lua, a powerful, efficient, lightweight, embeddable
+scripting language. These scripts define what actions will be performed
+against the target.
+• The NSE includes a large number of libraries that provide additional
+functionality and allow script writers to easily create complex scripts
+without starting from scratch.
+• Scripts are generally executed after the scanning phases (like port
+scanning) are completed, and they use the results of those phases to perform
+more advanced analysis.
+• Nmap scripts are categorized into various groups, which help in
+identifying and using scripts for specific purposes. Som

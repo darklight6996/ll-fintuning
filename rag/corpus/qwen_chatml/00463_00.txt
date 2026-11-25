@@ -1,0 +1,31 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+concurrent file searching for st
+-ch [CHASE_LIMIT], --chase [CHASE_LIMIT]
+Add related emails from hunter.i
+list. Define number of emails pe
+Requires hunter.io private API k
+power-chase
+--power-chase Add related emails from ALL AP
+target list. Use with --chase
+--hide Only shows the first 4 characte
+to output. Ideal for demonstrati
+--debug Print request debug information
+--gen-config, -g Generates a configuration fil
+working directory & exits. Will
+h8mail_config.ini file
+The following tools also allow you to search for breach data dumps:
+• WhatBreach: https://github.com/Ekultek/WhatBreach
+• BaseQuery: https://github.com/jayyogesh/BaseQuery
+• Buster: https://github.com/sham00n/buster
+• Scavenger: https://github.com/rndinfosecguy/Scavenger
+Tools like h8mail and WhatBreach take advantage of breached data
+repositories of websites such as haveibeenpwned.com, weleakinfo.com, and

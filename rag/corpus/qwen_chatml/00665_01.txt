@@ -1,0 +1,10 @@
+Context:
+Context: Post-Compromise Discovery. You have Domain Administrator privileges and want to identify further attack paths, misconfigurations, or sensitive data within the domain.
+Principle to Apply: 'With full privileges, perform deep discovery to uncover hidden vulnerabilities, sensitive data, and trust relationships.'
+assistant
+**Assessment Phase**: Deep-Dive Post-Compromise Reconnaissance.
+**Core Principle**: Administrative access unlocks visibility into all domain objects. This is the time to search for overlooked vulnerabilities (like vulnerable certificate templates), cached credentials, sensitive group memberships, or trust relationships with other domains that could be exploited.
+**Actionurable Steps**:
+1.  **Hunt for Vulnerable ADCS Templates**: `certipy find -target dc01.tombwatcher.htb -u administrator -p '<plaintext_password>' -vulnerable`
+    *   **Reasoning**: This command uses high-privilege credentials to thoroughly enumerate the ADCS environment, flagging any certificate templates with known dangerous misconfigurations (e.g., `ESC1`, `ESC2`). Finding these could reveal ways to create persistent backdoors or compromise other accounts.
+**Guidance for Novel Cont

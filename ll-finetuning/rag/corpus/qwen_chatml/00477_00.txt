@@ -1,0 +1,23 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 9-3 The Recon-ng Marketplace Search
+Figure 9-3 shows only the first few modules available in Recon-ng. The
+letter D in the table header indicates that the module has dependencies. The
+letter K indicates that you need an API key to be able to use the resource
+used in such module. For example, the module with the path
+recon/companies-contacts/censys_email_address has dependencies and
+needs an API key to be able to query the Censys database. Censys is a
+popular resource to query OSINT data.
+You can refresh the data about the available modules by using the
+marketplace refresh command, as shown in Example 9-20.
+Example 9-20 Refreshing the Recon-ng Marketplace Data
+[recon-ng][default] > marketplace refresh
+[*] Marketplace index refreshed.

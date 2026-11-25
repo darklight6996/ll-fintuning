@@ -1,0 +1,1 @@
+nes ())) for h in hashes : user_key = ( RC4_HMAC , h . decode ( ' hex ' )) passwordspray_tcp ( user_realm , username , user_key , kdc_a , h ) I’ll need to run this out of the same directory as it locally imports some crypto stuff, and I’ll use legacy Python, as

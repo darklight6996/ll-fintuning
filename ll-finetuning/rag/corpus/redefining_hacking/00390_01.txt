@@ -1,0 +1,21 @@
+METHOD / ANSWER:
+programs because they encourage community involvement and
+transparency in securing their codebases.
+Private bug bounty programs are invite-only (only selected researchers can
+participate). These programs are typically used when the company wants to
+limit access to sensitive systems or when they want more control over who
+is testing their products.
+Often organizations that are starting with bug bounties opt for private bug
+bounty programs to make sure that they have the correct capacity to process
+bug bounty reports. They need trusted researchers who have been vetted for
+reliability and expertise. Private bug bounties offer more control over who
+participates, ensuring high-quality submissions from reputable researchers.
+Tip
+You can find additional bug bounty platforms and
+information at my GitHub repository at
+https://hackerrepo.org.
+Attack Surface Management vs. Bug Bounties
+Attack surface management (ASM) is a proactive security approach that
+involves the systematic identification, cataloging, and monitoring of all the
+applications, assets, and endpoints that an organization has or is connected
+to. This approach applies to on-premises and cloud-based applications

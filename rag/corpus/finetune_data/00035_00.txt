@@ -1,0 +1,1 @@
+Document all findings for a comprehensive post-exploitation analysis.

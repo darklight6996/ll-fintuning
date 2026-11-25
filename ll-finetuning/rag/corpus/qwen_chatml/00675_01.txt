@@ -1,0 +1,10 @@
+Context:
+Context: Lateral Movement with New Credentials. You have cracked the NetNTLMv2 hash for user `p.agila` and obtained the plaintext password (`prometheusx-303`).
+Principle to Apply: 'Use recovered plaintext credentials to authenticate to systems and services, expanding your access within the network.'
+assistant
+**Assessment Phase**: Credential Reuse & Access Expansion.
+**Core Principle**: A valid username and plaintext password is the most straightforward form of credentials. They should be tested against various services and systems to see where the account has access, enabling lateral movement.
+**Actionable Steps**:
+1.  **Authenticate with Recovered Password**: `netexec smb dc01.fluffy.htb -u p.agila -p 'prometheusx-303'`
+    *   **Reasoning**: This validates that the cracked password is correct for the domain and provides an updated view of the account's access (shares, sessions, etc.). Success here confirms you can now operate as `p.agila`.
+**Guidance for Novel Context**: Don't stop at SMB. Test these new credentials against WinRM, SQL servers, web portals, and SSH services discovered during reconnaissance. The principle is to **systematically attempt to authenticate wit

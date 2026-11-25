@@ -1,0 +1,19 @@
+TECHNIQUE / QUESTION:
+Describe the methodology for writing a professional penetration test report that communicates risk effectively to both technical and executive audiences.
+
+CONTEXT:
+You have completed a comprehensive penetration test. Explain how to structure and write a professional report that includes executive summary, technical findings, risk ratings, evidence, and actionable remediation guidance.
+
+METHOD / ANSWER:
+Professional Penetration Test Report Methodology:
+
+**Report Structure Overview**
+1. Cover Page
+2. Document Control / Version History
+3. Table of Contents
+4. Executive Summary (1-2 pages)
+5. Scope & Methodology
+6. Findings Summary / Risk Dashboard
+7. Detailed Technical Findings
+8. Remediation Roadmap
+9. Appendices

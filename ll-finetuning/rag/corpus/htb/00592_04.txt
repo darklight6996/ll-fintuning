@@ -1,0 +1,1 @@
+res LDAPS. rename_computer current_name

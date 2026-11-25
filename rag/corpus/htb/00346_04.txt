@@ -1,0 +1,1 @@
+tunnels: oxdf@hacky$ sshpass -p 'bQ3u7^AxzcB7qAsxE3' ssh jennifer@10.10.11.137 -L 8081:localhost:8080 -L 16030:localhost:16030

@@ -1,0 +1,22 @@
+METHOD / ANSWER:
+(where exact matches are important) and complex queries
+(where understanding the context is important). In RAG
+pipelines, hybrid search allows for more accurate retrieval of
+documents that are then used by LLMs to generate
+responses. This approach reduces the risk of hallucinations
+by grounding LLM outputs in real data. In practice, a hybrid
+search can be implemented by first running a BM25-based
+search to retrieve top candidate documents based on
+keywords. Then a second pass using dense vector similarity
+can rerank or filter these results based on semantic
+relevance. Some systems also use a weighted combination of
+both methods to balance keyword importance against
+semantic similarity.
+Both LlamaIndex and LangChain support hybrid search to enhance search
+capabilities in RAG. LlamaIndex implements hybrid search by integrating
+both keyword-based methods, such as BM25, and vector-based search
+techniques. This approach allows for a balanced retrieval system that can
+handle various types of queries effectively.
+A key component of LlamaIndex's hybrid search is the use of an Alpha
+parameter, which adjusts the weight between keyword and vector searches
+to optimize retrieva

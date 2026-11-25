@@ -1,0 +1,17 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+programs are facilitated by companies that connect hackers with
+organizations. Self-hosted programs are run independently by an
+organization, without the involvement of third-party platforms. Table 9-2
+shows a high-level comparison between platform-based and self-hosted bug
+bounty programs.
+Table 9-2 High-Level Comparison of Platform-Based vs. Self-Hosted Bug
+Bounty Programs

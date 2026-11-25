@@ -1,0 +1,26 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+multiple occurrences where an employee has lifted a badge and brought it
+to their face to review. Taking the time when creating the badges avoids
+them looking suspicious in this type of occurrence. You will need the
+following materials to create a badge:
+• Spare hotel key or cloned HID card
+• Badge clip or lanyard
+• PVC card punch
+• 8.5 × 11-inch sticker paper
+• Scissors, knife, and/or razor blade
+• 3-inch clear Gorilla tape
+The steps to create a badge are as follows:
+Print the ID on sticker paper.
+Apply the clear tape and cut out the card.
+Place the sticker paper on the ID and use an exacto knife to cut out the
+edges of the hotel card.
+Punch a hole in the ID with the PVC card punch.

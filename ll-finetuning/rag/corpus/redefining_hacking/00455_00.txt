@@ -1,0 +1,31 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+discovery/info_disclosure/interesting_files
+Recon
+-----
+recon/domains-hosts/bing_domain_web
+recon/domains-hosts/brute_hosts
+recon/domains-hosts/certificate_transparency
+recon/domains-hosts/netcraft
+[recon-ng][default] >
+To load the module that you would like to use, use the modules load
+command, as shown in Example 9-24. In this example, the
+bing_domain_web module is loaded. Notice that the prompt changed,
+including the name of the loaded module. After the module is loaded, you
+can display the module options using the info command (also demonstrated
+in Example 9-24).
+Example 9-24 Loading an Installed Module in Recon-ng
+[recon-ng][default] > modules load recon/domains-host
+[recon-ng][default][bing_domain_web] > info
+Name: Bing Hostname Enumerator
+Author: Tim Tomes (@lanmaster53)
+Version: 1.1
+Description:
+Harvests hosts from Bing.com by using the 'site' sea

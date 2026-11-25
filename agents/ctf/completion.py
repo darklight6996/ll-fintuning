@@ -33,6 +33,47 @@ class CompletionCriteria:
     require_flag_pattern: Optional[str] = None
     """If set, at least one Finding must contain this pattern in its description."""
 
+    phase_actions: Dict[str, List[str]] = field(default_factory=dict)
+    """
+    Reverse mapping of milestone phase name -> action_ids that satisfy it.
+    FIX (live WSL smoke test, 2026-11-13): the AI planner's prompt showed
+    `required_phases` and `Successful actions so far`, but never told the
+    (weak, local 7B) model WHICH action_id would satisfy an unmet phase --
+    e.g. "flag_capture" is only satisfied by running flag_search or read_file,
+    but nothing in the prompt said so, and the model kept re-running
+    suid_audit/find_writable instead of ever proposing flag_search. Exposing
+    this mapping lets AIPlanner._format_completion_status() (generic, shared
+    across every agent) name the specific actions still needed, without
+    hardcoding any CTF-specific knowledge into the shared planner itself.
+    """
+
+
+# Milestone phase name -> the action(s) that satisfy it. NOTE: these milestone
+# names are a CTF-domain completion policy, independent of each action's own
+# ActionDefinition.phase label (used for Observation.phase / MED-7) -- e.g.
+# suid_audit's ActionDefinition.phase is "environment_recon" (it belongs to
+# the recon phase of execution), but it is ALSO, separately, its own required
+# completion milestone here ("you must specifically have audited for SUID
+# binaries before this assessment can be considered done"). Single source of
+# truth for both verify_completion() and the planner-facing phase_actions
+# mapping, so the two can no longer drift apart from each other.
+ACTION_TO_MILESTONE_PHASE: Dict[str, str] = {
+    "environment_recon": "environment_recon",
+    "suid_audit": "suid_audit",
+    "strings_analysis": "enumeration",
+    "find_writable": "enumeration",
+    "kernel_exploit_check": "enumeration",
+    "process_list": "enumeration",
+    "cron_job_audit": "enumeration",
+    "path_hijack_validation": "privesc",
+    "flag_search": "flag_capture",
+    "read_file": "flag_capture",
+}
+
+_MILESTONE_PHASE_TO_ACTIONS: Dict[str, List[str]] = {}
+for _action_id, _phase in ACTION_TO_MILESTONE_PHASE.items():
+    _MILESTONE_PHASE_TO_ACTIONS.setdefault(_phase, []).append(_action_id)
+
 
 # CTF-specific completion criteria
 CTF_COMPLETION = CompletionCriteria(
@@ -41,6 +82,7 @@ CTF_COMPLETION = CompletionCriteria(
     minimum_findings=1,
     allow_unresolved_errors=False,
     require_flag_pattern=None,  # Flag content is target-specific
+    phase_actions=_MILESTONE_PHASE_TO_ACTIONS,
 )
 
 
@@ -66,19 +108,10 @@ def verify_completion(
         if entry.get("status") == "success"
     }
 
-    # Map action_id to phases for phase coverage check
-    action_to_phase = {
-        "environment_recon": "environment_recon",
-        "suid_audit": "suid_audit",
-        "strings_analysis": "enumeration",
-        "find_writable": "enumeration",
-        "kernel_exploit_check": "enumeration",
-        "process_list": "enumeration",
-        "cron_job_audit": "enumeration",
-        "path_hijack_validation": "privesc",
-        "flag_search": "flag_capture",
-        "read_file": "flag_capture",
-    }
+    # Map action_id to phases for phase coverage check (module-level constant,
+    # also exposed via CompletionCriteria.phase_actions for the planner prompt --
+    # see the comment on ACTION_TO_MILESTONE_PHASE above).
+    action_to_phase = ACTION_TO_MILESTONE_PHASE
 
     completed_phases = set()
     for action_id in completed_actions:
@@ -94,9 +127,7 @@ def verify_completion(
             )
 
     # Check evidence requirements — observations must exist for these phases
-    phase_to_action_ids = {}
-    for action_id, phase in action_to_phase.items():
-        phase_to_action_ids.setdefault(phase, []).append(action_id)
+    phase_to_action_ids = _MILESTONE_PHASE_TO_ACTIONS
 
     for evidence_phase in criteria.evidence_required_for_phases:
         phase_action_ids = phase_to_action_ids.get(evidence_phase, [])
@@ -111,7 +142,7 @@ def verify_completion(
             )
 
     # Check minimum findings
-    confirmed_findings = len(evidence_store.findings)
+    confirmed_findings = evidence_store.proven_finding_count  # proven only -- leads/milestones don't count
     if confirmed_findings < criteria.minimum_findings:
         return False, (
             f"Minimum {criteria.minimum_findings} confirmed Finding(s) required, "

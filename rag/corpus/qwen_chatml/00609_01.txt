@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 11-8 Scanning websploit.org Using the AI-Generated Template
+AI Model Training, Fine-Tuning, and RAG for Bug Bounties
+In Chapter 8, you learned about AI model training, fine-tuning, and RAG.
+As a security researcher participating in bug bounties, you can fine-tune and
+use RAG to enhance your ability to identify and report vulnerabilities.
+Deploying AI Models
+You can easily deploy AI models in cloud platforms such as Azure AI
+Studio, AWS Bedrock, and Google Cloud Vertex AI. Figure 11-9 shows a
+model deployment screen within Azure AI Studio, specifically for
+deploying the Meta-Llama model. The project resource is named omar-
+demo-project-23, which is the current environment in which the model will
+be deployed. The custom name for the endpoint is omar-ai-abc123. After
+deployment, the system will automatically generate an endpoint URL. The
+deployment is named meta-llama-3-1-8b-1 because it is based on the Meta-
+Llama 3.1 model using the 8-billion parameter version. Inferencing data
+collection is disabled, meaning the deployment will not collect data during
+inference runs.

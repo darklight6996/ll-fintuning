@@ -1,0 +1,25 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Similarly, attackers have also created job posts to attract people to apply for
+those positions. Then they interview their victims to try to get them to talk
+about what they do at work and probably the technologies used by their
+employer. Think about it. When people are trying to get a job, they want to
+show off and, as a result, often reveal too much information about the
+technologies, architectures, and applications that they use in their current
+role.
+Cryptographic Flaws
+During the reconnaissance phase, attackers often can inspect secure socket
+layer (SSL) certificates to obtain information about the organization,
+potential cryptographic flaws, and weak implementations. What can you
+find inside of digital certificates? The certificate serial number, subject
+common name, the URI of the server it was assigned to, the organization
+name, the online certificate status protocol (OCSP) information, the
+certificate revocation list (CRL), URI, and so on.
+Note
+Certificate revocation is the act of invalidating a digital
+certificate. For instance, if an application has been
+decommissioned or the certificate assigned to such
+appl

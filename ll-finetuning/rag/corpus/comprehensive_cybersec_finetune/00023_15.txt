@@ -1,0 +1,7 @@
+**IPS/IDS Evasion**:
+- **Traffic Fragmentation**: IP fragmentation, TCP segmentation
+- **Protocol Violations**: Overlapping fragments, TTL manipulation
+- **Encryption**: TLS 1.3, SSH, VPN, DNS over HTTPS
+- **Timing**: Low and slow, jitter
+- **Polymorphism**: Metasploit `shikata_ga_nai`, custom encoders
+- **Protocol Tunneling**: DNS (`dnscat2`, `iodine`), ICMP, HTTP

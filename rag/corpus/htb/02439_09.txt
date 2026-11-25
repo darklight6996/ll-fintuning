@@ -1,0 +1,1 @@
+ckerman:IL0v3ErenY3ager SMB 10.10.11.5 445 DC [-] freelancer.htb\MSSQLSERVER:IL0v3ErenY3ager STATUS_LOGON_FAILURE SMB 10.10.11.5 445 DC [-] freelancer.htb\sqlbackupoperator:IL0v3ErenY3ager STATUS_LOGON_FAILURE SMB 10.10.11.5 445 DC [-] freelancer.htb\sql_svc:IL0v3ErenY3ager STATUS_LOGON_FAILURE SMB 10.10.11.5 445 DC [-] freelancer.htb\administrator:t3mp0r@ryS@PWD

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you check for shared resources?
+
+CONTEXT:
+You want to find SMB or FTP shares.
+
+METHOD / ANSWER:
+Command: `net exec smb <target_ip> --shares`
+Purpose: Identify accessible directories.

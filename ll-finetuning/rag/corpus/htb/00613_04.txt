@@ -1,0 +1,1 @@
+sking for invoices to be sent to accounts@axlle.htb as Excel documents, and notes that macros are disabled. Tech Stack The HTTP response headers show that

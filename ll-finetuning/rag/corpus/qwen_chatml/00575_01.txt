@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+recognize deviations, especially from a security perspective.
+This task requires deep familiarity with the application and
+knowledge of common vulnerability areas. Be cautious of
+targeting only "low-hanging fruits"—simple bugs that are
+easy to find but are also the focus of many other hunters.
+Targeting only simple bugs increases the chance of
+submitting duplicate reports and can result in a low return on
+investment for your time and effort. Instead, thoroughly
+analyze applications to uncover more significant and less
+obvious vulnerabilities.
+Limitations of Manual Bug Hunting
+Manual bug hunting has been a fundamental aspect of ethical hacking for
+many years. Skilled cybersecurity professionals meticulously examine
+applications to uncover flaws that automated tools might miss. However, as
+technology becomes more complex and cyber threats more sophisticated,
+the limitations of manual bug hunting are becoming more pronounced.
+Manual bug hunting is very time-consuming due to the extensive effort
+required for in-depth analysis. You must meticulously test different system
+configurations and system behaviors, which can be extr

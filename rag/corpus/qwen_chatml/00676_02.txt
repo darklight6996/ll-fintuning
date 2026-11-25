@@ -1,0 +1,1 @@
+in` or `bloodyAD info`. Remember that group membership changes may require a logoff/logon or time to replicate.

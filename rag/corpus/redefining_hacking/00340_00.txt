@@ -1,0 +1,19 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+The code in Example 8-11 is available at
+https://github.com/santosomar/RAG-for-cybersecurity.
+Figure 8-4 illustrates the process performed by the code in Example 8-11; it
+converts text data from a file (ssrf.txt) into a numerical vector (embedding),
+which is then stored in a vector database (Chroma DB). The embedding
+captures the meaning of the text in a form that can be efficiently stored and
+queried in the database.
+Figure 8-4 Saving Embeddings in a Vector Database
+When a semantic search is performed, the RAG system interacts with the
+vector database to retrieve document chunks that are most relevant to the

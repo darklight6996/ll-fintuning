@@ -1,0 +1,38 @@
+**Storage (Storage Accounts, SQL, Cosmos DB)**:
+- **Storage Accounts**:
+  - Public blob access
+  - Secure transfer required (HTTPS only)
+  - Minimum TLS version
+  - Encryption (CMK vs MMK)
+  - Network rules (VNet, IP)
+  - Immutable storage (legal hold, time-based)
+  - Shared access signatures (SAS) expiration
+- **Azure SQL**:
+  - Public endpoint
+  - Transparent Data Encryption (TDE)
+  - Auditing to Log Analytics/Storage
+  - Threat detection
+  - Firewall rules
+  - Managed identity authentication
+- **Cosmos DB**:
+  - Public network access
+  - Key-based vs RBAC authentication
+  - Firewall
+  - Backup policy
+
+**Networking (VNet, Firewall, Front Door, App Gateway)**:
+- **VNet**:
+  - Flow logs (NSG)
+  - Service endpoints / Private endpoints
+  - DDoS Protection
+  - Bastion
+- **Azure Firewall**:
+  - Threat intelligence
+  - Application rules
+  - Network rules
+  - DNS proxy
+- **Front Door / App Gateway**:
+  - WAF (Managed rules + Custom)
+  - HTTPS only
+  - Custom domains
+  - Health probes

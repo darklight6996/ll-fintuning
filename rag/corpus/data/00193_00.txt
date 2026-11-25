@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check file integrity tooling.
+
+CONTEXT:
+Change monitoring audit.
+
+METHOD / ANSWER:
+Command: `systemctl status aide`
+Explanation: Verifies file integrity monitoring.

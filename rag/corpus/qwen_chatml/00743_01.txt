@@ -1,0 +1,35 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+where:
+Header = 4791 BODY[HEADER]
+Body =%0d%0aV100 CAPABILITY%0d%0a
+Footer = 7101 FETCH 4791
+Result Expected:
+« Arbitrary IMAP/SMTP command injection
+References
+Whitepapers
+« RFC 0821 “Simple Mail Transfer Protocol”.
+» RFC 3501 “Internet Message Access Protocol - Version 4rev1”.
+» Vicente Aguilera Diaz: “MX Injection: Capturing and Exploiting
+Hidden Mail Servers” - http://www.webappsec.org/projects/
+articles/121106.pdf
+Testing for Code Injection
+(OTG-INPVAL-012)
+Summary
+This section describes how a tester can check if it is possible to
+enter code as input on a web page and have it executed by the
+web server.
+In Code Injection testing, a tester submits input that is processed
+by the web server as dynamic code or as an included file. These
+tests can target various server-side scripting engines, e.g.., ASP
+or PHP. Proper input validation and secure coding practices need
+to be employed to protect against these attacks.
+How to Test
+Black Box testing
+Testing for PHP Injection vulnerabilities
+Using the querystring, the tester can inject code (in this example,
+a malicious URL) to be processed as part of the included file:
+Resul

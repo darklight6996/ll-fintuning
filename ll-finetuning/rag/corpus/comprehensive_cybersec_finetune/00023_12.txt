@@ -1,0 +1,31 @@
+**AV/EDR Vendor Fingerprinting**:
+- **Microsoft Defender for Endpoint (MDE)**:
+  - `MsMpEng.exe`, `MpCmdRun.exe`, `MsSense.exe`
+  - `Sense` service, `WdNisSvc`
+  - `C:\ProgramData\Microsoft\Windows Defender`
+  - `SecurityHealthService`
+  - Tamper Protection enabled
+- **CrowdStrike Falcon**:
+  - `falcon-sensor.exe`, `CSFalconService`
+  - `C:\Program Files\CrowdStrike`
+  - Kernel driver: `C:\Windows\System32\drivers\CrowdStrike\*`
+  - Network: `*.crowdstrike.com`, `*.falcon.crowdstrike.com`
+- **SentinelOne**:
+  - `SentinelAgent.exe`, `SentinelStaticEngine.exe`
+  - `C:\Program Files\SentinelOne`
+  - Kernel driver: `C:\Windows\System32\drivers\SentinelOne\*`
+  - Network: `*.sentinelone.net`
+- **Carbon Black (VMware)**:
+  - `CbEDR.exe`, `CbDefense.exe`, `CbProtection.exe`
+  - `C:\Program Files\Carbon Black`
+  - Network: `*.carbonblack.io`, `*.conferdeploy.net`
+- **Cybereason**:
+  - `CybereasonSensor.exe`, `CybereasonRansomFree.exe`
+  - `C:\Program Files\Cybereason`
+  - Network: `*.cybereason.net`
+- **Elastic Security (Endpoint)**:
+  - `elastic-agent.exe`, `elastic-endpoint.exe`
+  - `C:\Program Files\Elastic`
+  - Network: `*.elastic.co`
+- **Cortex XDR (Palo Alto)**:
+  - `cytool.exe`, `cy

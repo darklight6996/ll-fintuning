@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check hardware inventory.
+
+CONTEXT:
+Asset management audit.
+
+METHOD / ANSWER:
+Command: `lshw -short`
+Explanation: Documents system assets.

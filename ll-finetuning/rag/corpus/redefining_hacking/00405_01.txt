@@ -1,0 +1,25 @@
+METHOD / ANSWER:
+h4cker.org is using the IP addresses 185.199.108.153 for www.h4cker.org,
+185.199.110.153 for mail.h4cker.org, and 185.199.110.153 for
+portal.h4cker.org. Example 9-2 shows an example of the DNSRecon tool in
+Kali Linux being used to query the DNS records for h4cker.org.
+Example 9-2 DNSRecon Example
+┌─[omar@websploit]─[~]
+└──╼ $dnsrecon -d h4cker.org
+[*] Performing General Enumeration of Domain: h4cker.
+/usr/share/dnsrecon/./dnsrecon.py:816: DeprecationWar
+dns.resolver.Resolver.resolve() instead
+answer = res._res.query(domain, 'DNSKEY')
+[*] DNSSEC is configured for h4cker.org
+[*] DNSKEYs:
+[*] NSEC3 ZSK RSASHA256 030100019ed0af43a7dc09d07e164
+b4036075e9187c4c563519155f888b60 8fdffe9c6d8a0a01522f
+0a8e97d1350e694b272ec63af9708609 b3721e6b53a2d7aa8839
+dd98f97b39d8768f7e975a449c001ce9 55189ea83f30a4fe6b4d
+1cef3a8d84968a980bde65c0b1309d5b 825a0f23
+[*] NSEC3 KSk RSASHA256 030100018403e0971df0dc1770f3b
+ca57eb68d03a84b4a712cadda60567fe a264f0e5d7ec4c8e0187
+d22a17548c3a046636666300c06711f0 761200245149a220b799
+8228425cb39b6466adba9f6f7fe28d76 c1bcf44e19f035f658ee
+7aa15d7706cc572c863d65619bd48f77 425ea0844716709b9923
+c94f8e581db9274cf1c8bb41fbbd7838 24978c0f9b7125b9ce3e

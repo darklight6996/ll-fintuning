@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify backup integrity.
+
+CONTEXT:
+Disaster recovery audit.
+
+METHOD / ANSWER:
+Command: `ls /backups`
+Explanation: Confirms backup availability.

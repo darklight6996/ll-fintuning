@@ -1,0 +1,1 @@
+e token and send, it works: Alternatively, I can use the Python3 websockets module from the command

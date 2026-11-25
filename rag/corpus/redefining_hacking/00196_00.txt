@@ -1,0 +1,17 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+network. These backdoors operate at the application layer, making them
+particularly insidious because they exploit the trust placed in commonly
+used software. Let’s go over some examples of the types of application-
+level backdoors.
+Web Shells
+Web shells are scripts that allow attackers to execute arbitrary commands
+on a web server. They are typically written in scripting languages like PHP,
+ASP, JavaScript, or JSP. Figure 6-2 illustrates how web shells work.

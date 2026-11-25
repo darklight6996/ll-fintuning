@@ -1,0 +1,15 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+How do you identify local users and groups?
+
+Context:
+Context: Post-Initial Access Reconnaissance. You have gained shell access to a system.
+Principle to Apply: 'Understand the local security context to identify privilege escalation opportunities.'
+assistant
+**Assessment Phase**: Local Security Context Enumeration.
+**Core Principle**: Knowing the current user's privileges, group memberships, and other users on the system reveals potential attack paths for privilege escalation.
+**Actionable Steps**:
+1.  **User & Privilege Enumeration**: On Windows: `whoami /all`; On Linux: `id`, `sudo -l`, `cat /etc/passwd`
+    *   **Reasoning**: These commands reveal the current user's identity, group memberships, privileges (like SeDebugPrivilege), sudo rights, and other local accounts. This information directly informs privilege escalation strategy.
+**Guidance for Novel Context**: Also check for recently used commands (`history`), running processes (`ps aux`), scheduled tasks (`schtasks`/`crontab`), and installed applications. Look for weak file permissions, SUID binaries, or writable service paths.

@@ -1,0 +1,1 @@
+Look for Azure Active Directory (AAD) information to identify users and groups.

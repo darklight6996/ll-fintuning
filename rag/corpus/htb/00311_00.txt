@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from Htb Acute Hacks Stuff)
+
+CONTEXT:
+Source: Htb Acute Hacks Stuff
+Section: Writeup

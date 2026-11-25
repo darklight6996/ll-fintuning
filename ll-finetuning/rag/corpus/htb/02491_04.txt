@@ -1,0 +1,1 @@
+hrowable $e ) { error_log ( "Rule error: " . $e -> getMessage ()); $allowed = false ; } if ( ! $allowed ) { echo json_encode ([ 'success' => false , 'message' => $rule_message ]); exit ; } Now I have access to set the rules. The result needs to return true or false

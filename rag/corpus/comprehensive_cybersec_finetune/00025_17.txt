@@ -1,0 +1,25 @@
+**Path D: Exploit Development / Vulnerability Research**
+1. eJPT → 2. OSCP → 3. ASEP (18-24 mo) → 4. OSED (24-36 mo) → 5. OSEE (36+ mo) → 6. 0-day Research / Pwn2Own
+
+**Path E: Cloud / Modern Infrastructure**
+1. eJPT → 2. PNPT → 3. OSCP → 4. Cloud-specific (AWS/Azure/GCP pentest certs) → 5. Container/K8s (CKS, KCSA) → 6. Cloud Red Teaming
+
+**Study Strategy & Resources**
+- **Lab Time**: Minimum 20 hrs/week for active cert prep
+- **Note-Taking**: Obsidian/Notion with MITRE ATT&CK mapping
+- **Practice Platforms**:
+  - Hack The Box (VIP/VIP+ for Pro Labs)
+  - TryHackMe (learning paths)
+  - OffSec Proving Grounds (PG Practice)
+  - AttackDefense, RangeForce, PentesterLab
+  - VulnHub, Docker-based labs
+- **Community**: Discord (OffSec, HTB, TCM), Reddit (r/oscp, r/netsec), Twitter/X
+- **Conferences**: Black Hat, DEF CON, BSides, DerbyCon, Wild West Hackin' Fest
+- **Bookshelf Essentials**:
+  - "The Web Application Hacker's Handbook" v2
+  - "Practical Malware Analysis"
+  - "Windows Internals" (7th ed)
+  - "The Art of Exploitation" (Jon Erickson)
+  - "Advanced Windows Exploitation" (OffSec)
+  - "Browser Exploitation" (Saelo)
+  - "Fuzzing: Brute Force Vulnerability Discovery"

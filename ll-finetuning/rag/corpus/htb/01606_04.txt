@@ -1,0 +1,1 @@
+################# ] - 0s 30000/30000 63425/s http://cypher.htb/testing/ => Directory listing (add --scan-dir-listings to scan) There’s a few things to note here: There’s a /demo , but it redirects

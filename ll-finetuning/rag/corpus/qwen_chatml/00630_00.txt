@@ -1,0 +1,14 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Appendix A. Answers to Multiple Choice
+Questions [This content is currently in
+development.]
+This content is currently in development.

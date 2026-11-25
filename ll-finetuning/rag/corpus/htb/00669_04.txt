@@ -1,0 +1,1 @@
+df@htb.htb", "password": "0xdf0xdf"}' http://10.10.11.161/api/v1/user/signup

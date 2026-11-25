@@ -1,0 +1,22 @@
+e it is posted online.
+Periodically review the sensitivity of existing design and configuration
+information that is posted online.
+Fingerprint Web Server (OTG-INFO-002)
+Summary
+Web server fingerprinting is a critical task for the penetration tester.
+Knowing the version and type of a running web server allows testers
+to determine known vulnerabilities and the appropriate exploits to use
+during testing.
+There are several different vendors and versions of web servers on
+the market today. Knowing the type of web server that is being test-
+ed significantly helps in the testing process and can also change the
+course of the test.
+This information can be derived by sending the web server specific
+commands and analyzing the output, as each version of web server
+software may respond differently to these commands. By knowing
+how each type of web server responds to specific commands and
+keeping this information in a web server fingerprint database, a pen-
+etration tester can send these commands to the web server, analyze
+the response, and compare it to the database of known signatures.
+Please note that it usually takes several different commands to accu-
+rately identify the web server, as diff

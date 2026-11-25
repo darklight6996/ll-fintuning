@@ -1,0 +1,1 @@
+**Tools**: ysoserial, ysoserial.net, phpggc, GadgetProbe, Freddy, Burp extensions, serialkiller.

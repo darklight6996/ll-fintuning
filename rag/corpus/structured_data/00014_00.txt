@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What steps should you take to exploit a vulnerability in XWiki's Solr search?
+
+CONTEXT:
+Context: Targeted Exploitation. You have identified a specific technology (XWiki version 15.10.8) and a known vulnerability (CVE-2025-24893) in its Solr search component.
+Principle to Apply: 'Verify the vulnerability exists before attempting full exploitation.'

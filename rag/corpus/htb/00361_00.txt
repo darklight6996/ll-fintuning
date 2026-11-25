@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from Htb Agile Hacks Stuff)
+
+CONTEXT:
+Source: Htb Agile Hacks Stuff
+Section: Writeup

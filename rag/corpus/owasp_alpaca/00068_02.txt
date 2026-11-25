@@ -1,0 +1,22 @@
+include graphs or other charts which show the
+risk level. Keep in mind that executives will likely only have time to
+read this summary and will want two questions answered in plain
+language: 1) What's wrong? 2) How do | fix it? You have one page
+to answer these questions.
+The executive summary should plainly state that the vulnerabili-
+ties and their severity is an input to their organizational risk man-
+agement process, not an outcome or remediation. It is safest to
+explain that tester does not understand the threats faced by the
+organization or business consequences if the vulnerabilities are
+exploited. This is the job of the risk professional who calculates
+risk levels based on this and other information. Risk management
+will typically be part of the organization's IT Security Governance,
+Risk and Compliance (GRC) regime and this report will simply pro-
+vide an input to that process.
+2. Test Parameters
+The Introduction should outline the parameters of the security
+testing, the findings and remediation. Some suggested section
+headings include:
+2.1 Project Objective: This section outlines the project objectives
+and the expected outcome of the assessment.
+2.2 Project Scope: This se

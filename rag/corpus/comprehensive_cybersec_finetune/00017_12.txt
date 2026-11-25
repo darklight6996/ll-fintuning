@@ -1,0 +1,17 @@
+, Username, Certificate, IssuedToken)
+  - `opcua-client`, `UAExpert`, `opcua-cli`, `freeopcua`
+- **BACnet/IP**:
+  - BIBBs (BACnet Interoperability Building Blocks)
+  - Objects (Device, Analog Input/Output/Value, Binary, Multi-state, Schedule, Calendar, Trend Log, Notification Class)
+  - Services: Who-Is, I-Am, Who-Has, I-Have, ReadProperty, WriteProperty, SubscribeCOV
+  - `bacnet-stack`, `bacpypes`, `bacnet-cli`
+- **MQTT / Sparkplug B**:
+  - Topic namespace: `spBv1.0/<group>/<message>/<edge>/<device>`
+  - Payload: Protobuf (Device/Node/Edge birth/death/data/command)
+  - `mosquitto_sub`, `mqtt-spy`, `sparkplug-b`
+- **PROFINET / EtherCAT / EtherNet/IP / CC-Link IE**:
+  - Real-time (RT) vs Isochronous Real-time (IRT)
+  - DCP (Discovery and Configuration Protocol)
+  - LLDP, MRP (Media Redundancy Protocol)
+  - GSD/GSDML/EDS/XDD files (device description)
+  - `wireshark` (PROFINET/EtherCAT dissection)

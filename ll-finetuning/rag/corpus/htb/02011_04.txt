@@ -1,0 +1,1 @@
+results at https://nmap.org/submit/ . Nmap done: 1 IP address (1 host up) scanned in 33.20 seconds The OpenSSH and Apache versions are all mixed up. OpenSSH is version 7.4p1 Ubuntu 10 , but that’s not a default version on Ubuntu ,

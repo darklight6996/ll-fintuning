@@ -1,0 +1,11 @@
+**Remediation**:
+- Server-side validation of ALL business rules
+- State machine enforcement for multi-step flows
+- Idempotency keys for critical operations
+- Optimistic locking for concurrent updates
+- Comprehensive audit logging
+- Rate limiting per user/action
+- CAPTCHA/bot detection on sensitive flows
+- Regular business logic penetration testing
+
+**Tools**: Burp Suite (Turbo Intruder, Autorize), Postman, custom Python/Go scripts, race-the-web, OWASP ZAP.

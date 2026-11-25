@@ -1,0 +1,31 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+|_ Auth Plugin Name: mysql_native_password
+8888/tcp open sun-answerbook
+9000/tcp open cslistener
+9090/tcp open zeus-admin
+MAC Address: 1E:BD:4F:AA:C6:BA (Unknown)
+Host script results:
+|_clock-skew: mean: 17s, deviation: 0s, median: 17s
+|_nbstat: NetBIOS name: VULNHOST-1, NetBIOS user: <un
+<unknown> (unknown)
+| smb-os-discovery:
+| OS: Windows 6.1 (Samba 4.9.5-Debian)
+| Computer name: vulnhost-1
+| NetBIOS computer name: VULNHOST-1\x00
+| Domain name: ohmr.org
+| FQDN: vulnhost-1.ohmr.org
+|_ System time: 2022-06-21T21:38:40+00:00
+| smb-security-mode:
+| account_used: guest
+| authentication_level: user
+| challenge_response: supported
+|_ message_signing: disabled (dangerous, but default)
+<output omitted for brevity>
+The highlighted lines in Example 9-33 show the details about the Samba
+version that is running on the system (Samba Version 4.9.5). You can also
+see that even though the OS is marked as Windows 6.1, the correct
+operating system is Debian.

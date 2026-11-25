@@ -1,0 +1,18 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Red Team Challenges
+There are a number of challenges that red teamers will face during their
+career. While they don’t happen often, it is important to understand and
+prepare for them when they do arise. The following sections explore some
+of the common challenges faced by red teams, from navigating complex
+organizational structures to dealing with the frustration of “no-findings”
+engagements. By acknowledging these hurdles and developing strategies to
+overcome them, red teams can consistently improve their effectiveness and

@@ -1,0 +1,24 @@
+TECHNIQUE / QUESTION:
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+C. CISA
+D. ISO
+5. What is the primary purpose of the ProjectDiscovery Nuclei Scanner?
+A. To generate AI models for vulnerability detection
+B. To create vulnerability reports
+C. To identify and mitigate security vulnerabilities across various platforms
+D. To manage bug bounty programs
+6. What type of file format does Nuclei use for its templates?
+A. STIX
+B. XML
+C. YAML
+D. TXT
+7. What is LoRA in the context of AI model fine-tuning?
+A. Low-range analysis
+B. Low-rank adaptation

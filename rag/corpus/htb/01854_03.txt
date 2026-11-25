@@ -1,0 +1,1 @@
+witching to interactive mode # id uid=0(root) gid=0(root) groups=0(root),1003(tom) # cat /root/root.txt 641e7a5b************************

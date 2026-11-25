@@ -1,0 +1,14 @@
+C_SHA
+TLS_ECDH_anon_WITH_AES_
+256 _CBC_SHA
+(TLSv1.0: same as above)
+(TLSv1.1: same as above)
+(TLSv1.2: same as above)
+[!] LANE ciphers : SUPPORTED
+[!] Attackers may be ABLE to recover encrypted packets.
+[!] Vulnerability Status: VULNERABLE
+Checking localhost:443 for GCM/CCM ciphers support against
+Lucky13 attack (CVE-2013-0169)...
+Supported GCM cipher suites against Lucky13
+attack:
+170

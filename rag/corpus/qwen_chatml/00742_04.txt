@@ -1,0 +1,12 @@
+eployment
+structure of the client”) has identified the command and argu-
+ments associated with this parameter as:
+FETCH 4791 BODY[HEADER]
+In this scenario, the IMAP injection structure would be:
+http:/<webmail>/read_email.php?message_id=4791
+BODY[HEADER]%0d%0aV/ 100 CAPABILITY%0d%O0aV101
+FETCH 4791
+Which would generate the following commands:
+2??? FETCH 4791 BODY[HEADER]
+V100 CAPABILITY
+V¥101 FETCH 4791 BODY[HEADER]

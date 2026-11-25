@@ -1,0 +1,36 @@
+this case, sending malicious
+IMAP commands is modus operandi since IMAP is the underlying
+protocol being tested.
+IMAP special parameters that should be used are:
+On the IMAP server
+On the SMTP server
+Authentication
+Emissor e-mail
+operations with mail boxes
+Destination e-mail
+(list, read, create, delete,
+rename)
+operations with messages
+(read, copy, move, delete)
+Subject
+Disconnection
+Message body
+Attached files
+In this example, the “mailbox” parameter is being tested by ma-
+nipulating all requests with the parameter in:
+http:/<webmail>/src/read_body.php?mailbox=INBOX&-
+passed _id=46106&startMessage=1
+The following examples can be used.
+« Assign a null value to the parameter:
+Web Application Penetration Testing
+http:/<webmail>/src/read_body.php?mailbox=&passed_
+id=46106&startMessage=1
+» Substitute the value with a random value:
+http:/<webmail>/src/read_body.php?mailbox=NOTEXIST&-
+passed_id=46106&startMessage=1
+« Add other values to the parameter:
+http:/<webmail>/src/read_body.php?mailbox=INBOX PA-
+RAMETER2&passed_id=46106&startMessage=1
+« Add non standard special characters (i.e.: \, ‘,", @, #, |, |):
+http:/<webmail>/src/read_body.php?mailbox=INBOX"&-
+passed_id=46106&startMessage=1

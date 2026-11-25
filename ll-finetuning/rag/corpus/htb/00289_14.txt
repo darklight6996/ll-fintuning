@@ -1,0 +1,1 @@
+forwardable KeyType : rc4_hmac Base64(key) : HsqwfKfaqxHXEEWrTrZgNQ== ASREP (key) : B12C01DBB616E818DD73E1A922CC245A [*] Getting credentials using

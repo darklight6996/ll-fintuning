@@ -1,0 +1,1 @@
+P requests for our on-prem printer # response = requests.post("http://printer.bookworm-internal.htb", files={"file": open(postscript_output)}) -dNOSAFER The -dNOSAFER flag is passed to ps2pdf , which, according to Ghost Script docs means: -dNOSAFER (equivalent to -dDELAYSAFER ). This flag disables SAFER mode

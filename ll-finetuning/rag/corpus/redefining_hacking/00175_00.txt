@@ -1,0 +1,16 @@
+TECHNIQUE / QUESTION:
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 5-19 DDT (Link: https://www.sparrowslockpicks.com/products/ddt)
+Under the Door Tool (UDT)
+The under the door tool (UDT) is useful for doors reliant on access control
+systems and not an additional lock in place (see Figure 5-20). If the handle
+is one you pull down on, you can slip this UDT under the door and grab the
+handle and pull down, providing you access into the room. This is
+commonly seen with server rooms in organizations.

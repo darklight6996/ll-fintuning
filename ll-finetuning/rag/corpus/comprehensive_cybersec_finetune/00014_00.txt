@@ -1,0 +1,23 @@
+TECHNIQUE / QUESTION:
+Describe the methodology for Mobile Application Security Testing (iOS and Android).
+
+CONTEXT:
+You are tasked with testing the security of mobile applications. Explain the systematic approach for both iOS and Android platforms.
+
+METHOD / ANSWER:
+Mobile Application Security Testing Methodology:
+
+**Phase 1: Environment Setup**
+
+**Android**:
+- **Rooted Device/Emulator**:
+  - Genymotion, Android Studio AVD, Corellium
+  - Magisk for root
+  - Xposed Framework (EdXposed/LSPosed)
+  - Frida server (`frida-server`)
+  - Objection (`objection --gadget com.package explore`)
+- **Tools**:
+  - `adb`, `apktool`, `jadx`, `dex2jar`, `jd-gui`
+  - `drozer`, `qark`, `mobsf`, `androgui`
+  - `frida`, `objection`, `radare2`, `ghidra`
+  - Burp Suite (ProxyDroid, JustTrustMe)

@@ -1,0 +1,29 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+SWEET32 (CVE-2016-2183, CVE-2016-6329) not vulnera
+FREAK (CVE-2015-0204) not vulnerabl
+DROWN (CVE-2016-0800, CVE-2016-0703) not vulnera
+(OK)
+make sure you don
+elsewhere with SSLv2 enabled services
+https://search.censys.io/search?resource=hosts&virtua
+F5A7ABB9F8ADC0082652A6F978E379F2496247045850C96ACD809
+LOGJAM (CVE-2015-4000), experimental not vulnera
+ciphers, no DH key detected with <= TLS 1.2
+BEAST (CVE-2011-3389) not vulnerable
+LUCKY13 (CVE-2013-0169), experimental potentially
+block chaining (CBC) ciphers with TLS. Check patches
+RC4 (CVE-2013-2566, CVE-2015-2808) no RC4 ciphe
+Testing 370 ciphers via OpenSSL plus sockets against
+encryption strength
+<output omitted for brevity>
+The highlighted lines in Example 9-12 show how the testssl tool is able to
+test for weak crypto algorithms and for known vulnerabilities.

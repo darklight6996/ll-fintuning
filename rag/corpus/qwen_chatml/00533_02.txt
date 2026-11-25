@@ -1,0 +1,4 @@
+rom anywhere
+in the world. This makes sense because external systems are
+the most exposed to potential attackers, and companies want
+to ensure these systems are as secure as possible. External

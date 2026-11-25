@@ -1,0 +1,17 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 5-13 Capturing iClass Legacy
+Figure 5-14 Hex Value for Block 7
+How Can I Clone Badges?
+For years, Wiegotcha has been the standard software that integrates with
+Raspberry Pi to reconfigure a badge reader such as Maxi Prox or iClass
+R90. The Maxi Prox operates at low frequency, and the iClass R90 operates
+at a high frequency. The higher-frequency badges have the ability to read

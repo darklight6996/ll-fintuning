@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+Query Throttling
+To work around the issue of bandwidth limitations and vulnerability
+scanning, slowing down the traffic created by your scanner can often help.
+You can typically achieve this slowdown by modifying the options of the
+scanning policy. One way to do this is to reduce the number of attack
+threads that are being sent to the target at the same time. There isn’t a
+specific rule of thumb for the number of threads. It really depends on the
+robustness of the target. Some targets are more fragile than others. Another
+way to accomplish this is to reduce the scope of the plug-ins/attacks that the
+scanner is checking for. If you know that the target device is a Linux server,
+you can disable the attacks for other operating systems, such as Windows.
+Even though the attacks won’t work against the Linux server, it still needs
+to receive and respond to the traffic. This additional traffic can cause a
+bottleneck in processing and network traffic consumption. Limiting the
+number of requests that the target would need to respond to would reduce
+the risk of causing issues on the target such as crashing, thus resulting in a
+more successful scan.
+Fragile Systems/Nontraditio

@@ -1,0 +1,30 @@
+**Phase 2: OTG-BUSLOGIC-001: Business Logic Data Validation**
+- **Negative Testing**:
+  - Negative quantities in cart
+  - Negative prices, discounts > 100%
+  - Future/past dates where not allowed
+  - Integer overflow/underflow (quantity * price)
+  - Floating point precision issues
+- **Boundary Testing**:
+  - Max/min values for all numeric fields
+  - Empty/null values where required
+  - Unicode, emoji, special characters
+  - Very long inputs (buffer/DoS)
+- **Type Confusion**:
+  - String where number expected
+  - Array where object expected
+  - Boolean where string expected
+
+**Phase 3: OTG-BUSLOGIC-002: Ability to Forge Requests**
+- **Parameter Tampering**:
+  - Hidden fields: price, quantity, product_id, user_id
+  - API parameters: skip client-side validation
+  - Mass assignment: extra fields in JSON
+- **Request Replay/Reordering**:
+  - Replay completed steps
+  - Skip steps in multi-step flow
+  - Execute steps out of order
+  - Parallel request race conditions
+- **State Manipulation**:
+  - Modify session/state variables directly
+  - Jump to final step without prerequisites

@@ -1,0 +1,25 @@
+the attacker needs
+to add it back. As it happens, it’s this bind variable that is the key to
+running arbitrary PL/SQL. For the moment, they can just use HTP.
+PRINT to print BAR, and add the needed bind variable as :1:
+http:/server.example.com/pls/dad/orasso.home?);HTP.
+PRINT(:1);--=BAR
+This should return a 200 with the word “BAR” in the HTML. What's
+happening here is that everything after the equals sign - BAR in
+this case - is the data inserted into the bind variable. Using the
+same technique it’s possible to also gain access to owa_util.cell-
+sprint again:
+118
+Web Application Penetration Testing
+http:/www.example.com/pls/dad/orasso.home?);OWA_
+UTIL.CELLSPRINT(:1);--=SELECT+USERNAME+FROM+ALL_
+USERS
+To execute arbitrary SQL, including DML and DDL statements, the
+attacker inserts an execute immediate :1:
+http:/server.example.com/pls/dad/orasso.home?);exe-
+cute%20immediate%20:1;--=select%201%20from%20dual
+Note that the output won't be displayed. This can be leveraged to
+exploit any PL/SQL injection bugs owned by SYS, thus enabling an
+attacker to gain complete control of the backend database server.
+For example, the following URL takes advantage of the SQL in-
+jection flaws in DBMS_E

@@ -1,0 +1,1 @@
+Determine if access requires elevated privileges.

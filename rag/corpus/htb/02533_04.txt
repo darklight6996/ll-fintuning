@@ -1,0 +1,1 @@
+ghost.htb@cifs_dc01.ghost.htb@GHOST.HTB.ccache Default principal: 0xdf@CORP.GHOST.HTB Valid starting Expires Service principal 03/31/2025 21:52:36 04/01/2025 07:52:36 cifs/dc01.ghost.htb@GHOST.HTB renew until 04/01/2025 21:50:32 Use Ticket I can use this new ticket

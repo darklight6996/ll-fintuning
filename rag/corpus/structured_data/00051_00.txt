@@ -1,0 +1,14 @@
+TECHNIQUE / QUESTION:
+How do you perform a network scan?
+
+CONTEXT:
+Context: Initial Reconnaissance. You have a target IP but no prior information about services or open ports.
+Principle to Apply: 'Map the entire network attack surface before focusing on specific services.'
+
+METHOD / ANSWER:
+**Assessment Phase**: Comprehensive Network Discovery.
+**Core Principle**: A full port scan ensures you don't miss obscure or non-standard services that could be the easiest point of entry.
+**Actionable Steps**:
+1.  **TCP Port Discovery**: `nmap -p- <target_ip>`
+    *   **Reasoning**: Scans all 65,535 TCP ports to identify every listening service. This creates a complete inventory of potential entry points before diving deeper into any specific service.
+**Guidance for Novel Context**: For faster results on local networks, add `--min-rate 1000`. If stealth is required, use slower timing (`-T2`) or SYN scans (`-sS`). Always follow with a focused UDP scan (`-sU -p 53,161,123`) for critical services.

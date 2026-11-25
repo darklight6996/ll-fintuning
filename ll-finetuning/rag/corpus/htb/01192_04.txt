@@ -1,0 +1,1 @@
+C01) (domain:certified.htb) ( signing:True ) ( SMBv1:False ) SMB 10.10.11.41 445 DC01 [+] certified.htb\judith.mader:judith09 SMB 10.10.11.41 445 DC01 [*] Enumerated shares SMB 10.10.11.41 445 DC01 Share Permissions Remark SMB 10.10.11.41 445 DC01 ----- ----------- ------ SMB 10.10.11.41

@@ -1,0 +1,20 @@
+A world without some minimal standards in terms of engineering
+and technology is a world in chaos.
+It goes without saying that you can’t build a secure application
+without performing security testing on it. Testing is part of a wider
+approach to building a secure system. Many software develop-
+ment organizations do not include security testing as part of their
+standard software development process. What is even worse is
+that many security vendors deliver testing with varying degrees
+of quality and rigor.
+Security testing, by itself, isn’t a particularly good stand alone
+measure of how secure an application is, because there are an in-
+finite number of ways that an attacker might be able to make an
+application break, and it simply isn’t possible to test them all. We
+can't hack ourselves secure and we only have a limited time to test
+and defend where an attacker does not have such constraints.
+In conjunction with other OWASP projects such as the Code review
+Guide, the Development Guide and tools such as OWASP ZAP, this
+is a great start towards building and maintaining secure applica-
+tions. The Development Guide will show your project how to archi-
+tect and build a secure application

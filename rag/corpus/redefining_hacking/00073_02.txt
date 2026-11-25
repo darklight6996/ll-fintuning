@@ -1,0 +1,4 @@
+ont of the web server and take into
+account rewrites specific in the Apache/Nginx configuration. These rewrites
+can control the directive and manipulate the URL on the fly based off the
+configurations in place.

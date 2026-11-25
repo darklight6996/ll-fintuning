@@ -1,0 +1,17 @@
+**Runtime Manipulation (Frida/Objection)**:
+- **Hooking**:
+  - `Java.perform()` / `ObjC.classes`
+  - Method swizzling, implementation replacement
+  - Bypass root/jailbreak detection
+  - Bypass certificate pinning
+  - Dump Keychain/Keystore/SharedPreferences
+  - Modify return values (auth bypass, premium features)
+  - Trace crypto operations
+- **Objection Commands**:
+  - `android hooking list classes`
+  - `android hooking watch class_method`
+  - `android keystore list`
+  - `android sharedprefs list`
+  - `ios keychain dump`
+  - `ios cookies list`
+  - `ios nsurlsessiondelegates`

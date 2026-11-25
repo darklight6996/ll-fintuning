@@ -242,15 +242,38 @@ CVSS_CALCULATOR = ActionDefinition(
 def build_research_registry() -> ActionRegistry:
     """Build and return the ActionRegistry for SecurityResearchAgent."""
     registry = ActionRegistry()
-    registry.register(CVE_LOOKUP)
-    registry.register(SOURCE_DIFF)
-    registry.register(ROOT_CAUSE_ANALYSIS)
-    registry.register(HARNESS_GENERATION)
-    registry.register(BENIGN_POC_DEV)
-    registry.register(EXPLOITABILITY_AUDIT)
-    registry.register(VARIATION_FUZZING)
-    registry.register(REMEDIATION_GUIDE)
-    registry.register(RESEARCH_WRITEUP)
-    registry.register(CVSS_CALCULATOR)
+    from agents.security_research.command_builders import (
+        build_benign_poc_dev,
+        build_cve_lookup,
+        build_cvss_calculator,
+        build_exploitability_audit,
+        build_harness_generation,
+        build_remediation_guide,
+        build_research_writeup,
+        build_root_cause_analysis,
+        build_source_diff,
+        build_variation_fuzzing,
+    )
+
+    registry.register(CVE_LOOKUP, build_cve_lookup)
+    registry.register(SOURCE_DIFF, build_source_diff)
+    registry.register(ROOT_CAUSE_ANALYSIS, build_root_cause_analysis)
+    registry.register(HARNESS_GENERATION, build_harness_generation)
+    registry.register(BENIGN_POC_DEV, build_benign_poc_dev)
+    registry.register(EXPLOITABILITY_AUDIT, build_exploitability_audit)
+    registry.register(VARIATION_FUZZING, build_variation_fuzzing)
+    registry.register(REMEDIATION_GUIDE, build_remediation_guide)
+    registry.register(RESEARCH_WRITEUP, build_research_writeup)
+    registry.register(CVSS_CALCULATOR, build_cvss_calculator)
+    # Framework-level shared primitives (cross-agent): HTTP primitive,
+    # headless-browser coverage, and opt-in self-scripting -- the same
+    # capabilities every agent gets, wired identically.
+    from agents.common.http_primitive import HTTP_PROBE, build_http_probe
+    registry.register(HTTP_PROBE, build_http_probe)
+    from agents.common.browser_primitive import BROWSER_PROBE, build_browser_probe
+    registry.register(BROWSER_PROBE, build_browser_probe)
+    from agents.common.self_scripting import SELF_SCRIPT, build_self_script, self_scripting_enabled
+    if self_scripting_enabled():
+        registry.register(SELF_SCRIPT, build_self_script)
     return registry
 

@@ -1,0 +1,4 @@
+Is there an option to upload files
+or navigate through new segments of the web application? What is the
+method of API utilization, and how does the application distinguish
+authenticated users?

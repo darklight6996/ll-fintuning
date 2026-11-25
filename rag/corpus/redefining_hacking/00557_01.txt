@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+The programs table represents individual bug bounty programs run by
+different organizations on the platforms. Each program specifies the scope
+and rules for identifying and reporting vulnerabilities. These are specific
+bug bounties listed under the platforms. The following are the programs
+fields:
+• id: A unique identifier for each program (primary key)
+• name: The name of the bug bounty program
+• platformId: A foreign key that links the program to a specific platform
+The root domains are the primary domains that are in scope for a bug
+bounty program. Each program may cover one or multiple root domains
+that you are allowed to test. The following are the root domains fields:
+• id: A unique identifier for each root domain (primary key)
+• name: The name of the root domain (such as websploit.org)
+• programId: A foreign key linking the root domain to a specific bug
+bounty program
+These are the subdomains under the root domains that are also in scope for
+the bug bounty. A root domain like websploit.org may have subdomains
+such as api.websploit.org, which are part of the same scope for vulnerability
+testing. The following are the subdomains fields:

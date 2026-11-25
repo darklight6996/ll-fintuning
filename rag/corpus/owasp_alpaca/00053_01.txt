@@ -1,0 +1,57 @@
+METHOD / ANSWER:
+Web Application Penetration Testing
+TLSv1_—
+offered (ok)
+TLSv1.1
+offered (ok)
+TLSv1.2 offered (ok)
+SPDY/NPN not offered
+--> Testing standard cipher lists
+Null Cipher
+NOT offered (ok)
+Anonymous NULL Cipher
+NOT offered (ok)
+Anonymous DH Cipher
+NOT offered (ok)
+40 Bit encryption
+NOT offered (ok)
+56 Bit encryption
+NOT offered (ok)
+Export Cipher (general) NOT offered (ok)
+Low (<=64 Bit)
+NOT offered (ok)
+DES Cipher
+NOT offered (ok)
+Triple DES Cipher — offered
+Medium grade encryption offered
+High grade encryption
+offered (ok)
+--> Testing server defaults (Server Hello)
+Negotiated protocol
+TLSv1.2
+Negotiated cipher
+AES128-GCM-SHA256
+Server key size
+2048 bit
+TLS server extensions:
+server name, renegotiation info,
+session ticket, heartbeat
+Session Tickets RFC 5077 300 seconds
+--> Testing specific vulnerabilities
+Heartbleed (CVE-2014-0160), experimental NOT vulnerable
+(ok)
+Renegotiation (CVE 2009-3555)
+CRIME, TLS (CVE-2012-4929)
+NOT vulnerable (ok)
+NOT vulnerable (ok)
+--> Checking RC4 Ciphers
+RC4 seems generally available. Now testing specific ciphers...
+Hexcode
+Cipher Name
+KeyExch. Encryption Bits
+[0x05]
+RC4-SHA
+RSA
+RC4
+128
+RC4 is kind of broken, for e.g. IE6 consider 0x13 or

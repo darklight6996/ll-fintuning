@@ -1,0 +1,30 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+_______________________________________________
+[Status: 200, Size: 10351, Words: 2137, Lines: 138, D
+* FUZZ: # on at least 2 different hosts
+<output omitted for brevity>
+* FUZZ: # This work is licensed under the Creative
+[Status: 301, Size: 185, Words: 6, Lines: 8, Duration
+* FUZZ: s
+[Status: 301, Size: 185, Words: 6, Lines: 8, Duration
+* FUZZ: admin
+[Status: 301, Size: 185, Words: 6, Lines: 8, Duration
+* FUZZ: assets
+[Status: 301, Size: 185, Words: 6, Lines: 8, Duration
+* FUZZ: wp-login
+[Status: 301, Size: 185, Words: 6, Lines: 8, Duration
+* FUZZ: secret
+[Status: 301, Size: 185, Words: 6, Lines: 8, Duration
+* FUZZ: wp-admin
+<output omitted for brevity>
+The lines highlighted in Example 9-46 show the discovered directories in
+the web application running on 10.6.6.23.
+Tip

@@ -1,0 +1,62 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Web Application Penetration Testing
+Example 3. Checking for Certificate information, Weak Ciphers
+and SSLv2 via nmap
+Nmap has two scripts for checking Certificate information, Weak
+TLS_RSA_WITH_CAMELLIA_256_CBC_SHA
+- strong
+TLS_RSA_WITH_RC4_128_SHA
+- strong
+|
+|
+Ciphers and SSLv2 [31].
+|
+compressors:
+|
+|_
+¢ nmap --script ssl-cert,ssl-enum-ciphers -p
+443,465,993,995 www.example.com
+Starting Nmap 6.25 ( http:/nmap.org ) at 2013-01-01 00:00
+CEST
+Nmap scan report for www.example.com (127.0.0.1)
+Host is up (0.090s latency).
+rDNS record for 127.0.0.1: www.example.com
+PORT
+STATE SERVICE
+443/tcp open https
+| ssl-cert: Subject: commonName=www.example.org
+| Issuer: CommonName=*******
+| Public Key type: rsa
+| Public Key bits: 1024
+| Not valid before: 2010-01-23T00:00:00+00:00
+| Not valid after: 2020-02-28T23:59:59+00:00
+| MD5:
+HHH HAHAH
+|_SHA-1: HHH HAHA
+| ssl-enum-ciphers:
+|
+SSLv3:
+|
+ciphers:
+|
+TLS_RSA_WITH_CAMELLIA_128_CBC_SHA - strong
+|
+TLS_RSA_WITH_CAMELLIA_256_CBC_SHA - strong
+|
+TLS_RSA_WITH_RC4_128_SHA - strong
+|
+compressors:
+|
+NULL
+|
+TLSv1.0:
+|
+ciphers:
+|
+TLS_RSA_WITH_CAMELLIA_128_CBC_SHA - strong
+|
+TLS_RSA_WITH_CAMELLIA_256

@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+Performing Reconnaissance with Recon-ng
+So far, you have learned a number of individual sources and tools used for
+information gathering. These tools are all very effective for their specific
+uses; however, wouldn’t it be great if there were a tool that could pull
+together all these different functions? This is where Recon-ng comes in. It
+is a framework originally developed by Tim Tomes, and it is now supported
+by Black Hills Information Security (a cybersecurity company). This tool
+was developed in Python with Metasploit msfconsole in mind. If you’ve
+used the Metasploit console before, Recon-ng will be familiar and easy to
+understand.
+Recon-ng has a modular framework, which makes it easy to develop and
+integrate new functionality. It is highly effective in social networking site
+enumeration because of its use of APIs to gather information. It also
+includes a reporting feature that allows you to export using different report
+formats. Because you will always need to provide some kind of deliverable
+in any testing you do, Recon-ng is especially valuable.
+To start using Recon-ng, you simply run recon-ng from a new terminal
+window. Example 9-18 shows the command and th

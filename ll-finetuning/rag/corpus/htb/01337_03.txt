@@ -1,0 +1,1 @@
+ersin 10.0.19045.4651] (c) Microsoft Corporation. Todos los derechos reservados. C:\ProgramData\Microsoft\VisualStudio\SetupWMI> whoami nt authority\system And I can grab root.txt : C:\Users\Administrator\Desktop> type root.txt 959f11a6************************

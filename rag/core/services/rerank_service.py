@@ -73,6 +73,21 @@ class RerankService:
         """Direct access to the underlying CrossEncoder (for advanced use)."""
         return self._model
 
+    @property
+    def is_available(self) -> bool:
+        """
+        True once the CrossEncoder model is loaded and usable.
+
+        BUG FIX (found via RAG diagnostic, 2026-11-15): Reranker.rerank()
+        guards on `self.rerank_service.is_available`, but RerankService never
+        defined it -> every retrieve() call raised AttributeError and the
+        technique-advisor silently fell back to YAML-only, leaving the 15k-doc
+        FAISS corpus unreachable. This restores the intended contract: when the
+        model failed to load, the reranker falls back to vector-similarity sort
+        instead of crashing.
+        """
+        return self._model is not None
+
 
 def get_rerank_service(
     model_name: Optional[str] = None,

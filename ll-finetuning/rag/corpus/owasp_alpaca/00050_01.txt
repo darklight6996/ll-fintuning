@@ -1,0 +1,37 @@
+METHOD / ANSWER:
+Example 4 Checking for Client-initiated Renegotiation and Se-
+cure Renegotiation via openssl (manually)
+Openssl [30] can be used for testing manually SSL/TLS. In this
+example the tester tries to initiate a renegotiation by client [m]
+connecting to server with openssl. The tester then writes the fist
+line of an HTTP request and types “R” in anew line. He then waits
+for renegotiaion and completion of the HTTP request and checks
+if secure renegotiaion is supported by looking at the server out-
+put. Using manual requests it is also possible to see if Compres-
+sion is enabled for TLS and to check for CRIME [13], for ciphers
+and for other vulnerabilities.
+$ openssl s_client -connect www2.example.com:443
+CONNECTED(00000003)
+depth=2 Sa a ea
+verify error:num=20:unable to get local issuer certificate
+verify return:O
+Certificate chain
+(6) Bobrirerertrs
+alalalaiaial
+DEH
+HH
+1S:
+fjorererereree
+EHH
+HH
+2S:
+Halelatatalal
+Server certificate
+subject=******
+issuer=******
+No client certificate CA names sent
+SSL handshake has read 3558 bytes and written 640 bytes
+New, TLSv1/SSLv3, Cipher is DES-CBC3-SHA
+Server public key is 2048 bit
+Secure Renegotiation IS NOT supported
+Compression: NON

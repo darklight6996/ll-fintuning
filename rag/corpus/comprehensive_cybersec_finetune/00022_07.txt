@@ -1,0 +1,30 @@
+**Honeypot / Deception Environment Indicators**:
+- **Low-Interaction Honeypots**:
+  - Limited command set (`ls`, `whoami`, `id` work; `ps`, `netstat` fail)
+  - Fake filesystem: `/etc/passwd` with only root/daemon
+  - No package manager, no compilers
+  - Responses don't match actual service behavior
+- **High-Interaction Honeypots**:
+  - Real OS but instrumented
+  - Network: All ports open but lead to same service
+  - Credentials: Default/weak intentionally
+  - Data: Fake but realistic (credit cards, SSH keys)
+  - Canary tokens: Files that alert on access
+- **Honeypot-Specific Signatures**:
+  - **Cowrie (SSH/Telnet)**:
+    - `echo $TERM` → `xterm-256color` but limited commands
+    - `cat /proc/version` → generic
+    - File system: `/home/user` with fake files
+  - **Dionaea (SMB/HTTP/FTP)**:
+    - Downloads malware samples
+    - Specific shellcode detection
+  - **Conpot (ICS/SCADA)**:
+    - Modbus, S7, IEC 104 on non-standard ports
+    - Fake PLC responses
+  - **Glutton (All TCP)**:
+    - Accepts any connection, logs everything
+    - No service banner or generic banner
+- **Deception Technology (Enterprise)**:
+  - **Canary Tokens**:
+    - DNS: `unique-token.canarytokens.com`
+    - HTTP

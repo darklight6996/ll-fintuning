@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you generate an SMB hosts file entry for a Windows Domain Controller?
+
+CONTEXT:
+You have identified the target as a Windows Domain Controller at 10.10.11.72.
+
+METHOD / ANSWER:
+Command: `netexec smb 10.10.11.72 --generate-hosts-file hosts`
+Explanation: This command generates and outputs a formatted line for your `/etc/hosts` file, mapping the target's IP address to its hostname and domains.

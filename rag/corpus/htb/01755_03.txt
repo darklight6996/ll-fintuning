@@ -1,0 +1,1 @@
+" , methods = [ ' GET ' , ' POST ' ]) def login (): if request . method == ' POST ' : print ( ' \n ' . join ([ f ' { x [ 0 ] } : { x [ 1 ] } ' for x in request . form . items ()])) return redirect ( " http://10.10.10.120/accounts/login/ " , code = 302 ) else : return render_template ( ' loginform.html ' ) if __name__ == "

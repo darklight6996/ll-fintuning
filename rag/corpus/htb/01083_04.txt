@@ -1,0 +1,1 @@
+omer/bi n/../releases/2.0.0/couchdb -name couchdb@localhost -setcookie monster -kernel error_logger silent -sasl sasl_error_logger false -noshell -noinput -config /home/homer/bin/../releases/2.0.0/sys.config If we kill that process, it comes right back (notice the new pid): root@canape:/home/homer/etc# kill 711 root@canape:/home/homer/etc# ps aux |

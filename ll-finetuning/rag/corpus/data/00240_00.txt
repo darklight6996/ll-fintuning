@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify hostname configuration.
+
+CONTEXT:
+Asset identification.
+
+METHOD / ANSWER:
+Command: `hostnamectl`
+Explanation: Confirms system identity.

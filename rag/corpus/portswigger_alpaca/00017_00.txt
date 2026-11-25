@@ -1,0 +1,5 @@
+TECHNIQUE / QUESTION:
+Explain the objectives and methodology for the PortSwigger lab: Lab: CORS vulnerability with trusted null origin
+
+CONTEXT:
+Context: Lab: CORS vulnerability with trusted null origin (Learning Module)

@@ -1,0 +1,28 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+collected from a compromised system and then use the same
+hash to log in to another client or server system.
+Post-Exploitation Scanning
+Lateral movement involves scanning a network for other systems,
+exploiting vulnerabilities in other systems, compromising credentials, and
+collecting sensitive information for exfiltration. Lateral movement is
+possible if an organization does not segment its network properly. Network
+segmentation is therefore very important.
+Note
+Testing the effectiveness of your network segmentation
+strategy is very important. Your organization might have
+deployed virtual or physical firewalls, virtual local area
+networks (VLANs), or access control policies for
+segmentation, or it might use microsegmentation in
+virtualized and containerized environments. You should
+perform network segmentation testing often to verify that
+your segmentation strategy is appropriate to protect your
+network against lateral movement and other post-
+exploitation attacks.

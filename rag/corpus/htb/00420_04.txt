@@ -1,0 +1,1 @@
+TATE SERVICE VERSION 53/udp closed domain 67/udp closed dhcps 123/udp closed ntp 135/udp closed msrpc 137/udp closed netbios-ns 138/udp closed netbios-dgm 161/udp open

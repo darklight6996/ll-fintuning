@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Evaluate security controls in place.
+
+CONTEXT:
+Review Azure policies and security settings.
+
+METHOD / ANSWER:
+Command: `az policy definition list --output table`
+Purpose: Identify existing policies that protect resources from threats.

@@ -1,0 +1,5 @@
+R, and vulnerability management systems) to provide a unified
+view of the attack surface and streamline workflows. Bug bounty programs
+rely on human expertise to discover complex or hidden vulnerabilities that
+automated tools might miss. ASM tools complement bug bounties because
+they provide continuous visibility into an organization’s attack surface.

@@ -1,0 +1,14 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+implementations and AI agents. Figure 11-11 shows the Google Vertex AI
+Agent Console, which is used for building and managing AI agents. A
+custom AI agent named Omar's Bug Bounty Hunter Agent is being
+configured.

@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+automated vulnerability detection, and intelligent threat analysis, among
+other capabilities. Bugcrowd has an AI-driven service called Continuous
+Attack Surface Penetration Testing (CASPT).
+CASPT uses AI models to continuously scan and identify new or modified
+assets within an organization’s digital footprint. This effort includes
+detecting new applications, services, or infrastructure components that may
+have been added or altered since the last assessment.
+AI helps establish a baseline of the organization's attack surface by
+analyzing historical data. It then monitors for deviations or changes,
+ensuring that any new vulnerabilities introduced by modifications are
+promptly identified. Based on the continuous monitoring of assets, AI
+determines optimal times to initiate penetration tests. By doing so, it
+guarantees that testing is both timely and relevant, focusing on areas with
+the highest risk or recent changes.
+Bugcrowd’s acquisition of a company named Informer helped it in
+advanced external attack surface management (EASM) capabilities. AI
+algorithms merge detailed asset information from Informer with
+Bugcrowd’s exi

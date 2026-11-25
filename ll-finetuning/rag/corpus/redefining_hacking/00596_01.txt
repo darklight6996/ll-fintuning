@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+content. While these guardrails are essential for ensuring ethical AI usage,
+they can impede bug bounty hunting efforts in several ways:
+• Limited Payload Generation: AI models with strong guardrails may
+refuse to create or assist in crafting potentially malicious payloads, even
+when these are essential for security testing. For example, if you're trying to
+identify SQL injection or cross-site scripting (XSS) vulnerabilities, an AI
+model might block requests to generate queries or scripts that it deems
+dangerous, even if they are being used ethically within a penetration testing
+environment.
+• Restricted Vulnerability Testing: Many censored models are
+programmed to avoid generating code or commands that could be used in
+hacking or exploitation scenarios. In bug bounty hunting, ethical hackers
+need to test for security flaws like buffer overflows, file inclusions, or even
+zero-day vulnerabilities. AI models with tight restrictions may prevent
+access to code snippets, payloads, or scripts needed to identify these flaws.
+This is why models like White Rabbit Neo are becoming very popular
+among the cybersecurity community.
+• False Positives/Negatives: Guardrails and cen

@@ -1,0 +1,12 @@
+**Section 1: Executive Summary (Non-Technical)**
+- **Purpose**: Business decision-makers, C-suite, Board
+- **Key Elements**:
+  - Engagement context: who, what, when, why
+  - Overall risk posture: Critical/High/Medium/Low count
+  - Top 3-5 business risks in plain language
+  - Example: "Attackers can access customer database containing 500K PII records"
+  - Business impact: financial, regulatory, reputational, operational
+  - Strategic recommendations (3-5 high-level)
+  - Compliance status: PCI DSS, HIPAA, SOC 2 gaps
+- **Visual**: Risk heat map, trend chart (if re-test)
+- **Length**: 1 page max, no jargon

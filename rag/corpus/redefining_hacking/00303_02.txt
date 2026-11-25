@@ -1,0 +1,6 @@
+ds environment variables and
+initializes an OpenAI chat model. It performs DNS resolution of the
+hostnames that were retrieved by certspy and retrieves WHOIS information
+for each IP.
+AI uses a GPT model to analyze the gathered information and provide
+insights into the domain's security posture, potential sensitive hosts, and

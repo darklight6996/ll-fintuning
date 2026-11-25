@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Explain the purpose and usage of the code/command in the following text: (Context: Writeup from Hackthebox Machines Interactive Hacks Stuff)
+
+CONTEXT:
+Source: Hackthebox Machines Interactive Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+sudo cve-2015-6967 oscp-like-v2 oscp-like-v1 Falafel Complete Release: 03 Feb 2018 Retire: 04 May 2024 OS: wfuzz sqlmap sqli type-juggling php upload webshell framebuffer dev-fb0 debugfs oswe-like oscp-plus-v1 Chatterbox Complete Release: 27 Jan 2018 Retire: 04 May 2024 OS: msfvenom meterpreter achat autorunscript nishang oscp-like-v2 oscp-like-v1 CrimeStoppers Complete Release: 06 Jan 2018 Retire: 04 May 2024 OS: php php-wrapper lfi ida reverse-engineering FluxCapacitor Complete Release: 16 Dec 2017 Retire: 04 May 2024 OS: waf wfuzz sudo Bashed Complete Release: 09 Dec 2017 Retire: 04 May 2024 OS: php sudo cron oscp-like-v1

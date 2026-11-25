@@ -1,0 +1,1 @@
+ment Agent : False Any Purpose : False Enrollee Supplies Subject : False Certificate Name Flag : SubjectRequireDnsAsCn SubjectAltRequireDns Enrollment Flag : AutoEnrollment Private Key Flag : AttestNone Extended Key Usage

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Identify local roles and permissions.
+
+CONTEXT:
+Currently authenticated as a low-priv user.
+
+METHOD / ANSWER:
+Command: `az role assignment list --output json`
+Purpose: Assess roles assigned to the user and find potential escalation paths.

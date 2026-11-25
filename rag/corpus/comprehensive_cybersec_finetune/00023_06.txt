@@ -1,0 +1,9 @@
+**WAF Rule Set Identification**:
+- **OWASP CRS (Core Rule Set)**:
+  - Test specific rule IDs: 942100 (SQLi), 941100 (XSS), 930120 (RFI)
+  - `curl "https://target.com/?id=1 UNION SELECT NULL--"` → Rule 942100
+- **Commercial Rule Sets**:
+  - Vendor-specific rule IDs in block pages
+  - `ModSecurity: Warning. Matched phrase "OWASP_CRS/WEB_ATTACK/SQL_INJECTION"`
+
+**Phase 3: IPS/IDS Detection & Fingerprinting**

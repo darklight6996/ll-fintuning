@@ -1,0 +1,22 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Reverse shells can often bypass firewalls and NAT configurations that block
+incoming connections. Outbound connections are typically less suspicious
+and harder to detect than inbound ones.
+A bind shell is a type of shell where the target machine opens a specific port
+and listens for incoming connections. The attacker then connects to this port
+to gain control of the shell on the target machine.
+Figure 6-4 illustrates how bind shells work.
+Figure 6-4 How a Bind Shell Works
+In Figure 6-4, the compromised system opens a port (1337) and binds a
+shell to it, waiting for incoming connections. The attacker connects to the
+open port on the target machine to control the shell.
+The following is an example of using the Netcat command in the
+compromised system for a bind shell command:

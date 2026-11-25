@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you escalate privileges after establishing a reverse shell?
+
+CONTEXT:
+You now have access to a low-privileged user shell.
+
+METHOD / ANSWER:
+Command: `hashcat <hash_file> /opt/SecLists/Passwords/Leaked-Databases/rockyou.txt`
+Explanation: Use Hashcat to crack any password hashes you may recover during the session, allowing you to escalate privileges.

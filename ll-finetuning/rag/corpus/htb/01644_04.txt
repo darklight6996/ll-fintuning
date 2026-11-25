@@ -1,0 +1,1 @@
+belford@drip.htb \. -- -- Data for Name: Users; Type: TABLE DATA; Schema: public; Owner: postgres -- COPY public."Users" (id, username, password, email, host_header, ip_address) FROM stdin; 5001 support d9b9ecbf29db8054b21f303072b37c4e support@drip.htb Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0

@@ -1,0 +1,1 @@
+for Internet Explorer (978207) - Critical [M] MS09-072: Cumulative Security Update for Internet Explorer (976325) - Critical [*] done Looking at those, as I’m not as interested in MSF

@@ -1,0 +1,27 @@
+ged and custom er-
+rors can be configured for IIS server. When IIS receives a request
+for an aspx page, the request is passed on to the dot net frame-
+work.
+There are various ways by which errors can be handled in dot net
+framework. Errors are handled at three places in ASP .net:
+« Inside Web.config customErrors section
+« Inside global.asax Application_Error Sub
+» At the the aspx or associated codebehind page in the Page_Er-
+ror sub
+Handling errors using web.config
+<customErrors defaultRedirect="myerrorpagedefault.aspx"
+mode="On|Off|RemoteOnly">
+<error statusCode="404" redirect="myerrorpagefor404.
+aspx'/>
+<error statusCode="500" redirect="myerrorpagefor500.
+aspx"/>
+</customErrors>
+mode="0n" will turn on custom errors. mode=RemoteOnly will
+show custom errors to the remote web application users. A user
+accessing the server locally will be presented with the complete
+stack trace and custom errors will not be shown to him.
+All the errors, except those explicitly specified, will cause a redi-
+rection to the resource specified by defaultRedirect, i.e., myer-
+rorpagedefault.aspx. A status code 404 will be handled by myer-
+rorpagefor404.aspx.
+156

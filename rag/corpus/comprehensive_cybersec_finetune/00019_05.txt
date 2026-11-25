@@ -1,0 +1,12 @@
+**Phase 8: Communication & Reporting**
+- **Risk Register**: Centralized, version-controlled
+- **Executive Dashboard**: Top 10 risks, trend, treatment status
+- **Board Reporting**: Quarterly, risk appetite alignment
+- **Regulatory Reporting**: As required (SEC, GDPR, SOX, HIPAA)
+
+**Tools & Automation**:
+- **GRC Platforms**: RSA Archer, ServiceNow GRC, MetricStream, LogicGate
+- **Risk Quantification**: RiskLens (FAIR), Safe Security
+- **Vulnerability Management**: Tenable, Qualys, Rapid7, Kenna
+- **Cloud Security**: Prowler, ScoutSuite, Wiz, Orca, Prisma Cloud
+- **Custom**: Python/R scripts for risk calculations, Monte Carlo

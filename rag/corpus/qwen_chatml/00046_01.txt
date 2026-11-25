@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+operators will specialize in specific domains, such as cyber warfare. In the
+civilian world, as cyberattacks have matured and increased in
+sophistication, so have the red team engagements. A key piece of red
+teaming is adversarial emulation, which will be discussed further in the next
+chapter. As the threat landscape has evolved with adversaries executing
+increasingly sophisticated attacks, red teams have to emulate these attacks.
+This increased complexity has caused the length of many of these
+engagements to increase from weeks to months. Engagements will also
+encompass a wider array of assessments. These engagements will cover
+physical and social engineering as well as technical assessments.
+Organizations recognize the need for full-spectrum engagements.
+The Emergence of Bug Bounty Programs
+With the popularity of bug bounty programs in the last few years, it is hard
+to believe that they can be traced back to the early days of computing. In
+1983 a small software company named Hunter & Ready is credited with
+launching the first documented bug bounty program. The company was
+advertising its new Versatile Real-Time Execut

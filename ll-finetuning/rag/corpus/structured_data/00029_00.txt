@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you retrieve the user flag for the 'john' user account?
+
+CONTEXT:
+Context: Post-Compromise Flag Retrieval. You have successfully authenticated and gained interactive shell access (e.g., via RDP, WinRM, or a reverse shell) as the user 'john' on a Windows host.
+Principle to Apply: 'Locate and retrieve proof-of-access artifacts from standard user directories.'

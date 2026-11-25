@@ -1,0 +1,102 @@
+# Category: Race Condition / TOCTOU
+# Source: re-implemented (2026-11-25 harvest round) from the general race-condition
+# hunting methodology in Claude-BugHunter (github.com/elementalsouls/Claude-BugHunter)
+# hunt-race-condition skill, content licensed CC BY 4.0 International; adapted into
+# this framework's own scenario schema, not copied verbatim. See work.md.
+name: "Limit-overrun race on a single-use/limited resource"
+id: "race-condition-limit-overrun-001"
+category: "race_condition"
+subcategory: "limit_overrun"
+difficulty: "practitioner"
+estimated_time: "40 minutes"
+
+description: |
+  A "once per user" or "limited quantity" action (redeem a coupon, claim an
+  invite, vote once, apply a discount) is enforced by a read-check-write
+  sequence that is not atomic: the server reads the current state, decides
+  it's still allowed, and only then writes the new state -- leaving a window
+  where N identical requests sent close together can all pass the read-check
+  before any of them commits the write. Sequential requests never reveal
+  this; the requests must arrive in the SAME narrow window.
+
+learning_objectives:
+  - Identify endpoints that enforce a once-per-user / limited-quantity / balance-deduction constraint
+  - Understand the read-check-write window that makes an action race-able
+  - Fire a genuinely concurrent burst of identical requests (not a sequential loop)
+  - Distinguish "N responses looked like success" from the actual confirming evidence: the resource was consumed more than once
+
+tools:
+  - threading or asyncio (Python) / concurrent.futures.ThreadPoolExecutor for a true parallel burst
+  - curl (sequential baseline only -- not sufficient to win the race)
+
+prerequisites:
+  - A target action with an explicit single-use or limited-quantity constraint (coupon, invite, quota, balance)
+  - A control baseline showing the action behaves correctly when called ONCE
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Confirm the action's single-use behavior with ONE legitimate call (control)"
+    commands:
+      - "# Call the action exactly once through the normal flow"
+      - "# Confirm the expected single-use behavior (coupon marked used, quota consumed by 1)"
+    expected_output: "A clean, reproducible control: the action succeeds once and is then correctly blocked on retry"
+    detection: "None -- this is the legitimate baseline"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Fire a genuinely concurrent burst of identical requests at the same action"
+    commands:
+      - "# Use real concurrency (threading/asyncio), not a sequential for-loop with no synchronization"
+      - "# Pre-build all N requests, then release them as close to simultaneously as the client allows"
+      - "# N in the 10-50 range is usually enough to expose a non-atomic read-check-write window"
+    expected_output: "More than one of the N concurrent requests returns a success response for an action that should only ever succeed once"
+    detection: "A burst of near-identical timestamps for the same resource/action in server logs"
+
+  - id: "step3"
+    phase: "validation"
+    action: "Verify the UNDERLYING STATE was actually violated, not just that multiple 2xx responses were returned"
+    commands:
+      - "# Check the actual resource state after the burst: was the coupon/invite/balance consumed MORE THAN the allowed limit?"
+      - "# A race is only PROVEN when the real invariant is violated -- e.g. a single-use coupon applied twice, a quota of 1 consumed twice, a balance that went negative"
+    expected_output: "Concrete evidence the invariant was violated (e.g. the same coupon code shows as 'redeemed' twice, or the balance after the burst is inconsistent with a single legitimate deduction)"
+    detection: "None beyond step 2 -- this step is analysis of the resulting state, which is the actual proof"
+
+compliance_controls:
+  - standard: "OWASP"
+    control: "A04:2021"
+    description: "Insecure Design (non-atomic state transition)"
+  - standard: "MITRE ATT&CK"
+    control: "T1565.001"
+    description: "Stored Data Manipulation"
+
+detection:
+  network_indicators:
+    - "A burst of near-simultaneous requests against the same single-use/limited-quantity endpoint from one session"
+  log_indicators:
+    - "A resource marked consumed/redeemed more than its allowed count"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Make the read-check-write sequence atomic: a database-level lock (SELECT ... FOR UPDATE), a unique constraint, or an atomic increment/decrement"
+    - "Reject concurrent requests for the same resource with an explicit mutex/idempotency key rather than relying on application-level timing"
+  long_term:
+    - "Audit every once-per-user / limited-quantity code path for the same non-atomic pattern"
+    - "Add a concurrency regression test (N parallel calls, assert exactly one succeeds) to the CI suite for every such endpoint"
+
+variables:
+  target_url: "https://target.example/api/coupons/redeem"
+  concurrent_requests: "20"
+
+assessment_questions:
+  - "Why does a sequential loop of requests never reveal a race condition that a true parallel burst does?"
+  - "What is the actual proof of a race condition -- a 2xx response, or something else?"
+  - "Why is a database-level lock a more reliable fix than an application-level in-memory flag?"
+
+references:
+  - url: "https://portswigger.net/web-security/race-conditions"
+    title: "PortSwigger Race Conditions"
+  - url: "https://owasp.org/www-community/vulnerabilities/Race_condition"
+    title: "OWASP Race Condition"

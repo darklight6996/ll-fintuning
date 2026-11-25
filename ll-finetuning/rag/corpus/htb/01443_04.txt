@@ -1,0 +1,1 @@
+in , which is interesting for sure. I’ll get their names: root@corporate-workstation-04:~# for i in $(

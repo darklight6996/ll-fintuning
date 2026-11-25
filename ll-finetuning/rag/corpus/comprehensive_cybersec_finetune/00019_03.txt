@@ -1,0 +1,17 @@
+**Phase 5: Risk Analysis (Likelihood × Impact)**
+- **Likelihood Determination**:
+  - Threat capability, intent, targeting
+  - Vulnerability severity, exploitability
+  - Existing control effectiveness
+  - Environmental factors
+  - Scale: Very High (1.0), High (0.7), Medium (0.5), Low (0.3), Very Low (0.1)
+- **Impact Determination**:
+  - Confidentiality loss: data breach, IP theft
+  - Integrity loss: data corruption, fraud
+  - Availability loss: downtime, revenue loss
+  - Scale: Very High ($10M+), High ($1M-10M), Medium ($100K-1M), Low ($10K-100K), Very Low (<$10K)
+- **Risk Calculation**:
+  - Qualitative: Risk Matrix (5×5)
+  - Semi-quantitative: Numeric scales
+  - Quantitative (FAIR): Loss Event Frequency × Loss Magnitude
+  - Monte Carlo simulation for uncertainty

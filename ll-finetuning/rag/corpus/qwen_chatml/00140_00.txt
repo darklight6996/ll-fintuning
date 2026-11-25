@@ -1,0 +1,18 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+C. chain.pem
+D. fullchain.pem and privkey.pem
+10. What is the purpose of the Callback Jitter option in your Mythic C2
+profile?
+A. To specify how often the agent calls back in seconds
+B. To add randomness to the callback to make each check-in vary
+C. To use as the encryption method for the traffic
+D. To customize the GET/POST messages

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What additional details can be obtained from a service-specific Nmap scan?
+
+CONTEXT:
+You have identified several open ports from your previous scan.
+
+METHOD / ANSWER:
+Command: `nmap -p 53,80,88,135,139,389,445,464,593,636,3268,3269,5985,9389 -sCV 10.10.11.72`
+Explanation: This command performs service version detection on the specified ports, providing detailed information about the services running on them.

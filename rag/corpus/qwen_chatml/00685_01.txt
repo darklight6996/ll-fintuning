@@ -1,0 +1,10 @@
+Context:
+Context: Active Directory Reconnaissance. You need to map relationships and permissions within a Windows domain.
+Principle to Apply: 'Visualize attack paths to identify the most efficient route to domain compromise.'
+assistant
+**Assessment Phase**: Active Directory Attack Path Analysis.
+**Core Principle**: Complex permission relationships in Active Directory create indirect attack paths that are difficult to see without visualization.
+**Actionable Steps**:
+1.  **AD Relationship Mapping**: Use `BloodHound` after data collection with an ingestor like `SharpHound` or `RustHound`.
+    *   **Reasoning**: BloodHound graphically displays how users, groups, computers, and permissions interconnect, revealing hidden paths like `GenericWrite` → `Resource-Based Constrained Delegation` → `Domain Admin`.
+**Guidance for Novel Context**: The tool is specific, but the principle applies to any complex permission system: **collect relationship data and analyze it for transitive trust abuses**. In cloud environments (AWS IAM, Azure AD), similar graph-based analysis tools exist.

@@ -1,0 +1,14 @@
+TECHNIQUE / QUESTION:
+What is the initial scanning command to identify active ports on the target?
+
+CONTEXT:
+Context: Network Reconnaissance. You have a target IP (10.10.11.69) but limited knowledge of its services.
+Principle to Apply: 'Perform comprehensive port discovery to map the entire network attack surface before focusing on specific services.'
+
+METHOD / ANSWER:
+**Assessment Phase**: Comprehensive Port Discovery.
+**Core Principle**: A full port scan ensures you don't miss obscure or non-standard services that could be the easiest point of entry (e.g., a web app on port 8080, a database on port 5432).
+**Actionable Steps**:
+1.  **Fast TCP Port Scan**: `nmap -p- --min-rate 10000 10.10.11.69`
+    *   **Reasoning**: The `-p-` flag scans all 65535 TCP ports. `--min-rate 10000` sends packets rapidly to complete the scan in a reasonable time. This provides a complete list of open TCP ports.
+**Guidance for Novel Context**: This aggressive scan is noisy. If stealth is needed, use a slower timing template (`-T2` or `-T3`). Always consider following up with a focused UDP scan (`-sU -p 53,161,123,500`) for critical services like DNS, SNMP, or IKE.

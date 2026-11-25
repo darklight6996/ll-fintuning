@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you perform an initial reconnaissance scan to identify open ports on a target host?
+
+CONTEXT:
+You have permission to test the machine at IP 10.10.11.80.
+
+METHOD / ANSWER:
+Command: `nmap -p- -vvv --min-rate 10000 10.10.11.80`
+Explanation: This command conducts a full port scan at a high speed to quickly identify any open ports.

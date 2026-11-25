@@ -1,0 +1,1 @@
+y = birthday_str . split ( ' / ' ) password = f " CorporateStarter { d . zfill ( 2 ) }{ m . zfill ( 2 ) }{ y } " print ( f " \r [ { i } ] { user_name }

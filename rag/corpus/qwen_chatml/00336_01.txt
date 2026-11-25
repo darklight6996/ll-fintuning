@@ -1,0 +1,29 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+vulnerability scanning and penetration testing, parti
+subdomains like `finance-app` and `mail`.
+- Social Engineering: Investigate any social engineer
+researching employees or public-facing personnel who
+sensitive information.
+- Threat Intelligence: Utilize threat intelligence pl
+the domains or IPs have been reported in security inc
+#### 4. Other Relevant Observations
+- Concentration of IPs: Most of the subdomains share
+(185.199.109.153), which could indicate that they are
+or service. If this server is compromised, multiple s
+- Lack of Diversity in Hosting: The reliance on a sin
+(US-GITHUB-20170413) for most of the subdomains may i
+failure in terms of security. If this organization's
+could impact all services under their control.
+- Potential for Misconfiguration: Given the presence
+`backdoor`, there may be misconfigurations in the dom
+need to be addressed immediately to prevent exploitat
+- Monitoring and Alerting: It would be prudent for se
+monitoring and alerting for unusual traffic patterns,
+sensitive subdomains.
+### Conclusion
+The analysis of the SSL/TLS certificates associated w
+a domain with potentially sensitive su

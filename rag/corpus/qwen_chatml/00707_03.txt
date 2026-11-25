@@ -1,0 +1,22 @@
+nated in 2003 with Dan Cuthbert as one of the original editors. It was
+handed over to Eoin Keary in 2005 and transformed into a wiki. Mat-
+teo Meucci has taken on the Testing guide and is now the lead of the
+OWASP Testing Guide Project. From 2012 Andrew Muller co-leader-
+ship the project with Matteo Meucci.
+2014
+« "OWASP Testing Guide’, Version 4.0
+15th September, 2008
+« “OWASP Testing Guide’, Version 3.0
+December 25, 2006
+« “OWASP Testing Guide’, Version 2.0
+July 14, 2004
+» “OWASP Web Application Penetration Checklist’, Version 1.1
+December 2004
+« “The OWASP Testing Guide", Version 1.0
+Project Leaders
+Matteo Meucci
+Andrew Muller
+Andrew Muller: OWASP Testing Guide Lead since 2013.
+Matteo Meucci: OWASP Testing Guide Lead since 2007.
+Eoin Keary: OWASP Testing Guide 2005-2007 Lead.
+Daniel Cuthbert: OWASP Testing Guide 2003-2005 Lead.

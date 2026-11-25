@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 5-21 REX Sensor Bypass Gun (Link:
+https://store.physicalexploit.com/products/ppe-c02-rex-sensor-bypass-gun)
+J Tool
+The last physical bypass tool we’ll discuss is a J Tool. This tool can be used
+to insert into door gaps with doors that have turnable locks on the other
+side. The tool allows you to turn the lock in the direction you wish and
+unlock the door. This tool and the REX Sensor Bypass Gun are a perfect
+combination for using inside a facility once you’re past the main doors.
+Link: https://www.redteamtools.com/J-Tool-for-Thumb-Turn-Locks
+In this chapter, you learned about social engineering and physical
+assessments. You’ve gained knowledge about how to develop an evasive
+phishing campaign, execute phone pretexting calls, and breach a building.
+You now have the ability to incorporate these concepts into your upcoming
+red team implementation. Additionally, outside of offensive concepts, you
+now understand different badge technologies, best practices for logging
+information, and physical building defenses. This chapter will aid you in
+your next red team implementation against an organization.

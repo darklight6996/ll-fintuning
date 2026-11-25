@@ -1,0 +1,1 @@
+OR_VERSION e.g. 5.7 -shell-type {cmd,powershell} choose a command processor for the semi-interactive shell -silentcommand does not execute cmd.exe to run given command

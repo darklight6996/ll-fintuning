@@ -1,0 +1,24 @@
+omprehensive SSL
+tests. It supports the following checks:
+» HeartBleed
+» ChangeCipherSpec Injection
+« BREACH
+« BEAST
+» Forward Secrecy support
+» RC4 support
+« CRIME & TIME (If CRIME is detected, TIME will also be reported)
+» Lucky13
+« HSTS: Check for implementation of HSTS header
+« HSTS: Reasonable duration of MAX-AGE
+« HSTS: Check for SubDomains support
+« Certificate expiration
+« Insufficient public key-length
+» Host-name mismatch
+« Weak Insecure Hashing Algorithm (MD2, MD4, MD5)
+« SSLv2 support
+» Weak ciphers check
+=» Null Prefix in certificate
+» HTTPS Stripping
+= Surf Jacking
+« Non-SSL elements/contents embedded in SSL page
+» Cache-Control

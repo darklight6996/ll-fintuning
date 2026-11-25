@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How can you exploit the ndsudo vulnerability found in NetData?
+
+CONTEXT:
+Context: Local Privilege Escalation Research. You have identified a SUID binary (`/opt/netdata/.../ndsudo`) on the host that may be vulnerable to path manipulation or other abuse.
+Principle to Apply: 'Abuse legitimate high-privilege functionality to execute arbitrary code.'

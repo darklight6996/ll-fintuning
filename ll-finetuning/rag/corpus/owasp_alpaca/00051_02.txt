@@ -1,0 +1,49 @@
+PluginSessionResumption
+PluginOpenSSLCipherSuites
+PluginCompression
+CHECKING HOST(S) AVAILABILITY
+example.com:443
+=> 127.0.0.1:443
+SCAN RESULTS FOR EXAMPLE.COM:443 - 127.0.0.1:443
+* Compression :
+Compression Support:
+Disabled
+* Session Renegotiation :
+Client-initiated Renegotiations:
+Rejected
+Secure Renegotiation:
+Supported
+* Certificate :
+Validation w/ Mozilla’s CA Store: Certificate is NOT Trust-
+ed: unable to get local issuer certificate
+Hostname Validation:
+MISMATCH
+SHA1 Fingerprint:
+aaa
+Common Name:
+www.example.com
+Issuer:
+mes
+Serial Number:
+ees
+Not Before:
+Sep 26 00:00:00 2010 GMT
+Not After:
+Sep 26 23:59:59 2020 GMT
+Signature Algorithm:
+sha1WithRSAEncryption
+Key Size:
+1024 bit
+X509v3 Subject Alternative Name: {‘othername’: ['<un-
+CRIME status: protected
+supported>’], ‘DNS’: [‘www.example.com’]}
+* OCSP Stapling :
+Example 6. Testing SSL/TLS vulnerabilities with sslyze
+Server did not send back an OCSP response.
+Sslyze [33] is a python script which permits mass scanning and XML
+output. The following is an example of a regular scan. It is one of the
+* Session Resumption :
+most complete and versatile tools for SSL/TLS testing
+With Session IDs:
+O errors, 5 total attempts).
+With TLS

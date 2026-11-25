@@ -588,14 +588,9 @@ class ChatAssistant:
                 # Last resort: use the respond() path
                 return self.respond(prompt)
         except Exception as exc:
-            return json.dumps({
-                "decision": "propose_action",
-                "action_id": "environment_recon",
-                "target": None,
-                "parameters": {},
-                "rationale": f"LLM error: {str(exc)[:100]}; defaulting to initial recon.",
-                "confidence": 0.3,
-            })
+            raise RuntimeError(
+                f"generate_raw LLM failure: {type(exc).__name__}: {exc}"
+            ) from exc
 
     def synthesize_report(
         self,
@@ -609,5 +604,5 @@ class ChatAssistant:
         """
         from core.report_generator import ReportGenerator
         generator = ReportGenerator()
-        return generator.generate(session_state)
+        return generator.generate(session_state, context=context)
 

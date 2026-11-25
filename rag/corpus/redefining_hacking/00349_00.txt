@@ -1,0 +1,17 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Context Preparation for LLMs or SLMs
+Context preparation is another step in RAG systems. This process involves
+choosing the most relevant portions of retrieved documents and balancing
+between coverage and conciseness to fit within model context limits. You
+can use context truncation and summarization. This could be done by
+truncating lengthy documents to fit within model token limits or generating
+abstractive or extractive summaries of longer texts, as illustrated in Figure
+8-5.

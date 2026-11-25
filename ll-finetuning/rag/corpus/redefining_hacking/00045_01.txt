@@ -1,0 +1,21 @@
+METHOD / ANSWER:
+• TIBER Team: The internal team that is responsible for ensuring the test
+meets the requirements of the TIBER_EU framework.
+Note
+The TIBER-EU framework requires that the threat
+intelligence and the red team are performed by an
+independent third-party provider. This requirement ensures
+that an outside perspective is applied and may offer
+additional resources that internal teams may not have.
+You can find additional information about the TIBER-EU framework at
+https://www.ecb.europa.eu/paym/cyber-resilience/tiber-
+eu/html/index.en.html.
+CBEST
+The Bank of England's Cyber Assessment Framework (CBEST) is another
+intelligence-led approach to red teaming. It is a comprehensive framework
+used to assess and enhance the cyber resilience of UK financial institutions.
+Red team activities are tailored to specific threats and vulnerabilities that
+are faced by the specific financial institution that is being assessed. It
+prioritizes the testing of critical systems and functions that are essential for
+the institution's operations. The assessment follows the principle of the
+“golden thread,” which is a traceable link between the identified threats

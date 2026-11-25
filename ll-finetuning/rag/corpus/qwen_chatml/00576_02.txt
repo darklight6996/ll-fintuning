@@ -1,0 +1,6 @@
+d by ProjectDiscovery, known for its
+speed, efficiency, and customizability. It uses a template-based approach,
+with YAML files defining the methods for detecting vulnerabilities across
+various targets, including web applications, cloud infrastructure, and
+networks.
+Example 11-1 Using Nuclei to Scan Hosts in Any HackerOne Bug Bounty

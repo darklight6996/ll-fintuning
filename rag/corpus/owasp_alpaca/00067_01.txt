@@ -1,0 +1,56 @@
+METHOD / ANSWER:
+209
+same code can be applied to sessionStorage
+Using Google Chrome, click on menu -> Tools -> Developer Tools.
+Then under Resources you will see ‘Local Storage’ and ‘Web Storage’.
+Llerventr |mpuurces| Hetwork Sources
+Timebre Profiler Aaditi Conick
++ tse
+tay
+es sa
+fl wen 301
+pga
+ai
+hate
+Pet]
+[ {Indevest
+ae
+“
+Tie tecw
+saeriihes
+is
+aeedolay
+lah
++ iE Taisien-Sharage
+thee ADD
+Par]
+Uh Mauptteienple. eer
+crptene
+a
+Fv.
+© (daiCostins
+daa
+Th
+(Bi Appireton Cathe
+sareehoe
+HL
+stern lat
+Fri
+22 GS
+ox
+Using Firefox with the Firebug add on you can easily inspect the lo-
+calStorage/sessionStorage object in the DOM tab.
+Lae |
+7
+= ce
+an.
+Also, we can inspect these objects from the developer tools of our
+browser.
+Next manual testing needs to be conducted in order to determine
+whether the website is storing sensitive data in the storage that
+represents a risk and will increase dramatically the impact of a in-
+formation leak. Also check the code handling the Storage to deter-
+mine if it is vulnerable to injection attacks, common issue when the
+code does not escape the input or output. The JavaScript code has
+to be analyzed to evaluate these issues, so make sure you crawl the
+application

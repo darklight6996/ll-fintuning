@@ -1,0 +1,18 @@
+- **PNPT (Practical Network Penetration Tester) - TCM Security**
+  - **Prerequisites**: Networking, AD basics, Linux
+  - **Exam**: 5-day practical (simulated corporate network)
+  - **Topics**:
+    - External reconnaissance
+    - Initial access (phishing, VPN, web apps)
+    - Internal enumeration (BloodHound, PowerView)
+    - Lateral movement (SMB, WinRM, RDP, SSH)
+    - Privilege escalation (Windows/Linux)
+    - Persistence, data exfiltration
+    - Professional report writing
+  - **Study Resources**:
+    - TCM Security Academy (free PNPT course)
+    - Heath Adams YouTube playlist
+    - Hack The Box: Academy, Pro Labs (Dante, Rasta)
+    - RangeForce, AttackDefense labs
+  - **Cost**: $250 exam + $300 course (optional)
+  - **ROI**: Strong practical skills, respected in industry

@@ -1,0 +1,1 @@
+thorough audit of the PKI environment, as low-privilege users can often see template configurations.**

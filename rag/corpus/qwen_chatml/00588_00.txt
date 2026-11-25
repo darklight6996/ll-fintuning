@@ -1,0 +1,32 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+subdomain_id = Column(Integer, ForeignKey('subdoma
+subdomain = relationship('Subdomain', back_populat
+ports = relationship('Port', back_populates='ip')
+urls = relationship('URL', back_populates='ip')
+vulnerabilities = relationship('Vulnerability', ba
+class Port(Base):
+__tablename__ = 'ports'
+id = Column(Integer, primary_key=True)
+number = Column(Integer)
+ip_id = Column(Integer, ForeignKey('ips.id'))
+ip = relationship('IP', back_populates='ports')
+class URL(Base):
+__tablename__ = 'urls'
+id = Column(Integer, primary_key=True)
+address = Column(String)
+ip_id = Column(Integer, ForeignKey('ips.id'))
+ip = relationship('IP', back_populates='urls')
+class Vulnerability(Base):
+__tablename__ = 'vulnerabilities'
+id = Column(Integer, primary_key=True)
+description = Column(Text)
+ip_id = Column(Integer, ForeignKey('ips.id'))

@@ -1,0 +1,27 @@
+**Mobile App / Cloud Testing**:
+- **Mobile App**:
+  - API endpoints, auth tokens, certificate pinning
+  - Local storage (SharedPreferences, Keychain, SQLite)
+  - BLE/Zigbee/Thread communication
+  - Deep links, custom URL schemes
+- **Cloud Backend**:
+  - Device provisioning, OTA updates
+  - MQTT broker, CoAP server
+  - Device shadow / digital twin
+  - Fleet management, telemetry
+  - Certificate management (PKI)
+
+**Phase 2: OT/ICS Security Testing**
+
+**Network Architecture Understanding**:
+- **Purdue Model / IEC 62443 Zones**:
+  - Level 0: Physical process (sensors, actuators)
+  - Level 1: Basic control (PLCs, RTUs, DCS controllers)
+  - Level 2: Area supervisory (SCADA, HMI, historians)
+  - Level 3: Site operations (MES, LIMS, batch management)
+  - Level 4: Enterprise logistics (ERP, CRM, email)
+  - DMZ between Level 3/4
+- **Network Segmentation**:
+  - VLANs, firewalls, data diodes, unidirectional gateways
+  - Jump hosts, bastion hosts
+  - Remote access (VPN, vendor access)

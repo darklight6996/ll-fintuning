@@ -1,0 +1,1 @@
+to the target ( smb_send_file ) and execute as a service ( service_exec ). The updated send_and_execute.py adds some handling of command line args, and then this function: def send_and_execute

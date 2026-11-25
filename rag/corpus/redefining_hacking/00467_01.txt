@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+Interpreter runs locally, offering greater flexibility and control over runtime,
+file size, and internet access.
+Open Interpreter operates on the user's local machine, providing full access
+to the internet and enabling the use of any required package or library
+without restrictions on runtime or file size. It supports tasks such as data
+analysis, GUI control, browser automation, media editing, and dataset
+management. It also includes vision capabilities for image analysis. Open
+Interpreter works with different LLMs, allowing users to select models like
+OpenAI models, Anthropic Claude models, as well as local. It also supports
+local model providers such as Ollama and LM Studio.
+The installation process is extremely easy. You can install Open Interpreter
+using Python's pip package manager with the pip install open-interpreter
+command.
+Note:
+A virtual environment is recommended for managing
+dependencies.
+To start a session through the terminal, use the interpreter command and
+then start typing your prompts. You can execute code directly within the
+tool or integrate it into Python applications for custom functionality.

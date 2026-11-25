@@ -1,0 +1,28 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+To embed emb.txt in cvr.jpg: steghide embed -cf cvr.j
+To extract embedded data from stg.jpg: steghide extra
+|--[omar@websploit]─[~]
+|---- $
+Let's look at an example of how to embed sensitive information and hide a
+message within an image file by using steganography. In Example 6-25, a
+file called secret.txt includes sensitive information (credit card data) that
+will be exfiltrated using steganography.
+Example 6-25 Sensitive Data to Be Hidden Using Steganography
+|--[omar@websploit]─[~]
+|---- $cat secret.txt
+Credit card data:
+4011 5555 5555 5555 5555 exp 08/29 ccv: 123
+4021 6666 7777 8888 9999 exp 02/29 ccv: 321
+|--[omar@websploit]─[~]
+|---- $
+Example 6-26 shows how to embed this sensitive data (secret.txt) into an
+image file (websploit-logo.png) by using steghide.
+Example 6-26 Using steghide to Hide Sensitive Data in an Image File

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What can you do to enumerate available SMB shares on the target?
+
+CONTEXT:
+You are authenticated as j.fleischman.
+
+METHOD / ANSWER:
+Command: `netexec smb dc01.fluffy.htb -u j.fleischman -p 'J0elTHEM4n1990!' --shares`
+Explanation: This retrieves and lists all SMB shares available on the target workstation.

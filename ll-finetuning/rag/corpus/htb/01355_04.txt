@@ -1,0 +1,1 @@
+for “needrestart 3.7 cve” returns a bunch of CVE references, most of which are CVE-2024-48990: CVE Issue CVE-2024-48990 Abuse PYTHONPATH CVE-2024-48992 Abuse RUBYLIB (not shown, but very similar to CVE-2024-48990) CVE-2024-10224 / CVE-2024-11003 Abuse needrestart use of a vulnerable version of

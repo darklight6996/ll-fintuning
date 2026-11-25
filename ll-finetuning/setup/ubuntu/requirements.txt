@@ -1,7 +1,15 @@
 # Ubuntu / Linux (GPU or CPU) - Core Dependencies
+#
+# SUPERSEDED (2026-11-14): this file has no version pins. setup.sh now
+# installs from requirements-wsl.txt instead, which is pinned to the exact
+# package versions proven working against the live GPU smoke tests. Kept
+# here for reference / non-WSL Linux hosts that don't want those pins; if
+# you install from this file directly, `transformers` in particular has
+# since moved to a breaking 5.x major line, so expect to need to adjust.
+#
 # NOTE: System CLI assessment tools (nmap, ffuf, subfinder, etc.) are NOT 
-# downloaded via pip. Please run `./setup.sh` or `python3 ../check_tools.py` 
-# after installing these Python packages to check your system dependencies.
+# downloaded via pip. Please run `./setup.sh` (now installs them, not just
+# checks) or `python3 ../check_tools.py` to check your system dependencies.
 
 # For NVIDIA CUDA support (CUDA 12.1+):
 --extra-index-url https://download.pytorch.org/whl/cu121

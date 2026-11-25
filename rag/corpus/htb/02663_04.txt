@@ -1,0 +1,1 @@
+rwxrwxrwx 1 root root 9 Aug 8 2024 .mysql_history -> /dev/null -rw-r--r-- 1 mikey mikey 807 May 31 2024 .profile lrwxrwxrwx 1 root root 9 May 31 2024 .python_history -> /dev/null drwx------ 2 mikey mikey 4096 Dec 28 2024 .ssh -rw-r--r-- 1 mikey mikey 0 Jun 19 2024 .sudo_as_admin_successful -rw-r----- 1 root mikey 33 Jan 9 06:44

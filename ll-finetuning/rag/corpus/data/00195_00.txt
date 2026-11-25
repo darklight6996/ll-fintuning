@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check backups configuration.
+
+CONTEXT:
+Availability control audit.
+
+METHOD / ANSWER:
+Command: `crontab -l`
+Explanation: Reviews scheduled backup jobs.

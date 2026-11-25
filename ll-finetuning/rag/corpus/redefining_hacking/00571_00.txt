@@ -1,0 +1,16 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 11-3 A Framework for External Attack Surface Discovery and
+Exploitation
+The first goal is to find and identify all external assets, known and
+unknown, that could be part of an organization's footprint. Then you
+continuously watch for any alterations or updates in the external
+infrastructure or applications, ensuring that no new exposures go unnoticed.
+Subsequently, you turn the data gathered through monitoring into

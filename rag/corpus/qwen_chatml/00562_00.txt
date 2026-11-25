@@ -1,0 +1,26 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+2. Who primarily conducts attack surface management?
+A. External community of ethical hackers
+B. Internal security teams supplemented by external consultants
+C. General public
+D. Individuals who find vulnerabilities incidentally
+3. What distinguishes bug bounty programs from vulnerability disclosure
+programs (VDPs) in terms of incentives?
+A. Both offer monetary rewards.
+B. Bug bounty programs generally offer monetary or other material
+rewards.
+C. VDPs offer higher monetary rewards.
+D. There are no incentives in bug bounty programs.
+4. Which program is typically more focused, defining specific targets and
+rules?
+A. Attack surface management
+B. Vulnerability disclosure program (VDP)

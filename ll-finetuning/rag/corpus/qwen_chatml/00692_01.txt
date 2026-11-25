@@ -1,0 +1,10 @@
+Context:
+Context: Engagement Completion. You have achieved the defined objective (e.g., root/Administrator access).
+Principle to Apply: 'Retrieve definitive proof of compromise to validate success and complete the engagement.'
+assistant
+**Assessment Phase**: Proof Collection.
+**Core Principle**: In penetration testing exercises, specific "flag" files serve as objective proof of successful compromise at various privilege levels.
+**Actionable Steps**:
+1.  **Retrieve Final Proof**: On Linux: `cat /root/root.txt`; On Windows: `type C:\Users\Administrator\Desktop\root.txt`
+    *   **Reasoning**: These are standard locations for final proof files in CTF/HTB-style machines. Retrieving the contents confirms you have achieved the highest level of access.
+**Guidance for Novel Context**: In real assessments, the "flag" might be a specific document, database record, or access to a particular system. Always verify you're retrieving the correct, unique proof specified in the engagement scope. Document the retrieval process with screenshots or command output.

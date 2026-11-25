@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+server on the DMZ. By placing it there, you can eliminate any concerns
+about impacting devices that your scanner traffic is traversing.
+Aside from the impact on the network infrastructure, another concern is that
+any device that you traverse could also affect the results of your scanner.
+This is mostly a concern when traversing a firewall device; in addition,
+other network infrastructure devices could possibly impact the results as
+well.
+Bandwidth Limitations
+Let’s take a moment to consider the effects of bandwidth limitations on
+vulnerability scanning. Obviously, any time you flood a network with a
+bunch of traffic, it is going to cause an issue with the amount of bandwidth
+that is available. As a penetration testing professional, you need to be
+cognizant of how you are affecting the bandwidth of the networks or
+systems you’re scanning. Specifically, depending on the amount of
+bandwidth you have between the scanner and the target, you might need to
+adjust your scanner settings to accommodate lower-bandwidth situations. If
+you’re scanning across a VPN or WAN link that most likely has limited
+bandwidth, you will want to adjust your scanning options so that you are
+n

@@ -1,0 +1,1 @@
+a bunch of open TCP ports, full process list, etc. SNMP

@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Additional SMB Enumeration Examples
+The system used in earlier examples (with the IP address 192.168.88.251) is
+running Linux and Samba. However, it is not easy to determine that it was a
+Linux system from the results of previous scans. An easy way to perform
+additional enumeration and fingerprinting of the applications and operating
+system running on a host is by using the nmap -sC command. The -sC
+option runs the most common Nmap Scripting Engine scripts based on the
+ports that were found to be open on the target system.
+Tip
+You can locate the installed NSE scripts in Kali Linux and
+Parrot Security OS by simply using the locate *.nse
+command. For a detailed explanation of the NSE and how to
+create new scripts using the Lua programming language, see
+https://nmap.org/book/man-nse.html.
+Example 9-36 shows the output of the nmap -sC command launched
+against the Linux system running Samba (192.168.88.251).
+Example 9-36 Running the Nmap NSE Default Scripts
+┌─[root@websploit]─[~]
+└──╼ #nmap -sC 192.168.88.251

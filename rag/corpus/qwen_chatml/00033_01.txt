@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+with those invaluable aha moments—the "that's not how that works" and
+"you're probably looking for it to do this" insights that transformed
+confusion into clarity.
+But theory alone wasn't going to cut it. I needed to get my hands dirty. So, I
+turned to the AI oracle itself: ChatGPT. My search history from those days
+is probably a hilarious (and slightly embarrassing) testament to my frantic
+quest for knowledge. I bombarded the model with questions, ranging from
+the basic to the esoteric, hoping to glean some practical wisdom.
+Then came a breakthrough. A black hat talk and a couple of research papers
+on embedding malicious code in models caught my eye. The Keras lambda
+layer—a seemingly innocuous component that could be weaponized to
+execute arbitrary code. It was like finding a hidden trapdoor in a seemingly
+impenetrable fortress.
+Fueled by my newfound knowledge and a surge of adrenaline, I dove
+headfirst into experimentation. The lambda layer became my playground, a
+canvas for crafting a simple Python stager that would download and execute
+a Command and Control (C2) agent. It was a delicate dance, balancing
+stealth wit

@@ -1,0 +1,1 @@
+1 , - 1 , - 1 , null , null , true ). communicate () console . log ( n11 ) n11 POC Demo I’ll take a look at this in a Python terminal using the --with flag for uv (see my uv cheatsheet ). I also have to use --python 3.11 , as there’s a bug in js2py that at the time of CodeTwo’s release isn’t

@@ -1,0 +1,1 @@
+useful to me is in there. I could also mess with password reset tokens, but it doesn’t buy me much I don’t already have. File Read Another thing I can do with a SQL injection is try to read files. To make sure I have the syntax correct, I’ll start with /etc/passwd using load_file : Click for

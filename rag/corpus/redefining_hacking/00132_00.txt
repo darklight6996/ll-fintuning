@@ -1,0 +1,11 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 5-4 DNS Record for WWW
+Figure 5-5 Reviewing the Domain for Categorization

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you attempt DCOM/Remote WMI exploits?
+
+CONTEXT:
+You have access to a VM.
+
+METHOD / ANSWER:
+Use PowerShell for `Invoke-Command` remotely.
+Purpose: Execute commands with higher privileges.

@@ -1,0 +1,29 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+<VirtualHost *:80>
+ServerName exampledomain.com
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI}
+ErrorLog ${APACHE_LOG_DIR}/error.log
+CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+<VirtualHost *:443>
+ServerName exampledomain.com
+RemoteIPHeader X-Forwarded-For
+ProxyPass / https://exampledomain.com/
+ProxyPassReverse / https://exampledomain.com/
+SSLProxyEngine On
+SSLProxyVerify none
+SSLProxyProtocol TLSv1.2
+SSLCertificateFile /etc/letsencrypt/live/exampledomai
+SSLCertificateKeyFile /etc/letsencrypt/live/exampledo
+ErrorLog ${APACHE_LOG_DIR}/error.log

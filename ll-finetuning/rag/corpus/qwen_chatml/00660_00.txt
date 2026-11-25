@@ -1,0 +1,4 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+What should you do to take advantage of the ADCS configurations for further exploitation?

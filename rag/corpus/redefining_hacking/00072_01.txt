@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+general because the traffic will be unencrypted. The safest way to have your
+traffic blend into an environment is to ensure that it is encrypted.
+Redirectors
+Redirectors relay traffic incoming from an external standpoint and pass the
+traffic to the location specified, which could be to a host that is only
+reachable through the initial redirector. Redirectors are used for C2 traffic to
+hide the C2 server’s location, deceive the traffic to look legitimate, and also
+protect your C2 server from being burned. The beauty of redirectors is that
+even if one of your redirectors gets burned, your C2 server is safe, and you
+can replace the external redirector with a new one without needing to reset
+any of your C2 infrastructure.
+Redirectors that will take less effort such as socat or iptables will blindly
+forward traffic to your C2 server, which can be a downfall from an
+operational security standpoint because Internet scanners may be able to
+identify the malicious traffic. However, using more sophisticated redirectors
+that leverage reverse proxies with rules helps filter down only the traffic
+you want passed by leveraging specific user agents, allowing only certain
+source IP

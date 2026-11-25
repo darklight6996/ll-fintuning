@@ -1,0 +1,1 @@
+from AD to the site, even if the site then limited the privileges of that user. The SAMLResponse can be

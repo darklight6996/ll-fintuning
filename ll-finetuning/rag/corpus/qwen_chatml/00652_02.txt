@@ -1,0 +1,1 @@
+h reliable hostname-to-IP mapping for the target domain before proceeding with AD-specific tools.**

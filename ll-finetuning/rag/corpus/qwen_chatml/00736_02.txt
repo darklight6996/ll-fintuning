@@ -1,0 +1,29 @@
+s to any-
+thing.
+If the application is vulnerable to LDAP injection, it will display
+some or all of the users’ attributes, depending on the application's
+execution flow and the permissions of the LDAP connected user.
+A tester could use a trial-and-error approach, by inserting in the
+parameter ‘() ‘|; ‘&, ‘*’ and the other characters, in order to check
+the application for errors.
+Example 2: Login
+If
+a web application uses LDAP to check user credentials during
+the login process and it is vulnerable to LDAP injection, it is possi-
+ble to bypass the authentication check by injecting an always true
+LDAP query (in a similar way to SQL and XPATH injection ).
+Let's suppose a web application uses a filter to match LDAP user/
+password pair.
+searchlogin= “(&(uid="+user+")(userPassword={M-
+D5}"+base64(pack(“H*",md5(pass)))+"))";
+By using the following values:
+user=*)(uid=*))(|(uid=*
+pass=password
+the search filter will results in:
+searchlogin="(&(uid=*)(uid=*))(|(uid=*)(userPassword={MD5}
+X03MO1qnZdYdgyfeulLPmQ==))”;
+which is correct and always true. This way, the tester will gain
+logged-in status as the first user in LDAP tree.
+Tools
+» Softerra LDAP Browser -
+http:/www.idapadministrator.com/

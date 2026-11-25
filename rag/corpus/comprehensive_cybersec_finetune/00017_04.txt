@@ -1,0 +1,7 @@
+ollback protection missing
+- **Dynamic Analysis (Emulation)**:
+  - **QEMU User Mode**: `qemu-arm -L ./squashfs-root ./squashfs-root/bin/busybox`
+  - **QEMU System Mode**: `qemu-system-arm -M versatilepb -kernel vmlinuz -hda rootfs.img -append "root=/dev/sda console=ttyAMA0"`
+  - **Docker + QEMU**: `docker run --rm -it --platform linux/arm/v7 -v $(pwd):/firmware ubuntu chroot /firmware/squashfs-root /bin/bash`
+  - **Firmadyne / FirmAE / IoT-Fuzzer**: Automated dynamic analysis
+  - **Network Emulation**: `tap` interfaces, `bridge-utils`

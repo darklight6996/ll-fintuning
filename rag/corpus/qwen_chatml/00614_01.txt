@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• Learning Rate Scheduler: The learning rate will follow a "cosine" decay
+schedule, gradually reducing as training progresses.
+LoRA and QLoRA
+Low-rank adaptation (LoRA) is a machine learning technique designed to
+efficiently fine-tune language models by introducing trainable low-rank
+matrices into each layer of a pretrained model while keeping the original
+weights frozen. This approach significantly reduces the number of trainable
+parameters, making the process faster and more memory-efficient without
+compromising performance. QLoRA builds on LoRA by incorporating 4-bit
+quantization, which further reduces memory usage and enables the fine-
+tuning of extremely large models, such as those with 65 billion parameters,
+on hardware with limited resources like a single 48GB GPU. This method
+maintains high performance levels comparable to full 16-bit fine-tuning by
+combining quantization with low-rank adapters, thus democratizing access
+to efficient model tuning.
+The following are the LoRA parameters used in the example shown in
+Figure 11-10:
+• LoRA Rank: Set to 16, this refers to the rank in the low-rank adaptation
+technique,

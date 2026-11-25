@@ -1,0 +1,27 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+|--[omar@websploit]─[~]
+|---- $cat extracted_data.txt
+Credit card data:
+4011 5555 5555 5555 5555 exp 08/29 ccv: 123
+4021 6666 7777 8888 9999 exp 02/29 ccv: 321
+|--[omar@websploit]─[~]
+|---- $
+Test Your Skills
+Multiple-Choice Questions
+1. What is the primary purpose of post-exploitation activities?
+A. To gain initial access to a target system
+B. To perform vulnerability scanning
+C. To maintain access, escalate privileges, extract valuable data, and evade
+detection
+D. To perform social engineering attacks
+2. What is a common objective of red team engagements focused on post-
+exploitation?

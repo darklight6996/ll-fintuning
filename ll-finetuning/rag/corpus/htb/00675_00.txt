@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: Writeup from Htb Backend Hacks Stuff)
+
+CONTEXT:
+Source: Htb Backend Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+root@ippsec.rocks 04/11/2022, 22:58:12 - Login Success for root@ippsec.rocks 04/11/2022, 22:59:30 - Login Success for admin@htb.local 04/12/2022, 00:04:02 - Login Failure for 0xdf@htb.htb 04/12/2022, 00:04:32 - Login Failure for 0xdf 04/12/2022, 00:04:45 - Login Failure for 0xdf@htb.htb 04/12/2022, 00:05:30 - Login Success for 0xdf@htb.htb 04/12/2022, 01:15:16 - Login Success for 0xdf@htb.htb 04/12/2022, 01:51:06 - Login Success for admin@htb.local 04/12/2022, 01:52:23 - Login Success for admin@htb.local “Tr0ub4dor&3” doesn’t look like a valid username (all the others are emails, except for some of my failures). Its possible that the admin put their password in instead of the username one time. su That does in fact work as the root password: htb@Backend:~/uhc$ su - Password: root@Backend:~# And I can read root.txt : root@Backend:~# cat root.txt 73a98d05************************

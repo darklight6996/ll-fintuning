@@ -1,0 +1,11 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain how to test for Cloud Security vulnerabilities in AWS, Azure, and GCP environments.
+
+Context:
+You are conducting a cloud security assessment. Describe the systematic approach to identify misconfigurations and vulnerabilities in AWS, Azure, and GCP.
+assistant
+Cloud Security Testing Methodology:
+
+**Phase 1: AWS Security Assessment**

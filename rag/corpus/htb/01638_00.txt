@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from Htb Darkcorp Hacks Stuff)
+
+CONTEXT:
+Source: Htb Darkcorp Hacks Stuff
+Section: Writeup

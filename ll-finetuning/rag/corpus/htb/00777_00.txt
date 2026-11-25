@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Explain the purpose and usage of the code/command in the following text: (Context: Writeup from Htb Bighead Hacks Stuff)
+
+CONTEXT:
+Source: Htb Bighead Hacks Stuff
+Section: Writeup

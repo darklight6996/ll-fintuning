@@ -1,0 +1,24 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+A. Physically stealing AI hardware
+B. Copying proprietary AI code
+C. Reconstructing a model's functionality through queries
+D. Deleting an AI model from a system
+12. What is the primary purpose of LangChain?
+A. To train large language models
+B. To orchestrate operations for language model applications
+C. To index and search text documents
+D. To generate adversarial examples for AI testing
+13. Which of the following is NOT a core component of LangChain?
+A. Prompts
+B. Chains
+C. Agents
+D. Convolutional neural networks
+14. What is LangGraph primarily used for?

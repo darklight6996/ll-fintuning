@@ -238,15 +238,38 @@ MOBILE_REPORT = ActionDefinition(
 def build_mobile_registry() -> ActionRegistry:
     """Build and return the ActionRegistry for MobileAppAgent."""
     registry = ActionRegistry()
-    registry.register(STATIC_ANALYSIS)
-    registry.register(DECOMPILE_APP)
-    registry.register(PERM_AUDIT)
-    registry.register(HARDCODED_SECRETS)
-    registry.register(INSECURE_STORAGE)
-    registry.register(TLS_PINNING_CHECK)
-    registry.register(AUTH_TOKEN_TEST)
-    registry.register(DYNAMIC_INSTRUMENTATION)
-    registry.register(WEBVIEW_AUDIT)
-    registry.register(MOBILE_REPORT)
+    from agents.mobile.command_builders import (
+        build_auth_token_test,
+        build_decompile_app,
+        build_dynamic_instrumentation,
+        build_hardcoded_secrets,
+        build_insecure_storage,
+        build_mobile_report,
+        build_perm_audit,
+        build_static_analysis,
+        build_tls_pinning_check,
+        build_webview_audit,
+    )
+
+    registry.register(STATIC_ANALYSIS, build_static_analysis)
+    registry.register(DECOMPILE_APP, build_decompile_app)
+    registry.register(PERM_AUDIT, build_perm_audit)
+    registry.register(HARDCODED_SECRETS, build_hardcoded_secrets)
+    registry.register(INSECURE_STORAGE, build_insecure_storage)
+    registry.register(TLS_PINNING_CHECK, build_tls_pinning_check)
+    registry.register(AUTH_TOKEN_TEST, build_auth_token_test)
+    registry.register(DYNAMIC_INSTRUMENTATION, build_dynamic_instrumentation)
+    registry.register(WEBVIEW_AUDIT, build_webview_audit)
+    registry.register(MOBILE_REPORT, build_mobile_report)
+    # Framework-level shared primitives (cross-agent): HTTP primitive,
+    # headless-browser coverage, and opt-in self-scripting -- the same
+    # capabilities every agent gets, wired identically.
+    from agents.common.http_primitive import HTTP_PROBE, build_http_probe
+    registry.register(HTTP_PROBE, build_http_probe)
+    from agents.common.browser_primitive import BROWSER_PROBE, build_browser_probe
+    registry.register(BROWSER_PROBE, build_browser_probe)
+    from agents.common.self_scripting import SELF_SCRIPT, build_self_script, self_scripting_enabled
+    if self_scripting_enabled():
+        registry.register(SELF_SCRIPT, build_self_script)
     return registry
 

@@ -1,0 +1,26 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+potentially causing errors when common malware analysis
+tools parse the PE header. For instance, attempts to load such
+infected files caused IDA Pro version 5.6 to crash, a bug that
+has since been fixed. According to Microsoft's PE/COFF
+specification, the .NET metadata directory contains data
+used by the Common Language Runtime (CLR) to load and
+run .NET applications. However, this directory entry is
+irrelevant for kernel-mode boot drivers because they are
+native binaries without system-managed code. Consequently,
+this directory entry isn’t checked by the OS loader, allowing
+an infected driver to load successfully even if its content is
+invalid.
+It is important to note that this TDL3 infection technique has
+limitations: it works only on 32-bit platforms due to
+Microsoft's Kernel-Mode Code Signing Policy, which
+mandates code integrity checks on 64-bit systems. Since the
+driver's content is altered during infection, its digital
+signature becomes invalid, preventing the OS from loading
+the driver on 64-bit systems. The malware developers
+responded to this limitation with TDL4.
+Bootkits are a type of malware that infects th

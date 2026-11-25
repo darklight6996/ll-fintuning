@@ -1,0 +1,1 @@
+akes place in the /archive route, which is defined in /home/web/blog/flaskblog/main/routes.py : from flask import render_template , render_template_string ,

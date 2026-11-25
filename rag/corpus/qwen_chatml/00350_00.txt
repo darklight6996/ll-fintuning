@@ -1,0 +1,28 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Example 8-6 Using a Prompt Template from LangSmith Programmatically
+from langchain import hub
+prompt = hub.pull("dsfsdkjhfsd/red_team_expert")
+LangGraph
+LangGraph is a library for building stateful, multi-actor applications with
+LLMs. LangGraph is ideal for applications requiring complex agentic
+architectures and supports advanced features like streaming and human-in-
+the-loop interactions.
+Note
+You can obtain an introduction to LangGraph from my
+personal blog at https://becomingahacker.org/145f61f38747.
+LangGraph builds upon the LangChain Expression Language, adding the
+capability to coordinate multiple chains or actors across various
+computation steps in a cyclic manner. According to the folks from
+LangChain, it is inspired by frameworks such as Pregel and Apache Beam
+to provide a flexible interface similar to NetworkX, which is particularly
+adept at handling complex cycles rather than straightforward DAG-based
+workflows.

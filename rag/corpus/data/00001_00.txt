@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you begin a penetration test on a web application?
+
+CONTEXT:
+You have permission to test a web application hosted at http://example.com.
+
+METHOD / ANSWER:
+Command: `nmap -sC -sV example.com`
+Explanation: This command runs a default scan against the web application to identify open ports and services, gathering essential information for further testing.

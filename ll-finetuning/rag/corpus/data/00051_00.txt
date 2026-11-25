@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you retrieve the final flag from the Administrator’s account?
+
+CONTEXT:
+You are now authenticated as Administrator.
+
+METHOD / ANSWER:
+Command: `cat C:\Users\Administrator\Desktop\root.txt`
+Explanation: This command retrieves the root flag from the Administrator's Desktop, confirming your successful exploitation of the Fluffy box.

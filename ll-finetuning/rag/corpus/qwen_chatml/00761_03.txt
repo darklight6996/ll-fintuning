@@ -1,0 +1,34 @@
+ar2=val2">
+</embed>
+</object>
+FlashVars can also be initialized from the URL:
+http:/www.example.org/somefilename.swf?var1=val1&-
+var2=val2
+In ActionScript 3.0, a developer must explicitly assign the FlashVar
+values to local variables. Typically, this looks like:
+var paramObj:Object = LoaderInfo(this.root.loaderInfo).
+parameters;
+var var1:String = String(paramObj[“var1"));
+var var2:String = String(paramObj[“var2"]);
+In ActionScript 2.0, any uninitialized global variable is assumed to be
+a FlashVar. Global variables are those variables that are prepended
+by _root, _ global or _levelO. This means that if an attribute like:
+_root.varname
+is undefined throughout the code flow, it could be overwritten by
+setting
+http:/victim/file.swf?varname=value
+Regardless of whether you are looking at ActionScript 2.0 or Action-
+Script 3.0, FlashVars can be a vector of attack. Let's look at some Ac-
+tionScript 2.0 code that is vulnerable:
+Example:
+movieClip 328 __Packages.Locale {
+#initclip
+if (!_ global.Locale) {
+var v1 = function (on_load) {
+var v5 = new XML();
+var v6 = this;
+v5.onLoad = function (success) {
+if (success) {
+trace(’Locale loaded xml’);
+var v3 = this.xliff.file.body.$trans_unit;
+var v2

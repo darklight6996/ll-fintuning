@@ -1,0 +1,19 @@
+**Staging / Pre-Production Environment**:
+- **Naming**: `staging-*`, `stage-*`, `preprod-*`, `uat-*`, `qa-*`
+- **Data**:
+  - Production-like volume, anonymized/scrubbed PII
+  - Recent production snapshot (1-7 days old)
+  - Referential integrity maintained
+- **Infrastructure**:
+  - Mirrors production architecture (LB, multiple AZs, replicas)
+  - WAF in monitoring mode, rate limiting relaxed
+  - Feature flags for upcoming releases
+  - Monitoring/alerting configured but different thresholds
+- **Access**:
+  - SSO integration, MFA enforced
+  - IP allowlist (corporate VPN)
+  - Separate credentials from production
+- **Deployment**:
+  - CI/CD pipeline: `main` → staging → production
+  - Automated smoke tests, contract tests
+  - Blue/green or canary deployment testing

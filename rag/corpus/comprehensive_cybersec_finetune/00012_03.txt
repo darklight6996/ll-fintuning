@@ -1,0 +1,30 @@
+**GraphQL-Specific Attacks**:
+- **Query Depth/Complexity DoS**:
+  ```graphql
+  query { user { posts { author { posts { author { posts { ... } } } } } }
+  ```
+- **Batch Queries**:
+  ```json
+  [{"query": "{ user(id: 1) { email } }"}, {"query": "{ user(id: 2) { email } }"}, ...]
+  ```
+- **Field Duplication**:
+  ```graphql
+  query { user(id: 1) { email email email email ... (1000x) } }
+  ```
+- **Alias Overloading**:
+  ```graphql
+  query { u1: user(id: 1) { email } u2: user(id: 2) { email } ... }
+  ```
+- **Directive Abuse**: `@skip`, `@include`, `@deprecated`
+- **Introspection in Production**: Information disclosure
+- **GraphQL Injection**: Input validation in resolvers
+- **Authorization in Resolvers**: Check each field resolver
+
+**Tools**: GraphQL Voyager, GraphQL Cop, InQL (Burp), GraphQL Raider, graphql-path-enum
+
+**Phase 4: gRPC Testing**
+
+**Service Discovery**:
+- `grpcurl -plaintext target:port list`
+- `grpcurl -plaintext target:port describe package.Service`
+- Protobuf reflection

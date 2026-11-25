@@ -1,0 +1,29 @@
+METHOD / ANSWER:
+Testing Guide Foreword - Table of contents
+Testing for NoSQL injection
+Testing for LDAP Injection (OTG-INPVAL-006)
+Testing for ORM Injection (OTG-INPVAL-007)
+Testing for XML Injection (OTG-INPVAL-008)
+Testing for SSI Injection (OTG-INPVAL-009)
+Testing for XPath Injection (OTG-INPVAL-010)
+IMAP/SMTP Injection (OTG-INPVAL-01 1)
+Testing for Code Injection (OTG-INPVAL-012)
+Testing for Local File Inclusion
+Testing for Remote File Inclusion
+Testing for Command Injection (OTG-INPVAL-013)
+Testing for Buffer overflow (OTG-INPVAL-014)
+Testing for Heap overflow
+Testing for Stack overflow
+Testing for Format string
+Testing for incubated vulnerabilities (OTG-INPVAL-015)
+Testing for HTTP Splitting/Smuggling (OTG-INPVAL-016)
+Testing for Error Handling
+Analysis of Error Codes (OTG-ERR-001)
+Analysis of Stack Traces (OTG-ERR-002)
+Testing for weak Cryptography
+Testing for Weak SSL/TLS Ciphers, Insufficient Transport Layer Protection (OTG-CRYPST-001)
+Testing for Padding Oracle (OTG-CRYPST-002)
+Testing for Sensitive information sent via unencrypted channels (OTG-CRYPST-003)
+Business Logic Testing
+Test Business Logic Data Validation (OTG-BUSLOGIC-001)
+Test Ability to Forge Requests (OTG-B

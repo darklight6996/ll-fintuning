@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+such persistence. This testing helps organizations strengthen their defenses
+against threats that seek to establish a foothold within their networks.
+During post-exploitation, red teamers often target credential harvesting and
+privilege escalation. These activities are crucial for understanding the
+effectiveness of an organization's identity and access management (IAM)
+policies. By exploiting these areas, red teamers can reveal weaknesses in
+how credentials are stored, managed, and protected, leading to improved
+security practices.
+Post-exploitation activities allow red teamers to create complex attack
+scenarios that involve multiple stages and techniques. These scenarios
+provide a more thorough test of an organization's security posture than
+simple penetration testing. They can uncover vulnerabilities that may only
+be exposed through a series of chained exploits, thus offering deeper
+insights into potential security weaknesses.
+Improving Blue Team Capabilities
+A focus on post-exploitation helps the blue team (defensive security team)
+improve their detection and response capabilities. By analyzing the
+techniques and tactics used by the red team during post-exploita

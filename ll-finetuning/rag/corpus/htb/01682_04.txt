@@ -1,0 +1,1 @@
+el binding for operations necessitating an encrypted channel. write_gpo_dacl user gpoSID - Write a full control ACE to the gpo for the given user. The gpoSID must be entered surrounding by {}. whoami - get

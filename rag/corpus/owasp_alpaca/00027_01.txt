@@ -1,0 +1,42 @@
+METHOD / ANSWER:
+103
+Web Application Penetration Testing
+The HTML code of index2.php where the email value is located:
+<input class="inputbox” type="text” name="email” size="40"
+value="aaa@aa.com” />
+In this case, the tester needs to find a way to inject code outside the
+<input> tag as below:
+<input class="inputbox" type="text” name="email” size="40"
+value="aaa@aa.com”> MALICIOUS CODE <!-- />
+Testing for Stored XSS
+This involves testing the input validation and filtering controls of the
+application. Basic injection examples in this case:
+aaa@aa.com"><script>alert(document.cookie)</script>
+aaa@aa.com%22%3E%3Cscript%3Ealert(document.
+cookie)%3C%2Fscript%3E
+Ensure the input is submitted through the application. This normally
+involves disabling JavaScript if client-side security controls are im-
+plemented or modifying the HTTP request with a web proxy such as
+WebScarab. It is also important to test the same injection with both
+HTTP GET and POST requests. The above injection results in a popup
+window containing the cookie values.
+Result Expected:
+ad
+Partene
+(eciet niin Erode
+The poe ad Ati
+pe
+et
+Pe PS eee
+(operas
+desi
+Mh
+sive
+FTE
+bee eee Pa Lane
+LPT
+LB cs
+ek Stat Laven
+1 TENT;
+jee
+ennld

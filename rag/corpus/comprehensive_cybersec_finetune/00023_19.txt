@@ -1,0 +1,24 @@
+def detect_defenses(target):
+    results = {
+        'firewall': {'detected': False, 'vendor': None, 'type': None},
+        'waf': {'detected': False, 'vendor': None, 'ruleset': None},
+        'ips_ids': {'detected': False, 'vendor': None},
+        'av_edr': {'detected': False, 'vendor': None, 'products': []}
+    }
+    
+    # WAF Detection via headers
+    try:
+        r = requests.get(f'https://{target}', timeout=10, verify=False)
+        headers = {k.lower(): v for k, v in r.headers.items()}
+        
+        waf_signatures = {
+            'cloudflare': ['cf-ray', 'server: cloudflare', '__cfduid'],
+            'aws': ['awselb', 'x-amz-cf-id', 'x-amzn-requestid'],
+            'azure': ['x-azure-ref', 'server: azure-application-gateway'],
+            'imperva': ['incap_ses', 'visid_incap', 'x-iinfo'],
+            'f5': ['ts', 'bigipserver', 'server: bigip'],
+            'akamai': ['akamai-grn', 'akamai-origin-hop', 'server: akamaighost'],
+            'modsecurity': ['mod_security', 'x-powered-by: mod_security'],
+            'barracuda': ['barracuda', 'x-barracuda'],
+            'sucuri': ['x-sucuri-id', 'x-sucuri-cache', 'server: sucuri'],
+            'citrix': ['nsc_', 'server: citr

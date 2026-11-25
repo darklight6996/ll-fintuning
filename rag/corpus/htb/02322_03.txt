@@ -1,0 +1,1 @@
+xcept ( requests . exceptions . SSLError , requests . exceptions . ConnectionError ): print ( " Error - retrying " ) sleep ( self . sleep_time ) def do_dump_dbs ( self , args ): ' Usage: dump_dbs [num dbs]

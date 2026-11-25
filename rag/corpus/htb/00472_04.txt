@@ -1,0 +1,1 @@
+. After about 60 hashes, the box stops responding entirely. It turns out it has wail2ban installed, preventing this kind of bruteforce. I had to reset the box to get it back. Kerberos Brute kerbrute doesn’t work with hashes (it relies on Go libraries that don’t expose the hash as a valid credential). I could update it to take a list of

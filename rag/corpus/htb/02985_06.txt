@@ -1,0 +1,1 @@
+es: oxdf@hacky$ netexec smb jab.htb -u jmontgomery -p

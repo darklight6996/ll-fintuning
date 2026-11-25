@@ -1,0 +1,26 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Test Your Skills
+MULTIPLE-CHOICE QUESTIONS
+1. What is the primary purpose of using retrieval-augmented generation
+(RAG)?
+A. To encrypt network traffic
+B. To enhance the accuracy and relevance of AI-generated responses
+C. To detect malware in real time
+D. To automate firewall configurations
+2. Which of the following is NOT a typical component of a RAG system in
+cybersecurity?
+A. Large language model (LLM)
+B. Embeddings
+C. Vector database
+D. Intrusion detection system (IDS)
+3. How does RAG help address the challenge of AI hallucinations in
+cybersecurity contexts?

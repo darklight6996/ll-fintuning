@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from Htb Cicada Hacks Stuff)
+
+CONTEXT:
+Source: Htb Cicada Hacks Stuff
+Section: Writeup

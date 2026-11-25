@@ -1,0 +1,118 @@
+# Category: IoT / Embedded Security
+# Source: re-implemented (2026-11-25 harvest round) from the general IoT/embedded
+# testing methodology in claude-red (github.com/SnailSploit/claude-red)
+# offensive-iot skill, content licensed MIT; adapted into this framework's own
+# scenario schema, condensed from the source's full operational guide.
+# Attributed per MIT license. See work.md.
+name: "IoT device firmware acquisition and analysis workflow"
+id: "iot-firmware-extraction-001"
+category: "iot_ot"
+subcategory: "firmware_analysis"
+difficulty: "expert"
+estimated_time: "90 minutes"
+
+description: |
+  Before any runtime attack on an IoT/embedded device is possible, the
+  firmware usually needs to be acquired and analyzed first: identify the
+  device's hardware debug/flash interfaces, obtain the firmware image (vendor
+  download, OTA capture, or a hardware dump), unpack it, and triage the
+  filesystem for hardcoded credentials, exposed services, and known-
+  vulnerable components. This is the foundation step before UART-shell
+  access, bootloader attacks, or wireless-protocol exploitation.
+
+learning_objectives:
+  - Identify physical debug/flash interfaces on a PCB (UART, JTAG, SWD, SPI NOR, eMMC)
+  - Obtain firmware via the lowest-effort available method (vendor download/OTA capture before hardware dump)
+  - Unpack and triage a firmware image for hardcoded secrets, default credentials, and vulnerable components
+  - Confirm findings against the actual running device, not just the static firmware image
+
+tools:
+  - A UART-to-USB adapter (FT232/CP2102) and a logic analyzer for unknown baud rates
+  - binwalk for firmware extraction and signature scanning
+  - A chip-dumping tool (flashrom + a SPI programmer) for in-circuit/desoldered flash reads
+  - A transparent MITM proxy for OTA capture, where the device fetches updates over the network
+
+prerequisites:
+  - Physical or authorized remote access to the target device
+  - Explicit authorization for hardware-level interaction (debug-interface access, flash dumping) in this engagement
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify debug/flash interfaces and attempt the lowest-effort firmware acquisition path first"
+    commands:
+      - "# Inspect the PCB for labeled or unlabeled TX/RX/GND (UART), JTAG, or SWD test points"
+      - "# Check the vendor's own site/support portal for a public firmware download before attempting a hardware dump"
+      - "# If the device fetches OTA updates over HTTP(S), MITM the device's network traffic to capture the update URL/image directly"
+    expected_output: "A firmware image obtained via the lowest-risk method available (vendor download or OTA capture preferred over physical chip-off)"
+    detection: "None -- this step targets the tester's own test device"
+
+  - id: "step2"
+    phase: "reconnaissance"
+    action: "If no network/vendor path exists, dump the firmware from flash directly"
+    commands:
+      - "# Identify flash package: 8-pin SOIC = SPI NOR, BGA = eMMC, TSOP = NAND"
+      - "flashrom -p ch341a_spi -r firmware.bin   # in-circuit dump, holding the SoC in reset to avoid bus contention"
+      - "file firmware.bin && binwalk firmware.bin"
+    expected_output: "A raw firmware binary successfully dumped from the device's flash chip"
+    detection: "None -- this is a physical, offline action against the tester's own hardware"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Unpack and triage the firmware for credentials, services, and vulnerable components"
+    commands:
+      - "binwalk -Me firmware.bin   # recursive extraction of embedded filesystems"
+      - "# Mount the extracted filesystem and grep for hardcoded credentials/keys"
+      - "grep -rE \"password|passwd|secret|api[_-]?key\" <extracted_rootfs>/etc <extracted_rootfs>/opt 2>/dev/null"
+      - "# Identify the kernel/busybox version and cross-reference against known CVEs"
+      - "# Attempt console access: connect the UART adapter, try common baud rates, look for a login/root shell prompt"
+    expected_output: "Concrete findings: a hardcoded credential, an exposed debug service, or a known-vulnerable component version"
+    detection: "None at this stage -- this is static/offline analysis of the extracted firmware"
+
+  - id: "step4"
+    phase: "validation"
+    action: "Confirm each static finding actually works against the real, running device"
+    commands:
+      - "# Test the discovered credential against the device's actual login prompt (UART console, web UI, or SSH/telnet)"
+      - "# A credential found in a firmware string is a LEAD until it is actually confirmed to authenticate"
+    expected_output: "A credential or access vector confirmed to work against the live device, not just present in the firmware image"
+    detection: "Authentication attempts against the device's console/management interface"
+
+compliance_controls:
+  - standard: "MITRE ATT&CK"
+    control: "T1552.001"
+    description: "Credentials In Files (firmware-embedded credentials)"
+  - standard: "OWASP"
+    control: "IoT Top 10 - I2"
+    description: "Insecure Default Settings"
+
+detection:
+  network_indicators:
+    - "Unexpected MITM/proxy traffic on the device's update-check connection"
+  log_indicators:
+    - "Console/UART login attempts using credentials recovered from a firmware dump"
+  endpoint_indicators:
+    - "Physical access/removal of a flash chip, or an unexpected device reboot during flash dumping"
+
+remediation:
+  immediate:
+    - "Remove hardcoded credentials from firmware images; use per-device provisioned credentials instead"
+    - "Disable or password-protect UART/JTAG debug interfaces on production hardware"
+  long_term:
+    - "Sign and verify firmware updates to prevent tampering, and encrypt firmware images at rest to raise the cost of static analysis"
+    - "Adopt a secure-boot chain so a dumped/modified firmware image cannot run on production hardware"
+
+variables:
+  target_device: "<IoT device under test>"
+  firmware_image: "firmware.bin"
+
+assessment_questions:
+  - "Why should a vendor download or OTA capture be attempted before a physical chip-off dump?"
+  - "Why is a credential found in a firmware string a lead rather than a confirmed finding?"
+  - "What makes UART console access a higher-value target than a web management UI, in many IoT devices?"
+
+references:
+  - url: "https://owasp.org/www-project-internet-of-things/"
+    title: "OWASP Internet of Things Project"
+  - url: "https://github.com/ReFirmLabs/binwalk"
+    title: "binwalk - firmware extraction tool"

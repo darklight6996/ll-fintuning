@@ -1,0 +1,2 @@
+ment for a bug bounty program.
+Table 9-4 Defining the Scope and Rules of Engagement in Bug Bounties

@@ -1,0 +1,1 @@
+can try to reverse this web assembly, but it’s not needed to continue. I’ll look at that in Beyond Root . Buffer Overflow Filter Bypass POC Whenever I see arguments being passed to something written in C, I’ll want to check for a buffer overflow. I don’t have any control over the date string at

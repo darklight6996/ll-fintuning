@@ -1,0 +1,15 @@
+- **OSEE (Offensive Security Exploit Expert) - OffSec**
+  - **Prerequisites**: OSED, EXP-401 course
+  - **Exam**: 48-hour practical (advanced exploits) + 24-hour report
+  - **Topics**:
+    - **Advanced Kernel**: Race conditions, UAF, type confusion
+    - **Hypervisor**: VM escape, VMM vulnerabilities
+    - **Hardware**: Side channels, Rowhammer, Spectre/Meltdown
+    - **Mobile**: iOS/Android kernel, PAC bypass
+    - **Firmware**: UEFI, BIOS, Baseband exploitation
+  - **Study Resources**:
+    - OffSec EXP-401 course
+    - "The Art of Software Security Assessment"
+    - Black Hat, DEF CON, REcon trainings
+  - **Cost**: $1,599 (90-day lab)
+  - **ROI**: Elite exploit developer, nation-state level

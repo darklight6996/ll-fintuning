@@ -1,0 +1,1 @@
+/root/root.txt: Invalid command 'ef91575c************************', perhaps misspelled or defined by a module not included in the server configuration Action '-f /home/mark/confs/0xdf.conf' failed. The Apache error log may have more information. This gives first line file read as root through Include . Symlinks The program never resolves links, so I can also just create a symlink

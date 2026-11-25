@@ -1,0 +1,29 @@
+METHOD / ANSWER:
+Target ........... 192.168.88.251
+RID Range ........ 500-550,1000-1050
+Username ......... ''
+Password ......... ''
+Known Usernames .. administrator, guest, krbtgt, doma
+====================================================
+| Enumerating Workgroup/Domain on 192.168.88.251
+====================================================
+[+] Got domain/workgroup name: WORKGROUP
+==============================================
+| Nbtstat Information for 192.168.88.251 |
+==============================================
+Looking up status of 192.168.88.251
+VULNHOST-1 <00> - B <ACTIVE> Wor
+VULNHOST-1 <03> - B <ACTIVE> Mes
+VULNHOST-1 <20> - B <ACTIVE> Fil
+..__MSBROWSE__. <01> - <GROUP> B <ACTIVE> M
+WORKGROUP <00> - <GROUP> B <ACTIVE> Do
+WORKGROUP <1d> - B <ACTIVE> Mast
+WORKGROUP <1e> - <GROUP> B <ACTIVE> Br
+MAC Address = 00-00-00-00-00-00
+=======================================
+| Session Check on 192.168.88.251 |
+=======================================
+[+] Server 192.168.88.251 allows sessions using usern
+=============================================
+| Getting domain SID for 192.168.88.251 |
+=============================================

@@ -1,0 +1,1 @@
+container; Create an exec instance; Start exec instance; Container + socat = shell: Create a container; Start the container; Attach socat to the container to get a shell

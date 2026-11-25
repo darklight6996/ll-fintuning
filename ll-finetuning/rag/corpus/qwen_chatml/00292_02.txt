@@ -1,0 +1,4 @@
+ministrative tasks. Table 6-4 lists
+and describes some of the most useful PowerShell commands that can be
+used for post-exploitation tasks.
+Table 6-4 Useful PowerShell Commands for Post-Exploitation Tasks

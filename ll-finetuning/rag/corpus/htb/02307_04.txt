@@ -1,0 +1,1 @@
+be passed as a form of authentication. It can be relayed or cracked. Given that there’s only one host here, and typically it doesn’t work to relay to the originating host, I’ll try cracking. I’ll have the “hash” into a file, and pass it to hashcat . hashcat can identify the format automatically and cracks it in seconds: $ hashcat p.agila.hash

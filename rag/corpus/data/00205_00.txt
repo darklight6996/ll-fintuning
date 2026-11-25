@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check IAM password policy.
+
+CONTEXT:
+Identity control audit.
+
+METHOD / ANSWER:
+Command: `aws iam get-account-password-policy`
+Explanation: Confirms strong password requirements.

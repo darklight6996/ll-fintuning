@@ -1,0 +1,1 @@
+are hosting from /var/www/graphasm . This includes logic to add the .html extension, which is why visiting /login returns login.html . Docker Port 8000 is being served by Docker: root@cypher:/# ss -tnlp | grep 8000 LISTEN 0 4096 127.0.0.1:8000 0.0.0.0:* users:(("docker-proxy",pid=1786,fd=7)) This is

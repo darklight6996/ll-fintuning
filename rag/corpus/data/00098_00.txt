@@ -1,0 +1,8 @@
+TECHNIQUE / QUESTION:
+How do you perform DCSync or similar techniques?
+
+CONTEXT:
+You want to utilize methods to access sensitive credentials.
+
+METHOD / ANSWER:
+Purpose: Access sensitive credential data.

@@ -1,0 +1,6 @@
+lines of Python AI code. As I analyzed the
+code, it quickly grew beyond my grasp of AI. My lack of AI knowledge was
+a glaring weakness.
+Thankfully, my data scientist friends had equipped me with a new skill:
+prompt engineering. It was time to put that skill to the test. I carefully
+crafted queries, beginning to understand not only the code, but the flow of

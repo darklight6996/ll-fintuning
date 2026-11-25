@@ -31,6 +31,118 @@ class Observation(BaseModel):
     exit_code: int = 0
     observed_at: float = Field(default_factory=time.time)
     parsed_facts: Dict[str, Any] = Field(default_factory=dict)
+    # MED-7 fix: tag each Observation with the phase of the action that produced it
+    # (e.g. "recon", "enum", "privesc" -- whatever the agent's ActionDefinition.phase
+    # says). Previously unset on every Observation, which made it impossible to
+    # group or filter evidence by phase later (e.g. a future deterministic
+    # Hypothesis-promotion strategy keyed on phase transitions). Optional and
+    # defaulted so existing persisted sessions / callers that don't pass it keep
+    # working unchanged.
+    phase: Optional[str] = None
+
+
+class Component(BaseModel):
+    name: str
+    description: str = ""
+    endpoints: List[str] = Field(default_factory=list)
+    technology: Optional[str] = None
+
+
+class DataFlow(BaseModel):
+    source: str
+    sink: str
+    data_type: str = ""
+    authenticated: bool = False
+
+
+class Assumption(BaseModel):
+    assumption_id: str = Field(default_factory=lambda: f"asm_{uuid.uuid4().hex[:8]}")
+    target_or_component: str
+    description: str
+    fragile: bool = True
+    tested: bool = False
+    invalidation_test: Optional[str] = None
+
+
+class AppModel(BaseModel):
+    """
+    Working memory artifact representing the agent's mental model of the target:
+    components, roles, trust boundaries, state/limited resources, and fragile assumptions.
+    """
+    purpose: str = ""
+    components: List[Component] = Field(default_factory=list)
+    roles: List[str] = Field(default_factory=list)
+    trust_boundaries: List[str] = Field(default_factory=list)
+    state_and_resources: List[str] = Field(default_factory=list)
+    data_flows: List[DataFlow] = Field(default_factory=list)
+    assumptions: List[Assumption] = Field(default_factory=list)
+
+    def update(
+        self,
+        purpose: Optional[str] = None,
+        components: Optional[List[Any]] = None,
+        roles: Optional[List[str]] = None,
+        trust_boundaries: Optional[List[str]] = None,
+        state_and_resources: Optional[List[str]] = None,
+        data_flows: Optional[List[Any]] = None,
+        assumptions: Optional[List[Any]] = None,
+    ) -> None:
+        if purpose:
+            self.purpose = purpose
+        if roles:
+            for r in roles:
+                if r not in self.roles:
+                    self.roles.append(r)
+        if trust_boundaries:
+            for tb in trust_boundaries:
+                if tb not in self.trust_boundaries:
+                    self.trust_boundaries.append(tb)
+        if state_and_resources:
+            for sr in state_and_resources:
+                if sr not in self.state_and_resources:
+                    self.state_and_resources.append(sr)
+        if components:
+            for c in components:
+                if isinstance(c, dict):
+                    self.components.append(Component(**c))
+                elif isinstance(c, Component):
+                    self.components.append(c)
+                elif isinstance(c, str):
+                    self.components.append(Component(name=c))
+        if data_flows:
+            for df in data_flows:
+                if isinstance(df, dict):
+                    self.data_flows.append(DataFlow(**df))
+                elif isinstance(df, DataFlow):
+                    self.data_flows.append(df)
+        if assumptions:
+            for asm in assumptions:
+                if isinstance(asm, dict):
+                    self.assumptions.append(Assumption(**asm))
+                elif isinstance(asm, Assumption):
+                    self.assumptions.append(asm)
+                elif isinstance(asm, str):
+                    self.assumptions.append(Assumption(target_or_component="target", description=asm))
+
+    def summary(self) -> str:
+        lines = []
+        if self.purpose:
+            lines.append(f"  Purpose: {self.purpose}")
+        if self.components:
+            comps = [f"{c.name}" + (f" ({', '.join(c.endpoints)})" if c.endpoints else "") for c in self.components]
+            lines.append(f"  Components: {', '.join(comps)}")
+        if self.roles:
+            lines.append(f"  Roles: {', '.join(self.roles)}")
+        if self.trust_boundaries:
+            lines.append(f"  Trust Boundaries: {', '.join(self.trust_boundaries)}")
+        if self.state_and_resources:
+            lines.append(f"  State & Limited Resources: {', '.join(self.state_and_resources)}")
+        if self.assumptions:
+            lines.append("  Developer Assumptions:")
+            for a in self.assumptions:
+                status = "tested" if a.tested else ("FRAGILE" if a.fragile else "untested")
+                lines.append(f"    - [{a.assumption_id}] ({status}) {a.target_or_component}: {a.description}")
+        return "\n".join(lines) if lines else "  (no application model built yet)"
 
 
 class Hypothesis(BaseModel):
@@ -41,9 +153,22 @@ class Hypothesis(BaseModel):
     observation_ids: List[str] = Field(default_factory=list)
     description: str
     validation_test: str
+    # Suspicion gate (2026-11-16): the vuln class this hypothesis is about
+    # ("sqli"/"xss"/"ssrf"/"idor"/...), so the planner can unlock the matching
+    # specialist action (see core.action_contract.action_is_unlocked). None = a
+    # generic suspicion that unlocks only the generic weapons (self_script, etc.).
+    vuln_class: Optional[str] = None
+    # True only for the deterministic exit-0 'phase milestone' promotion (a benign
+    # 'this recon action ran' marker), NOT a real vuln suspicion. The suspicion gate
+    # ignores these so coverage never auto-unlocks offensive tools.
+    milestone: bool = False
     confidence: Literal["speculative", "plausible", "likely"] = "plausible"
     status: Literal["open", "validating", "confirmed", "refuted", "inconclusive"] = "open"
     created_at: float = Field(default_factory=time.time)
+    # Working memory link: optional assumption tested
+    assumption_id: Optional[str] = None
+    expected_control: Optional[str] = None
+    expected_attack: Optional[str] = None
 
 
 class Validation(BaseModel):
@@ -74,6 +199,12 @@ class Finding(BaseModel):
     reproducible_steps: List[str] = Field(default_factory=list)
     impact: str = "pending further validation"
     confidence: float = 1.0
+    # Confirmation strength (2026-11-20): "proven" = backed by concrete evidence of a
+    # real vulnerability; "lead" = suspicious but UNVERIFIED (weak/heuristic oracle) --
+    # surfaced for human verification, never counted as a solved finding; "milestone" =
+    # a deterministic phase-progress marker, not a vulnerability. Completion counts
+    # only "proven". Default "proven" keeps existing callers/tests unchanged.
+    strength: Literal["proven", "lead", "milestone"] = "proven"
 
 
 class Entity(BaseModel):
@@ -235,6 +366,13 @@ class EvidenceStore(BaseModel):
     findings: Dict[str, Finding] = Field(default_factory=dict)
     refuted_hypotheses: Dict[str, Hypothesis] = Field(default_factory=dict)
     graph: EvidenceGraph = Field(default_factory=EvidenceGraph)
+    app_model: AppModel = Field(default_factory=AppModel)
+
+    def update_app_model(self, **kwargs) -> None:
+        self.app_model.update(**kwargs)
+
+    def get_app_model_summary(self) -> str:
+        return self.app_model.summary()
 
     def add_observation(self, obs: Observation) -> str:
         self.observations[obs.obs_id] = obs
@@ -289,6 +427,7 @@ class EvidenceStore(BaseModel):
         reproducible_steps: Optional[List[str]] = None,
         impact: str = "pending further validation",
         confidence: float = 1.0,
+        strength: str = "proven",
     ) -> Tuple[Optional[Finding], str]:
         """
         Attempt to create a Finding. Refuses if evidence chain is incomplete.
@@ -315,9 +454,18 @@ class EvidenceStore(BaseModel):
             reproducible_steps=reproducible_steps or [],
             impact=impact,
             confidence=confidence,
+            strength=strength if strength in ("proven", "lead", "milestone") else "proven",
         )
         self.findings[finding.finding_id] = finding
         return finding, "Finding recorded successfully with verified evidence chain."
+
+    @property
+    def proven_finding_count(self) -> int:
+        """Count only PROVEN vulnerability findings -- not unverified leads, not
+        phase-milestone markers. This is what completion criteria require, so a run
+        can never declare success on a weak/heuristic confirmation."""
+        return sum(1 for f in self.findings.values()
+                   if getattr(f, "strength", "proven") == "proven")
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -327,6 +475,7 @@ class EvidenceStore(BaseModel):
             "findings": {k: v.model_dump() for k, v in self.findings.items()},
             "refuted_hypotheses": {k: v.model_dump() for k, v in self.refuted_hypotheses.items()},
             "graph": self.graph.to_dict(),
+            "app_model": self.app_model.model_dump(),
         }
 
     @classmethod
@@ -344,4 +493,6 @@ class EvidenceStore(BaseModel):
             store.refuted_hypotheses[k] = Hypothesis(**v)
         if "graph" in data:
             store.graph = EvidenceGraph.from_dict(data["graph"])
+        if "app_model" in data:
+            store.app_model = AppModel(**data["app_model"])
         return store

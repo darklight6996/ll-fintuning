@@ -1,0 +1,23 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+The following are a few examples of bug bounty platform providers:
+• Bugcrowd: https://bugcrowd.com
+• HackerOne: https://hackerone.com
+• Intigriti: https://intigriti.com
+• Synack: https://www.synack.com
+• YesWeHack: https://yeswehack.com
+• Inspectiv: https://www.inspectiv.com
+• Cobalt: https://cobalt.io
+• Coder Bounty: http://www.coderbounty.com
+• Bugbountyjp: https://bugbounty.jp
+Public programs are typically used by companies that are confident in their
+security posture and can handle the influx of reports from a global pool of
+researchers. Open-source platforms often rely on public bug bounty

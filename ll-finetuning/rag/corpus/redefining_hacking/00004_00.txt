@@ -1,0 +1,27 @@
+TECHNIQUE / QUESTION:
+Define and explain the key concept presented in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Chapter 1. The Evolution of Penetration Testing,
+Red Teaming, and Bug Bounties
+Chapter Objectives
+After reading this chapter and completing the exercises, you will be able to
+do the following:
+• Understand the fundamental concepts and significance of penetration
+testing, red teaming, and bug bounty programs
+• Identify the different use cases for the individual programs in an
+organization
+• Develop strategies to effectively integrate the different programs into a
+cohesive plan to improve the security posture of the organization
+Into the Abyss
+Let’s be honest; sometimes, being a red teamer can get a little predictable,
+especially on an internal team. The organization has a robust bug bounty
+program, and the external perimeter is well hardened. Sure, it's fun and still
+a challenge at times. Sometimes, though, you want more, something that
+will make you sweat a little, maybe second-guess career choices. That
+something is what I (Wesley) got not too long ago.

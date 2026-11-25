@@ -1,0 +1,5 @@
+the path. The rule of thumb
+when determining where in the network topology to run a vulnerability scan
+is that it should always be performed as close to the target as possible. For
+example, if you are scanning a Windows server that is sitting inside your
+DMZ, the best location for your vulnerability scanner is adjacent to the

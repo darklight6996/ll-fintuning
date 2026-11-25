@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Prompt templates in LangChain are reusable structures that allow
+developers to generate prompts with placeholders for dynamic content.
+These templates help in creating consistent and precise queries for AI
+models. LangChain provides functions like from_template() and
+PromptTemplate() to create these templates, which can then be formatted
+with specific inputs to generate desired outputs.
+System prompts act as a framework that guides AI models in interpreting
+and responding to user inputs. They are crucial for setting the stage for AI
+interactions by establishing specific parameters within which the AI
+operates. They do so by defining the goals, roles, and context for the AI,
+which helps in tailoring responses to be more contextually appropriate and
+engaging.
+System prompts are great in guiding AI model behavior. They help
+developers and researchers harness the capabilities of AI models, steering
+them toward generating outputs that are not only accurate but also
+contextually appropriate. By incorporating role-specific guidelines, tone
+instructions, and creativity constraints, system prompts enable AI models to
+exhibit mor

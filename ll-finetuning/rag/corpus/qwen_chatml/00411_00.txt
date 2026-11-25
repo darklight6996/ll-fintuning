@@ -1,0 +1,23 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Individuals who are starting to explore, participate in, or create bug bounty
+programs often ask: “What are the options?” In the next section, we explore
+the different types of bug bounty programs.
+Types of Bug Bounty Programs
+Bug bounty programs can be generally classified into public and private
+bug bounties. Public programs are open to all security researchers and
+ethical hackers across the globe. The rules and scope are publicly available,
+allowing anyone to participate. Private programs are invitation-only, where
+selected hackers are chosen based on their skills and previous performance
+in public programs or other platforms. Table 9-1 shows a high-level
+comparison of private versus public bug bounty programs.
+Table 9-1 High-Level Comparison of Private vs. Public Bug Bounty
+Programs

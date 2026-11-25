@@ -1,0 +1,5 @@
+rver could return a 404 error or another innocuous response,
+making it harder for unauthorized users or security scanners to detect the
+web shell.
+For example, you can set up a rule where the web shell responds only if an
+additional header like X-Auth: secretkey123 is included in the request.

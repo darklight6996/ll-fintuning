@@ -1,0 +1,10 @@
+Context:
+Context: Host Security Assessment. The target server is running Linux. You need to evaluate if Mandatory Access Control (MAC) systems like SELinux are properly configured and restrictive.
+Principle to Apply: 'Verify that security-enforcing mechanisms are active and correctly tuned.'
+assistant
+**Assessment Phase**: Mandatory Access Control Review.
+**Core Principle**: SELinux enforces granular, policy-driven access rules beyond standard Linux permissions. Misconfigured policies can be bypassed or may overly restrict legitimate operations.
+**Actionable Steps**:
+1.  **Policy Boolean Inspection**: `getsebool -a | grep httpd`
+    *   **Reasoning**: Checks the state of SELinux policy booleans related to the web server daemon (`httpd`). These booleans act as policy switches. Finding them in a permissive state (e.g., `httpd_can_network_connect_db --> on`) can reveal intentional loosening of policy for functionality, which may introduce risk.
+**Guidance for Novel Context**: The `grep` pattern (`httpd`) must adapt to the service in question (e.g., `mysqld`, `ssh`). If SELinux is disabled (`sestatus`), the principle shifts to 'identify missing security layers.' On systems using AppArm

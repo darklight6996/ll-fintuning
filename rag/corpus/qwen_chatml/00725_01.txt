@@ -1,0 +1,32 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+81
+Web Application Penetration Testing
+(b) Testing Techniques (a methodical evaluation of each attack tech-
+nique used by an attacker to exploit the vulnerability)
+How to Test
+Black Box testing
+Input Vectors Enumeration
+In order to determine which part of the application is vulnerable to in-
+put validation bypassing, the tester needs to enumerate all parts of
+the application that accept content from the user. This also includes
+HTTP GET and POST queries and common options like file uploads and
+HTML forms.
+Here are some examples of the checks to be performed at this stage:
+« Are there request parameters which could be used for file-related
+operations?
+» Are there unusual file extensions?
+« Are there interesting variable names?
+http:/example.com/getUserProfile.jsp?item=ikki.html
+http:/example.com/index.php?file=content
+http:/example.com/main.cgi?7home=index.htm
+« Is it possible to identify cookies used by the web application for the
+dynamic generation of pages or templates?
+Cookie: ID=d9ccd3f4f9f18cc1:T-
+M=2166255468:LM=1 162655568:S=3cFpqbJ]gMSSPKVMV:-
+TEMPLATE=flower
+Cookie: USER=1826cc8f:PSTYLE=GreenDotRed
+Testing Tech

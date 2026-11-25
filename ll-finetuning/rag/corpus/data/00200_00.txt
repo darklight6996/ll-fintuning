@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check automatic updates.
+
+CONTEXT:
+Patch automation review.
+
+METHOD / ANSWER:
+Command: `systemctl status unattended-upgrades`
+Explanation: Confirms automatic updates are enabled.

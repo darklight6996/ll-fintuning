@@ -1,0 +1,1 @@
+r within a group which | contains the "web" middleware group. Now create something great! | */ Route :: get ( '/' , function () { return view ( 'welcome' ); }); The only route is / , and it only takes GET. That’s the end of this exploit for Cronos as far as I can tell.

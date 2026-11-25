@@ -1,0 +1,25 @@
+**Phase 2: Binary Analysis & Gadget Discovery**
+- **Check Protections**:
+  ```bash
+  checksec --file=vuln_service
+  # RELRO: Partial, Stack: No canary, NX: Enabled, PIE: No
+  ```
+- **Find ROP Gadgets**:
+  ```bash
+  ropper --file vuln_service --search "pop rdi"
+  ropper --file vuln_service --search "pop rsi"
+  ropper --file vuln_service --search "pop rdx"
+  ropper --file vuln_service --search "syscall"
+  ropper --file vuln_service --search "ret"
+  ```
+- **Identify Useful Functions**:
+  ```bash
+  objdump -d vuln_service | grep -E "system|execve|mprotect|read|write"
+  # Or check PLT/GOT
+  readelf -r vuln_service
+  ```
+- **Find /bin/sh String**:
+  ```bash
+  strings -tx vuln_service | grep /bin/sh
+  # Or in libc: strings -tx /lib/x86_64-linux-gnu/libc.so.6 | grep /bin/sh
+  ```

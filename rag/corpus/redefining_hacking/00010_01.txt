@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+We couldn't afford to dwell on setbacks. We went back to sifting through
+the host's history. A pattern emerged: frequent interactions with another
+internal host. We could tell that the user interacted with the host multiple
+times a day. It was a host none of us were familiar with. It was a
+breadcrumb trail we couldn't ignore.
+The host was single sign-on (SSO) protected, but we had a trick up our
+sleeve: session hijacking. We would still need their credentials though. So,
+we crafted a fake pop-up, a convincing replica of the SSO login page, and
+timed it to appear during the user's early morning routine. We adjusted our
+C2 agent to beacon back to us in the morning before we kicked off the
+attack. With our C2 agent lying dormant, waiting to spring to life, we were
+ready to capture the precious credentials.
+The plan worked flawlessly. Our C2 beaconed back and we were ready. The
+pop-up captured the user’s credentials. We were ready for the next steps.
+We extracted the cookies from Chrome; we now had everything we needed
+for the internal site. A quick proxy setup and we were in. The site hosted
+Jupyter notebooks, filled with lines of Python AI code. As I analyzed the
+cod

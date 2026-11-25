@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from Digging Into Psexec With Htb Nest Hacks Stuff)
+
+CONTEXT:
+Source: Digging Into Psexec With Htb Nest Hacks Stuff
+Section: Writeup

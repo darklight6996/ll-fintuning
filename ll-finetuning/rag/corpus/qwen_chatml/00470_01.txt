@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• Network or vulnerability data
+• Pages containing login portals
+• Different online devices
+• Advisories and vulnerabilities
+GHDB is a community effort. Anyone can upload a new Google dork to
+perform these types of searches. Once you start playing with the dorks in
+GHDB, you will be surprised by the unbelievable things found by Google
+hacking. GHDB has made using Google dorks easier, but it’s not your only
+option. Later you will learn about additional tools that can be used to
+perform similar searches (such as Recon-ng).
+Website Archive/Caching
+Several organizations archive and cache website data on the Internet. One
+of the most popular repositories is the Wayback Machine of the Internet
+Archive (https://archive.org/web).
+Let’s go back in time and see how Cisco’s website looked on November 3,
+1999 (shown in Figure 9-2). You can access the archive of the site shown in
+Figure 9-2 by navigating to https://web.archive.org/web/19991103121048/
+http://www.cisco.com.

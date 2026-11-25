@@ -15,6 +15,15 @@ from core.fact_parsing import parse_find_paths, parse_line_list, parse_unix_iden
 
 def extract_facts(action_id: str, stdout: str, stderr: str) -> Dict[str, Any]:
     try:
+        if action_id == "http_probe":
+            from agents.common.http_primitive import extract_http_probe_facts
+            return extract_http_probe_facts(stdout, stderr)
+        if action_id == "browser_probe":
+            from agents.common.browser_primitive import extract_browser_facts
+            return extract_browser_facts(stdout, stderr)
+        if action_id == "self_script":
+            from agents.common.self_scripting import extract_self_script_facts
+            return extract_self_script_facts(stdout, stderr)
         if action_id == "environment_recon":
             return parse_unix_identity(stdout)
 

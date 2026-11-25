@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+You can create an X account and posts tweets containing encoded or
+encrypted commands. The malware on the victim’s machine regularly
+checks the attacker’s X feed for new instructions, decodes them, and
+executes the commands.
+Google Drive and Google Sheets have also been used to hide C2
+communications within legitimate-looking cloud activity. Attackers can use
+Google Drive’s API to upload command files or exfiltrate data from
+compromised systems. In other cases, they use Google Sheets’ API to
+embed commands in spreadsheet cells, which the malware retrieves and
+executes. Attackers have also employed other cloud-based services like
+OneDrive, Slack, and Telegram for similar purposes.
+How DNS Tunneling Works
+The malware on a compromised system encodes data into DNS queries.
+These queries are sent to a DNS domain controlled by an attacker. The
+attacker's DNS server receives the queries, decodes the data, and processes
+the commands or data. The attacker's server encodes responses into DNS
+answers, which are then sent back to the compromised system.
+For example, a compromised system sends a DNS query like
+payload.h4cker.org. The attacker’s DNS server decodes the payload pa

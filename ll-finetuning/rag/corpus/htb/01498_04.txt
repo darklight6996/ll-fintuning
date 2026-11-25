@@ -1,0 +1,1 @@
+10.10.208 - - [22/Jan/2021 17:46:57] "GET /?c= HTTP/1.1" 200 - I also wanted to see what else was in report.php , as I’m sure that the person reading this can open it. This JavaScript will query report.php , and

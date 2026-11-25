@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+avatar generator to give the account a little flair but no actual information.
+With a created persona, then we would need to create a fake organization.
+That was the easy part—just use the official name and logo. Without any
+form of verification on the platform, we could be whoever we wanted to.
+We stole some boilerplate text that we had seen in some of their GitHub
+repos to make them feel at home.
+The AI Crash Course
+This scenario wouldn’t be your typical phishing payload, and we had to
+pivot because our normal playbook wouldn't work. The clock was ticking,
+and my understanding of AI vulnerabilities felt like a house of cards in a
+hurricane. The pressure was immense. Each failed attempt to grasp the
+nuances of adversarial attacks or model poisoning felt like a punch to the
+gut. I was out of my depth, and the deadline loomed large.
+In desperation, I reached out to a few data scientist friends, the kind who
+were always tinkering with the latest AI models and frameworks. Their eyes
+lit up when I explained my predicament. They saw it not as a crisis but as a
+challenge, a puzzle to be solved.
+Over countless cups of coffee a

@@ -1,0 +1,1 @@
+Identify read/write permissions for shares to leverage further access.

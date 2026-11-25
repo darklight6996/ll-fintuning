@@ -1,0 +1,8 @@
+.62 /
+2001:4801:7821:77:cd2c:d9de:ff10:170e")
+--> Testing Protocols
+SSLv2
+NOT offered (ok)
+SSLv3
+offered
+164

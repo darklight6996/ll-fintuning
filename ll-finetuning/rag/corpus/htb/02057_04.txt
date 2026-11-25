@@ -1,0 +1,1 @@
+iate_monitoring.sh 2025/07/28 21:31:01 CMD: UID=0 PID=71202 | /bin/bash /root/initiate_monitoring.sh It’s running initiate_monitoring.sh that I can’t see, which seems to call objcopy on monitor , and then

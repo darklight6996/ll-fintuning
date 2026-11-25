@@ -1,0 +1,11 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+you only the potential mappings based off commands built into the agent
+you are using, as illustrated in Figure 3-24.

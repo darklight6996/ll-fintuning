@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check mount options.
+
+CONTEXT:
+Filesystem hardening.
+
+METHOD / ANSWER:
+Command: `mount | grep noexec`
+Explanation: Confirms secure mount flags.

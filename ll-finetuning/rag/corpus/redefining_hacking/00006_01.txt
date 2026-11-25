@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+The Uncharted Territory
+While researching this objective, let’s also continue with the engagement.
+Now, with a well-funded bug bounty program and regular penetration tests,
+getting that initial foothold becomes increasingly difficult. Compounding
+that was the fact that the research division didn’t have any public products,
+there was zero attack surface, and our bug bounty program wouldn’t have
+any insights for us.
+Digging through open-source intelligence (OSINT) can be dull until you
+find that piece of information that you pivot on and get what you were
+looking for. In this case, it was public AI/ML platforms. We were blown
+away by their level of activity on the platform, commenting on models and
+reviewing datasets. A few patterns started to emerge, illustrating what they
+were interested in. We determined that they were testing the models on their
+laptops and in the cloud. We then noticed the organization was not
+registered on the platform. Then it hit us; a textbook watering hole attack
+with a sprinkling of organization confusion. It was a nice change of pace
+from your typical spearphish.
+We needed to balance the right amount of realism without replicating a
+speci

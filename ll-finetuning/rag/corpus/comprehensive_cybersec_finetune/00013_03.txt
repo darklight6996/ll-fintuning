@@ -1,0 +1,40 @@
+**Storage (S3, EBS, EFS, RDS)**:
+- **S3**:
+  - Public buckets: `aws s3api get-bucket-acl`, `get-bucket-policy`
+  - Block Public Access settings
+  - Encryption: SSE-S3, SSE-KMS, DSSE-KMS
+  - Versioning enabled
+  - Logging enabled
+  - Lifecycle policies
+  - Cross-region replication
+  - Object Lock (WORM)
+- **RDS**:
+  - Publicly accessible: `PubliclyAccessible: true`
+  - Encryption at rest
+  - Backup retention
+  - IAM authentication
+  - Security groups
+  - Enhanced monitoring
+- **EBS/EFS**:
+  - Encryption
+  - Backup policies
+  - Access points (EFS)
+
+**Networking (VPC, CloudFront, Route53, ALB/NLB)**:
+- **VPC**:
+  - Flow logs enabled
+  - Default security group restrictions
+  - NACLs vs Security Groups
+  - VPC endpoints (Gateway/Interface)
+  - Transit Gateway attachments
+- **CloudFront**:
+  - WAF attached
+  - Origin Access Identity (OAI) / Origin Access Control (OAC)
+  - HTTPS enforcement
+  - Cache policies
+  - Signed URLs/Cookies for private content
+- **ALB/NLB**:
+  - WAF attached
+  - HTTPS listeners
+  - Access logs
+  - Target group health checks

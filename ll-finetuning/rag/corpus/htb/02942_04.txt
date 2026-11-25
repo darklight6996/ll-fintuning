@@ -1,0 +1,1 @@
+cookie is .comprezzor.htb , which means it applies to all subdomains of comprezzor.htb . Directory Brute Force I’ll run feroxbuster against the site: oxdf@hacky$ feroxbuster -u http://comprezzor.htb ___ ___ __ __ __ __ __ ___ |__ |__ |__) |__) | / ` / \ \_/

@@ -1,0 +1,17 @@
+TECHNIQUE / QUESTION:
+Explain how to test for Server-Side Request Forgery (SSRF) vulnerabilities and their impact.
+
+CONTEXT:
+You have identified a feature that makes server-side HTTP requests based on user input. Describe the systematic approach to test for SSRF and escalate its impact.
+
+METHOD / ANSWER:
+SSRF Testing Methodology:
+
+**Phase 1: Identify SSRF Vectors**
+- Features that fetch URLs:
+  - Webhooks, callbacks, URL preview/thumbnail generation
+  - PDF generators, image fetchers, avatar upload from URL
+  - Import/export functionality, RSS/Atom feed readers
+  - OAuth/OIDC callbacks, SAML metadata URLs
+  - Proxy/VPN endpoints, health checks
+  - File upload via URL parameter

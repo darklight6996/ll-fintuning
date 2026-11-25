@@ -1,0 +1,1 @@
+format-string pwntools bruteforce pwn python ida aslr pie sudo library tunnel canary rop Arctic Complete Release: 22 Mar 2017 Retire: 26

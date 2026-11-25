@@ -1,0 +1,5 @@
+ncludes several powerful tools that enable both manual and
+automated security testing. Key features include the Spider, which crawls
+web applications to discover endpoints; Intruder, which automates attacks
+on input fields to test for vulnerabilities; Repeater, which allows manual
+modification of requests for testing purposes; and Scanner, an automated

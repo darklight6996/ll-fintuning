@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify swap configuration.
+
+CONTEXT:
+System performance audit.
+
+METHOD / ANSWER:
+Command: `swapon --show`
+Explanation: Confirms swap configuration.

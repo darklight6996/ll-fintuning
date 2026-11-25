@@ -1,0 +1,18 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+the server, start the socks server, and then adjust the sleep and jitter for the
+agent.
+Example 3-12 Setup Proxy
+apt-get install proxychains4
+socks5 127.0.0.1 7006
+socks 7006
+sleep 0 0
+You can find the SOCKS proxies by clicking the Socks icon (see Figure 3-
+20); they also are available at https://127.0.0.1:7443/new/search?tab=socks.

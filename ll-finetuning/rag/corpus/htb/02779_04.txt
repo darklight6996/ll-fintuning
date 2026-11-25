@@ -1,0 +1,1 @@
+her additional information. CVE-2017-9362 - XXE Vulnerability There is an XML External Entity vulnerability that lets me get files from the host. This vulnerability is described in this advisory . I wrote a quick script that allows me to request a file: import requests import

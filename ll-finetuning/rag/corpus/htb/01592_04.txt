@@ -1,0 +1,1 @@
+erabilities. Most of them are crypto-related (weak hash SHA1, “Inadequate Padding”), but there are three that are Path Traversal: WebhooksController The issue in WebhooksController.php is where log files are created. I played with this previously . Snyk is seeing this: case "createLogFile" : if ( ! isset ( $this -> data -> log_name ) || empty

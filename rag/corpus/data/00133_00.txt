@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check for device tokens for existing sessions.
+
+CONTEXT:
+Analyze token storage that may allow sessions to escalate.
+
+METHOD / ANSWER:
+Command: Use relevant scripts to parse and analyze stored tokens in Azure.
+Purpose: Leverage existing sessions for lateral access.

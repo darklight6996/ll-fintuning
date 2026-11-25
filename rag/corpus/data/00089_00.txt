@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you run OS-specific scans?
+
+CONTEXT:
+Gather detailed version information about the services running.
+
+METHOD / ANSWER:
+Command: `nmap -sCV -p <open_ports> <target_ip>`
+Purpose: Gets details about services.

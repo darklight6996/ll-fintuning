@@ -1,0 +1,10 @@
+Context:
+Context: Target Service. A login form found at `/login`. Goal: Test authentication strength.
+Principle to Apply: 'Test the mechanism, not just the password.'
+assistant
+**Assessment Phase**: Authentication Testing.
+**Core Principle**: Assess the robustness of the login mechanism against credential stuffing and brute-force attacks.
+**Actionable Steps**:
+1.  **Credential Testing**: `hydra -L users.txt -P passwords.txt http-post-form "http://example.com/login:username=^USER^&password=^PASS^:F=incorrect password"`
+    *   **Reasoning**: Automates the testing of credential pairs. The `F=incorrect password` string is crucial—it must be adjusted based on the application's actual failure response (e.g., 'Login failed', 'Invalid credentials').
+**Guidance for Novel Context**: Before running Hydra, you must first manually identify the correct POST parameters and the unique failure string. If the form has CSRF tokens or rate limiting, the principle shifts to 'bypass or account for protections,' requiring a different tool or custom script. The specific command is a template; its parameters must be derived from context.

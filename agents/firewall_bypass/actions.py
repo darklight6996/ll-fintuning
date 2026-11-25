@@ -244,15 +244,38 @@ WAF_BYPASS_REPORT = ActionDefinition(
 def build_firewall_registry() -> ActionRegistry:
     """Build and return the ActionRegistry for FirewallBypassAgent."""
     registry = ActionRegistry()
-    registry.register(WAF_FINGERPRINT)
-    registry.register(RULE_ENUM)
-    registry.register(CHUNKED_ENCODING)
-    registry.register(UNICODE_NORMALIZATION)
-    registry.register(HEADER_MUTATION)
-    registry.register(CONTENT_TYPE_CONFUSION)
-    registry.register(PATH_NORMALIZATION)
-    registry.register(PARAMETER_POLLUTION)
-    registry.register(PAYLOAD_MUTATION)
-    registry.register(WAF_BYPASS_REPORT)
+    from agents.firewall_bypass.command_builders import (
+        build_chunked_encoding,
+        build_content_type_confusion,
+        build_header_mutation,
+        build_parameter_pollution,
+        build_path_normalization,
+        build_payload_mutation,
+        build_rule_enum,
+        build_unicode_normalization,
+        build_waf_bypass_report,
+        build_waf_fingerprint,
+    )
+
+    registry.register(WAF_FINGERPRINT, build_waf_fingerprint)
+    registry.register(RULE_ENUM, build_rule_enum)
+    registry.register(CHUNKED_ENCODING, build_chunked_encoding)
+    registry.register(UNICODE_NORMALIZATION, build_unicode_normalization)
+    registry.register(HEADER_MUTATION, build_header_mutation)
+    registry.register(CONTENT_TYPE_CONFUSION, build_content_type_confusion)
+    registry.register(PATH_NORMALIZATION, build_path_normalization)
+    registry.register(PARAMETER_POLLUTION, build_parameter_pollution)
+    registry.register(PAYLOAD_MUTATION, build_payload_mutation)
+    registry.register(WAF_BYPASS_REPORT, build_waf_bypass_report)
+    # Framework-level shared primitives (cross-agent): HTTP primitive,
+    # headless-browser coverage, and opt-in self-scripting -- the same
+    # capabilities every agent gets, wired identically.
+    from agents.common.http_primitive import HTTP_PROBE, build_http_probe
+    registry.register(HTTP_PROBE, build_http_probe)
+    from agents.common.browser_primitive import BROWSER_PROBE, build_browser_probe
+    registry.register(BROWSER_PROBE, build_browser_probe)
+    from agents.common.self_scripting import SELF_SCRIPT, build_self_script, self_scripting_enabled
+    if self_scripting_enabled():
+        registry.register(SELF_SCRIPT, build_self_script)
     return registry
 

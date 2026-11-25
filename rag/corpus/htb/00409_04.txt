@@ -1,0 +1,1 @@
+running. The MYSQL_PASSWORD variable is what’s stored in the KV store. According to the

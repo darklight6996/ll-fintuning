@@ -1,0 +1,30 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+netflix.com mail is handled by 10 aspmx2.googlemail.c
+netflix.com mail is handled by 10 aspmx3.googlemail.c
+However, the IPv4 addresses 3.230.129.93, 52.3.144.142, and
+54.237.226.164 are owned by Amazon, and netflix.com is hosted in
+Amazon Web Services (AWS), as demonstrated in Example 9-8.
+Example 9-8 The Ownership of IP Addresses and Applications Hosted in
+the Cloud
+┌─[omar@websploit]─[~]
+└──╼ $whois 3.230.129.93 | grep OrgName
+OrgName: Amazon Technologies Inc.
+OrgName: Amazon Data Services NoVa
+┌─[omar@websploit]─[~]
+└──╼ $whois 52.3.144.142 | grep OrgName
+OrgName: Amazon Technologies Inc.
+┌─[omar@websploit]─[~]
+└──╼ $whois 54.237.226.164 | grep OrgName
+OrgName: Amazon Technologies Inc.
+OrgName: Amazon.com, Inc.
+In Example 9-8, the whois command is used to retrieve the organization
+name (OrgName) of the owner for each of the IP addresses (3.230.129.93,
+52.3.144.142, and 54.237.226.164).

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify virtualization.
+
+CONTEXT:
+Infrastructure review.
+
+METHOD / ANSWER:
+Command: `systemd-detect-virt`
+Explanation: Identifies hosting environment.

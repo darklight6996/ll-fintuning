@@ -1,0 +1,7 @@
+ons stay one step
+ahead of malicious actors.
+How Have They Evolved Over Time?
+The disciplines of penetration testing, bug bounties, and red teaming have
+undergone significant transformations over the years in response to the
+ever-evolving cyber threat landscape. It was not until recent times that we
+saw them come together in a cohesive approach. In the early days of

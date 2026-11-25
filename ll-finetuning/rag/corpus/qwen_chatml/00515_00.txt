@@ -1,0 +1,34 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Nmap scan report for 192.168.88.251
+Host is up (0.0011s latency).
+PORT STATE SERVICE
+445/tcp open microsoft-ds
+Host script results:
+| smb-enum-shares:
+| account_used: guest
+<output omitted for brevity>
+| Users: 0
+| Max Users: <unlimited>
+| Path: C:\var\lib\samba\printers
+| Anonymous access: <none>
+| Current user access: <none>
+| \\192.168.88.251\secret_folder:
+| Type: STYPE_DISKTREE
+| Comment: Extremely sensitive information
+| Users: 0
+| Max Users: <unlimited>
+| Path: C:\secret_folder
+| Anonymous access: <none>
+|_ Current user access: <none>
+Nmap done: 1 IP address (1 host up) scanned in 0.39 s
+┌─[root@websploit]─[~]
+└──╼ #

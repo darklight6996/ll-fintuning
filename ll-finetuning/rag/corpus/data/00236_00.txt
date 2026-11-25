@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify logging permissions.
+
+CONTEXT:
+Log integrity audit.
+
+METHOD / ANSWER:
+Command: `ls -ld /var/log`
+Explanation: Confirms logs are protected.

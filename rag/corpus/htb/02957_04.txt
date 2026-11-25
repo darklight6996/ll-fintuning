@@ -1,0 +1,1 @@
+nner2 0xdf.json Starting galaxy role install process - extracting 0xdf.tar to /root/.ansible/roles/0xdf.tar - 0xdf.tar

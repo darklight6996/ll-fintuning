@@ -1,0 +1,1 @@
+st recent call last): File "/home/oxdf/.local/share/uv/tools/impacket/lib/python3.12/site-packages/impacket/winregistry.py", line 185,

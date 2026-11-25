@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+Phone Pretexting: Let’s Dial into Your Target
+Phone pretexting during a red team event is a valuable tactic that operators
+can leverage as an initial access vector. The method focuses on coercing an
+individual to perform actions such as providing internal company
+information or convincing the user to navigate to a fake login portal based
+on a persona, such as help desk personnel, being used by the operator over
+the phone. As you prepare for phone pretexting, you will need to begin
+reconnaissance for your target organization.
+Reconnaissance
+Reconnaissance during phone pretexting provides the background of how to
+execute your phone pretexting campaign. Organizations constantly post
+through social media channels or release information through news outlets.
+You will want to obtain an idea of commonly discussed subjects within an
+organization if you plan to utilize specific subjects. An example of
+leveraging information from the media includes one organization acquiring
+another. Utilizing this information could be a perfect way to impersonate an
+individual from the help desk at one organization because it would be
+challenging for an employee to verify another employee i

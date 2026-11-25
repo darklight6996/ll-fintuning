@@ -1,0 +1,1 @@
+much I can exploit here. I just get read access to anything in /var . /var /var has a bunch of stuff in it: crossfit2$ ls /var account backups cron games monit quotas spool tmp yp audit cache db log mysql redis sysmerge unbound authpf

@@ -1,0 +1,23 @@
+TECHNIQUE / QUESTION:
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+(https://physicalexploit.com) are great companies to shop for all your
+physical bypass tools.
+Quick Jim
+The Quick Jim can be used to bypass improperly installed latches on doors.
+When a strike plate is installed on doors, it should be aligned with the bolt
+to ensure it goes into place. However, incorrect installations are quite
+common. This allows you to insert your Quick Jim and pull on the
+deadlatch that is not properly in place and engaged.
+Link: https://www.sparrowslockpicks.com/products/sparrows-quick-jim
+Double Door Tool (DDT)
+The double door tool (DDT) can be used for bypassing double door crash
+bars (see Figure 5-19). There is typically a space between the two doors
+where you can insert the tool and pull back on the doors; the tool allows
+you to bypass any access control in place.

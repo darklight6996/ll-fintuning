@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Anti-Forensics & Log Manipulation.
+**Core Principle**: System logs record authentication events, command execution, and file access. Removing or altering these logs can obscure attack timelines and techniques.
+**Actionable Steps**:
+1.  **Selective Log Clearing**: Target specific log files or event logs relevant to your activities rather than clearing everything (which is itself suspicious).
+    *   **Reasoning**: Focus on security logs (`Security.evtx` on Windows, `auth.log`/`secure` on Linux), command history (`.bash_history`), and application-specific logs. Use native tools like `wevtutil` (Windows) or script deletion (Linux) where you have write permissions.
+**Guidance for Novel Context**: Complete log removal is often detectable. Consider alternative techniques: altering timestamps, injecting decoy events, or disabling logging before major actions if permissions allow. In regulated environments, log tampering may be a separate compliance violation. Balance stealth with operational security requirements.

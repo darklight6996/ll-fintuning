@@ -1,0 +1,25 @@
+TECHNIQUE / QUESTION:
+Explain how to conduct a compliance assessment for PCI DSS requirements in a payment card environment.
+
+CONTEXT:
+You are assessing an organization that processes credit card payments. Describe the systematic approach to validate PCI DSS v4.0 compliance across all 12 requirements.
+
+METHOD / ANSWER:
+PCI DSS v4.0 Compliance Assessment Methodology:
+
+**Phase 1: Scope Definition (Requirement 1)**
+- Identify all system components in Cardholder Data Environment (CDE)
+- Network segmentation validation: `nmap -sS -p- <CDE_RANGE>`
+- Verify segmentation controls isolate CDE from non-CDE
+- Document scope with network diagrams, data flow diagrams
+
+**Phase 2: Network Security (Requirements 1-2)**
+- **Req 1: Firewall Configuration**
+  - Review firewall rules: `iptables -L -n -v`, `aws ec2 describe-security-groups`
+  - Default deny, explicit allow
+  - Quarterly rule review, change management
+  - DMZ for public-facing systems
+- **Req 2: Default Passwords/Config**
+  - Change all vendor defaults
+  - Remove unnecessary services: `systemctl list-unit-files --state=enabled`
+  - Secure config baselines (CIS Benchmarks)

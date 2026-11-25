@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check SSH password authentication.
+
+CONTEXT:
+Secure remote access audit.
+
+METHOD / ANSWER:
+Command: `sshd -T | grep passwordauthentication`
+Explanation: Validates SSH authentication policy.

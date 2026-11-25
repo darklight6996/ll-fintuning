@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+1. Document Your Findings Thoroughly
+A. Before communicating anything to the organization, create a detailed
+report of your findings. Include comprehensive descriptions of
+vulnerabilities, their potential impact, and clear evidence or proof of
+concept.
+B. Organize your findings logically and categorize them by severity to help
+the organization prioritize remediation efforts.
+2. Use Clear and Nontechnical Language
+A. Remember that not all stakeholders may have the same technical
+expertise as you. Use plain language to describe the issues and their
+implications.
+B. Avoid jargon or overly technical terminology, and provide explanations
+when necessary.
+3. Offer Remediation Suggestions
+A. Don't just point out the problems; propose practical solutions or
+mitigation strategies whenever possible. This demonstrates your
+commitment to helping the organization improve its security posture.
+B. Clearly outline steps or recommendations for addressing each
+vulnerability.

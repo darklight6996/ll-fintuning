@@ -1,0 +1,29 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+is subject to this exploit. With the ability to execute OS commands,
+the user can upload malicious programs or even obtain passwords.
+OS command injection is preventable when security is emphasized
+during the design and development of applications.
+How to Test
+When viewing a file ina web application, the file name is often shown
+inthe URL. Perl allows piping data from a process into an open state-
+ment. The user can simply append the Pipe symbol “|” onto the end
+of the file name.
+Example URL before alteration:
+http:/sensitive/cgi-bin/userData.pl?doc=user1.txt
+Example URL modified:
+http:/sensitive/cgi-bin/userData.pl?doc=/bin/Is|
+This will execute the command “/bin/Is".
+Appending a semicolon to the end of a URL for a .PHP page followed
+by an operating system command, will execute the command. %38B is
+url encoded and decodes to semicolon
+Example:
+http:/sensitive/something.php?dir=%3Bcath20/etc/passwd
+Example
+Consider the case of an application that contains a set of documents
+that you can browse from the Internet. If you fire up WebScarab, you
+can obtain a POST HTTP like the following:
+In this post request, we notice how

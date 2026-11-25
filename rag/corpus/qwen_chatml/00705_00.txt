@@ -1,0 +1,25 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Testing Guide Foreword - Table of contents
+5
+208-222
+Reporting
+Appendix A: Testing Tools
+Black Box Testing Tools
+Appendix B: Suggested Reading
+Whitepapers
+Books
+Useful Websites
+Appendix C: Fuzz Vectors
+Fuzz Categories
+Appendix D: Encoded Injection
+Input Encoding
+Output Encoding

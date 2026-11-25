@@ -1,0 +1,23 @@
+of the assessment.
+2.2 Project Scope: This section outlines the agreed scope.
+2.3 Project Schedule This section outlines when the testing com-
+menced and when it was completed.
+2.4 Targets: This section lists the number of applications or tar-
+geted systems.
+2.5 Limitations: This section outlines every limitation which was
+faced throughout the assessment. For example, limitations of
+project-focused tests, limitation in the security testing meth-
+ods, performance or technical issues that the tester come across
+during the course of assessment, etc.
+2.6 Findings Summary This section outlines the vulnerabilities
+that were discovered during testing.
+2.7 Remediation Summary This section outlines the action plan
+for fixing the vulnerabilities that were discovered during testing.
+3. Findings
+The last section of the report includes detailed technical infor-
+mation about the vulnerabilities found and the actions needed to
+resolve them. This section is aimed at a technical level and should
+include all the necessary information for the technical teams to
+understand the issue and resolve it. Each finding should be clear
+and concise and give the reader of the report a full understanding
+of the

@@ -1,0 +1,6 @@
+ate networks might block nonstandard
+DNS requests. Additionally, older C2 frameworks leveraged static callback
+intervals that could be detected by network monitoring systems. The
+introduction of jitter in C2 profiles opened up the door for red teamers to
+randomize their traffic associated with their agents and avoid predictable
+intervals.

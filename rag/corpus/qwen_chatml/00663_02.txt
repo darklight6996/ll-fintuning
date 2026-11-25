@@ -1,0 +1,1 @@
+text to trigger execution of a shell payload or connect via an enabled management protocol.**

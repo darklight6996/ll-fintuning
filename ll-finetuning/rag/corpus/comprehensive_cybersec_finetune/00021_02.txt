@@ -1,0 +1,15 @@
+**Section 2: Scope & Methodology**
+- **Scope Definition**:
+  - In-scope: IP ranges, applications, APIs, physical, wireless, cloud
+  - Out-of-scope: Explicit exclusions with justification
+  - Constraints: time, access, DoS restrictions
+- **Methodology References**:
+  - PTES (Penetration Testing Execution Standard)
+  - NIST SP 800-115
+  - OWASP WSTG / MASTG / API Top 10
+  - MITRE ATT&CK mapping
+- **Testing Phases**:
+  - Reconnaissance, Threat Modeling, Vulnerability Analysis
+  - Exploitation, Post-Exploitation, Reporting
+- **Tools Used**: Categories only (scanner, exploit framework, custom scripts)
+- **Team**: Names, certifications (OSCP, OSWE, CRTO, etc.)

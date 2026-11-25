@@ -1,0 +1,3 @@
+tics used by the red team during post-exploitation, the
+blue team can enhance their threat hunting, monitoring, and incident
+response processes.

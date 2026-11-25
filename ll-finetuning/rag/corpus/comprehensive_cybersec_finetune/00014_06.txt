@@ -1,0 +1,19 @@
+**Data Storage Analysis**:
+- **Android**:
+  - `/data/data/com.package/`
+    - `shared_prefs/` (XML, check encryption)
+    - `databases/` (SQLite, `sqlite3`)
+    - `files/`, `cache/`, `no_backup/`
+    - `app_webview/` (cookies, localStorage)
+  - External storage: `/sdcard/Android/data/com.package/`
+  - Keystore: `KeyStore.getInstance("AndroidKeyStore")`
+  - Backup: `adb backup -f backup.ab com.package` → `abe.jar`
+- **iOS**:
+  - `/var/mobile/Containers/Data/Application/<UUID>/`
+    - `Library/Preferences/` (`.plist`)
+    - `Library/Caches/`
+    - `Documents/`
+    - `Library/Application Support/`
+  - Keychain: `security dump-keychain`, `objection keychain dump`
+  - Keychain accessibility: `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`
+  - Pasteboard: `UIPasteboard.general.string`

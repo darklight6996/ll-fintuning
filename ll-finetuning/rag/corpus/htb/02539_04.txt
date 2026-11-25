@@ -1,0 +1,1 @@
+rectory-list-2.3-small.txt -x txt,asp,aspx,html -t 40 ===================================================== Gobuster v2.0.0 OJ Reeves (@TheColonial) ===================================================== [+] Mode

@@ -1,0 +1,1 @@
+and then both the session string and the signature are

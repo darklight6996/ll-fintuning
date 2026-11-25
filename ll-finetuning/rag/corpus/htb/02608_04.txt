@@ -1,0 +1,1 @@
+[*] comparing the 1 hotfix(es) against the 356 potential bulletins(s) with a database of 137 known

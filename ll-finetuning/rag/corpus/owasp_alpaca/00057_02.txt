@@ -1,0 +1,35 @@
+ion: close
+Content-Type: text/html
+<html>
+<head>
+<title>Login page </title>
+</head>
+<body>
+<script src="http:/othersite/testjs"></script>
+<link rel="stylesheet” type="text/css” href="http:/somesite/
+test.css”>
+Checking localhost for HTTP support against HTTPS Stripping
+attack...
+[!] HTTP Support on port [80] : SUPPORTED
+[!] Vulnerable to HTTPS Stripping attack mentioned in https:/
+www.blackhat.com/presentations/bh-dc-09/Marlinspike/
+BlackHat-DC-09-Marlinspike-Defeating-SSL.pdf
+[!] Vulnerability Status: VULNERABLE
+Checking localhost:443 for HTTP elements embedded in SSL
+page...
+['!] HTTP elements embedded in SSL page: PRESENT
+['] Vulnerable to MITM malicious content injection attack
+[!] Vulnerability Status: VULNERABLE
+aaa
+HTTP RESOURCES EMBEDDED ---------------
+- http:/othersite/testjs
+- http:/somesite/test.css
+Checking localhost:443 for ROBUST use of anti-caching mech-
+anism...
+['!] Cache Control Directives: NOT PRESENT
+[!] Browsers, Proxies and other Intermediaries will cache SSL
+page and sensitive information will be leaked.
+[!] Vulnerability Status: VULNERABLE
+Robust Solution:
+- Cache-Control: no-cache, no-store, must-revalidate,
+pre-check=0, post-check=0, max-age=0, s-maxage=0

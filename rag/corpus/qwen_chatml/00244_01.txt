@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Tip
+Metasploit Unleashed is a free detailed Metasploit course
+released by Offensive Security. The course can be accessed
+at https://www.offensive-security.com/metasploit-unleashed.
+In Chapter 3, “Red Team Infrastructure,” you learned about
+Mythic. Mythic is a sophisticated, open-source command
+and control (C2) framework used primarily for post-
+exploitation in red teaming and penetration testing
+operations. It provides a highly flexible, customizable
+environment for managing compromised systems across
+multiple platforms, including Windows, macOS, and Linux.
+One of the most powerful features of Mythic is its modular
+design. Operators can easily install and customize agents
+(payloads) and C2 profiles (communication channels)
+through a plug-and-play architecture. This flexibility makes
+Mythic highly valuable for long-term operations where
+stealth and adaptability are required. Once a target system is
+compromised, Mythic allows operators to interact with the

@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• Faulty Code or Exploits: If an AI hallucinates while generating
+exploitation scripts or proofs of concept, it may provide incorrect or
+incomplete code, leading to failed attempts to reproduce vulnerabilities or
+broken exploitation logic. For example, an AI might hallucinate a new
+method to exploit a flaw, but the code it generates is nonfunctional or
+dangerous to the system itself.
+• Misleading Contextual Understanding: AI hallucinations can also affect
+how models interpret security-related context. For example, when analyzing
+complex security protocols or responses from a web application firewall
+(WAF) or a cloud security application, an AI model might generate
+completely fabricated conclusions or explanations, misleading a bug hunter
+into wrong assumptions about the system’s behavior.
+• Incomplete Testing Flows: AI models, due to guardrails or insufficient
+training on adversarial tasks, may fail to complete multistep attack
+scenarios that are essential for bug bounty hunting. These multistep attacks
+often involve intricate chains of vulnerabilities that require creative, out-of-
+the-box thinking, which current AI mo

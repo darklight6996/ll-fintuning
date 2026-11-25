@@ -1,0 +1,35 @@
+>HXO38HX7
+28HKEISHX 7 O8HX7 48HX3BAR<WBR>H#X61 BHXECEHKXESSHX
+7 2847 48HX28
+&<WBR>#X2 78&H#xX588Hx538HxX538Hx2 78&HxX29>
+<IMG SRC="jav&#x09;ascript:alert(<WBR>'XSS’);">
+<IMG SRC="jav&#xOA;ascript:alert(<WBR>‘XSS’));">
+<IMG SRC="jav&#xOD;ascript:alert(<WBR>’xSS’);">
+Buffer Overflows and Format String Errors
+Buffer Overflows (BFO)
+A buffer overflow or memory corruption attack is a programming
+condition which allows overflowing of valid data beyond its prelocat-
+ed storage limit in memory.
+For details on Buffer Overflows: Testing for Buffer Overflow
+Note that attempting to load such a definition file within a fuzzer ap-
+plication can potentially cause the application to crash.
+Ax5
+Ax17
+Ax 33
+Ax65
+Ax 129
+Ax 257
+Ax513
+Ax 1024
+Ax 2049
+Ax 4097
+Ax8193
+Ax 12288
+Format String Errors (FSE)
+Format string attacks are a class of vulnerabilities that involve sup-
+plying language specific format tokens to execute arbitrary code or
+crash a program. Fuzzing for such errors has as an objective to check
+for unfiltered user input.
+An excellent introduction on FSE can be found in the USENIX paper
+entitled: Detecting Format String Vulnerabilities with Type Qualifiers
+Note that attempting to load such a d

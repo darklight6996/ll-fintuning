@@ -1,0 +1,1 @@
+s, I need a way to check how much of this is valid. Because Kerberos is available on IPv6 (TCP 88), I can use Kerbrute to check the users. I’ll get a list of just the users: oxdf@parrot$ grep ':::' backup_ad_dump | awk -F : '{print $1' } > users Getting kerbrute to

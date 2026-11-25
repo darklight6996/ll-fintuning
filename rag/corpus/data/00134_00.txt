@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Use Azure Bastion for secure access.
+
+CONTEXT:
+You can use Azure Bastion to connect to other VMs securely.
+
+METHOD / ANSWER:
+Command: Utilize the Azure portal to connect to a VM through Bastion.
+Purpose: Safely browse through the Azure network.

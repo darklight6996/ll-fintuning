@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify secrets in Kubernetes.
+
+CONTEXT:
+Secrets management audit.
+
+METHOD / ANSWER:
+Command: `kubectl get secrets --all-namespaces`
+Explanation: Reviews stored secrets.

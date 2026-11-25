@@ -1,0 +1,1 @@
+snap package: I worked from an Ubuntu VM to make the snap, and just followed the instructions. Installed the tools: sudo snap install --classic snapcraft Now I’ll find a directory to work out of, and run snapcraft init . It creates a snap directory with snapcraft.yaml in it: df@buntu:~$ cd /tmp/

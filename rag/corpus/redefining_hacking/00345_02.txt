@@ -1,0 +1,2 @@
+l for different query types. You can learn more about
+how to perform hybrid search using LlamaIndex at

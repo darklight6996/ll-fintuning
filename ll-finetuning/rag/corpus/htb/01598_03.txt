@@ -1,0 +1,1 @@
+return os . environ . get ( " SUDO_USER " ) def is_path_inside_whitelist ( path ): whitelist = [ f " /home/ { get_user () } " , " /mnt " ] for allowed_path in whitelist : if os . path . abspath ( path ). startswith ( os . path

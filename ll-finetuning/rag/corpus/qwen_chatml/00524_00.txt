@@ -1,0 +1,37 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+======================================
+| Service Scan on 192.168.88.251 |
+======================================
+[*] Checking LDAP
+<output omitted for brevity>
+| OS Information via RPC on 192.168.88.251 |
+================================================
+[+] The following OS information were found:
+server_type_string = Wk Sv PrQ Unx NT SNT Samba 4.9.5
+platform_id = 500
+os_version = 6.1
+server_type = 0x809a03
+os = Linux/Unix (Samba 4.9.5-Debian)
+=======================================
+| Users via RPC on 192.168.88.251 |
+=======================================
+[*] Enumerating users via 'querydispinfo'
+[+] Found 2 users via 'querydispinfo'
+[*] Enumerating users via 'enumdomusers'
+[+] Found 2 users via 'enumdomusers'
+[+] After merging user results we have 2 users total:
+'1000':
+username: derek
+name: ''
+acb: '0x00000010'
+description: ''
+'1001':

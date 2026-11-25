@@ -1,0 +1,1 @@
+IN\Pre-Windows 2000 Compatible Access...} EnabledGroups : {darkzero-ext\Domain Users, Everyone, BUILTIN\Users, BUILTIN\Pre-Windows 2000 Compatible Access...} DenyOnlyGroups : {} GroupCount : 14 AuthenticationId : 00000000-00029ABB TokenType : Impersonation ExpirationTime : 9223372036854775807 Id :

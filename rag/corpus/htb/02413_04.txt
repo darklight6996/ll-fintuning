@@ -1,0 +1,1 @@
+ash. How To Decrypt In /usr/local/pgadmin4/pgadmin4-3.4/web/pgadmin/utils/crypto.py , I find the decrpyt function: def decrypt ( ciphertext , key ): """ Decrypt the AES encrypted string. Parameters: ciphertext -- Encrypted string with AES method. key -- key to decrypt the encrypted string. """ global padding_string ciphertext

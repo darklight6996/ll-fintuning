@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify routing table.
+
+CONTEXT:
+Network path review.
+
+METHOD / ANSWER:
+Command: `ip route`
+Explanation: Detects misconfigurations.

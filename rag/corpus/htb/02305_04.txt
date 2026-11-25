@@ -1,0 +1,1 @@
+.11.69 445 DC01 [*] Windows 10 / Server 2019 Build 17763 (name:DC01) (domain:fluffy.htb) ( signing:True ) ( SMBv1:False ) SMB 10.10.11.69 445 DC01 [+] fluffy.htb\j.fleischman:J0elTHEM4n1990! SMB 10.10.11.69 445 DC01 [*] Enumerated

@@ -1,0 +1,5 @@
+of potential threats. XDR
+platforms can automatically identify and respond to security incidents,
+significantly reducing the time from detection to remediation. This
+capability is something to keep in mind when performing red team and
+ethical hacking engagements.

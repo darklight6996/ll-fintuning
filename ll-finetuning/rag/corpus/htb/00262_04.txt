@@ -1,0 +1,1 @@
+Complete Release: 23 Jan 2021 Retire: 19 Jun 2021 OS: nmap dig dns dnsenum vhosts kerbrute kerberos ntpdate squid as-rep-roast john proxychains nmap-over-proxy wpad opensmtpd exploit-db cve-2020-7247 msmtprc credentials password-reuse kinit keytab klist getfacl facl Enterprise Complete Release: 28 Oct 2017 Retire: 17

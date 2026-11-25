@@ -1,0 +1,1 @@
+1 501: darkzero\Guest (SidTypeUser) SMB 10.129.5.34 445 DC01 502: darkzero\krbtgt (SidTypeUser) SMB 10.129.5.34 445 DC01

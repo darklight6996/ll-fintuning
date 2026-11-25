@@ -1,0 +1,1 @@
+n: Designated administrators of the domain Group Attribute:7 Num Members:1 rpcclient $> querygroupmem 0x200

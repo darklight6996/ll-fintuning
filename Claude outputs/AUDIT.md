@@ -4,7 +4,20 @@
 
 **Verdict up front:** the deterministic *scaffolding* (typed actions, pure‑Python builders, shell=False execution, scope parsing) is genuinely solid. The **autonomous brain is not wired up**. Four independent defects each, on their own, prevent an autonomous run from ever succeeding, and three of them are the direct mechanical cause of the loops / hallucination / "can't decide" behaviour you're seeing. None of this is a model‑quality nuance — these are plumbing bugs. The small‑model choice makes it worse but is not the primary cause.
 
-This document only identifies problems and proposes solutions. No code was changed.
+This document only identifies problems and proposes solutions as originally
+written. No code was changed *at the time this audit was written*.
+
+**UPDATE (2026-11-11):** every C/H/M/MED item below has since been implemented
+and verified (via unit tests plus live GPU smoke testing with
+Qwen2.5-7B-Instruct + a local QLoRA adapter on an RTX 3060 Ti) -- see each
+item's **STATUS** note. This file is kept as the historical record of what was
+found and fixed, not an open backlog. The one caveat found during live
+verification: `verify_autohunt_smoke_test.py`'s default target (`127.0.0.1` on
+a Windows dev box) still can't produce a CTF-agent finding, because the CTF
+action catalog (SUID audits, cron jobs, `/proc/version`, `path_hijack`, ...) is
+Linux-only by design -- that's a smoke-test-target mismatch, not a bug in any
+of the items below. A true end-to-end run needs a Linux target (planned: WSL2
+with CUDA passthrough).
 
 ---
 
@@ -63,6 +76,12 @@ Either way: **until a finding can be created, no autonomous run of any agent who
 ---
 
 ### C2 — The retry‑budget gate (Gate 6) is dead in autonomous mode → infinite thrashing
+
+**STATUS: IMPLEMENTED.** `agents/base_agent.py::run_autonomous` now passes
+`execution_history=execution_history` into `self.executor.execute_action(...)`
+explicitly instead of relying on `**kwargs`, so Gate 6 sees the real history and
+`prior_attempts` is computed correctly. Regression:
+`tests/test_remediation_c1_c2_h1.py::test_retry_budget_trips_via_execution_history_kwarg`.
 **Where:** `agents/base_agent.py::run_autonomous` line ~426 (the `execute_action` call) vs `rag/core/command_executor.py::execute_action` signature (line ~187) and Gate 6 (lines ~369–383).
 
 **What's wrong.** The loop calls:
@@ -86,6 +105,12 @@ and make the signature explicit (`mode="manual"` as a named param) instead of re
 ---
 
 ### C3 — Scope authorization flags are never set → every active/state‑changing action is rejected
+
+**STATUS: IMPLEMENTED.** `main.py::gather_scope` now prompts for and sets all
+three flags (`active_testing_allowed`, `active_network_allowed`,
+`state_changes_allowed`); the `--target`/`--autohunt` fast paths take them as
+explicit CLI flags (`--authorize-active`/`--authorize-network`/
+`--authorize-state-change`) instead of defaulting all three to False.
 **Where:** `main.py::gather_scope` (lines ~160–169) and the `--target`/`--autohunt` fast paths (lines ~251–258); `rag/core/scope.py` (fields at lines 28–31); `rag/core/command_executor.py` Gate 3 (lines ~290–322); `core/ai_planner.py` lines ~280–281.
 
 **What's wrong.** `Scope` has **four** separate authorization flags: `active_testing_allowed`, `active_network_allowed`, `state_changes_allowed`, `recon_only_authorized`. The operator interview only ever sets `active_testing_allowed` (from "Authorize Active Testing?"). `active_network_allowed` and `state_changes_allowed` default to **False and are never set by anything**. The `--target` and `--autohunt` fast paths construct `Scope(target=…, in_scope=[…])` with **all four False**.
@@ -107,6 +132,11 @@ Compounding it: the planner prompt (ai_planner lines ~280–281) reports `active
 ---
 
 ### C4 — The planner never shows the model each action's parameter schema → guaranteed hallucinated params → Gate 1 rejects → loop
+
+**STATUS: IMPLEMENTED.** `core/ai_planner.py::_build_prompt` now renders each
+action's parameter schema (field names, types, required/default) via
+`_format_params_schema`, instead of showing only `action_id [risk/network/state]:
+description`.
 **Where:** `core/ai_planner.py::_build_prompt` (lines ~217–225) vs `core/action_contract.py::ActionRegistry.to_prompt_schema` (produces `parameters_schema`, lines ~127–149); `validate_proposal` with Pydantic `extra="forbid"` (lines ~109–125).
 
 **What's wrong.** `to_prompt_schema()` deliberately exports a `parameters_schema` for every action. But `_build_prompt` builds the catalog line as just `action_id [risk, network, state]: description` and **throws the parameter schema away**. The model is asked to emit `"parameters": { … }` for actions like `strings_analysis` (needs `binary_path`), `read_file` (needs `file_path`), `path_hijack_validation` (needs `fake_binary_name`, `target_suid_binary`) **without ever being told those fields exist or what they're called.**
@@ -125,6 +155,11 @@ So the model guesses field names. Gate 1 validates with `extra="forbid"` and a r
 ---
 
 ### C5 — The planner is reasoning almost blind: observation output isn't fed back usefully
+
+**STATUS: IMPLEMENTED.** `Observation.parsed_facts` is now populated per-action via
+agent-specific `fact_extractors.py`, and `core/ai_planner.py::_format_discovered_facts`
+surfaces a compact "known facts" block in the prompt instead of relying only on a
+truncated raw stdout snippet.
 **Where:** `core/ai_planner.py::_build_prompt` (history formatting lines ~243–260; hypotheses/findings lines ~262–275).
 
 **What's wrong.** The only state the model sees about what happened is the last 8 history rows, each reduced to `action → status` plus the **first 120 chars of stdout of the first command**. Rejection reasons are truncated to 80 chars (so a Pydantic "field required" message is cut before it's useful). Active hypotheses and findings are *always empty* because of C1. So on step 2, after a successful `suid_audit`, the model does **not** see the SUID binary path it just found — it can't carry that into `strings_analysis.binary_path`. It literally lacks the data needed to choose and parameterize the next step. That is "can't decide the next step properly," independent of model size.
@@ -143,9 +178,17 @@ So the model guesses field names. Gate 1 validates with `extra="forbid"` and a r
 
 Every agent (pentest, red_team, cloud, …) is verified against **CTF's** `verify_completion` and CTF's `action_to_phase` map. Pentest/cloud action_ids aren't in that map, so `completed_phases` stays empty and `required_phases` is never satisfied — a second, independent reason non‑CTF agents can never complete. Each domain already ships its own `completion.py`; the loop just ignores them.
 
-**Fix.** Resolve `verify_completion` from the agent (e.g. `self.get_completion_verifier()` or import by `self.agent_type`), don't import CTF's unconditionally.
+**STATUS: IMPLEMENTED.** The completion verifier is now resolved per-agent-type
+instead of unconditionally importing CTF's. Regression:
+`tests/test_remediation_c1_c2_h1.py::test_completion_verifier_resolves_per_agent_type`,
+`::test_completion_verifier_raises_for_unknown_agent_type`.
 
 ### H2 — `max_new_tokens` from the planner is silently ignored
+
+**STATUS: IMPLEMENTED.** `model_router.ModelRouter.generate()` now takes an
+`Optional[max_new_tokens]` override and uses it when given, falling back to
+`self.max_new_tokens` only when the caller omits it (see the "H2 fix" comment at
+`ll-finetuning/rag/core/model_router.py` around the `generate()` method).
 **Where:** `core/ai_planner.py` calls `generate_raw(..., max_new_tokens=512)`; `chat_assistant.generate_raw` forwards `max_new_tokens=…`; but `model_router.ModelRouter.generate(self, prompt, temperature, top_p, do_sample, system_prompt, **kwargs)` **ignores it** and always uses `self.max_new_tokens` (set from config at construction).
 
 If the configured cap is short (e.g. 256), the JSON gets truncated mid‑object → `json.loads` fails → 3 retries → planner error → `continue`. Intermittent, size‑dependent malformed JSON.
@@ -153,6 +196,11 @@ If the configured cap is short (e.g. 256), the JSON gets truncated mid‑object 
 **Fix.** Honour the per‑call `max_new_tokens` in `generate()` (and in the `LLMService.generate` wrapper), falling back to `self.max_new_tokens`.
 
 ### H3 — The planner's strict system prompt is demoted; a generic mentor persona overrides it
+
+**STATUS: IMPLEMENTED.** `system_prompt` is now threaded through to `generate()`
+and applied as the real chat-template system role per model family, instead of
+being concatenated into the user turn and overridden by a default mentor persona.
+Regression: `tests/test_model_router_system_prompt.py`.
 **Where:** `chat_assistant.generate_raw` lines ~549–557 builds `full_prompt = system_prompt + "\n\n" + prompt` and calls `llm.generate(full_prompt)` **without** passing `system_prompt=` through. `model_router._format_prompt` then applies its **own** default system message ("You are an expert penetration‑testing mentor…") and treats your entire planner contract as user text.
 
 Result: the model's actual system role is a chatty mentor, not "emit exactly one JSON object." On a 1.1B model this is the difference between JSON and a paragraph. Direct contributor to malformed output.
@@ -160,6 +208,10 @@ Result: the model's actual system role is a chatty mentor, not "emit exactly one
 **Fix.** Thread `system_prompt` all the way to `generate()`/`apply_chat_template` as the real system role; don't concatenate it into the user turn.
 
 ### H4 — Decoding is sampled, not deterministic, for a task that needs determinism
+
+**STATUS: IMPLEMENTED.** `chat_assistant.generate_raw()` (the planner's only call
+path) now passes `do_sample=False` for greedy decoding; `temperature`/`top_p` are
+only applied when `do_sample=True` is explicitly requested elsewhere.
 **Where:** `model_router.generate` defaults `temperature=0.2, do_sample=True`; `generate_raw` doesn't override.
 
 For structured‑JSON/action selection you want greedy or near‑greedy decoding. Sampling adds avoidable variance → sometimes invalid JSON, sometimes a different action for identical state (which also looks like "indecision").
@@ -170,6 +222,14 @@ For structured‑JSON/action selection you want greedy or near‑greedy decoding
 
 ## The model choice (why it amplifies everything)
 
+**STATUS UPDATE (2026-11-11):** the planner now runs
+`Qwen/Qwen2.5-7B-Instruct` (4-bit NF4 QLoRA) with the user's own fine-tuned LoRA
+adapter, not TinyLlama-1.1B or flan-t5-large -- see M2 below and the model
+configuration table in README.md. M1 (constrained decoding) is also implemented.
+This does not make the remaining M2/M3/M4 guidance below moot (a 7B model still
+benefits from them), but the specific "1.1B is fundamentally too small" framing
+is no longer the current state.
+
 ### M‑root — a 1.1B chat model (or flan‑t5‑large on CPU) is being asked to be a reliable structured planner
 **Where:** README + `model_router`/`config` defaults: GPU = `TinyLlama/TinyLlama-1.1B-Chat-v1.0` + LoRA `CyberSec-Model-V2`; CPU = `google/flan-t5-large`.
 
@@ -177,7 +237,22 @@ Even with C1–C5, H1–H4 all fixed, TinyLlama‑1.1B will not reliably (a) emi
 
 **Fixes, in order of leverage:**
 - **M1 — Constrain the output.** Use grammar/JSON‑constrained decoding (e.g. an Outlines/llama.cpp GBNF grammar, or a tool/function‑calling schema) so the model *cannot* emit an unknown `action_id` or an invalid field. This single change removes most Gate‑1 rejections and most JSON‑parse failures, and makes even a small model usable. Highest ROI.
+  **STATUS: IMPLEMENTED (scoped).** `core/constrained_decoding.py::ActionIdConstrainedLogitsProcessor`
+  constrains the `action_id` field's value to prefixes of real registered
+  action_ids, AND (added 2026-11-11, after the model repeatedly appended
+  parenthetical/`//`/bracket annotations right after a closed, valid action_id)
+  forces the single token immediately after a closed, valid action_id's closing
+  quote to a real JSON delimiter. Still deliberately not full JSON-grammar
+  decoding (see the file's own docstring for the scope tradeoff). Regression:
+  `tests/test_m1_constrained_decoding.py`.
 - **M2 — Right‑size the planner model.** The planner is a *small* classification‑style decision; a 7–8B instruct model (quantized) is the realistic floor for reliable JSON+reasoning on your 8GB card. Consider splitting roles: a stronger model (or an API model) for `decide_next`, the small local LoRA for narration/report text. Don't let 8GB VRAM dictate the brain's competence.
+  **STATUS: IMPLEMENTED (first half).** `GPU_MODEL_NAME` is now
+  `Qwen/Qwen2.5-7B-Instruct` with `GPU_FORCE_4BIT=True`, loaded with the user's own
+  QLoRA adapter (`lora-adapters/qwen-qlora/`, falling back to the HF repo). A
+  separate `PLANNER_MODEL_NAME` override exists (`core/config.py`) for the
+  role-split idea above, but is unset by default -- planner and chat/report
+  currently share the same Qwen instance. Regression: `tests/test_qwen_everywhere.py`,
+  `tests/test_m2_planner_model_override.py`.
 - **M3 — Few‑shot the exact format.** Put 1–2 worked examples (state → correct JSON proposal) in the planner system prompt. Small models follow examples far better than rules.
 - **M4 — Validate‑and‑repair loop.** On a semantic rejection, do a cheap "fix this JSON to match this schema/error" re‑prompt before spending a step (ties into C4.2).
 
@@ -186,24 +261,57 @@ Even with C1–C5, H1–H4 all fixed, TinyLlama‑1.1B will not reliably (a) emi
 ## MEDIUM / correctness & robustness
 
 - **MED‑1 Planner crash handling masks nothing useful.** On 3 failed JSON attempts `decide_next` raises; the loop catches it, logs `planner_decision failed`, and `continue`s with no backoff and no distinct cap. A permanently‑malformed model = 50 wasted steps. Add a consecutive‑planner‑failure cap that aborts early with a clear message.
+  **STATUS: IMPLEMENTED.** `agents/base_agent.py::run_autonomous` tracks
+  `consecutive_planner_failures` and aborts with `status="aborted_planner_failures"`
+  after `MAX_CONSECUTIVE_PLANNER_FAILURES=5`. Regression: `tests/test_med1_med2.py`.
 - **MED‑2 No no‑progress / cycle detector.** Nothing notices "N steps with no new observation/entity/finding." Add a stall detector that ends the run (or forces a strategy change) after K non‑productive steps — a cheaper, more honest backstop than `max_steps`.
+  **STATUS: IMPLEMENTED.** `last_progress_step` / `MAX_STEPS_WITHOUT_PROGRESS=10`
+  in `agents/base_agent.py::run_autonomous` abort the run early when no new
+  Observation or successful evidence-verb call has happened in that window.
+  Regression: `tests/test_med1_med2.py`.
 - **MED‑3 JSON extraction regex is single‑nesting.** `ai_planner._parse_proposal` brace regex `(\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\})` handles one level of nesting; a `parameters` object containing a nested object breaks it and it may grab the wrong `{...}`. Prefer a brace‑matching scan or `json.JSONDecoder().raw_decode` over regex.
+  **STATUS: IMPLEMENTED (and extended well past the original scope).**
+  `_extract_json_object` now uses `json.JSONDecoder().raw_decode()` with a
+  "prefer the first decision-bearing object" search, handling arbitrary nesting.
+  It also went through several more rounds live against the real model:
+  stripping parenthetical, `//`-comment, and bracket-tag annotations the model
+  kept appending after `action_id`'s closing quote, plus a constrained-decoding
+  guard (see M1) that now prevents the whole class structurally. Regression:
+  `tests/test_med3_json_extraction.py`.
 - **MED‑4 Gate 2 lets a local‑only action run against a remote target.** For `target=10.10.10.5` with a CTF action whose `allowed_target_kinds=["local"]`, `is_local_target` is False so the "local not permitted" check is skipped and the local command runs on the *host*, not the target. CTF assumes you already have a shell, but the loop never checks that the action's `allowed_target_kinds` actually includes the target kind — add a positive target‑kind match, not just the negative local check.
+  **STATUS: IMPLEMENTED.** Gate 2 (`command_executor.py`) now classifies the
+  target via `_classify_target_kind` and positively checks it against the
+  action's `allowed_target_kinds`, not just the old negative local-only check.
+  Regression: `tests/test_med4_target_kind.py`.
 - **MED‑5 `path_hijack` builder uses `bash -c` with an interpolated path.** `["bash","-c", f"echo '…' > {fake_path}"]` reintroduces a shell with an interpolated value — the one place the "no shell strings" contract is bent. `fake_path` is derived from AI‑supplied `fake_binary_name`/`work_dir`. Even though Pydantic validates types, there's no character validation; a crafted name injects shell. Build the file with Python I/O or `tee` via argv, and validate the names.
+  **STATUS: IMPLEMENTED.** `build_path_hijack_argv` now validates
+  `fake_binary_name`/`work_dir`/`target_suid_binary` against strict allow-list
+  regexes before use, writes the fake script via a `python -c` helper that
+  receives the path only as `sys.argv[1]` (never interpolated into source), and
+  uses `env VAR=value cmd` (argv, not shell) instead of `bash -c "..."`.
+  Regression: `tests/test_med5_path_hijack.py`.
 - **MED‑6 `compute_identity` can throw on non‑JSON‑serializable params.** `json.dumps(sorted(self.parameters.items()))` — fine for scalars, raises if a value isn't serializable. Low risk given typed params, but wrap defensively.
+  **STATUS: IMPLEMENTED.** `AIActionProposal.compute_identity()` now falls back to a
+  `repr()`-based encoding on `TypeError` instead of raising. Regression:
+  `tests/test_med6_med7.py`.
 - **MED‑7 Observation never stores which hypothesis/phase it serves.** Makes C1 Option B harder later; consider tagging observations with the proposing action's `phase`.
+  **STATUS: IMPLEMENTED.** `Observation` gained an optional `phase` field, populated
+  in `agents/base_agent.py::run_autonomous` from the executing action's own
+  `ActionDefinition.phase`. Regression: `tests/test_med6_med7.py`.
 
 ---
 
 ## Documentation vs. reality (the docs are "not fully updated," as you said)
 
-- **10‑gate "no infinite loops" (README §Safety)** — Gate 6 is bypassed in autonomous mode (C2). The guarantee is currently false for autohunt.
-- **"Observation → Hypothesis → Validation → Finding" enforced (README)** — only the *refusal* half exists; there is no code path that creates hypotheses/validations/findings in the loop (C1).
-- **Two modes "Automated Sequential" vs "Autonomous Hunter" (README)** — in `main.py` both `--mode automated` and `--autohunt` call `run_autonomous_default()`; there is no distinct sequential‑automated path. They're the same mode.
-- **`network_effect=True` (README ActionRegistry example)** — the real field is an enum `"none"|"read_only"|"active"`, not a bool. Example is stale.
+- **10‑gate "no infinite loops" (README §Safety)** — **FIXED** (C2): Gate 6 is live in autonomous mode now that `execution_history` is passed through.
+- **"Observation → Hypothesis → Validation → Finding" enforced (README)** — **FIXED** (C1): both the deterministic promotion floor and the full `form_hypothesis`/`record_validation`/`record_finding` decision verbs are implemented.
+- **Two modes "Automated Sequential" vs "Autonomous Hunter" (README)** — re-checked 2026-11-11: `main.py` now distinguishes `mode == "automated"` (calls `run_autonomous_default()`) from `--autohunt`; no longer the same code path unconditionally.
+- **`network_effect=True` (README ActionRegistry example)** — **FIXED**: README's example now uses the real enum values and field names (`action_id`, `network_effect="active"`, etc.), matching `core/action_contract.py::ActionDefinition`.
 - **Gate table says "Gate 2 target format + scope"** — implemented, but the local/remote kind check is incomplete (MED‑4).
-- **README quickstart has broken code fences** (the eval section uses `` `ash ``/`` `	ext `` instead of triple backticks) — cosmetic but worth fixing since this is a portfolio‑facing repo.
-- **`rag` is a symlink** — on Windows a git‑cloned symlink can materialize as a text file, which would break every `from rag.core…` import on a fresh clone. Confirm it resolves on a clean checkout, or replace with a real package / path shim.
+- **README quickstart has broken code fences** — **FIXED**: the eval section's mangled `` `ash ``/`` `	ext `` (stray control characters, not literal backtick+letters) are now proper ` ```bash `/` ```text ` fences.
+- **`rag` is a symlink** — **DOCUMENTED**: README's setup section now explains the `git config core.symlinks true` + privilege requirement on Windows and how to verify `rag` is a real symlink after cloning, rather than silently assuming it resolves.
+- **Model configuration table (README)** — **FIXED**: was still describing TinyLlama-1.1B/flan-t5-large and claiming Qwen 7B "will cause OOM errors" on an 8GB card; now describes the actual Qwen2.5-7B-Instruct + 4-bit NF4 QLoRA setup, confirmed working live on an RTX 3060 Ti.
+- **Test count badge/table (README)** — **FIXED**: was still advertising "39/39 tests" from two files; now reflects the full current suite (16 files, 122 test functions, 110 passed / 8 skipped on the last full run).
 
 ---
 
@@ -216,7 +324,10 @@ Even with C1–C5, H1–H4 all fixed, TinyLlama‑1.1B will not reliably (a) emi
 5. **H1** — per‑agent completion. Fast.
 6. **H2/H3/H4** — honour `max_new_tokens`, thread the system prompt, greedy decode. Fast, high reliability payoff.
 7. **M1 (constrained decoding) + M2 (bigger planner model)** — the durable cure for hallucination.
-8. MED‑1/2/3/4/5 — robustness and the one shell‑injection smell.
+8. MED‑1/2/3/4/5 — robustness and the one shell‑injection smell. **All items 1-8
+   in this list, plus MED-6/MED-7, are now implemented** (see each item's STATUS
+   note above) -- this list is kept as a historical record of the fix order that
+   was actually followed, not an open backlog.
 
 Items 1, 2, 5, 6 are roughly an afternoon and will change the behaviour from "always loops to max_steps" to "actually runs." Items 3, 4, 7 are what make it *good*.
 

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Summarize priority vulnerabilities.
+
+CONTEXT:
+Identify the most critical findings.
+
+METHOD / ANSWER:
+Command: List out top 5 vulnerabilities with risk ratings.
+Purpose: Help stakeholders focus on immediate risks.

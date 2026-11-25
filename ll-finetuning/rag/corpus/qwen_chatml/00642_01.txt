@@ -1,0 +1,10 @@
+Context:
+Context: Post-Discovery. Initial scan found specific open ports: 22 (SSH), 80 (HTTP), 8080 (HTTP-Alt).
+Principle to Apply: 'Deeply interrogate each identified service.'
+assistant
+**Assessment Phase**: Service Version & Script Scanning.
+**Core Principle**: Knowing the exact service name and version (e.g., `OpenSSH 8.9p1`, `Apache httpd 2.4.58`) allows precise vulnerability matching. Default scripts (`-sC`) often uncover low-hanging fruit like default credentials or information leaks.
+**Actionable Steps**:
+1.  **Targeted Script & Version Scan**: `nmap -p 22,80,8080 -sCV 10.10.11.80`
+    *   **Reasoning**: The `-sV` probes the specific ports to determine service versions. The `-sC` runs a suite of safe NSE (Nmap Scripting Engine) scripts against those services, which can reveal vulnerabilities, paths, or useful information (like HTTP titles or SSH hostkeys).
+**Guidance for Novel Context**: The ports scanned (`-p 22,80,8080`) must always be replaced with the actual open ports found. If a service like `8080` returns an unknown banner, apply the principle of 'manual service interaction' using `netcat` or a browser to probe it further. Never assume a port runs the standard servic

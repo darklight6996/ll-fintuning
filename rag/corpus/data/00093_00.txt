@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you look for configuration files?
+
+CONTEXT:
+You want to extract credentials or sensitive data.
+
+METHOD / ANSWER:
+Command: `curl http://<target>/<path_to_config>`
+Purpose: Get sensitive data from configurations.

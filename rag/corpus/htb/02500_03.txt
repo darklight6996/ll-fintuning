@@ -1,0 +1,1 @@
+file ); if ( file_size != bytes_read ) { fclose ( file ); free ( file_buf ); goto LAB_00101771 ; } fclose ( file ); The it calls connect_sock() to get a socket. Then it creates a JSON object and parses the YAML file into it, and then sending it over the socket: sock_fd = connect_sock (); if ( sock_fd

@@ -1,0 +1,16 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+programs are facilitated by companies that connect hackers with
+organizations. Self-hosted programs are run independently by an
+organization, without the involvement of third-party platforms. Table 9-2
+shows a high-level comparison between platform-based and self-hosted bug
+bounty programs.
+Table 9-2 High-Level Comparison of Platform-Based vs. Self-Hosted Bug
+Bounty Programs

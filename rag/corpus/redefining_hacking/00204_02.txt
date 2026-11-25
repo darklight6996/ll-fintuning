@@ -1,0 +1,2 @@
+software, making them difficult to detect and dangerous once deployed. In
+open-source software, attackers download the source code from repositories

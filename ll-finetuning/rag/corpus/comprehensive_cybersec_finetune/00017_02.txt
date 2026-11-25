@@ -1,0 +1,11 @@
+**Firmware Analysis**:
+- **Extraction & Unpacking**:
+  - `binwalk -Me firmware.bin` (auto-extract)
+  - `binwalk -e firmware.bin` (extract known signatures)
+  - `dd if=firmware.bin of=part.bin bs=1 skip=$OFFSET count=$SIZE`
+  - `unsquashfs`, `jefferson` (JFFS2), `ubireader` (UBI)
+  - `firmware-mod-kit` (build/modify)
+- **Static Analysis**:
+  - **Architecture ID**: `file`, `readelf -h`, `binwalk -A`
+    - ARM (32/64), MIPS (32/64), x86, x64, RISC-V, Xtensa, ARC
+  - **Strings**: `strings -n 8 firmware.bin | grep -i -E "password|key|secret|token|admin|debug|test|uart|shell|root|busybox|dropbear|telnet|ssh|http|ftp|tftp|nvr|config|nvram|mtd|partition|boot|kernel|rootfs|init|rcS|inittab|passwd|shadow|group|sudoers|crontab|authorized_keys|ssl|tls|cert|key|pem|der|crt|csr|cnf|openssl|wpa|hostapd|dnsmasq|udhcpd|iptables|firewall|nat|port|forward|dmz|upnp|tr069|cwmp|acs|tr098|tr181|tr143|usp|coap|mqtt|modbus|bacnet|opc|ua|dnp3|iec104|iec61850|goose|sv|mms|profinet|ethercat|ethernetip|cc-link|device-net|control-net|safety-net|hart|fieldbus|foundation|profibus|interbus|can|canopen|j1939|lin|flexray|ethercat|powerlink|sercos|cc-link|mechatrolink|motion-net|drive-cliq|as-i|io-link|single-pair|et

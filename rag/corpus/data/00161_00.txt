@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check the web application functionalities.
+
+CONTEXT:
+Explore upload forms and search functionalities.
+
+METHOD / ANSWER:
+Assessment of how forms transmit data (no data on submissions).
+Purpose: Understand input handling vulnerabilities.

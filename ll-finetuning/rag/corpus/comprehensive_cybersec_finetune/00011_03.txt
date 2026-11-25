@@ -1,0 +1,24 @@
+**Phase 7: OTG-BUSLOGIC-006: Circumvention of Workflows**
+- **Authentication Bypass**:
+  - Skip email verification
+  - Skip phone verification (intercept OTP)
+  - Skip payment step (direct to confirmation)
+  - Skip terms acceptance
+- **Authorization Bypass**:
+  - Access admin endpoints as regular user
+  - Horizontal privilege escalation (IDOR)
+  - Vertical privilege escalation (role manipulation)
+- **Multi-step Flow Bypass**:
+  - Direct POST to final endpoint
+  - Manipulate step parameter/state
+  - Use browser back/forward
+
+**Phase 8: OTG-BUSLOGIC-007: Defenses Against Application Misuse**
+- **Bot Detection Bypass**:
+  - Headless browser automation (Playwright, Puppeteer)
+  - CAPTCHA solving services (2Captcha, Anti-Captcha)
+  - Behavioral analysis evasion
+- **Fraud Detection Bypass**:
+  - Device fingerprint spoofing
+  - Residential proxy rotation
+  - Synthetic identity creation

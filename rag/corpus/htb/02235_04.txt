@@ -1,0 +1,1 @@
+W (Raw IP), capture size 262144 bytes 09:46:24.215875 IP 10.10.10.205 > 10.10.14.15: ICMP echo request, id 1, seq 1, length 64 09:46:24.215931 IP 10.10.14.15 > 10.10.10.205: ICMP echo reply, id 1, seq 1, length

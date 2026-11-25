@@ -1,0 +1,2 @@
+/login, /backup, and potential filenames that might be exposed
+on a server.

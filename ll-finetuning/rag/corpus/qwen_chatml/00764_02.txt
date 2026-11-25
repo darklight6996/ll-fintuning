@@ -1,0 +1,32 @@
+string that
+is prompted to the user asking confirm if he wants to leave the
+page. When this string is displayed to the user is likely to cancel
+the navigation, defeating traget’s frame busting attempt.
+The attacker can use this attack by registering an unload event
+on the top page using the following example code:
+<h1>www.fictitious.site</h1>
+<script>
+window.onbeforeunload = function()
+{
+return “ Do you want to leave fictitious.site?”;
+}
+</script>
+<iframe src="http:/target site”>
+The previous technique requires the user interaction but, the
+same result, can be achieved without prompting the user. To
+do this the attacker have to automatically cancel the incoming
+navigation request in an onBeforeUnload event handler by re-
+peatedly submitting (for example every millisecond) a navigation
+request to a web page that responds with a “HTTP/1.1 204 No
+Content” header.
+Since with this response the browser will do nothing, the result-
+ing of this operation is the flushing of the request pipeline, ren-
+Web Application Penetration Testing
+dering the original frame busting attempt futile.
+Following an example code:
+204 page:
+<?php
+header("HTTP/1.1 204 No Content");
+?>
+Attacker's page:
+<script>

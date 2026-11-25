@@ -1,0 +1,3 @@
+ine and customize. AI can parse and analyze large volumes of technical
+documentation, APIs, and code comments to identify potential weak points
+or unintended functionality that could be exploited.

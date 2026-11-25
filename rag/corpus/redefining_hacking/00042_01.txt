@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+detection engineering and overall improvement in an organization’s security
+posture.
+The sections that follow describe the frameworks that represent some of the
+most common and valuable resources used by red teams today.
+MITRE ATT&CK Framework
+The MITRE ATT&CK Framework is a comprehensive knowledge base that
+systematically catalogs adversary TTPs observed across the kill chain. It is
+recognized across the industry and is a standard for effectively
+communicating about cyber attacks. It was developed by the MITRE
+corporation and is regularly updated to reflect the evolving threat landscape.
+It is utilized across organizations, such as the red team, threat intel, and
+SOC teams, to ensure they understand the risk and address it.
+The ATT&CK Framework is organized into a number of matrices, each one
+focusing on a different domain. They are tailored for each of the domains:
+Enterprise, ICS, and Mobile. Red teams leverage the framework to emulate
+real-world adversary behavior during engagements. It also aids in mapping
+red team activities to specific TTPs, which facilitates the detailed analysis
+of detection engineering and the measurement of security control
+effectiveness

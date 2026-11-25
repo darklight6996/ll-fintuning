@@ -1,0 +1,26 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 3-1 C2 Infrastructure Setup
+To get started, you will need the following setup:
+• Azure Ubuntu Server (B1s) to serve as the redirector
+• Azure Ubuntu Server (B2ms) to serve as the C2 endpoint
+• Azure CDNs for redirector domain
+• Operator box (virtual machine or cloud instance)
+• Windows testing box (defender disabled)
+Once it is deployed, we will provision the Apache server for the domain
+being used for the redirector. A blog post from Optiv’s Attack & Penetration
+team (Archived at
+https://lazzslayer.github.io/References/Redirectors/Redirectors_Optiv.pdf)
+provides easy-to-use Apache configs that you can leverage for your server
+for Apache’s site configuration. You will also need to set up the A records
+for your domains being used for the infrastructure. For SSL certificate
+generation, you will also need to temporarily open 80/443 to the world to
+retrieve certificates for the domain, and then you can filter it back down to
+allow only Azure CDN source IPs.

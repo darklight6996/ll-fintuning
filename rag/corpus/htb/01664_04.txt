@@ -1,0 +1,1 @@
+.39 seconds Raw packets sent: 131056 (5.766MB) | Rcvd: 27 (1.172KB) oxdf@hacky$ sudo nmap -p 53,88,139,389,445,464,593,636,1433,2179,3268,3269,5985 -sCV 10.129.5.34 Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-03-11 00:54 UTC Nmap

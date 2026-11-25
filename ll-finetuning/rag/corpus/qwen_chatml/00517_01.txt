@@ -1,0 +1,33 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Starting Nmap 7.80 ( https://nmap.org ) at 2024-06-21
+Nmap scan report for 192.168.88.251
+Host is up (0.00011s latency).
+Not shown: 992 closed ports
+PORT STATE SERVICE
+22/tcp open ssh
+| ssh-hostkey:
+| 2048 d0:0c:83:4d:7f:84:2c:60:96:9f:df:26:da:d2:11:
+| 256 e2:aa:69:ab:a3:e6:0f:13:c5:5a:65:f2:d5:16:8c:3
+|_ 256 21:4b:27:7b:6e:a6:d4:33:86:60:cb:39:3b:48:9c:0
+80/tcp open http
+|_http-title: WebSploit Mayhem
+139/tcp open netbios-ssn
+445/tcp open microsoft-ds
+3306/tcp open mysql
+| mysql-info:
+| Protocol: 10
+| Version: 5.5.47-0ubuntu0.14.04.1
+| Thread ID: 3
+| Capabilities flags: 63487
+| Some Capabilities: InteractiveClient, DontAllowDat
+FoundRows, IgnoreSigpipes, Support41Auth, ODBCClient,
+LongPassword, SupportsTransactions, IgnoreSpaceBefore
+Speaks41ProtocolOld, Speaks41ProtocolNew, SupportsCom
+SupportsLoadDataLocal, LongColumnFlag, SupportsMultip
+SupportsMultipleStatments, SupportsAuthPlugins
+| Status: Autocommit
+| Salt: b_60.4ZH=52:l5ajmhBP

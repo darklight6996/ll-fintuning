@@ -1,0 +1,18 @@
+METHOD / ANSWER:
+XDR platforms are increasingly leveraging artificial intelligence and
+machine learning capabilities to enhance their threat detection and response
+capabilities beyond traditional rule-based approaches. Modern AI-powered
+XDR solutions can analyze security data in real time, identifying subtle
+patterns and anomalies that might indicate sophisticated attacks, while also
+learning from new threats to continuously improve their detection accuracy.
+These AI capabilities enable XDR platforms to provide predictive threat
+detection and automate complex response workflows.
+By understanding the specific techniques used in post-exploitation, blue
+teams can better leverage threat intelligence to correlate indicators of
+compromise (IOCs) with ongoing activities, enhancing their ability to
+detect similar patterns in real time. Blue teams can develop threat-hunting
+hypotheses based on the post-exploitation tactics observed during red team
+engagements. This proactive approach involves searching for signs of
+adversary behavior that might have evaded initial detection.
+Post-exploitation activities align with various tactics and techniques in the
+MITRE ATT&CK framework. Blue teams can

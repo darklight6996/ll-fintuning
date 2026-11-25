@@ -1,0 +1,1 @@
+: cannot open directory /home: Permission denied Looking at /etc/passwd , there’s one other account of interest, brucetherealadmin: bash-4.2$ cat /etc/passwd | grep sh cat /etc/passwd | grep sh root:x:0:0:root:/root:/bin/bash shutdown:x:6:0:shutdown:/sbin:/sbin/shutdown sshd:x:74:74:Privilege-separated SSH:/var/empty/sshd:/sbin/nologin

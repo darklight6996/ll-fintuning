@@ -1,0 +1,25 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Apache Redirector
+Examples 3-1 through 3-4 walk through how to set up your Apache server
+for your redirector from installing to configuring the server.
+Example 3-1 Installing Apache
+sudo apt update
+sudo apt full-upgrade
+apt-get install apache2
+systemctl stop apache2.service
+a2enmod ssl proxy remoteip rewrite proxy_http
+Example 3-2 Installing Certificates for Your Domain
+apt-get install certbot
+certbot certonly --standalone --preferred-challenges
+exampledomain.com
+--register-unsafely-without-email --agree-tos
+Example 3-3 Apache Config for Redirector

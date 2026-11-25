@@ -1,0 +1,1 @@
+ng bug in the HTB platform August 2020. When a web developer wants a link to open in a new tab, they add target="_blank" to the <a> tag. The issue is, if that link leads to a malicious page and mitigations aren’t in place, then JavaScript on that page can actually change the location of the original page. So this is really only an issue if

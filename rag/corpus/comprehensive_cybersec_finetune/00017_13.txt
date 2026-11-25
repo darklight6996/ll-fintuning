@@ -1,0 +1,25 @@
+**Safety & Reliability Testing (Non-Disruptive)**:
+- **Fuzzing (Controlled)**:
+  - `boofuzz`, `sulley`, `peach` (protocol fuzzing)
+  - Mutational vs generational
+  - State-aware fuzzing
+  - Crash detection (watchdog, heartbeat)
+- **DoS Testing (Authorized Only)**:
+  - Flood (Modbus, DNP3, GOOSE)
+  - Malformed packets
+  - Resource exhaustion
+  - Watchdog trigger
+- **Logic Testing**:
+  - Force outputs (coils, discrete outputs)
+  - Write invalid values (out of range, NaN, Inf)
+  - Sequence manipulation (start/stop, reset, emergency stop)
+  - Safety system bypass (SIL validation)
+  - Interlock testing
+
+**Wireless OT/ICS**:
+- **WirelessHART (IEC 62591)**: 2.4 GHz, TDMA, channel hopping
+- **ISA100.11a**: 2.4 GHz, TDMA, IPv6/6LoWPAN
+- **Wi-Fi in OT**: 802.11, WPA2-Enterprise, certificates
+- **Private LTE/5G**: CBRS, n78, n79, URLLC
+- **LoRaWAN / Sigfox / NB-IoT**: LPWAN for sensors
+- **Zigbee / Thread / Matter**: 802.15.4, IP-based

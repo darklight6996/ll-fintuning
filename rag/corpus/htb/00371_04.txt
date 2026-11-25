@@ -1,0 +1,1 @@
+s a bit more context for the site: /contact.php gives an email address, and I can add the domain to my hosts file (though it ends up not mattering here): intellgence.php /intelligence.php gives some interesting data about how to interact with the search engine: /ai.php /ai.php is where the

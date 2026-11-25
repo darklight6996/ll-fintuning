@@ -1,0 +1,1 @@
+ul 29 00:59 /tmp/0xdf I’ll get a shell: eric@era:/opt/AV/periodic-checks$ /tmp/0xdf -p 0xdf-5.1# And grab root.txt : 0xdf-5.1# cat root.txt 88bb08a3************************

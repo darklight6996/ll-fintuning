@@ -1,0 +1,31 @@
+**Phase 5: XXE in Different Parsers**
+- **Java (DocumentBuilderFactory, SAXParser, DOM4J, JDOM, Xerces)**:
+  - Default: often vulnerable
+  - Mitigation: `setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)`
+- **.NET (XmlReader, XmlDocument, XDocument)**:
+  - `XmlReaderSettings.DtdProcessing = DtdProcessing.Prohibit`
+- **Python (lxml, xml.etree, defusedxml)**:
+  - `defusedxml` safe by default
+  - lxml: `resolve_entities=False`
+- **PHP (libxml, SimpleXML, DOMDocument)**:
+  - `libxml_disable_entity_loader(true)` (deprecated)
+  - `LIBXML_NOENT | LIBXML_DTDLOAD` flags
+- **Go (encoding/xml)**:
+  - Decoder with `Entity` field
+- **Node.js (libxmljs, xmldom, fast-xml-parser)**:
+  - Configure parser options
+
+**Phase 6: XXE via File Upload**
+- **SVG Upload**: Embed XXE in SVG
+- **Office Documents**: docx/xlsx/pptx are ZIP with XML
+- **PDF**: Embedded XML streams
+- **Image Metadata**: EXIF/XMP in JPEG/PNG
+
+**Phase 7: Remediation**
+- Disable DTD processing entirely
+- Disable external entity resolution
+- Use safe parser configurations
+- Input validation (allowlist XML structure)
+- Use JSON instead of XML where possible
+- Keep XML parsers updated
+- WAF rules for XXE patterns

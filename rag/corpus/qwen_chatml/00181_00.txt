@@ -1,0 +1,15 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 5-11 Physical Building: Entry Points
+Social Media
+Social media sites such as LinkedIn, Glassdoor, X (previously known as
+Twitter), and Instagram are gold mines for collecting employee information.
+Many new hires post their badges for their first day or take photos at work

@@ -245,15 +245,38 @@ CLOUD_REPORT = ActionDefinition(
 def build_cloud_registry() -> ActionRegistry:
     """Build and return the ActionRegistry for CloudAgent."""
     registry = ActionRegistry()
-    registry.register(IAM_AUDIT)
-    registry.register(RESOURCE_ENUM)
-    registry.register(MISCONFIG_VALIDATION)
-    registry.register(S3_BUCKET_AUDIT)
-    registry.register(ASSUME_ROLE_AUDIT)
-    registry.register(SECURITY_GROUP_AUDIT)
-    registry.register(CLOUDTRAIL_AUDIT)
-    registry.register(METADATA_SERVICE_AUDIT)
-    registry.register(PRIVESC_PATH_AUDIT)
-    registry.register(CLOUD_REPORT)
+    from agents.cloud.command_builders import (
+        build_assume_role_audit,
+        build_cloud_report,
+        build_cloudtrail_audit,
+        build_iam_audit,
+        build_metadata_service_audit,
+        build_misconfig_validation,
+        build_privesc_path_audit,
+        build_resource_enum,
+        build_s3_bucket_audit,
+        build_security_group_audit,
+    )
+
+    registry.register(IAM_AUDIT, build_iam_audit)
+    registry.register(RESOURCE_ENUM, build_resource_enum)
+    registry.register(MISCONFIG_VALIDATION, build_misconfig_validation)
+    registry.register(S3_BUCKET_AUDIT, build_s3_bucket_audit)
+    registry.register(ASSUME_ROLE_AUDIT, build_assume_role_audit)
+    registry.register(SECURITY_GROUP_AUDIT, build_security_group_audit)
+    registry.register(CLOUDTRAIL_AUDIT, build_cloudtrail_audit)
+    registry.register(METADATA_SERVICE_AUDIT, build_metadata_service_audit)
+    registry.register(PRIVESC_PATH_AUDIT, build_privesc_path_audit)
+    registry.register(CLOUD_REPORT, build_cloud_report)
+    # Framework-level shared primitives (cross-agent): HTTP primitive,
+    # headless-browser coverage, and opt-in self-scripting -- the same
+    # capabilities every agent gets, wired identically.
+    from agents.common.http_primitive import HTTP_PROBE, build_http_probe
+    registry.register(HTTP_PROBE, build_http_probe)
+    from agents.common.browser_primitive import BROWSER_PROBE, build_browser_probe
+    registry.register(BROWSER_PROBE, build_browser_probe)
+    from agents.common.self_scripting import SELF_SCRIPT, build_self_script, self_scripting_enabled
+    if self_scripting_enabled():
+        registry.register(SELF_SCRIPT, build_self_script)
     return registry
 

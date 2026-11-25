@@ -1,0 +1,36 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+},
+{
+"issuer_ca_id": 183267,
+"issuer_name": "C=US, O=Let's Encrypt, CN=R3",
+"common_name": "mail.secretcorp.org",
+"name_value": "mail.secretcorp.org",
+"id": 10039294064,
+"entry_timestamp": "2023-08-01T04:19:56.363",
+"not_before": "2023-08-01T03:19:55",
+"not_after": "2023-10-30T03:19:54",
+"serial_number": "049b42b3d9dfad81b882209188f2
+},
+{
+"issuer_ca_id": 183267,
+"issuer_name": "C=US, O=Let's Encrypt, CN=R3",
+"common_name": "app1.secretcorp.org",
+"name_value": "app1.secretcorp.org",
+"id": 10038384450,
+"entry_timestamp": "2023-08-01T01:00:56.816",
+"not_before": "2023-08-01T00:00:56",
+"not_after": "2023-10-30T00:00:55",
+"serial_number": "046bbf0c4112b9c2a1a8b30d8e50
+},
+<output omitted for brevity>
+Example 9-14 shows how to obtain the common_name (that is, hostnames)
+using grep.

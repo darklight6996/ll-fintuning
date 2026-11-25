@@ -1,0 +1,1 @@
+.10.10.27 on port 22: Done [*] xalvas@10.10.10.27: Distro Ubuntu 16.04 OS: linux Arch: i386 Version: 4.4.0 ASLR: Disabled Note: Susceptible to ASLR ulimit trick (CVE-2016-3672) [x] Starting remote process

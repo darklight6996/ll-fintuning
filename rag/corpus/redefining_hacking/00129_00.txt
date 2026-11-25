@@ -1,0 +1,26 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+follows provides an example of how your inbound and outbound rules
+should be set up:
+• Inbound Rules:
+• Allow SSH from your
+IP (X.X.X.X/32)
+• Allow 80 to the Internet (0.0.0.0/0)
+• Allow 443 to the Internet (0.0.0.0/0)
+• Outbound Rules:
+• Allow all traffic outbound (0.0.0.0/0)
+Virtual Instance
+Next, you will want to deploy the instance where you will run your
+phishing infrastructure. You can deploy your infrastructure on the
+distribution of your choice. I (Savannah) recommend leveraging an Ubuntu
+image for its ease of capabilities with the following configuration:
+• Instance Type: 1 CPU
+• Instance Image: Ubuntu Distribution
+• Firewall: UFW or other options available

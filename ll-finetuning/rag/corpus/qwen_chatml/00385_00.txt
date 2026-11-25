@@ -1,0 +1,12 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Define and explain the key concept presented in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+generating new adversarial prompts, and the Evaluator LLM assesses the
+effectiveness of each prompt. Figure 8-7 illustrates this concept.

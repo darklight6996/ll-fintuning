@@ -1,0 +1,21 @@
+METHOD / ANSWER:
+Four subdomains (shown in the highlighted lines in Example 9-25) were
+found using the bing_domain_web module.
+Tip
+You should also combine other modules to find additional
+information about a specific target. For example, you can use
+the recon/domains-hosts/brute_hosts module to use wordlists
+and perform DNS queries to find additional subdomains.
+Hacking is all about the process of thinking like an attacker
+and developing a good methodology. I strongly recommend
+that you “go beyond the tool” and default behavior and
+develop your own methodology by combining tools and
+other resources to find information and potential
+vulnerabilities to exploit.
+What makes Recon-ng so powerful is the way it is able to use the
+application programming interfaces (APIs) of different OSINT resources to
+gather information. Modules included are able to query sites such as
+Facebook, Indeed, Instagram, LinkedIn, and YouTube. You can also brute-
+force DNS subdomains, gather information on certificate transparency, and
+query many other OSINT tools like Shodan. So, what is that thing called
+Shodan?

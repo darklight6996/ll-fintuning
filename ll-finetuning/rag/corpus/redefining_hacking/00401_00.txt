@@ -1,0 +1,26 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+approach is much less invasive on a network, and it is highly unlikely for
+this type of reconnaissance to crash a system such as a printer. Because it
+does not produce any traffic, it is also unlikely to be detected and does not
+raise any flags on the network that it is surveying. Another scenario in
+which a passive scanner would come in handy would be for a penetration
+tester who needs to perform analysis on a production network that cannot
+be disrupted.
+Common active reconnaissance methods include the following:
+• Host enumeration
+• Network enumeration
+• User enumeration
+• Group enumeration
+• Network share enumeration
+• Web page enumeration
+• Application enumeration
+• Service enumeration
+Common passive reconnaissance methods include the following:

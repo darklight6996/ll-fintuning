@@ -1,0 +1,4 @@
+t were created. In addition, after a
+penetration testing engagement is complete, you should clean up all
+systems. As a best practice, you should discuss these tasks and document
+them in the rules of engagement document during the pre-engagement

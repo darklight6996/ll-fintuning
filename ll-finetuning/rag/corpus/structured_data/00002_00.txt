@@ -1,0 +1,14 @@
+TECHNIQUE / QUESTION:
+How do you begin a penetration test on a web application?
+
+CONTEXT:
+Context: New target. Hostname: example.com. Protocol: HTTP. No prior scanning.
+Principle to Apply: 'Assume nothing, enumerate everything.'
+
+METHOD / ANSWER:
+**Assessment Phase**: Initial Reconnaissance.
+**Core Principle**: Before testing application logic, map the entire attack surface of the host.
+**Actionable Steps**:
+1.  **Network Mapping**: `nmap -sC -sV example.com`
+    *   **Reasoning**: Discovers all open ports (not just 80/443) and identifies service versions. A web server might have administrative interfaces on alternate ports (8080, 8443) or unrelated services (SSH, databases) that could be leveraged.
+**Guidance for Novel Context**: If this scan reveals only standard web ports, proceed to web enumeration. If it reveals unusual ports (e.g., 5000, 9000), investigate those services as they may be less secure. The tool (`nmap`) is standard, but the specific ports investigated must adapt to the scan results.

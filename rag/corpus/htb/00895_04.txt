@@ -1,0 +1,1 @@
+U9w+8ne0A5I0aygN2OPnEKhU RNa6PCvADh22J5vD+/RjPrmpnHcUuj+/qtJrS6PyEhY6jgxmeijYZqGkGeWU +XkmuFNmq6km9pCw+MJGdq0b9yEKOig6/UhGWZCQ7RKU1jzCbFOvcD98YT9a If70XnI0xNMS4iRVzd2D4zliQx9d6BqEqZDfZhYpWo3NbDqsyGGtbyJlABEB ...[snip]... Crack Key This page has a section on cracking a GPG key using john , as it isn’t in hashcat at this time. I’ll use gpg2john to create a hash, and then feed

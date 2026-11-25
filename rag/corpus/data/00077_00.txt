@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you retrieve the root flag after gaining elevated access?
+
+CONTEXT:
+You are now operating as root.
+
+METHOD / ANSWER:
+Command: `cat /root/root.txt`
+Explanation: This command retrieves the root flag from the administrator’s home directory, confirming the successful exploitation of the Titanic box.

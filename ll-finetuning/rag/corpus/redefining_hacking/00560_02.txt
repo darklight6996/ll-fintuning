@@ -1,0 +1,4 @@
+1-2 to tools such as Cursor,
+GitHub Copilot, or OpenAI’s models such as o1? I used OpenAI’s o1, and it
+created Python code that uses SQLAlchemy, an object-relational mapping
+(ORM) library. Example 11-2 shows the Python code. Additionally, the

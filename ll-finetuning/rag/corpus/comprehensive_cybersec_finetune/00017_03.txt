@@ -1,0 +1,16 @@
+hernet|tsn|detnet|opc-ua|mqtt-sparkplug|modbus-tcp|bacnet-ip|dnp3-ip|iec60870-5-104|iec61850-8-1|goose|sv|mms|profinet-rt|ethercat|ethernet-ip|cc-link-ie|device-net|control-net|safety-net|hart-ip|fieldbus-ip|foundation-hse|profibus-dp|interbus-s|canopen|j1939|lin|flexray|ethercat|powerlink|sercos-iii|cc-link-ie-field|mechatrolink-iii|motion-net|drive-cliq|as-i|io-link|single-pair-ethernet|tsn|detnet"`
+  - **Entropy Analysis**: `binwalk -E firmware.bin` (encrypted/compressed sections)
+  - **Symbol Recovery**: `ghidra`, `ida pro`, `radare2`, `binary ninja`
+    - Load at correct base address
+    - Identify RTOS (FreeRTOS, ThreadX, Zephyr, VxWorks, QNX, Linux, Windows CE)
+    - Find `main()`, `init()`, task creation, interrupt vectors
+  - **Vulnerability Patterns**:
+    - `strcpy`, `strcat`, `sprintf`, `gets`, `scanf` (buffer overflow)
+    - `system`, `popen`, `execl`, `execv` (command injection)
+    - `malloc`, `free`, `realloc` (heap overflow)
+    - `memcpy`, `memmove` (bounds check)
+    - Hardcoded keys, IVs, salts
+    - Default credentials in `/etc/passwd`, `/etc/shadow`, `shadow.bak`
+    - Debug interfaces left enabled
+    - Insecure boot (no secure boot, no verified boot)
+    - R

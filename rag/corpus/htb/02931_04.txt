@@ -1,0 +1,1 @@
+'self' 'unsafe-inline' https://fonts.googleapis.com https://www.google.com; img-src https: data:; child-src data:; X-Powered-By : Next.js ETag : "i8ubiadkff4wf" Vary : Accept-Encoding Content-Length

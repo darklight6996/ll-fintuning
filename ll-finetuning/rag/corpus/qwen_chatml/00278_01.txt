@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+DNS server receives the encoded query (“payload.h4cker.org”). The server
+decodes the subdomain part (“payload”) to extract the data or command
+sent by the malware.
+After processing the data or command, the attacker’s server sends a
+response back to the compromised system using standard DNS responses:
+• Encoding Response: The attacker encodes their response (e.g., an
+acknowledgment or further instructions) into a DNS answer.
+• Returning Response: This response travels back through the same
+recursive resolution path, ultimately reaching the compromised system.
+The compromised system receives this response and decodes it to execute
+further actions or send more data.
+Exfiltration over DNS in Practice
+Suppose you want to exfiltrate sensitive data from a compromised system:
+1. The malware on the compromised system encodes part of a file into a
+subdomain like “filepart1.h4cker.org”.
+2. This query is sent to a legitimate DNS resolver, which forwards it to the
+authoritative name server for “h4cker.org”.
+3. Your server decodes “filepart1” from the query and stores it.

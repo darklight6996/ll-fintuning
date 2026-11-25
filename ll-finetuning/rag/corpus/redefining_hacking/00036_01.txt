@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+processes, and the overall security posture of an organization. Red teaming
+offers an adversarial perspective essential for testing security assumptions
+and evaluating the effectiveness of the people, processes, and technologies
+employed to defend an environment.
+Any offensive security testing, such as a penetration test, is often
+misinterpreted as red teaming. They both play important roles in
+cybersecurity, but they tackle different goals and use different approaches.
+The goal of a penetration test is to find as many vulnerabilities as possible
+in a controlled manner, typically within a defined scope and timeframe. The
+objective is solely to exploit the system(s) and document weaknesses for
+remediation. It does not challenge the detection and response capabilities,
+nor does it evaluate the involvement of people or processes in preventing
+such attacks.
+Red teaming generally focuses on achieving a particular objective, such as
+gaining access to sensitive data or compromising critical infrastructure. It is
+designed to challenge the detection and response capabilities of an
+organization to assess how well they can identify, respond, and contain an
+ongoing attack over

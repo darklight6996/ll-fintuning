@@ -1,0 +1,1 @@
+e Administrators group. Type 3 is a limited token with administrative privileges removed and

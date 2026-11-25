@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you check for subdomains?
+
+CONTEXT:
+You want to discover any additional attack surfaces.
+
+METHOD / ANSWER:
+Command: `ffuf -u http://<target> -H 'Host: FUZZ.<domain>' -w <wordlist>`
+Purpose: Discover unauthorized subdomains.

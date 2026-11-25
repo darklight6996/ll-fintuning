@@ -1,0 +1,1 @@
+: 1 IP address (1 host up) scanned in 67.83 seconds Based on the OpenSSH version, the host is likely running Ubuntu 20.04 focal. Website - TCP 80 Site The

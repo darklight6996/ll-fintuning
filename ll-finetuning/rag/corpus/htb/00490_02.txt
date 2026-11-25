@@ -1,0 +1,1 @@
+estore.sh rm -rf /var/www/html/dev_wiki/ cp -R /var/www/html/zz_backup/ /var/www/html/dev_wiki/ chown -R cliff:cliff /var/www/html/dev_wiki/ chmod -R 777 /var/www/html/dev_wiki/ root@aragog:~# crontab -l | grep -v \# */5 * * * * /bin/bash /root/restore.sh

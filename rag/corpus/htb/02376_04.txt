@@ -1,0 +1,1 @@
+s basically so that if the cache is exploited somehow, the resulting execution won’t lead to much. -F - Run in the foreground. -a :80 - The address Varnish listens on. -T localhost:6082 - The address of the varnish client management interface. -f /etc/varnish/default.vcl - The config file. -S /etc/varnish/default.vcl - This is the

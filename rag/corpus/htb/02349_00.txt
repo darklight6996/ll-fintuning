@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Explain the purpose and usage of the code/command in the following text: (Context: Writeup from Htb Fluxcapacitor Hacks Stuff)
+
+CONTEXT:
+Source: Htb Fluxcapacitor Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+SecRule ARGS "@rx [;\(\)\|\`\<\>\&\$\*]" "id:2,phase:2,t:trim,t:urlDecode,block" SecRule ARGS "@rx (user\.txt|root\.txt)" "id:3,phase:2,t:trim,t:urlDecode,block" SecRule ARGS "@rx (\/.+\s+.*\/)" "id:4,phase:2,t:trim,t:urlDecode,block" SecRule ARGS "@rx (\.\.)" "id:5,phase:2,t:trim,t:urlDecode,block" SecRule ARGS "@rx (\?s)" "id:6,phase:2,t:trim,t:urlDecode,block" SecRule ARGS:opt "@pmFromFile /usr/local/openresty/nginx/conf/unixcmd.txt" "id:99,phase:2,t:trim,t:urlDecode ,block" ' ; content_by_lua_block { local opt = 'date' if ngx.var.arg_opt then opt = ngx.var.arg_opt end -- ngx.say ( "DEBUG: CMD='/home/themiddle/checksync " ..opt.. "'; bash -c $CMD 2>&1" ) local handle = io.popen ( "CMD='/home/themiddle/checksync " ..opt.. "'; bash -c ${ CMD } 2>&1" ) local result = handle:read ( "*a" ) handle:close () ngx.say ( result ) } ...

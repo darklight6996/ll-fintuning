@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What is a method to find sensitive database credentials in XWiki configuration files?
+
+CONTEXT:
+Context: Post-Foothold Intelligence Gathering. You have a shell on the application server. Goal: Find database credentials to pivot or extract data.
+Principle to Apply: 'Search for secrets in configuration files, as they are often stored in plaintext.'

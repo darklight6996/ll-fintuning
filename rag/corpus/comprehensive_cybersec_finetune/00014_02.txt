@@ -1,0 +1,26 @@
+**Android (APK/AAB)**:
+- **Decompile**:
+  - `apktool d app.apk -o output/`
+  - `jadx -d output/ app.apk` (Java/Kotlin source)
+  - `dex2jar app.apk && jd-gui app.jar`
+- **Manifest Analysis** (`AndroidManifest.xml`):
+  - Exported components: `android:exported="true"`
+  - Permissions: `android.permission.*` (dangerous, custom)
+  - `android:debuggable="true"`
+  - `android:allowBackup="true"`
+  - `android:networkSecurityConfig`
+  - Intent filters (deep links, custom schemes)
+  - Content providers, services, receivers
+- **Code Analysis**:
+  - Hardcoded secrets (API keys, passwords, tokens)
+  - Insecure crypto (ECB mode, hardcoded IV, weak PRNG)
+  - WebView settings: `setJavaScriptEnabled(true)`, `setAllowFileAccess(true)`, `setAllowUniversalAccessFromFileURLs(true)`
+  - SQL queries: raw queries vs parameterized
+  - Certificate pinning implementation
+  - Root detection bypass
+  - Anti-tampering checks
+  - Logging (Log.d, Log.e with sensitive data)
+  - IPC security (Intent validation, permission checks)
+  - File permissions (world-readable/writable)
+  - SharedPreferences (encryption, sensitive data)
+  - Keystore usage (AndroidKeyStore vs custom)

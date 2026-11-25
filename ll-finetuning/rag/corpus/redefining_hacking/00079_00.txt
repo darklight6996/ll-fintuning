@@ -1,0 +1,11 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Next, you will create a CDN for your redirector domain with Azure Classic
+CDN, as demonstrated in Figure 3-3.

@@ -1,0 +1,106 @@
+# Category: WebSocket Security
+# Source: re-implemented (2026-11-25 harvest round) from the general WebSocket
+# hunting methodology in Claude-BugHunter (github.com/elementalsouls/Claude-
+# BugHunter) hunt-websocket skill, content licensed CC BY 4.0 International;
+# adapted into this framework's own scenario schema, not copied verbatim.
+# See work.md.
+name: "Cross-Site WebSocket Hijacking (CSWSH) via missing Origin enforcement"
+id: "websocket-cswsh-001"
+category: "websocket"
+subcategory: "cross_site_hijacking"
+difficulty: "practitioner"
+estimated_time: "45 minutes"
+
+description: |
+  Cross-Site WebSocket Hijacking requires THREE conditions together: the
+  handshake authenticates via an ambient credential (a cookie sent
+  automatically by the browser), there is no unpredictable per-connection
+  token in the handshake (no CSRF-style token in the URL/body), and the
+  server does not enforce the Origin header. If all three hold, a page on
+  an attacker-controlled origin can open a WebSocket connection AS the
+  victim (the browser attaches the victim's cookies automatically) and
+  read whatever the server streams back -- messages, PII, tokens.
+
+learning_objectives:
+  - Identify the handshake's authentication model (cookie-only vs. a unique per-connection token)
+  - Test whether the server enforces the Origin header on the WebSocket handshake
+  - Understand why a successful 101 handshake from a foreign Origin is only a CANDIDATE, not a confirmed CSWSH
+  - Confirm the vulnerability by actually receiving victim data in a page served from a different origin
+
+tools:
+  - A browser devtools Network/WS panel
+  - wscat (or any WebSocket CLI client)
+  - A minimal attacker-origin HTML/JS test page (served from a different origin than the target)
+
+prerequisites:
+  - The target exposes a WebSocket endpoint (ws:// or wss://) used for authenticated, real-time features
+  - A test account whose session can be observed authenticating the handshake
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Confirm the handshake's authentication model"
+    commands:
+      - "# In browser devtools, inspect the WS handshake request headers"
+      - "# Look for: Cookie: session=... AND the ABSENCE of any per-connection token (no ?token=, no bearer in Sec-WebSocket-Protocol, no body nonce)"
+      - "# If a unique per-connection token IS present, CSWSH is not exploitable cross-site -- stop here"
+    expected_output: "Confirmation that the handshake authenticates purely via an ambient cookie, with no additional unpredictable token"
+    detection: "None -- this only inspects the legitimate handshake already made by the tester's own browser"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Probe whether the server enforces the Origin header (signal, not confirmation)"
+    commands:
+      - "wscat -c \"wss://<target>/ws\" --header \"Origin: https://attacker-controlled.example\" --header \"Cookie: session=<test_session>\""
+      - "# A successful 101 response from a foreign Origin is a CANDIDATE only -- the server may still check Origin at the message layer"
+    expected_output: "A 101 Switching Protocols response despite a foreign Origin header"
+    detection: "A WebSocket handshake completing with an Origin header that does not match the application's own domain"
+
+  - id: "step3"
+    phase: "validation"
+    action: "Confirm real cross-origin data exfiltration from an attacker-origin page"
+    commands:
+      - "# Serve a minimal HTML/JS page from a genuinely different origin (not just a different path)"
+      - "# That page opens a WebSocket connection to the target (the victim's browser will attach cookies automatically if the victim visits it)"
+      - "# Capture and display whatever the server streams back over that connection"
+    expected_output: "The attacker-origin page receives real, authenticated victim data (messages, account details, or a token) through the hijacked WebSocket"
+    detection: "A WebSocket connection to the target application opened from a page whose origin does not match the application's own domain, followed by authenticated data being streamed over it"
+
+compliance_controls:
+  - standard: "OWASP"
+    control: "A01:2021"
+    description: "Broken Access Control"
+  - standard: "MITRE ATT&CK"
+    control: "T1557"
+    description: "Adversary-in-the-Middle (session data interception via hijacked channel)"
+
+detection:
+  network_indicators:
+    - "WebSocket handshakes completing with an Origin header outside the application's own allowed domain set"
+  log_indicators:
+    - "WebSocket sessions authenticated purely by cookie with no per-connection token"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Enforce an exact Origin allowlist on every WebSocket handshake; reject any handshake from an unrecognized Origin"
+    - "Require a unique, unpredictable per-connection token (not solely an ambient cookie) to authenticate the handshake"
+  long_term:
+    - "Treat the WebSocket handshake with the same CSRF-protection posture as a state-changing HTTP request"
+    - "Add automated tests asserting a handshake from a disallowed Origin is rejected before any data streams"
+
+variables:
+  target_url: "wss://target.example/ws"
+  attacker_origin: "https://attacker-controlled.example"
+
+assessment_questions:
+  - "Why is a 101 response from a foreign Origin only a candidate, not a confirmed CSWSH?"
+  - "What three conditions must ALL hold for CSWSH to be exploitable?"
+  - "Why does the ambient-cookie authentication model matter for this specific attack?"
+
+references:
+  - url: "https://portswigger.net/web-security/websockets/cross-site-websocket-hijacking"
+    title: "PortSwigger Cross-site WebSocket hijacking"
+  - url: "https://christian-schneider.net/CrossSiteWebSocketHijacking.html"
+    title: "Christian Schneider: Cross-Site WebSocket Hijacking (original disclosure)"

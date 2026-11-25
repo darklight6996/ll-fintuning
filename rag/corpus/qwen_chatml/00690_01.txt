@@ -1,0 +1,10 @@
+Context:
+Context: Local Privilege Escalation Research. You have user-level access to a system.
+Principle to Apply: 'Use automated enumeration to efficiently identify common privilege escalation vectors.'
+assistant
+**Assessment Phase**: Automated Privilege Escalation Enumeration.
+**Core Principle**: Manual enumeration is time-consuming. Purpose-built scripts systematically check for known misconfigurations, vulnerable services, and weak permissions.
+**Actionable Steps**:
+1.  **Run Privilege Escalation Checkers**: Linux: `linpeas.sh`; Windows: `winpeas.bat` or `Seatbelt`; General: `Linux Exploit Suggester`
+    *   **Reasoning**: These scripts check hundreds of potential issues: kernel vulnerabilities, writable system files, cron jobs, services with weak permissions, credential storage locations, and more, presenting findings in a prioritized manner.
+**Guidance for Novel Context**: Always review the script's output manually—automated tools can miss context-specific issues or produce false positives. Understand what each finding means before attempting exploitation. Customize scripts for the specific environment when possible.

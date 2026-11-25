@@ -1,0 +1,26 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+7. What is the primary goal of a bug bounty program?
+A. To find and report security vulnerabilities in a company's products or
+services
+B. To improve the reputation of the company by showing their commitment
+to security
+C. To provide a platform for security researchers to showcase their skills
+D. To generate revenue for the company by selling the vulnerabilities to
+potential buyers
+8. What is the purpose of a bug bounty program's "responsible disclosure"
+policy?
+A. To protect the privacy of the company's customers
+B. To prevent the bug bounty program from being abused
+C. To ensure that vulnerabilities are reported responsibly and without
+causing harm
+D. To reward researchers for finding vulnerabilities
+9. What is the role of AI and ML in the future of penetration testing, red
+teaming, and bug bounties?

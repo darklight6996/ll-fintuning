@@ -1,0 +1,36 @@
+p://www.
+infoworld.com/t/security/red-alert-https-has-been-
+hacked-174025
+[*] Vulnerability Status: No
+Loading module: sslyze by iSecPartners ...
+Checking localhost:443 for Session Renegotiation support (CVE-
+Web Application Penetration Testing
+2009-3555,CVE-2011-1473,CVE-2011-5094)...
+[*] Secure Client-Initiated Renegotiation
+: NOT SUPPORTED
+[*] Mitigated from DOS attack (CVE-2011-
+1473,CVE-2011-5094) mentioned in https:/www.thc.org/thc-
+ssl-dos/
+[*] Vulnerability Status: No
+[*] INSECURE Client-Initiated Renegotiation : NOT SUPPORTED
+[*] Immune from TLS Plain-text Injection attack (CVE-
+2009-3555) - http:/cve.mitre.org/cgi-bin/cvename.
+cgi?name=CVE-2009-3555
+[*] Vulnerability Status: No
+Loading module: TestSSLServer by Thomas Pornin...
+Checking localhost:443 for SSL version 2 support...
+[*] SSL version 2
+: NOT SUPPORTED
+[*] Immune from SSLv2-based MITM attack
+[*] Vulnerability Status: No
+Checking localhost:443 for LANE (LOW,ANON,NULL,EXPORT)
+weak ciphers support...
+Supported LANE cipher suites:
+SSLv3
+RSA_EXPORT_WITH_RC4_40_MD5
+RSA_EXPORT_WITH_RC2_CBC_40_MD5
+RSA_EXPORT_WITH_DES40_CBC_SHA
+RSA_WITH_DES_CBC_SHA
+DHE_RSA_EXPORT_WITH_DES40_CBC_SHA
+DHE_RSA_WITH_DES_CBC_SHA
+TLS_ECDH_anon_W

@@ -1,0 +1,1 @@
+I could find for time-based injections for SQLite used functions like randomblob to generate sleep (functions that take time to run). When I try this, I’m blocked: In the source, there’s a check for “bad words”: def badword_in_str ( data ): data = data . lower () badwords = [ " rand " , " system " , " exec " , " date " ] for badword in badwords : if badword

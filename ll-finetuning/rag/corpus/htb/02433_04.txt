@@ -1,0 +1,1 @@
+shares or do anything else interesting: oxdf@hacky$ netexec smb freelancer.htb --shares SMB 10.10.11.5 445 DC [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC) (domain:freelancer.htb) ( signing:True ) ( SMBv1:False ) SMB

@@ -1,0 +1,1 @@
+osts assume-breach bloodhound netexec-rid-brute netexec-bloodhound rusthound-ce adcs domain-trust impacket mssqlclient mssql-linked-servers xp-cmdshell seimpersonate

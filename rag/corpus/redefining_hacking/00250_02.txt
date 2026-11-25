@@ -1,0 +1,5 @@
+t harder for defenders to differentiate between
+legitimate and malicious traffic.
+X has also been exploited for C2 operations by embedding commands in
+tweets. Attackers use the platform’s public nature to send instructions to
+malware without needing direct communication with the infected system.

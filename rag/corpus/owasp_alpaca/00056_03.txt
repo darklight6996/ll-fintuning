@@ -1,0 +1,27 @@
+00 12 7D 01 00 10 00 02
+ceeestun Jae
+[-] Closing connection
+[!] Vulnerable to Heartbleed bug (CVE-2014-0160) mentioned in
+http:/heartbleed.com/
+[!] Vulnerability Status: VULNERABLE
+Loading module: CCS Injection script by TripWire VERT ...
+Checking localhost:443 for OpenSSL ChangeCipherSpec (CCS)
+Injection bug (CVE-2014-0224)...
+[!] The target may allow early CCS on TLSv1.2
+[!] The target may allow early CCS on TLSv1.1
+['] The target may allow early CCS on TLSv1
+[!] The target may allow early CCS on SSLv3
+[-] This is an experimental detection script and does not defini-
+tively determine vulnerable server status.
+[!] Potentially vulnerable to OpenSSL ChangeCipherSpec (CCS)
+Injection vulnerability (CVE-2014-0224) mentioned in http:/
+ccsinjection.lepidum.co.jp/
+[!] Vulnerability Status: Possible
+Checking localhost:443 for HTTP Compression support against
+BREACH vulnerability (CVE-2013-3587) ...
+[*] HTTP Compression: DISABLED
+[*] Immune from BREACH attack mentioned in https:/media.
+blackhat.com/us-13/US-13-Prado-SSL-Gone-in-30-seconds-
+A-BREACH-beyond-CRIME-WP.pdf
+[*] Vulnerability Status: No
+168

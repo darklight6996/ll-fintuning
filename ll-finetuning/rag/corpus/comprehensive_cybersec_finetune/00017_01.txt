@@ -1,0 +1,20 @@
+**Device Reconnaissance**:
+- **Physical Inspection**:
+  - UART/JTAG/SWD headers (PCB)
+  - Flash chips (SPI NOR/NAND, eMMC)
+  - Debug pads, test points
+  - FCC ID lookup (internal photos)
+  - Teardown reports (iFixit, FCC)
+- **Network Reconnaissance**:
+  - `nmap -sS -p- <IP>` (TCP)
+  - `nmap -sU --top-ports 1000 <IP>` (UDP)
+  - `masscan -p1-65535 <IP> --rate 1000`
+  - Service enumeration: `nmap -sV -sC <IP>`
+  - `amass`, `subfinder` for cloud endpoints
+- **Firmware Acquisition**:
+  - Vendor website (updates, SDKs)
+  - Mobile app extraction (APK/IPA → firmware URLs)
+  - OTA capture (MITM proxy, `mitmproxy`, `bettercap`)
+  - Hardware extraction: SPI flash programmer (CH341A, Bus Pirate, Shikra)
+  - JTAG/SWD: OpenOCD, Segger J-Link, ST-Link
+  - UART: `screen /dev/ttyUSB0 115200`, `picocom`

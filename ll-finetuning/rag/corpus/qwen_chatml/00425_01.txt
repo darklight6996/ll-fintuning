@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+scanner results to provide useful deliverables and explore the process of
+leveraging the gathered information in the exploitation phase. We will also
+explore some of the common challenges to consider when performing
+vulnerability scans.
+Active vs. Passive Reconnaissance
+Active reconnaissance is a method of information gathering in which the
+tools used actually send out probes to the target network or systems to elicit
+responses that are then used to determine the posture of the network or
+system. These probes can use different protocols and multiple levels of
+aggressiveness, typically based on what is being scanned and when. For
+example, you may be scanning a device such as a printer that might not
+have a very robust TCP/IP stack or network hardware. By sending active
+probes, you might crash such a device. Most modern devices do not have
+this problem; however, it is possible, so when doing active scanning, you
+should be conscious of this and adjust your scanner settings accordingly.
+Passive reconnaissance is a method of information gathering in which the
+tools do not interact directly with the target device or network.

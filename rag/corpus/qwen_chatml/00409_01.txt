@@ -1,0 +1,25 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+penetration testers, hobbyists, and even students. Some individuals venture
+into the bug bounty domain fueled by curiosity and a passion for
+cybersecurity. Sometimes their self-taught skills and persistent efforts result
+in significant contributions to the bug bounty programs. Other bug bounty
+hunters may have multiple years of experience in ethical hacking.
+A Personal Note
+Sometimes people ask me (Omar) how someone can get
+started in bug bounties. I find these moments to be a vivid
+reminder of the ever-present opportunities to mentor and
+nurture the next generation of cybersecurity professionals. I
+created the bug bounty policy at Cisco and mentored many
+engineers in the Product Security Incident Response Team
+(PSIRT). Throughout this book and chapter, I eagerly share
+insights and experiences, allowing you to learn from real-
+world experiences and scenarios.
+There are several benefits of incorporating a bug bounty program in an
+organization:
+• Security Enhancement: Of course, the purpose of bug bounty programs
+is to help uncover vulnerabilities that might have been overlooked during
+the development phase or by internal

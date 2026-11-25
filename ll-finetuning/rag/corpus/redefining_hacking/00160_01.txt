@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+• More secure, supports cryptography
+Another key component to understanding badge technology is recognizing
+these key terms:
+• Card Credentials: These credentials indicate the method of
+authentication as well as the more specific variety in use. For example,
+badges and fobs are two different credentials.
+• Card Chipsets: Credentials also refer to the type of card or fob used, such
+as Prox, iCLASS, MIFARE, or Indala. However, these names are more
+correctly referred to as the chipset in use, such as MIFARE Classic 1k, 4k,
+ultralight, or all chipset types.
+• Card Formats: These formats are mainly a string of numbers, just as a
+string of numbers like 19896780058 may mean nothing until you are told
+it’s a phone number.
+• Card Codes: These are the codes associated with a card.
+• Facility Code: This code is used so that organizations can incorporate
+various buildings to use similar card codes but still be different cards.
+• Parity Bits: These bits are leveraged to ensure the integrity of data being
+exchanged between the card and access control system.

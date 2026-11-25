@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Ensure all used tools and files are cleaned from the system.
+
+CONTEXT:
+Remove any scripts or files that were temporarily used.
+
+METHOD / ANSWER:
+Command: Execute cleanup scripts to erase traces of the hacking activity.
+Purpose: Minimize detection risks post-access.

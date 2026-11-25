@@ -1,0 +1,21 @@
+METHOD / ANSWER:
+documentation, tutorials, and additional resources for each C2 framework,
+helping users get started and effectively utilize the tools.
+How to Perform Lateral Movement
+Lateral movement (also referred to as pivoting) is a post-exploitation
+technique that can be performed using many different methods. The main
+goal of lateral movement is to move from one device to another to avoid
+detection, steal sensitive data, and maintain access to the devices to
+exfiltrate the sensitive data, which is data whose theft would have a severe
+impact to an organization. Such data typically should not be broadly shared
+internally or externally. Access to sensitive data should be limited and
+tightly controlled. Data exfiltration is the act of deliberately moving
+sensitive data from inside an organization to outside an organization's
+perimeter without permission. In the following sections, you will learn the
+most common techniques for lateral movement.
+Tip
+Pass-the-hash is an example of a post-exploitation technique
+that can be used to move laterally and compromise other
+systems in the network. Because password hashes cannot be
+reversed, instead of trying to figure out what the user's
+pas

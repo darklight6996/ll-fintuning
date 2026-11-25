@@ -1,0 +1,1 @@
+', '65', '74', '75', '79', '82', '83', '86', '90', '91', '94', '95', '98', '103', '106', '111', '114', '115', '119', '122', '123', '126', '130', '131', '134', '135'] I’ll use a Python list comprehension to loop over each item and apply the int function, converting each to a number, using base 16 to convert from hex: >>> [ int ( x , 16 ) for

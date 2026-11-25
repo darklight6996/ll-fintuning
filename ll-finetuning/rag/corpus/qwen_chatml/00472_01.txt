@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+git clone https://github.com/trufflesecurity/truffleh
+cd trufflehog; go install
+TruffleHog supports different arguments, each designed to scan a specific
+source of data.
+• git: Used to scan local or remote Git repositories. It sifts through the
+commits to find potentially sensitive information that has been committed.
+• github: Used to scan GitHub repositories for sensitive data. It can be used
+to scan both public and private repositories, provided you have the
+necessary access rights to the private repositories.
+• gitlab: Similar to the github option but designed to work with GitLab
+repositories.
+• docker: Used to scan Docker images and containers. It helps in
+identifying any sensitive information that might be embedded in Docker
+images.
+• S3: Used to scan Amazon S3 buckets. It can help you identify any
+sensitive files or data that might be stored in an S3 bucket.
+• circleci: Used to scan CircleCI configurations and build files for secrets or
+sensitive information.

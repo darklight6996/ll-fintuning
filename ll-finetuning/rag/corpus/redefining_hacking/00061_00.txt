@@ -1,0 +1,27 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Wirtz, James J. "Red Team: How to Succeed by Thinking Like the Enemy."
+(2017): 1034.
+https://www.tandfonline.com/doi/full/10.1080/02684527.2017.1357276
+Yulianto, Semi, Benfano Soewito, Ford Lumban Gaol, and Aditya
+Kurniawan. "Enhancing Cybersecurity Resilience Through Advanced Red
+Teaming Exercises and MITRE ATT&CK Framework Integration: A
+Paradigm Shift in Cybersecurity Assessment." Cyber Security and
+Applications (2024): 100077.
+https://www.sciencedirect.com/science/article/pii/S2772918424000432
+Test Your Skills
+MULTIPLE-CHOICE QUESTIONS
+1. Which of the following best describes the mindset encouraged by red
+teaming?
+A. Defensive
+B. Risk-taking
+C. Adversarial
+D. Observant
+2. Which framework is a comprehensive catalog of TTPs of adversaries?

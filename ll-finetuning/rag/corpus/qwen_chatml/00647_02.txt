@@ -1,0 +1,2 @@
+SUID binary to run your code with root privileges.
+**Guidance for Novel Context**: The specific binary name (`nvme-list`) is unique. The principle is: **find SUID binaries (`find / -perm -4000 2>/dev/null`), analyze them (`strings`, `ltrace`), and see if they execute other commands insecurely.** The exploit method could be `PATH` hijacking, library hijacking (`LD_PRELOAD`), or abuse of intended functionality.

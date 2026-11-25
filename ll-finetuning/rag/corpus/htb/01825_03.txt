@@ -1,0 +1,1 @@
+eq , res ) => { res . render ( " error.njk " , { statusCode : 404 }); }); It is loading more files that container additional routes. files_1.default is defined at the top as ./routers/files (which has an implied

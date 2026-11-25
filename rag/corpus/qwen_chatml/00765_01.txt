@@ -1,0 +1,40 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+/set the token as in the session data
+$_ SESSION[‘antiCsrf’] = $csrfToken;
+‘Transfer form with the hidden field
+$form =’
+<form name='transferForm” action="confirm.php”
+method="POST">
+<div class="box">
+<h1>BANK XYZ - Confirm Transfer</h1>
+<p>
+Do You want to confirm a transfer of <b>‘
+¢$ REQUEST[‘amount’] ! €</b> to account: <b>’ $_RE-
+QUEST[’account’] '</b> ?
+</p>
+<label>
+<input type="hidden”
+name="amount” value=". $ REQUEST[‘amount’]. ‘” />
+<input type="hidden”
+name="account” value="". $ REQUEST[‘account’]. ‘” />
+<input type="hidden”
+name="antiCsrf” value="". $csrfToken . ‘” />
+<input type="submit"
+class="button” value="Transfer Money” />
+</label>
+</div>
+</form>’:
+In the last step are planned security controls and then, if is all ok, the
+transfer is done. Following is presented a snippet of the code of the
+last step (Note: in this example, for simplicity, there is no input saniti-
+zation, but it has no relevance to block this type of attack):
+if( (1empty($_SESSION[‘antiCsrf’])) && (!lempty($_POST[‘an-
+tiCsrf’])) )
+{
+/here we Can suppose input sanitization code...
+/check the anti-CSRF token
+if( ($_ SESSION[‘antiCsrf’] ==

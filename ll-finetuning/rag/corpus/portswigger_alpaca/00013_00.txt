@@ -1,0 +1,5 @@
+TECHNIQUE / QUESTION:
+Explain the objectives and methodology for the PortSwigger lab: Lab: Basic clickjacking with CSRF token protection
+
+CONTEXT:
+Context: Lab: Basic clickjacking with CSRF token protection (Learning Module)

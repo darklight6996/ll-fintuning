@@ -1,0 +1,1 @@
+( IV ) while True : chunk = infile . read ( chunksize ) if len ( chunk ) == 0 : break elif len ( chunk ) % 16 != 0 : chunk += b ' ' * ( 16 - ( len ( chunk ) % 16 )) outfile . write ( encryptor . encrypt

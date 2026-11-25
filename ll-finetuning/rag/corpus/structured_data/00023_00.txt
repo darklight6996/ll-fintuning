@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What initial credentials are provided for the penetration test?
+
+CONTEXT:
+Context: Active Directory Credential Use. Provided account is 'henry' with password 'H3nry_987TGV!'.
+Principle to Apply: 'Validate and utilize provided access to expand your foothold.'

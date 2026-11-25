@@ -1,0 +1,27 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+}
+}
+In Example 6-18, TcpListener binds to port 1337 and listens for incoming
+connections. handle_client reads commands from the client, executes them,
+and sends back the output. main accepts incoming connections and spawns
+a new thread for each client.
+You can then move the compiled binary to a suitable location and create a
+service configuration:
+sudo mv target/release/malicious_daemon /usr/local/bi
+Example 6-19 shows a sample configuration for a systemd service.
+Example 6-19 Configuration for a Systemd Service
+[Unit]
+Description=Malicious Daemon
+[Service]
+ExecStart=/usr/local/bin/malicious_daemon
+Restart=always
+User=root

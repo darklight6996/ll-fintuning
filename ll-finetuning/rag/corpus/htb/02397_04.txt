@@ -1,0 +1,1 @@
+SSH That password works for kai_relay with su : frank_dorky@formulax:/opt/librenms$ su - kai_relay Password: To run a command as administrator (user "root"), use "sudo <command>". See "man sudo_root" for details. kai_relay@formulax:~$ It also works over SSH: oxdf@hacky$ sshpass -p mychemicalformulaX ssh kai_relay@chatbot.htb Welcome to Ubuntu 22.04.4 LTS (GNU/Linux

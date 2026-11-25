@@ -1,0 +1,1 @@
+put hash: 1600 | Apache $apr1$ MD5, md5apr1, MD5 ( APR ) | FTP, HTTP, SMTP, LDAP Server ...[snip]... $apr1$bMoRBJOg$igG8WBtQ1xYDTQdLjSWZQ/:manchesterunited ...[snip]... Statistics Page I’ll use these creds to access the statistics page: It looks like a static page. The

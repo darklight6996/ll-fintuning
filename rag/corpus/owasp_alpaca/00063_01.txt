@@ -1,0 +1,30 @@
+METHOD / ANSWER:
+the-Wh1t3-Rabbit/SWFScan-FREE-Flash-decompiler/ba-
+p/5440167
+» SWFintruder: https://www.owasp.org/index.php
+Category:SWFintruder
+= Decompiler — Flare: http://www.nowrap.de/flare.htm!
+= Compiler — MTASC: http://www.mtasc.org/
+= Disassembler — Flasm: http://flasm.sourceforge.net/
+= Swfmill — Convert Swf to XML and vice versa: http://swfmill
+org/
+= Debugger Version of Flash Plugin/Player: http://www.adobe
+com/support/flash/downloads.html
+References
+OWASP
+= OWASP Flash Security Project: The OWASP Flash Security
+project has even more references than what is listed below:
+http://www.owasp.org/index.php/Category:OWASP_Flash_
+Security_Project
+Whitepapers
+= Testing Flash Applications: A new attack vector for XSS
+and XSFlashing: http://www.owasp.org/images/8/8c/
+OWASPAppSec2007Milan_TestingFlashApplications.ppt
+= Finding Vulnerabilities in Flash Applications: http://www
+owasp.org/images/d/d8/OWASP-WASCAppSec2007SanJose_
+FindingVulnsinFlashApps.ppt
+» Adobe security updates with Flash Player 9,0,124,0 to reduce
+cross-site attacks: http://www.adobe.com/devnet/
+flashplayer/articles/flash_player9_security_update.html
+= Securing SWF Applications: http://www.adobe.com/devnet
+flashp

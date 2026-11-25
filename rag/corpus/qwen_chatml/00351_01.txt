@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+LangGraph Cloud is an optional managed hosting service for LangGraph,
+offering enhanced features specifically designed for production
+deployments.
+LlamaIndex
+LlamaIndex, formerly known as GPT Index, is a data framework designed
+to enhance LLM-based application development by integrating diverse data
+sources. It can help you connect with various data sources and formats to
+LLMs, and it provides efficient data retrieval and query capabilities.
+LlamaIndex is basically the competitor of LangChain. It is also useful for
+applications requiring retrieval-augmented generation (RAG) and can
+handle both structured and unstructured data.
+Note
+You will learn more about RAG later in this chapter.
+At the end of the day, LangChain, LangSmith, LangGraph, and LlamaIndex
+collectively form a robust ecosystem for developing, deploying, and
+managing applications that leverage the power of large language models.
+Each tool offers capabilities that cater to different stages of the application
+lifecycle.

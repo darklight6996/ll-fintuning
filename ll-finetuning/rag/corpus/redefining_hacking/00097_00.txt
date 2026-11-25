@@ -1,0 +1,12 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 3-15 Payloads Page
+You can download the payload locally to your machine and transfer it over
+to your testing Windows box, as illustrated in Figure 3-16 and Figure 3-17.

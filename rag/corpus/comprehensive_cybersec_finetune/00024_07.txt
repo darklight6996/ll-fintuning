@@ -1,0 +1,25 @@
+**Phase 4: HIPAA Security Rule Compliance**
+- **Administrative Safeguards (§164.308)**:
+  - **§164.308(a)(1)**: Security Officer, Risk Analysis
+    - Designated Privacy/Security Officer
+    - Annual risk analysis (NIST 800-30)
+    - Sanction policy, IS activity review
+  - **§164.308(a)(2)**: Assigned Security Responsibility
+  - **§164.308(a)(3)**: Workforce Security
+    - Authorization/supervision, termination procedures
+    - Security awareness training (annual, phishing simulations)
+  - **§164.308(a)(4)**: Information Access Management
+    - Access authorization, access establishment/modification
+    - Role-based access for PHI
+  - **§164.308(a)(5)**: Security Awareness Training
+    - Phishing, social engineering, password management
+    - Tools: KnowBe4, Proofpoint, custom LMS
+  - **§164.308(a)(6)**: Security Incident Procedures
+    - Response/reporting, documentation, evidence preservation
+    - 60-day breach notification rule
+  - **§164.308(a)(7)**: Contingency Plan
+    - Data backup, disaster recovery, emergency mode
+    - Testing: quarterly DR tests, annual full failover
+  - **§164.308(a)(8)**: Evaluation
+    - Periodic technical/non-technical evaluation
+  - **§164.308(b)**:

@@ -1,0 +1,1 @@
+on is a public library for the Source RCON Protocol , designed for game servers. From the docs: The Source RCON Protocol is a TCP/IP-based communication protocol used by Source Dedicated Server , which allows console commands to be issued to the server via a “remote

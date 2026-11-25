@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What are the steps to exploit the ADCS environment?
+
+CONTEXT:
+You are ready to exploit the ADCS environment after gaining access.
+
+METHOD / ANSWER:
+Command: `certipy find -u ca_svc@fluffy.htb -hashes <NTLM_hash> -vulnerable`
+Explanation: Use Certipy to search for vulnerable certificate templates or services that can be exploited to achieve further privileges.

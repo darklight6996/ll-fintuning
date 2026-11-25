@@ -1,0 +1,33 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+with open(file_path, 'r') as file:
+content = file.read()
+pattern = r'### Hostname: ([\w.-]+)\n- IP: ([\d.]+
+matches = re.findall(pattern, content)
+return matches
+def run_nmap_scan(ip):
+"""
+Runs an Nmap scan on the specified IP address.
+Args:
+ip (str): The IP address to scan.
+Returns:
+str: The scan results.
+"""
+nm = nmap.PortScanner()
+nm.scan(ip, '443', arguments='--script ssl-enum-ci
+scan_results = json.dumps(nm[ip], indent=2)
+return scan_results
+def analyze_with_ai(scan_results):
+"""
+Analyzes the Nmap SSL cipher scan results using AI
+Args:
+scan_results (str): The scan results to analyze
+Returns:
+str: The analysis results.

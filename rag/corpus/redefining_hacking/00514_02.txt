@@ -1,0 +1,6 @@
+relies on a three-
+way handshake to establish communication, UDP is connectionless. This
+means that when a UDP packet is sent, there is no built-in mechanism to
+confirm whether the packet was received. As a result, scanners like Nmap
+must wait for a response or lack thereof to determine the status of a port. If
+a port is open, it may not send any response at all. If a port is closed, the

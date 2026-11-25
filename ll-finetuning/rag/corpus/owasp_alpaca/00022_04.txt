@@ -1,0 +1,22 @@
+.asp?authenticated=yes HTTP/1.0
+HTTP/1.1 200 OK
+Date: Sat,
+11 Nov 2006 10:22:44 GMT
+Server: Apache
+Connection: close
+Content-Type: text/html; charset=iso-8859-1
+<!DOCTYPE HTML PUBLIC “-/IETF/DTD HTML 2.0/EN">
+<HTML><HEAD>
+</HEAD><BODY>
+<H1>You Are Authenticated</H1>
+</BODY></HTML>
+fle Medes Wenailcta: hg
+Segrebei
+erutinti
+. a
+‘ ri
+|
+Hep Frm ts cease ft aor |
+| (va jit
+(oD (dita rection:
+You Are Auhtenticated

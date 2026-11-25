@@ -1,0 +1,1 @@
+Events = $true Register-ObjectEvent $theme_watchdog Created -Action $action -SourceIdentifier theme_watchdog $themepack_watchdog = New-Object System.IO.FileSystemWatcher $themepack_watchdog . Path =

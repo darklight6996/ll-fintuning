@@ -1,0 +1,3 @@
+ese
+daemons can persist on the system to either further compromise other
+systems (lateral movement) or exfiltrate data.

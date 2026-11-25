@@ -1,0 +1,10 @@
+Context:
+Context: Active Directory Object Manipulation. You have authenticated as `p.agila` and discovered this account has permissions to modify group memberships (e.g., `GenericWrite` on a group like 'Service Accounts').
+Principle to Apply: 'Abuse write permissions on security groups to add yourself to privileged groups, granting additional rights.'
+assistant
+**Assessment Phase**: Group Membership Manipulation.
+**Core Principle**: Being a member of certain security groups grants specific privileges. If you can add a user you control to a privileged group, you inherit those privileges.
+**Actionable Steps**:
+1.  **Add User to Privileged Group**: Use a tool like `bloodyAD` to add `p.agila` to the `Service Accounts` group.
+    *   **Reasoning**: Adding your account to a group like 'Service Accounts' may grant new permissions (like `GenericWrite` over other user/computer objects) that are necessary for the next stage of attack, such as performing a Shadow Credential attack.
+**Guidance for Novel Context**: The tool and group name will vary. The principle is: **if you have write permissions on a group object, add a user you control to it.** Verify the change with `net user p.agila /doma

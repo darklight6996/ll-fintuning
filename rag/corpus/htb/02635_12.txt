@@ -1,0 +1,1 @@
+ata@guardian:~/portal.guardian.htb/admin$ I’ll upgrade my shell using the standard trick : www-data@guardian:~$ script /dev/null -c bash Script started, output log file is '/dev/null'. www-data@guardian:~$ ^Z [1]+ Stopped nc -lnvp 443 oxdf@hacky$ stty raw -echo ;

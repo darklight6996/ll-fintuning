@@ -1,0 +1,1 @@
+oint at print(resp.text) (now line 36). I can pass commands into pdb from the command line with the -c switch, so I’ll have my first -c set my break point and a second tell it to run on start to that break point: root@kali# python3 -mpdb -c

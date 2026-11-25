@@ -1,0 +1,21 @@
+METHOD / ANSWER:
+Windows Management Instrumentation for Post-Exploitation Tasks
+Windows Management Instrumentation (WMI) is used to manage data and
+operations on Windows operating systems. You can write WMI scripts or
+applications to automate administrative tasks on remote computers. WMI
+also provides functionality for data management to other parts of the
+operating system, including the System Center Operations Manager
+(formerly Microsoft Operations Manager [MOM]) and Windows Remote
+Management (WinRM). Malware can use WMI to perform different
+activities in a compromised system. For example, the Nyeta ransomware
+used WMI to perform administrative tasks.
+Note
+WMI can also be used to perform many data-gathering
+operations. Pen testers therefore use WMI as a quick system-
+enumerating tool.
+Sysinternals and PsExec
+Sysinternals is a suite of tools that allows administrators to control
+Windows-based computers from a remote terminal. You can use
+Sysinternals to upload, execute, and interact with executables on
+compromised hosts. The entire suite works from a command-line interface
+and can be scripted. By using Sysinternals, you can run commands that can

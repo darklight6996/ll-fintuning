@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from Einladen Mso.Dll Reverse Engineering Hacks Stuff)
+
+CONTEXT:
+Source: Einladen Mso.Dll Reverse Engineering Hacks Stuff
+Section: Writeup

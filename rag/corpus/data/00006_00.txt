@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you assess the security posture of the server running the application?
+
+CONTEXT:
+You have SSH access to the server hosting http://example.com.
+
+METHOD / ANSWER:
+Command: `lynis audit system`
+Explanation: Lynis performs a comprehensive security audit of the server, providing insights on system hardening according to established best practices.

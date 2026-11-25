@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+- {key: 'remember_me', value: '1'}
+type: 'post'
+• intercept: This feature indicates which HTTP requests you wish to
+intercept in your proxied connection and replaces the responses. Example 5-
+5 demonstrates this option.
+Example 5-5 An intercept Section
+intercept:
+- {domain: 'www.linkedin.com', path: '^\/report_err
+mime: "application/json"}
+- {domain: 'app.linkedin.com', path: '^\/api\/v1\/l
+Once your YAML file is ready to be ingested by Evilginx3, you need to edit
+the configuration of index.html for your redirector. In the latest version of
+Evilginx3, a redirector feature acts as a mini-site before hitting your actual
+phishing site. The purpose of this feature is to hide your phishing page from
+scanners on the Internet. The redirector page has a box to click that will
+open your phishlet sign-in page, forcing user interaction to view the
+phishlet itself. This feature helps significantly by preventing your phishing
+page from getting burned, hiding itself behind the landing page.

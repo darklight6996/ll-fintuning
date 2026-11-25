@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from Htb Craft Hacks Stuff)
+
+CONTEXT:
+Source: Htb Craft Hacks Stuff
+Section: Writeup

@@ -1,0 +1,25 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 5-10 ChatGPT: Output
+E5 Licenses
+Using E5 licenses during testing will provide the most aggressive analysis
+against your campaign and indicate whether or not your email has a chance
+to make it through most email gateways. You do not necessarily always
+have to use an E5 license; however, if your email can get past Microsoft’s
+email protections, you will probably have success against a majority of
+other vendors’ email gateways. You will have to use trial and error during
+testing because new detection methods are constantly developed, but using
+these licenses gives you a chance to develop more bypass techniques.
+Another free option is leveraging MailTrap (https://mailtrap.io) to test your
+emails.
+Execution
+Once you’re ready for execution, be sure to test the lure URL you created
+previously and run it from a private window on your machine and also your
+phone. If possible, test the authentication process to ensure cookies are
+properly captured.
+If you’re using an Azure CDN in front of your domain, whatever the lure
+URL generates as, you will swap it out with the Azure edge name. Your
+endpoints should look like the fol

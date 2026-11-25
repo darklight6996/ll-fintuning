@@ -1,0 +1,30 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+'hosts' table with the results.
+Options:
+Name Current Value Required Description
+------ ------------- -------- -----------
+SOURCE example.com yes source of input (see
+Source Options:
+default SELECT DISTINCT domain FROM domains WH
+<string> string representing a single input
+<path> path to a file containing a list of in
+query <sql> database query returning one column o
+[recon-ng][default][bing_domain_web] >
+Now, let’s change the source (the domain to be used to find its subdomains)
+using the options set SOURCE command, as demonstrated in Example 9-
+25. After the source domain is set, type run to run the query (as also shown
+in Example 9-25).
+Example 9-25 Setting the Source Domain and Running the Query
+[[recon-ng][default][bing_domain_web] > options set S
+SOURCE => h4cker.org
+[recon-ng][default][bing_domain_web] > run
+----------

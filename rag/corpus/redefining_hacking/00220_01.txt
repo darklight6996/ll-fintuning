@@ -1,0 +1,21 @@
+METHOD / ANSWER:
+deployed agents in real time. This includes executing
+commands, retrieving files, or running scripts on the
+compromised machine. Mythic is designed as a multi-user
+platform, allowing multiple operators to collaborate on the
+same operation simultaneously. This feature is particularly
+useful in large-scale red team exercises where different team
+members may handle different aspects of post-exploitation
+activities. The web-based interface provides an intuitive way
+for teams to manage tasks, track operational progress, and
+share insights.
+Patching Binaries to Include a Backdoor
+You can load an executable file into a hex editor to find an appropriate
+injection point and create a backdoor. You also can locate a section of the
+binary where you can inject code without disrupting the original
+functionality. Additionally, you can inject machine code for the reverse shell
+or backdoor.
+The following is an oversimplified example of the original binary section
+(hex):
+55 48 89 E5 48 83 EC 10 48 8B 05 B8 13 20 00
+Example 6-10 includes the modified binary section (hex).

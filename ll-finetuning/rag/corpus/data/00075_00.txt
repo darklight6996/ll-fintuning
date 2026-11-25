@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What do you do after successfully cracking the password?
+
+CONTEXT:
+You gain access to another user account (developer).
+
+METHOD / ANSWER:
+Command: `ssh developer@titanic.htb` with the cracked password.
+Explanation: Use the cracked password to authenticate over SSH with the Developer user account.

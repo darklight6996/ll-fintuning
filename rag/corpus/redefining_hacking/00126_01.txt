@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+Figure 5-3 SpoofCard Application
+Since 2022, SpoofCard has begun to push changes due to new regulations
+that require the app to verify ownership of phone numbers utilized for caller
+ID. Some grandfathered plans with SpoofCard still allow the service to be
+used to alter the phone number, but in the event you’re unable to customize
+the number, another option is to try to find a number listed by SpoofCard
+matching the area code of the company you’re targeting. An alternative is to
+stand up your own private branch exchange. STACKTITAN has created a
+great walkthrough on how to get this fully set up at
+https://rift.stacktitan.com/cid-spoofing/.
+Documentation
+Documentation at any phase of a red team event is crucial because
+engagements typically last for weeks at a time. When performing any
+pretexting calls, you can create a table for notes as you make calls when
+targeting each individual. The sample documentation provided in the text
+that follows is from the perspective of a fictitious organization named Acme
+documenting the outcome.
+Consider the following scenario: You are impersonating the help desk
+indicating to the employee that their device is out of sync. The emplo

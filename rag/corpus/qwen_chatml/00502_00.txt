@@ -1,0 +1,26 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• default: Scripts that are safe to run and are executed when you use the -sC
+option or --script=default
+• safe: Scripts that do not affect the target network or application in any way
+• intrusive: Scripts that might have potential side effects on the target
+• vuln: Scripts that check for specific vulnerabilities
+• exploit: Scripts that attempt to exploit vulnerabilities
+• auth: Scripts that bypass authentication mechanisms
+• discovery: Scripts focused on network discovery
+• version: Scripts that determine versions of services
+• brute: Scripts that perform brute-force attacks
+You can use NSE scripts by specifying the --script option followed by the
+script name or a category of scripts. For example:
+nmap --script=http-title --script-args="http.useragen
+10.6.6.23
+Users can write their custom scripts using the Lua programming language.
+A custom script generally contains the following sections:

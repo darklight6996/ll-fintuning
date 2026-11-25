@@ -1,0 +1,10 @@
+Context:
+Context: Web Application Reconnaissance. Target domain is 'editor.htb'. You suspect there may be other virtual hosts or subdomains.
+Principle to Apply: 'Expand the perimeter. Often, the main site is hardened, but subdomains are not.'
+assistant
+**Assessment Phase**: Subdomain/Virtual Host Discovery.
+**Core Principle**: Applications are often deployed across multiple subdomains (`admin.editor.htb`, `dev.editor.htb`, `api.editor.htb`). These can host different, potentially less secure applications or staging environments.
+**Actionable Steps**:
+1.  **Virtual Host Brute-Forcing**: `ffuf -u http://10.10.11.80 -H "Host: FUZZ.editor.htb" -w /opt/SecLists/Discovery/DNS/subdomains-top1million-20000.txt -ac`
+    *   **Reasoning**: `ffuf` is a fast web fuzzer. Here, it fuzzes the `Host` HTTP header with a wordlist of subdomain names. The `-ac` flag auto-calibrates filtering. It sends all requests to the same IP but treats different `Host` headers as different websites, identifying valid subdomains.
+**Guidance for Novel Context**: This technique works for virtual hosts on the same IP. For true DNS subdomain enumeration, the principle is the same ('brute-force the namespace'), but the t

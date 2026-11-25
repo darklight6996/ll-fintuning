@@ -1,0 +1,29 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+ip = relationship('IP', back_populates='vulnerabil
+Base.metadata.create_all(engine)
+Session = sessionmaker(bind=engine)
+session = Session()
+def add_platform(name):
+platform = Platform(name=name)
+session.add(platform)
+session.commit()
+print(f"Added platform: {name}")
+def add_program(name, platform_name):
+platform = session.query(Platform).filter_by(name=
+if not platform:
+print(f"Platform {platform_name} not found.")
+return
+program = Program(name=name, platform=platform)
+session.add(program)
+session.commit()
+print(f"Added program: {name} under platform {plat
+def add_root_domain(name, program_name):

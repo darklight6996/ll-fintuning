@@ -1,0 +1,27 @@
+ntheses until we ob-
+tain a corrected query. To resolve the second problem, we try to
+evade the second condition. We add to our query a final symbol
+that means that a comment is beginning. In this way, everything
+that follows such symbol is considered a comment. Every DBMS
+has its own syntax for comments, however, a common symbol to
+the greater majority of the databases is /*. In Oracle the symbol
+is “--", This said, the values that we'll use as Username and Pass-
+word are:
+$username = 1’ or ‘1’ ='1'))/*
+¢password = foo
+In this way, we'll get the following query:
+¢password = foo
+(Due to the inclusion of
+a comment delimiter in the $username
+value the password portion of the query will be ignored.)
+The URL request will be:
+110
+Web Application Penetration Testing
+¢password = foo
+This may return a number of values. Sometimes, the authentica-
+tion code verifies that the number of returned records/results is
+exactly equal to 1. In the previous examples, this situation would
+be difficult (in the database there is only one value per user). In
+order to go around this problem, it is enough to insert a SQL com-
+mand that imposes a condition that the number of the returned
+results must be one.

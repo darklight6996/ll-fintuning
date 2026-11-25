@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: Writeup from Htb Granny Hacks Stuff)
+
+CONTEXT:
+Source: Htb Granny Hacks Stuff
+Section: Writeup

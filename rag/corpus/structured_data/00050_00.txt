@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you leverage the ESC16 vulnerability in ADCS?
+
+CONTEXT:
+Context: ADCS Exploitation - ESC16. Enumeration has revealed a vulnerable configuration where low-privilege users have enrollment rights on a template that allows requesters to specify a Subject Alternative Name (SAN).
+Principle to Apply: 'Enroll in a certificate template where you can specify the SAN, and set the SAN to a privileged account name to receive a certificate that authenticates as that account.'

@@ -1,0 +1,22 @@
+the result of the original query with all the cred-
+it card numbers in the CreditCardTable table. The keyword ALL is
+necessary to get around queries that use the keyword DISTINCT.
+Moreover, we notice that beyond the credit card numbers, we
+have selected other two values. These two values are necessary,
+because the two queries must have an equal number of parame-
+ters/columns, in order to avoid a syntax error.
+The first detail a tester needs to exploit the SQL injection vulnera-
+bility using such technique is to find the right numbers of columns
+in the SELECT statement.
+In order to achieve this the tester can use ORDER BY clause fol-
+lowed by a number indicating the numeration of database's col-
+umn selected:
+http:/www.example.com/product.php?id=10 ORDER BY 10--
+If the query executes with success the tester can assume, in this
+example, there are 10 or more columns in the SELECT statement.
+If the query fails then there must be fewer than 10 columns re-
+turned by the query. If there is an error message available, it would
+probably be:
+Unknown column ‘10’ in ‘order clause’
+After the tester finds out the numbers of columns, the next step is
+to find out the type of columns. Assuming the

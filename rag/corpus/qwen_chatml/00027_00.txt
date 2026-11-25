@@ -1,0 +1,33 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+An Overview of Red Team Infrastructure
+Command and Control
+Test Your Skills
+Chapter 4. Modern Red Team Methodology and Tools
+Chapter 5. Social Engineering and Physical Assessments
+Phone Pretexting: Let’s Dial into Your Target
+Spear Phishing: Time to Reel In Your Target
+Can You Hear Us from the Inside?
+Test Your Skills
+Chapter 6. Advanced Post-Exploitation Techniques
+An Overview of Post-Exploitation
+How to Maintain Access, Use Persistence Mechanisms, and Create
+Backdoors
+Command and Control (C2) and Covert Channels
+How to Perform Lateral Movement
+Legitimate Utilities and Living-off the Land
+Post-Exploitation Privilege Escalation
+Test Your Skills
+Chapter 7. Active Directory and Linux Environments
+Chapter 8. The Future of Red Teaming Beyond the AI Revolution
+Understanding the Current State of AI in Red Teaming
+Creating AI-Powered Offensive Security Tools
+Examining Fine-Tuned Uncensored AI Models

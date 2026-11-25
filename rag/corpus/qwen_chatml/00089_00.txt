@@ -1,0 +1,28 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Chapter 3. Red Team Infrastructure
+Chapter Objectives
+After reading this chapter and completing the exercises, you will be able to
+do the following:
+• Understand common C2s
+• Use C2 communication channels
+• Use C2 redirectors
+• Secure your infrastructure
+• Understand how to set up C2 infrastructure
+To begin setting up initial access, a red team infrastructure needs to be
+created. The infrastructure being used for a red team needs to blend in like
+legitimate traffic. Attention to detail during this step is critical because your
+infrastructure as an attacker is what sets you up for success while executing
+and maintaining access in a compromised environment.
+In the last few years, there has been a significant shift toward using cloud
+platforms such as Azure and Google Cloud for red team infrastructure.
+Traditionally, operators would set up Command and Control (C2)
+infrastructure on self-hosted servers, but the move to cloud services allows

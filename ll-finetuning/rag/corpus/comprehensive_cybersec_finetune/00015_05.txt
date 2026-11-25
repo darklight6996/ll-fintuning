@@ -1,0 +1,19 @@
+**Phase 5: Persistence (TA0003)**
+- **Registry Run Keys (T1547.001)**: `HKCU\Run`, `HKLM\Run`
+- **Scheduled Task (T1053.005)**: `schtasks /create /sc onlogon`
+- **Startup Folder (T1547.001)**: `shell:startup`
+- **Services (T1543.003)**: `sc create`, `New-Service`
+- **DLL Search Order Hijacking (T1574.001)**: `DLL` in app directory
+- **COM Hijacking (T1546.015)**: `HKCU\Software\Classes\CLSID`
+- **WMI Event Subscription (T1546.003)**: `__EventFilter`, `__FilterToConsumerBinding`
+- **Account Manipulation (T1098)**:
+  - Additional Cloud Credentials (T1098.001)
+  - SSH Keys (T1098.004)
+  - Device Registration (T1098.005)
+- **Boot/Logon Autostart (T1547)**:
+  - Kernel Modules (T1547.006), Re-opened Applications (T1547.012)
+- **Browser Extensions (T1176)**: Chrome, Edge, Firefox
+- **Cloud Persistence**:
+  - Azure: Run Command, Custom Script Extension, Automation Account
+  - AWS: Lambda, SSM Document, EventBridge, CloudFormation
+  - GCP: Cloud Functions, Cloud Run, Startup Scripts

@@ -1,0 +1,1 @@
+rest of the User object that’s returned, including the role! I’ll need to know how a User object is created, and the constructors (code that’s run when an object is

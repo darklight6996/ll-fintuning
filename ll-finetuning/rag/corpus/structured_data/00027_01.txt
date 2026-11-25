@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Shadow Credential Attack.
+**Core Principle**: The `msDS-KeyCredentialLink` attribute can store public keys for certificate-based authentication. Writing to this attribute allows you to authenticate as that user without knowing their password.
+**Actionable Steps**:
+1.  **Implant Key Credential**: `certipy shadow auto -target dc01.tombwatcher.htb -u sam -p '0xdf0xdf!' -account john`
+    *   **Reasoning**: This command authenticates as 'sam', adds a new key credential to the 'john' user's attribute, and automatically requests a certificate for that key. It provides a `.pfx` file that can be used to authenticate as 'john'.
+**Guidance for Novel Context**: This attack requires specific permissions on the target object. If you lack the `-auto` flag's requirements, you may need to perform the steps manually: generate a key, modify the attribute via LDAP, then request the certificate. The core principle is exploiting write access to configure certificate-based authentication for yourself.

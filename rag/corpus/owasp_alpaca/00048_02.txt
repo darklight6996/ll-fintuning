@@ -1,0 +1,27 @@
+t IIS custom errors are not configured. Please note
+the .asp extension.
+Also test for .net custom errors. Type a random page name with
+aspx extension in your browser
+http:\\www.mywebserver.com\anyrandomname.aspx
+If the server returns
+Server Error in ‘/' Application.
+The resource cannot be found.
+Description: HTTP 404, The resource you are looking for (or one
+of its dependencies) could have been removed, had its name
+custom errors for .net are not configured.
+Error Handling in Apache
+Apache is
+a common HTTP server for serving HTML and PHP
+web pages. By default, Apache shows the server version, prod-
+ucts installed and OS system in the HTTP error responses.
+Responses to the errors can be configured and customized glob-
+ally, per site or per directory in the apache2.conf using the Error-
+Document directive [2]
+ErrorDocument 404 “Customized Not Found error message”
+ErrorDocument 403 /myerrorpagefor403.html
+ErrorDocument 501 http:/www.externaldomain.com/errorp-
+agefor501.html
+Site administrators are able to manage their own errors using
+.£htaccess file if the global directive AllowOverride is configured
+properly in apache2.conf [3]
+The information shown by Apache in the HTTP errors can

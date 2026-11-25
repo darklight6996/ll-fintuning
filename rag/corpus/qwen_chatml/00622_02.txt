@@ -1,0 +1,4 @@
+models prone to hallucinations
+may identify vulnerabilities that do not exist. This could lead to bug bounty
+hunters wasting significant time chasing false vulnerabilities that were
+never present in the system.

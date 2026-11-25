@@ -1,0 +1,26 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Find is a command-line utility for searching files in a directory hierarchy. It
+can be used to execute commands:
+find / -exec /bin/sh \; -quit
+This command executes /bin/sh using the -exec option of find.
+Awk is a scripting language used for manipulating data and generating
+reports. It also can be used to execute commands:
+awk 'BEGIN {system("/bin/sh")}'
+This command spawns a shell using awk.
+Vi and Vim are text editors. Even Vi and Vim can be used to escape to a
+shell:
+vim -c ':!sh'
+This command opens a shell from within Vim. As you can see, GTFOBins
+provides a valuable resource for understanding how legitimate UNIX
+binaries can be exploited in a misconfigured system.
+LOLBAS stands for Living-Off-the-Land Binaries, Scripts, and Libraries. It
+is a project that documents and catalogs legitimate binaries, scripts, and

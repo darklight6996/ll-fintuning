@@ -1,0 +1,10 @@
+Context:
+Context: Network Share Discovery. You have valid domain credentials (`j.fleischman`).
+Principle to Apply: 'Enumerate accessible network shares to find potential data repositories, configuration files, or upload locations.'
+assistant
+**Assessment Phase**: SMB Share Enumeration.
+**Core Principle**: SMB shares often contain sensitive data (documents, backups, configuration files) or may be writable, allowing for tool upload or implant placement.
+**Actionable Steps**:
+1.  **List All Shares**: `netexec smb dc01.fluffy.htb -u j.fleischman -p 'J0elTHEM4n1990!' --shares`
+    *   **Reasoning**: This command authenticates to the target and lists all SMB shares visible to the `j.fleischman` account, along with their permissions (Read, Write). This identifies potential targets for data pillaging or initial foothold establishment.
+**Guidance for Novel Context**: If `netexec` is unavailable, use `smbclient -L //target -U user` or CrackMapExec. The principle is to **leverage authenticated access to discover file repositories.** Always check both hidden shares (ending with `$`) and non-hidden ones.

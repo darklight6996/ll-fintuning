@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+C2 Communication Channels
+Command and Control communications channels are required for an
+operator to communicate with the C2 server. These channels are used to
+send data, receive data, and maintain persistent access to an agent on a
+victim’s machine. The communication methods are just as important as
+your evasion tactics when delivering your payload. If you have poor
+operations security (OPSEC) for your C2 channels, you will likely get
+caught.
+As blue teams have evolved over time, operators have had to make their
+traffic blend in with existing network traffic. The most common C2
+communications methods today are DNS over HTTPs and HTTP/HTTPS,
+although HTTPS seems to be the top method overall.
+• DNS over HTTPS (DoH) provides encryption end-to-end similarly to
+using HTTPS. The DNS queries and DNS responses are sent over HTTPS.
+Operators can abuse this method to reach out to DNS providers specified by
+the operator, such as cloudflare-dns.com, and resolve the DNS queries all
+over an encrypted channel.
+• HTTP/HTTPS is legitimately used for web traffic across the Internet.
+Most if not all networks will allow HTTP/HTTPS protoc

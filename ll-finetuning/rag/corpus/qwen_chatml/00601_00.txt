@@ -1,0 +1,16 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 11-4 AI Analysis of CVSS, EPSS, and KEV
+By leveraging historical data from CVSS, EPSS, and KEV, AI can develop
+predictive models to estimate the likelihood of future exploits. AI can
+consider the specific context of an organization or bug hunter's environment
+when prioritizing vulnerabilities. By analyzing factors such as the
+organization's network architecture, deployed assets, and security controls,

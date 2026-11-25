@@ -1,0 +1,1 @@
+zero == 0 ) { printf ( " \n access denied! \n " ); fflush ( stdout ); } else debug (); } If safety1 is not equal to safety2 , it prints a message and exits. It’s called with

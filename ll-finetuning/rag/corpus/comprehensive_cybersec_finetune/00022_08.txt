@@ -1,0 +1,7 @@
+: `http://canarytokens.com/...`
+    - File: `passwords.xlsx` with macro
+    - AWS keys: `AKIA...` that alert on use
+  - **Breadcrumbs**:
+    - Fake credentials in memory, registry, files
+    - Lateral movement paths that lead to monitored systems
+    - `BloodHound` paths that end in honeypot

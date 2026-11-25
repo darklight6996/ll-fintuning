@@ -1,0 +1,1 @@
+: id=3 Set-Cookie : username=MHhkZg%3D%3D Set-Cookie : password=MHhkZg%3D%3D Location : user Content-Length : 0 Connection : close Content-Type : text/html; charset=UTF-8 The username and password cookies are just the plaintext username and password, base64 and url encoded: root@kali#

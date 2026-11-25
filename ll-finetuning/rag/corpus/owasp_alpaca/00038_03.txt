@@ -1,0 +1,22 @@
+a URI, the entity is called an external
+entity. Unless configured to do otherwise, external entities force
+the XML parser to access the resource specified by the URI, e.g.,
+a file on the local machine or on a remote systems. This behav-
+ior exposes the application to XML eXternal Entity (XXE) attacks,
+which can be used to perform denial of service of the local system,
+gain unauthorized access to files on the local machine, scan re-
+mote machines, and perform denial of service of remote systems.
+To test for XXE vulnerabilities, one can use the following input:
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE foo [
+<!ELEMENT foo ANY >
+<!ENTITY xxe SYSTEM “file:/dev/random” >]><foo>&xxe;</
+foo>
+This test could crash the web server (on a UNIX system), if the
+XML parser attempts to substitute the entity with the contents of
+the /dev/random file.
+Other useful tests are the following:
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE foo [
+<!ELEMENT foo ANY >
+<!ENTITY xxe SYSTEM “file:/etc/passwd” >]><foo>&xxe;</

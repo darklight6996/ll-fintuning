@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• Generate sophisticated phishing emails that are increasingly difficult to
+distinguish from legitimate communications.
+• Develop adaptive payloads that can evade traditional detection methods.
+• Perform intelligent network mapping and target prioritization.
+These AI-driven tools allow red teams to simulate advanced persistent
+threats (APTs) more effectively, providing a more realistic assessment of an
+organization's security posture.
+Creating AI-Powered Offensive Security Tools
+There are many AI-powered offensive security tools that can help red
+teamers automate and analyze the results of such tools. Let’s look closely at
+Example 8-1. The script in Example 8-1 is an AI-powered open-source
+intelligence (OSINT) analysis tool that I (Omar) created to perform
+reconnaissance of a given domain. The script uses the tool certspy. Certspy
+is another tool that I created to enumerate subdomains and hosts (even
+internal hosts in an organization) using certificate transparency logs. The
+code in Example 8-1 can be accessed at
+https://github.com/santosomar/certspy_ai. The certspy tool can be installed
+using pip3 install certspy, and

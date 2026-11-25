@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What should you do after identifying the shares?
+
+CONTEXT:
+Context: Share Interaction & Analysis. Enumeration has revealed a non-standard SMB share (e.g., 'IT') with write permissions for your current user.
+Principle to Apply: 'Interact with accessible resources to find useful data, identify vulnerabilities, or establish a foothold.'

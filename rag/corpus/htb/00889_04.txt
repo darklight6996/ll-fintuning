@@ -1,0 +1,1 @@
+npacking them: Explore In each of those directories named for hashes are the layers of the Docker image, including previous iterations for the container. A really neat tool for pulling secrets from a Docker image is dive . I’ll follow the install instructions from the readme (though I used dpkg -i

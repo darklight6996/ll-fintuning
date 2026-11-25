@@ -1,0 +1,1 @@
+e_slabs 0 STAT total_malloced 0 END root@kali# curl -s 'http://10.10.10.86:8080/socket?port=11211&cmd=stats items' -H "Cookie: password=secret" | sed -n '/pre/{:a;n;/pre/b;p;ba}' END That’s because the cache has timed out and emptied. If I visit the port 80

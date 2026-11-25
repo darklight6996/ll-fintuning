@@ -1,0 +1,1 @@
+e API until you reach /latest/meta-data/iam/security-credentials/admin. This should return JSON containing the SecretAccessKey. Community solutions Garr_7 Intigriti Find XSS vulnerabilities using Burp Suite Try for free

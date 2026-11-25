@@ -1,0 +1,1 @@
+`wmiexec.py`. The principle is to **convert the acquired certificate or hash into an active, authenticated session on a target system.**

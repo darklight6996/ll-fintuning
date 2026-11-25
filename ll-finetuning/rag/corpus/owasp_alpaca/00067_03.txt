@@ -1,0 +1,8 @@
+mated scanners as well as a set of tools that allow
+you to find security vulnerabilities manually.
+References
+OWASP Resources
+» OWASP HTMLS5 Security Cheat Sheet: https://www.owasp.org
+index.php/HTML5_Security_Cheat_Sheet
+Whitepapers
+» Web Storage Specification: http://www.w3.org/TR/webstorage/

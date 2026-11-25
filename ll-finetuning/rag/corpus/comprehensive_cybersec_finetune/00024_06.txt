@@ -1,0 +1,9 @@
+- **CIS Kubernetes Benchmark v1.8**:
+  - **Control Plane**: API server authz, admission controllers, etcd encryption
+  - **Worker Nodes**: Kubelet config, pod security standards, runtime security
+  - **Policies**: Pod Security Admission, Kyverno, OPA Gatekeeper
+  - **Tools**: `kube-bench`, `kubescape`, `polaris`
+
+- **CIS Docker Benchmark v1.6**:
+  - Host config, daemon config, image build, container runtime
+  - Tools: `docker-bench-security`, `hadolint`

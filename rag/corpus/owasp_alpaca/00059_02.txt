@@ -1,0 +1,32 @@
+){
+$("b").css(“color’, location.hash.slice(1));
+});
+</script>
+References
+OWASP Resources
+» DOM based XSS Prevention Cheat Sheet
+» DOMXSS Wiki - https://code.google.com/p/domxsswiki/wiki
+CssText
+Presentations
+» DOM Xss Identification and Exploitation, Stefano Di Paola
+http://dominator.googlecode.com/files/DOMXss_
+Identification_and_exploitation.pdf
+« Got Your Nose! How To Steal Your Precious Data Without
+Using Scripts, Mario Heiderich - http://www.youtube.com/
+watch?v=FlQvAaZj_HA
+« Bypassing Content-Security-Policy, Alex Kouzemtchenko
+http://ruxcon.org.au/assets/slides/CSP-kuza55.pptx
+Proof of Concepts
+» Password “cracker” via CSS and HTML5 - http://html5sec.org
+invalid/?length=25
+» CSS attribute reading - http://eaea.sirdarckcat.net/cssar/v2/
+Testing for Client Side Resource Manipulation
+(OTG-CLIENT-006)
+Summary
+A ClientSide Resource Manipulation vulnerability is an input val-
+idation flaw that occurs when an application accepts an user
+controlled input which specifies the path of a resource (for ex-
+ample the source of an iframe,
+js, applet or the handler of an XM-
+LHttpRequest). Specifically, such a vulnerability consists in the
+ability to control the URLs which link to some reso

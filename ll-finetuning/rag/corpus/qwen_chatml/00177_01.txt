@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• Azure Edge: yourendpoint.azureedge.net
+• Your Lure: yourdomain.com/user/login
+• Final URL: https://yourendpoint.azureedge.net/user/login
+When you’re all set, you have a few options for how to include your URL:
+• Embed the URL inside of text within the email (which is less stealthy).
+• Add the lure URL into an M365 document, ensure it does not hyperlink,
+and then share the doc with the person you’re targeting (which is stealthy).
+• Create a QR code that points to the phishlet lure URL (which also is
+stealthy).
+After you’ve identified the method, you will have your URL in your email.
+I recommend including only up to five targets in the BCC per email every
+three hours or individually emailing employees but still staying under a max
+of five targets per day. If Microsoft suspects you are spamming folks, your
+account will be limited in sending out emails for your campaign, so it’s
+important to go slow. Prior to sending out your email, make sure you have
+your setup ready to go to perform post-exploitation. I recommend the
+following setup:
+• Virtual instance in the region of the organization you are targeting to use
+for proxy

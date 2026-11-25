@@ -1,0 +1,13 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+is the OSINT Framework at https://osintframework.com. The
+OSINT Framework is a visualization that includes numerous
+OSINT-related resources, as shown in Figure 9-1.

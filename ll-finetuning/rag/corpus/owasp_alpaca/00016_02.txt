@@ -1,0 +1,33 @@
+ures. For better accuracy sev-
+eral markers are usually used.
+[*] Please note that this article makes no differentiation between Web
+Application Frameworks (\WAF) and Content Management Systems
+(CMS). This has been done to make it convenient to fingerprint both of
+them in one chapter. Furthermore, both categories are referenced as
+web frameworks.
+Test Objectives
+To define type of used web framework so as to have a better under-
+standing of the security testing methodology.
+How to Test
+Black Box testing
+There are several most common locations to look in in order to define
+the current framework:
+» HTTP headers
+» Cookies
+» HTML source code
+« Specific files and folders
+HTTP headers
+The most basic form of identifying a web framework is to look at the
+X-Powered-By field in the HTTP response header. Many tools can be
+used to fingerprint a target. The simplest one is netcat utility.
+Consider the following HTTP Request-Response:
+$ nc 127.0.0.1 80
+HEAD / HTTP/1.0
+HTTP/1.1 200 OK
+Server: nginx/1.0.14
+Date: Sat, 07 Sep 2013 08:19:15 GMT
+Content-Type: text/html;charset=ISO-8859-1
+Connection: close
+Vary: Accept-Encoding
+X-Powered-By: Mono
+From the X-Powered-By field, we understand that the web a

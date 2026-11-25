@@ -1,0 +1,15 @@
+**OT-Specific Tools**:
+- **Scanners**: `ics-scanner`, `plcscan`, `modbus-cli`, `s7scan`, `dnp3scan`, `bacnet-scan`, `opcua-scan`
+- **Frameworks**: `ICS-Exploit-Framework`, `PLC-Exploit-Framework`, `SCADA-Exploit-Framework`
+- **Analysis**: `Wireshark` (industrial dissectors), `NetworkMiner`, `CapAnalysis`
+- **Simulation**: `PLC-Simulator`, `Modbus-Simulator`, `DNP3-Simulator`, `OPC-UA-Simulator`
+- **Hardware**: `USB-to-RS485`, `USB-to-RS232`, `CAN-USB`, `PROFIBUS-USB`, `HART-Modem`
+
+**Safety & Legal Considerations**:
+- **NEVER test production systems without explicit written authorization**
+- **Use test labs, digital twins, simulation environments**
+- **Coordinate with plant operators, safety engineers**
+- **Emergency stop procedures, rollback plans**
+- **Document all actions, timestamps, impacts**
+- **Regulatory**: NERC CIP, IEC 62443, NIST 800-82, ISA/IEC 62443, CFATS, TSA Pipeline
+- **Insurance**: Cyber insurance, equipment damage coverage

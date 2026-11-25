@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check ARP cache.
+
+CONTEXT:
+Network security review.
+
+METHOD / ANSWER:
+Command: `ip neigh`
+Explanation: Detects spoofing risks.

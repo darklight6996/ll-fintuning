@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+persist through reboots and operate at a very low level in the system.
+Rootkits and bootkits are sophisticated malware that provide attackers with
+persistent, low-level access to compromised systems. Rootkits operate at
+the kernel level, often modifying core system functions to remain hidden
+and maintain control. Bootkits, on the other hand, infect the boot process
+itself, ensuring they are loaded before the operating system, making them
+highly persistent and difficult to remove.
+Hardware and Firmware Backdoors
+Hardware and firmware backdoors represent some of the most sneaky and
+difficult-to-detect types of cyber threats. These backdoors are implemented
+by injecting malicious code into the firmware of hardware components,
+allowing attackers to maintain persistent access and control over a system
+even if the operating system is reinstalled or the hard drive is replaced.
+The basic input/output system (BIOS) and Unified Extensible Firmware
+Interface (UEFI) are types of firmware used to initialize hardware during
+the boot process before the operating system loads. By injecting malicious
+code into these firmware components, attackers can gain control over a
+system at i

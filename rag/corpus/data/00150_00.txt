@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Identify specific files within HR share.
+
+CONTEXT:
+Access the HR share to find potentially sensitive documents.
+
+METHOD / ANSWER:
+Command: `smbclient -U guest //10.10.11.35/HR`
+Purpose: Enumerate files in a specific share that may hold valuable information.

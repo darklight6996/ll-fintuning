@@ -1,0 +1,1 @@
+Look for any misconfigurations in Azure services that can be exploited.

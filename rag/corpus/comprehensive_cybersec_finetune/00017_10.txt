@@ -1,0 +1,13 @@
+derware`, `factorytalk`, `wincc`, `cimplicity`, `indusoft`, `zenon`, `movicon`
+  - **Thick Client HMI**:
+    - Reverse engineering (C#, Java, Delphi, VB6)
+    - Communication protocol (proprietary, OPC, DCOM)
+    - Project file analysis (encryption, credentials)
+  - **Historian/Database**:
+    - `pi system` (OSIsoft), `wonderware historian`, `factorytalk historian`
+    - SQL injection, weak credentials, excessive permissions
+- **Engineering Workstation**:
+  - Project files (encryption, credentials, keys)
+  - License dongles (HASP, CodeMeter, Sentinel)
+  - VPN/vendor remote access
+  - USB/data diode transfer

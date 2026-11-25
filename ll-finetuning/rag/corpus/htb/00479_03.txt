@@ -1,0 +1,1 @@
+me challenge back (1122334455667788). In reality, this could all be done over RPC, but doing so with Impacket was unstable, so the code will switch to SMB to do the NTLM negotiation. Even with people telling me the path and giving me code samples, this took a ton of debugging trial and error to get working. IppSec and I

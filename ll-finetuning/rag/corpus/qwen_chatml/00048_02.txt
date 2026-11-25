@@ -1,0 +1,7 @@
+blic recognition helped the community
+grow by identifying other researchers and encouraging collaboration. As
+with previous programs, the company offered financial rewards for
+disclosing vulnerabilities. It established the practice of different rewards
+based on the severity of the vulnerability. Like previous programs that
+focused on a single product, the company evolved its scope from solely the
+Firefox browser to include its other products as well. During this time,

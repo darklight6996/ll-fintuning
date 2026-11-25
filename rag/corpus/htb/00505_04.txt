@@ -1,0 +1,1 @@
+y_add_x_forwarded_for ; add_header X-Ariekei-WAF "beehive.ariekei.htb" ; } error_page 403 /403.html

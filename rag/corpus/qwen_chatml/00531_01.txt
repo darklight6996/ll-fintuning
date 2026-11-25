@@ -1,0 +1,25 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+BloodHound excels in identifying potential attack paths, such as privilege
+escalation and lateral movement opportunities. Use it to find hidden
+vulnerabilities that could be exploited to compromise the environment.
+You can also leverage the data analysis and visualization capabilities of
+BloodHound to understand the complex relationships in the AD
+environment. This can help you spot patterns and connections that might
+not be evident through conventional means. BloodHound can help identify
+misconfigurations in the AD setup, such as excessive permissions or
+insecure trusts, which could be reported as potential vulnerabilities in the
+bug bounty program.
+Tip
+BloodHound uses graph theory to reveal the hidden and
+often unintended relationships within AD environments. It
+collects data from the target AD environments using various
+methods and techniques, such as LDAP enumeration,
+SMB/NetSession enumeration, and more. BloodHound
+provides a graphical interface where it visually represents
+the relationships and permissions within the AD
+environment, making it easier for analysts to identify
+potential attack paths.

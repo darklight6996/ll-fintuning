@@ -1,0 +1,19 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+A. Resource intensive
+B. Difficulty measuring outcome
+C. Long duration
+D. Adaptability
+6. You are executing an engagement with a UK-based financial institution.
+What framework might you be required to use?
+A. TIBER-EU
+B. CBEST
+C. Unified Kill Chain
+D. MITRE ATT&CK

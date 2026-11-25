@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What information does a detailed Nmap scan provide after discovering open ports?
+
+CONTEXT:
+Context: Post-Discovery. Initial scan found specific open ports: 22 (SSH), 80 (HTTP), 8080 (HTTP-Alt).
+Principle to Apply: 'Deeply interrogate each identified service.'

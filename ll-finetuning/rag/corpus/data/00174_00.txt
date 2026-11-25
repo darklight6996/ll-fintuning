@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Extract sensitive data from the internal API.
+
+CONTEXT:
+Identify valuable endpoints that leak credentials.
+
+METHOD / ANSWER:
+Command: `curl http://editorial.htb/static/uploads/[uuid]` to access API data.
+Purpose: Obtain usernames and passwords from the leaked data.

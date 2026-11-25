@@ -1,0 +1,18 @@
+METHOD / ANSWER:
+hybrid, or in person. If the employees are back in the office, including the
+person you are impersonating, this will ultimately lead to quickly being
+burned during a red team event. Once you know the employee’s office
+presence, you can approach the person you want to target. For example, if
+the help desk is a department you want to impersonate, ensure that the help
+desk is not in the same office as the folks you are targeting. You will want
+to identify folks working in other locations who can’t quickly verify your
+identity by walking over to your desk. Another factor to consider when
+choosing personnel is not focusing on folks or targeting leadership roles
+unless you see that as a viable route. Typically, you want to go after folks
+who are at or below a manager level when choosing personnel.
+The best way to find employees is by taking advantage of the information
+you gather during the overall open-source intelligence (OSINT) phase of
+your red team event and leveraging the data to identify the roles of the folks
+you can target and the technology in use from DNS records. You can find
+OSINT collection methods for understanding an organization’s public
+presence in Chap

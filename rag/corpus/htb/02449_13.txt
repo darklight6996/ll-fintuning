@@ -1,0 +1,1 @@
+ter/domain SMB 10.10.11.5 445 DC krbtgt 2023-08-24 01:47:22 6 Key Distribution Center Service Account SMB 10.10.11.5 445 DC mikasaAckerman 2024-05-27 17:58:13 0 Database Developer SMB 10.10.11.5 445 DC sshd 2023-08-28 18:30:29 6 SMB 10.10.11.5 445 DC SQLBackupOperator 2023-09-21 07:26:05 6 SQL Backup Operator Account for Temp Schudeled SQL Express Backups

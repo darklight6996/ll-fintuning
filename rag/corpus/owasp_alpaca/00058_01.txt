@@ -1,0 +1,32 @@
+METHOD / ANSWER:
+sources.enablesecurity.com/resources/Surf%20Jacking.pdf
+[!] Vulnerability Status: VULNERABLE
+HTTP/1.1 200 OK
+Date: Wed, 23 Jul 2014 13:48:07 GMT
+Server: Apache/2.4.3 (\Win32) OpenSSL/1.0.1¢ PHP/5.4.7
+X-Powered-By: PHP/5.4.7
+Set-Cookie: SessionID=xxx; expires=Wed, 23-Jul-2014 12:48:07
+GMT; path=/; secure
+Set-Cookie: SessionChallenge=yyy; expires=Wed, 23-Jul-2014
+12:48:07 GMT; path=/
+Content-Length: 193
+Connection: close
+Content-Type: text/html
+Checking localhost:443 for ECDHE/DHE ciphers against FOR-
+WARD SECRECY support...
+[*] Forward Secrecy: SUPPORTED
+[*] Connected using cipher - TLS_ECDHE_RSA_WITH_
+AES_128_CBC_SHA on protocol - TLSv1
+[*] Attackers will NOT be able to decrypt sniffed SSL packets
+even if they have compromised private keys.
+[*] Vulnerability Status: No
+Checking localhost:443 for RC4 support (CVE-2013-2566)...
+['] RC4: SUPPORTED
+[!] Vulnerable to MITM attack described in http:/www.isg.rhul.
+ac.uk/tls/
+[!] Vulnerability Status: VULNERABLE
+Checking localhost:443 for TLS 1.1 support...
+Checking localhost:443 for TLS 1.2 support...
+[*] TLS 1.1, TLS 1.2: SUPPORTED
+[*] Immune from BEAST attack mentioned in http://www.
+infoworld.com/t/security/red-alert-ht

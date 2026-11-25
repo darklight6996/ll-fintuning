@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What should you do after obtaining access as a service account?
+
+CONTEXT:
+You have access to a user account with GenericWrite privileges.
+
+METHOD / ANSWER:
+Command: `certipy shadow auto -u <username> -p <password> -account <service_account>`
+Explanation: This command sets up a shadow credential for a service account, allowing you to request certificates under its identity.

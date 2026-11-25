@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What do you do after successfully cracking the password?
+
+CONTEXT:
+Context: Lateral Movement with New Credentials. You have cracked the NetNTLMv2 hash for user `p.agila` and obtained the plaintext password (`prometheusx-303`).
+Principle to Apply: 'Use recovered plaintext credentials to authenticate to systems and services, expanding your access within the network.'

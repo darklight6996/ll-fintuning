@@ -1,0 +1,1 @@
+hen it goes back to the top of this local loop. At this point, I’m thinking I’m going to have a heap overflow here, as I can write well beyond the 12 bytes malloced . Still I’ll check out what happens once

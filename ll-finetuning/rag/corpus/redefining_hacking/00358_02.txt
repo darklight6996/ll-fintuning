@@ -1,0 +1,3 @@
+isks and frontier threats red teaming for national security risks.
+Most of the red teaming of AI systems has been done in English.
+Addressing representation issues by testing AI systems in different

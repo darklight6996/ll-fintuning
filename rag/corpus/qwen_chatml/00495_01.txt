@@ -1,0 +1,29 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+### Passive Reconnaissance Analysis of secretcorp.org
+The passive reconnaissance using Amass on secretcorp.
+- Unique Domains: 16
+- Unique IP Addresses: 1
+## Amass Output:
+secretcorp.org (FQDN) --> ns_record --> ns-cloud-b3.g
+secretcorp.org (FQDN) --> ns_record --> ns-cloud-b1.g
+secretcorp.org (FQDN) --> ns_record --> ns-cloud-b2.g
+secretcorp.org (FQDN) --> ns_record --> ns-cloud-b4.g
+secretcorp.org (FQDN) --> mx_record --> mxb.mailgun.o
+secretcorp.org (FQDN) --> mx_record --> mxa.mailgun.o
+secretcorp.org (FQDN) --> node --> finance-app.secret
+secretcorp.org (FQDN) --> node --> backdoor.secretcor
+secretcorp.org (FQDN) --> node --> vpn.secretcorp.org
+secretcorp.org (FQDN) --> node --> cloud.secretcorp.o
+finance-app.secretcorp.org (FQDN) --> cname_record --
+(FQDN)
+backdoor.secretcorp.org (FQDN) --> cname_record --> s
+vpn.secretcorp.org (FQDN) --> cname_record --> santos
+cloud.secretcorp.org (FQDN) --> cname_record --> sant
+secretcorp.org (FQDN) --> node --> app1.secretcorp.or
+secretcorp.org (FQDN) --> node --> internal.secretcor
+app1.secretcorp.org (FQDN) --> cname_record --> santo
+ns-cloud-b2.googledomains.com (FQDN) -->

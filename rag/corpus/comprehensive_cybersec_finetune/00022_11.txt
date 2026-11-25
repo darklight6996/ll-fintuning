@@ -1,0 +1,35 @@
+def classify_environment(target):
+    score = {
+        'development': 0,
+        'staging': 0,
+        'production': 0,
+        'sandbox': 0,
+        'honeypot': 0
+    }
+    
+    # Hostname analysis
+    hostname = socket.gethostbyaddr(target)[0]
+    if any(x in hostname for x in ['dev', 'devel', 'local', 'feature']):
+        score['development'] += 3
+    elif any(x in hostname for x in ['stage', 'staging', 'preprod', 'uat', 'qa']):
+        score['staging'] += 3
+    elif any(x in hostname for x in ['prod', 'prd', 'www', 'api']):
+        score['production'] += 3
+    
+    # HTTP headers
+    try:
+        r = requests.get(f'https://{target}', timeout=5, verify=False)
+        headers = {k.lower(): v for k, v in r.headers.items()}
+        
+        if 'x-environment' in headers:
+            env = headers['x-environment'].lower()
+            if env in score: score[env] += 5
+        
+        if 'server' in headers:
+            if 'cloudflare' in headers['server'].lower():
+                score['production'] += 2
+        
+        # Debug endpoints
+        debug_endpoints = ['/actuator/env', '/swagger.json', '/api-docs', '/.git']
+        for ep in debug_endpoints:
+            try:

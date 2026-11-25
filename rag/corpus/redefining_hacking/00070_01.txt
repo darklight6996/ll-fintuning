@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+Mythic has various community profiles
+(https://github.com/MythicC2Profiles) to leverage with the framework,
+including the following:
+• http: Utilizes GET/POST requests to the Mythic server supporting kill
+dates, sleep intervals, custom headers, proxy information, and SSL support.
+• dns: Leverages a DNS server listening for TXT queries from the agent for
+communications supporting kill dates, sleep intervals, and a custom DNS
+server.
+• httpx: Is a dynamic and customizable HTTP profile. There is a range of
+options that an operator can leverage, including callback domains, domain
+fallback, domain rotation, encrypted key exchange, jitter, sleep intervals,
+and agent messages.
+• discord: Leverages Discord’s REST API for communications.
+• websocket: Allows agents to connect through a static websocket
+connection with support for SSL, kill dates, and sleep intervals.
+• dynamichttp: Employs extendable HTTP messages with dynamic
+modifications for the client and server supporting kill dates, sleep intervals,
+custom headers, proxy information, and SSL support.

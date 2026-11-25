@@ -1,0 +1,25 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+significantly mitigates the issue of hallucination, a common obstacle faced
+when utilizing language models directly for prompts.
+The team created APIBench, a comprehensive dataset that includes APIs
+from leading platforms such as HuggingFace, TorchHub, and TensorHub.
+Gorilla's exemplary performance highlights the substantial promise held by
+this kind of large language model and their applications. This fusion not
+only guarantees more accurate tool usage but also ensures staying abreast
+with the ever-changing documentation. For individuals keen on delving
+deeper into Gorilla, the models and relevant code are available at
+https://github.com/ShishirPatil/gorilla. Further details and the research
+paper can be found at https://gorilla.cs.berkeley.edu.
+You can install the Gorilla CLI easily by using the pip3 install gorilla-cli
+command. Once it is installed, you can use prompts like the one shown in
+Example 9-27.
+Example 9-27 Using Generative AI and the Gorilla LLM to Perform
+Passive Recon
+┌──(omar㉿websploit)-[~]
+└─$ gorilla "use Amass to perform recon of the secret
+🦍 Welcome to Gorilla. Use arrows to select
+amass enum -d sec

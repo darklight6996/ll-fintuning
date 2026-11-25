@@ -1,0 +1,10 @@
+Context:
+Context: Gaining Interactive Access via Certificate. You have obtained a `.pfx` certificate file for the `winrm_svc` account via a Shadow Credential attack and have its corresponding NTLM hash (often output by Certipy).
+Principle to Apply: 'Use the credential material (certificate or derived hash) from the shadow credential attack to establish an interactive session.'
+assistant
+**Assessment Phase**: Establishing a Shell with New Credentials.
+**Core Principle**: A certificate (`.pfx`) can be used for PKINIT authentication to get a TGT. Alternatively, the NTLM hash obtained during the process can be used directly for Pass-the-Hash.
+**Actionable Steps**:
+1.  **Authenticate via WinRM with Hash**: `evil-winrm -i dc01.fluffy.htb -u winrm_svc -H <NTLM_hash>`
+    *   **Reasoning**: Certipy's `shadow auto` outputs the NTLM hash of the target account. Using this hash with Evil-WinRM is a straightforward way to get a PowerShell shell as the `winrm_svc` user, leveraging the WinRM protocol which is often allowed for service accounts.
+**Guidance for Novel Context**: You could also use the `.pfx` with `certipy auth` to get a TGT/`.ccache` file, then use that with tools like `netexec` or

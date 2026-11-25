@@ -1,0 +1,22 @@
+**OTG-SESS-008: Session Puzzling**
+- Same session variable used for different purposes
+- Overwrite user_id, role, permissions via different endpoints
+
+**Phase 3: Multi-Factor Authentication (MFA) Testing**
+- **TOTP (Google Auth, Authy)**:
+  - Replay codes (time window)
+  - Backup code enumeration
+  - QR code secret exposure
+  - Rate limiting on verification
+- **SMS/Email OTP**:
+  - Intercept via SS7, SIM swap, email compromise
+  - Predictable codes (4-6 digits)
+  - Rate limiting
+- **Push Notification (Duo, Okta)**:
+  - MFA fatigue (spam pushes)
+  - Device registration bypass
+- **WebAuthn/FIDO2**:
+  - Attestation verification
+  - Resident key extraction
+- **Recovery Codes**:
+  - Storage, entropy, enumeration

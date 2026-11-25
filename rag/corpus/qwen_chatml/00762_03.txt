@@ -1,0 +1,20 @@
+unc-
+tion was restricted to use within an HTML TextField.
+This means that a tester could try to inject:
+asfunction:getURL,javascript:evilcode
+in every unsafe method like:
+loadMovie(_root.URL)
+by requesting:
+http:/victim/file.swf?URL=asfunction:getURL,javascript:evil-
+code
+Externallinterface:
+Externallnterface.call is a static method introduced by Adobe to im-
+prove player/browser interaction for both ActionScript 2.0 and Ac-
+tionScript 3.0.
+From a security point of view it could be abused when part of its ar-
+gument could be controlled:
+flash.external.Externallnterface.call(_root.callback);
+the attack pattern for this kind of flaw should be something like
+the following:
+eval(evilcode)
+198

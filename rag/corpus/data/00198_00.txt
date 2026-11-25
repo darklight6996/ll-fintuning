@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check kernel version.
+
+CONTEXT:
+System baseline audit.
+
+METHOD / ANSWER:
+Command: `uname -r`
+Explanation: Confirms supported kernel version.

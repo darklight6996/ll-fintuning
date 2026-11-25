@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Define and explain the key concept presented in the following text: (Context: Writeup from Htb Absolute Hacks Stuff)
+
+CONTEXT:
+Source: Htb Absolute Hacks Stuff
+Section: Writeup

@@ -1,0 +1,30 @@
+**AV/EDR Evasion**:
+- **Living Off The Land (LOLBins)**:
+  - `msbuild.exe`, `installutil.exe`, `regsvr32.exe`, `rundll32.exe`
+  - `wmic.exe`, `certutil.exe`, `bitsadmin.exe`, `mshta.exe`
+  - `powershell.exe -encodedcommand`, `pwsh.exe`
+- **Direct Syscalls**:
+  - HellsGate, HalosGate, TartarusGate
+  - Bypass user-mode hooks
+- **AMSI Bypass**:
+  - `AmsiScanBuffer` patch (memory)
+  - Reflection: `[Ref].Assembly.GetType('System.Management.Automation.AmsiUtils')`
+  - PowerShell: `[System.Management.Automation.AmsiUtils]::amsiInitFailed = $true`
+- **ETW Bypass**:
+  - `EtwEventWrite` patch
+  - `ntdll.dll` patching
+- **PPL (Protected Process Light) Bypass**:
+  - `PPLdump`, `Mimikatz` driver
+  - `PsSetCreateProcessNotifyRoutine` removal
+- **Memory Injection**:
+  - Process Hollowing, Process Doppelgänging
+  - Module Stomping, Thread Execution Hijacking
+  - `Donut` (shellcode → .NET assembly → shellcode)
+- **Obfuscation**:
+  - PowerShell: `Invoke-Obfuscation`, `ISE-Steroids`
+  - C#: `ConfuserEx`, `Obfuscar`, `Donut`
+  - Go: `garble`, `strip`
+  - Rust: `strip`, `cargo-obfuscate`
+- **Bring Your Own Vulnerable Driver (BYOVD)**:
+  - Exploit signed vulnerable drivers
+  - `CVE-2024-2025`, `CVE-2021

@@ -1,0 +1,32 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Let’s perform a quick search to find different subdomains of one of my
+domains (h4cker.org). For this example, let’s use the module
+bing_domain_web to try to find any subdomains leveraging the Bing search
+engine. You can perform a keyword search for any modules by using the
+marketplace search <keyword> command, as demonstrated in Example 9-
+21.
+Example 9-21 Marketplace Keyword Search
+[recon-ng][default] > marketplace search bing
+[*] Searching module index for 'bing'...
++----------------------------------------------------
+| Path | Version | Status | Upd
++----------------------------------------------------
+| recon/companies-contacts/bing_linkedin_cache | 1.0
+2019-06-24 | | * |
+| recon/domains-hosts/bing_domain_api | 1.0
+2019-06-24 | | * |
+| recon/domains-hosts/bing_domain_web | 1.1
+2019-07-04 | | |
+| recon/hosts-hosts/bing_ip | 1.0
+2019-06-24 | | * |
+| recon/profiles-contacts/bing_linkedin_contacts | 1.
+2019-10-08 | | * |
++----------------------------------------------------

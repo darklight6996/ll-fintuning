@@ -1,0 +1,10 @@
+ponse, the tester understand in
+the same way that they don’t hold a valid username. So they can
+interact in the same manner and create a list of valid user ID look-
+ing at the server answers.
+Other ways to enumerate users
+Testers can enumerate users in several ways, such as:
+- Analyzing the error code received on login pages
+Some web application release a specific error code or message
+that we can analyze.
+64

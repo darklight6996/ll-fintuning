@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Exploit misconfigured role assignments.
+
+CONTEXT:
+Find users with excessive permissions.
+
+METHOD / ANSWER:
+Command: `az ad group member list --group <group_name>`
+Purpose: Identify users with abnormal permissions for further exploitation.

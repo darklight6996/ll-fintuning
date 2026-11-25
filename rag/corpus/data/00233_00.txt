@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check environment variables.
+
+CONTEXT:
+Secret leakage audit.
+
+METHOD / ANSWER:
+Command: `printenv`
+Explanation: Detects exposed sensitive data.

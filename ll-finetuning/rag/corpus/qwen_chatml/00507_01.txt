@@ -1,0 +1,25 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• target is set to the first argument given in the command line (sys.argv[1]),
+which is the IP address of the target machine.
+• ports is set to the range of 1–1023, which are the well-known port
+numbers.
+• The tcp_port_scan() function is then called with the target and ports as
+parameters.
+This simple script does not handle many edge cases. In a real-world
+situation, additional code would be required to handle potential exceptions,
+timeouts, and other situations. This script and many other examples are
+available in my GitHub repository at https://github.com/The-Art-of-
+Hacking/h4cker/tree/master/programming_and_scripting_for_cybersecurity.
+Exploring the Different Types of Enumeration
+Next, we’ll cover enumeration techniques that should be performed in the
+information-gathering phase of a penetration test. You will learn how and
+when these enumeration techniques should be used. The following sections
+also include examples of performing these types of enumeration by using
+Nmap.
+Host Enumeration
+The enumeration of hosts is one of the first tasks you need to perform in the
+information-gathering phase of a penetration test.

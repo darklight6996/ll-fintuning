@@ -1,0 +1,25 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+D. C2 IP and redirector domain
+7. Which C2 is publicly available?
+A. Nighthawk
+B. Cobalt Strike
+C. Mythic
+D. None of these options are correct.
+8. Which tool can be used to generate SSL certificates with Let’s Encrypt?
+A. certbot
+B. certutil
+C. cloudflare
+D. smbclient
+9. Which file(s) from Let’s Encrypt will be imported into Mythic’s C2
+profile options?
+A. cert.pem
+B. fullchain.pem and cert.pem

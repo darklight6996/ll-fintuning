@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+with these cards is the lack of security due to the data being read
+unencrypted.
+• 2000s—High-Frequency (13.56 MHz) Smart Cards: To provide better
+security, the shift to high frequency provided encryption when the data was
+read as well as the ability to write multiple IDs. Although these high-
+frequency smart cards were far more secure than LF badges, the algorithms
+used for encryption in the beginning were eventually bypassed in most first-
+generation cards due to mutual authentication algorithms being used with
+the cards. iClass Legacy fell because its master key was leaked, which
+allowed anyone to decrypt the credentials leveraging this key.
+• 2010s—Smart Cards, Second Generation: The second generation of
+smart cards stepped into using the open standards industry protocol. These
+standards are continuously updated so that they provide the latest security to
+be used in the data being exchanged between badges and badge readers.
+Technology released during this era includes HID SEOS and the new HID
+iClass SE, which are not cloneable at this time.
+• Present Day: Besides phones being used for access control, the latest
+tech

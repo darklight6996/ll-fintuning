@@ -1,0 +1,18 @@
+TECHNIQUE / QUESTION:
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+How AI Can Help Bug Hunters and Organizations Prioritize
+Vulnerabilities Using CVSS, EPSS, and KEV
+AI can help integrate data from CVSS, EPSS, and KEV along with other
+relevant sources to create a comprehensive view of vulnerability risks.
+Machine learning algorithms can analyze this data to identify patterns and
+correlations that humans might miss, providing a more nuanced
+understanding of vulnerability priorities. Figure 11-4 shows how you could
+build AI systems to analyze and prioritize vulnerabilities on a large scale
+using data from CVSS, EPSS, and KEV.

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check file ownership anomalies.
+
+CONTEXT:
+Integrity monitoring.
+
+METHOD / ANSWER:
+Command: `find / -nouser -o -nogroup`
+Explanation: Detects orphaned files.

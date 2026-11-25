@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Perform a full port scan.
+
+CONTEXT:
+Run Nmap to identify active services.
+
+METHOD / ANSWER:
+Command: `nmap -p- --min-rate 10000 10.10.11.11`
+Purpose: Discovers open TCP ports on the target.

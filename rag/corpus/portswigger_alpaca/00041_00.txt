@@ -1,0 +1,5 @@
+TECHNIQUE / QUESTION:
+Explain the objectives and methodology for the PortSwigger lab: Lab: Authentication bypass via information disclos
+
+CONTEXT:
+Context: Lab: Authentication bypass via information disclosure (Learning Module)

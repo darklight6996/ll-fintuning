@@ -1,0 +1,16 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+C. obfuscator.io
+D. UPX
+19. What is an example of living-off-the-land (LOTL) in post-exploitation?
+A. Using a custom-built malware
+B. Using legitimate software for malicious purposes
+C. Installing new antivirus software
+D. Performing routine software updates

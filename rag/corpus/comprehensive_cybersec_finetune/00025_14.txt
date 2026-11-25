@@ -1,0 +1,18 @@
+- **OSED (Offensive Security Exploit Developer) - OffSec**
+  - **Prerequisites**: EXP-301 course, OSCP + C/Assembly
+  - **Exam**: 48-hour practical (3-4 exploits) + 24-hour report
+  - **Topics**:
+    - **Windows x64 User-Mode**: Stack/heap, SEH, CFG bypass
+    - **Kernel Exploitation**: Pool overflow, use-after-free, type confusion
+    - **Mitigations**: DEP, ASLR, CFG, ACG, CET, HVCI
+    - **Browser**: V8 exploitation, JIT compilation bugs
+    - **Fuzzing**: WinAFL, custom harnesses
+    - **Patch Analysis**: BinDiff, Diaphora, 1-day development
+  - **Study Resources**:
+    - OffSec EXP-301 course (90/120/180 day lab)
+    - "Windows Internals" Part 1 & 2 (Pavel Yosifovich)
+    - "Advanced Windows Exploitation" (OffSec)
+    - Project Zero, Google Security Research blogs
+    - Pwn2Own, Tianfu Cup writeups
+  - **Cost**: $1,599 (90-day lab)
+  - **ROI**: Vulnerability researcher, exploit developer, 0-day hunter

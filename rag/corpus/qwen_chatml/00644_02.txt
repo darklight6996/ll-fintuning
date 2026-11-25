@@ -1,0 +1,1 @@
+iple is: **craft a verification request that causes a measurable, benign change in the application's response**. For other vulnerabilities, this might be a time delay (`sleep(5)`), a DNS lookup, or echoing a specific string. Never run a `rm -rf` or `wget` exploit as your first test.

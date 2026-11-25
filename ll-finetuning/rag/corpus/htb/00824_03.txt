@@ -1,0 +1,1 @@
+LACKFIELD\Administrator [Administrator(Administrator@BLACKFIELD)] Certificate thumbprint: 78CD 0031 7A9C 948A 9A66 0D6D BC32 0706 D193 476A Key Information: Algorithm: AES Key Length: 256 Key Entropy: 256 C:\Users\Administrator\Desktop> type root.txt 4375a629************************

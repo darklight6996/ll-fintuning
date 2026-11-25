@@ -1,0 +1,18 @@
+**Phase 2: Resource Development (TA0042)**
+- **Payload Development**:
+  - Staged vs stageless
+  - Evasion: AMSI, ETW, WDAC, AV/EDR bypass
+  - Formats: EXE, DLL, Shellcode, HTA, MSIX, ISO, VHD, LNK, SCF
+  - Living-off-the-land: `msbuild`, `installutil`, `regsvr32`, `rundll32`, `wmic`, `powershell`
+- **Phishing Infrastructure**:
+  - Domain acquisition (aged, categorized)
+  - SPF/DKIM/DMARC alignment
+  - Redirector chains (phishing → redirector → C2)
+  - Tracking pixels, link cloaking
+- **Weaponization**:
+  - Macro documents (Office, Excel 4.0, DDE)
+  - Template injection
+  - HTML smuggling
+  - ISO/VHD containers
+  - Shortcuts (LNK/SCF/URL)
+  - Browser exploits (if in scope)

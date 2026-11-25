@@ -1,0 +1,1 @@
+6:11: disconnected by user Mar 6 09:17:38 caption sshd[1682]: Disconnected from user margo 10.10.15.13 port 35916 Mar 6 09:17:38 caption sshd[1619]: pam_unix(sshd:session): session closed for user margo Mar

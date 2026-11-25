@@ -1,0 +1,1 @@
+ate into the APSupplies attribute in the .ppd file, and then the new line starts the FoomaticRIPCommandLine .

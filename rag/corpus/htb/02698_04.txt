@@ -1,0 +1,1 @@
+indows netbios-ssn 389/tcp open ldap Microsoft Windows Active Directory LDAP (Domain: windcorp.htb0., Site: Default-First-Site-Name)

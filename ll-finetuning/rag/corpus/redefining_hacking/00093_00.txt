@@ -1,0 +1,14 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 3-12 Commands Built Into Payload
+The C2 Profile section is customizable for the GET and POST requests. The
+URIs can be customized to common requests similar to IIS servers or to
+emulate another type of traffic to blend into the network. Do not use the
+default options in this C2 profile section.

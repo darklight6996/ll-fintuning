@@ -1,0 +1,6 @@
+ter 4, “Modern Red Team Methodology and Tools.”
+Additionally, you will want to use a sock puppet account when identifying
+targets from a granular perspective and for crafting your persona. When
+you’re evaluating potential targets, the shorter tenure of an employee will
+yield a better result for targeting purposes because that employee is still
+adjusting to the security culture of the organization.

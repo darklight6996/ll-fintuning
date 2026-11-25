@@ -1,0 +1,1 @@
+ntrol: 127.0.0.0/8 allow access-control: ::0/0 refuse access-control: ::1 allow hide-identity: yes hide-version: yes msg-cache-size: 0 rrset-cache-size: 0 cache-max-ttl: 0 cache-max-negative-ttl: 0 auto-trust-anchor-file: "/var/unbound/db/root.key"

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you gather group memberships?
+
+CONTEXT:
+You have identified users and want to check memberships.
+
+METHOD / ANSWER:
+Command: `az ad user show --id <user_id>`
+Purpose: Shows detailed user info.

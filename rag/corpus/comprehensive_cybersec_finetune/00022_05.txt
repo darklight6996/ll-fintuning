@@ -1,0 +1,32 @@
+**Sandbox Indicators (Automated Analysis Environments)**:
+- **Virtualization Artifacts**:
+  ```bash
+  # Check hypervisor
+  dmidecode -s system-manufacturer  # VMware, VirtualBox, QEMU, Hyper-V
+  lscpu | grep -i hypervisor
+  cat /proc/cpuinfo | grep -i flags | head -1 | grep hypervisor
+  ```
+- **Hardware Anomalies**:
+  - Single CPU core, low RAM (1-2 GB)
+  - No GPU, no audio, no battery
+  - MAC address OUI: VMware (00:05:69, 00:0C:29, 00:1C:14, 00:50:56)
+  - Disk: Small (20-40 GB), no SMART data
+- **Network Indicators**:
+  - Single interface, NAT'd
+  - No outbound internet, or restricted
+  - DNS resolves to internal IPs only
+  - Captive portal for HTTP
+- **Process/Service Anomalies**:
+  - Analysis tools running: `cuckoo`, `vboxservice`, `vmtoolsd`
+  - No user processes, no cron jobs
+  - Uptime: Very recent (minutes/hours)
+  - No persistent logs, `/var/log` empty or minimal
+- **File System**:
+  - No user home directories
+  - `/tmp` cleaned on boot
+  - Read-only root filesystem
+  - Specific sandbox markers: `/cuckoo`, `/analysis`, `/sandbox`
+- **Timing Checks**:
+  - `rdtsc` instruction timing (VM exit latency)
+  - `GetTickCount` vs `QueryPerformanceCounter` discrepancies
+  - Sleep acc

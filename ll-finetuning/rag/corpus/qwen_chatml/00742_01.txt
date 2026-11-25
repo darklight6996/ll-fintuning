@@ -1,0 +1,35 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+141
+Web Application Penetration Testing
+The situation S2 is harder to test successfully. The tester needs
+to use blind command injection in order to determine if the serv-
+er is vulnerable.
+On the other hand, the last situation (S3) is not revelant in this
+paragraph.
+Result Expected:
+« List of vulnerable parameters
+« Affected functionality
+» Type of possible injection (IMAP/SMTP)
+Understanding the data flow and deployment structure of the
+client
+After identifying all
+vulnerable parameters (for example,
+“passed_id”), the tester needs to determine what level of injec-
+tion is possible and then design a testing plan to further exploit
+the application.
+In this test case, we have detected that the application's
+“passed_id” parameter is vulnerable and is used in the following
+request:
+http:/<webmail>/src/read_body.php?mailbox=INBOX&-
+passed_id=46225&startMessage=1
+Using the following test case (providing an alphabetical value
+when a numerical value is required):
+http:/<webmail>/src/read_body.php?mailbox=INBOX&-
+passed_id=test&startMessage=1
+will generate the following error message:
+ERROR : Bad or malformed request.
+Query: FE

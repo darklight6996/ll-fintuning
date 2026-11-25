@@ -1,0 +1,1 @@
+nip]... /var/log/daemon.log.1 /var/log/syslog.3.gz /usr/sbin/arp On it’s face, there’s nothing special about arp : game-adm@earlyaccess:/tmp$ ls -l /usr/sbin/arp -rwxr-x--- 1 root adm 67512 Sep 24 2018 /usr/sbin/arp But it does have capabilities set. getcap isn’t in the default

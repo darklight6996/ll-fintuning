@@ -1,0 +1,1 @@
+7.log test-1701256572.log test-1701258070.log Network Enumeration Identify Hosts ping isn’t installed on the container, so I’ll identify host by uploading a statically compiled nmap . When I try to run it, there are errors: www-data@070370e2cdc4:/tmp$ ./nmap 172.18.0.0/24 Starting Nmap 6.49BETA1 ( http://nmap.org ) at 2023-11-29 02:23 UTC Starting Nmap

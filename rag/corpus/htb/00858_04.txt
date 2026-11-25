@@ -1,0 +1,1 @@
+445 - Scanned 1 of 1 hosts (100% complete) [*] 10.10.10.40:445 - Connecting to target for exploitation. [+] 10.10.10.40:445 - Connection established for exploitation. [+] 10.10.10.40:445 - Target OS selected valid for OS indicated by SMB reply [*] 10.10.10.40:445 - CORE

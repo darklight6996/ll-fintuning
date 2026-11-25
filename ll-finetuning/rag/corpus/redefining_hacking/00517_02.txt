@@ -1,0 +1,5 @@
+nal Assets
+When using a vulnerability scanner against your internal network, you must
+take into consideration the devices on the network that might not be able to
+stand up to the traffic that is hurled at it by a vulnerability scanner. For these
+systems, you might need to either adjust the scanning options to reduce the

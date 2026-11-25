@@ -1,0 +1,27 @@
+TECHNIQUE / QUESTION:
+Explain how to conduct a Red Team engagement from initial access to objective completion.
+
+CONTEXT:
+You are leading a Red Team engagement. Describe the systematic methodology following modern frameworks like MITRE ATT&CK.
+
+METHOD / ANSWER:
+Red Team Engagement Methodology:
+
+**Phase 0: Pre-Engagement & Planning**
+- **Rules of Engagement (RoE)**:
+  - Scope (IP ranges, domains, physical, cloud)
+  - Exclusions (critical systems, specific users)
+  - Time windows, notification procedures
+  - Data handling, evidence preservation
+  - Emergency contacts, kill switches
+- **Threat Modeling**:
+  - Define adversary profile (APT, insider, criminal, hacktivist)
+  - Map TTPs to MITRE ATT&CK
+  - Identify crown jewels (data, systems, processes)
+  - Define objectives (flags, data exfil, persistence, domain admin)
+- **Infrastructure Setup**:
+  - C2 Framework: Cobalt Strike, Sliver, Havoc, Brute Ratel, Mythic, Empire
+  - Redirectors: Nginx, Apache, CloudFront, Cloudflare
+  - Phishing: Gophish, Evilginx3, Modlishka
+  - Payload Generation: Donut, SharpShooter, CACTUS, custom
+  - OpSec: Separate infra per phase, burner domains, aged domains

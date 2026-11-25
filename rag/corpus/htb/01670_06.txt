@@ -1,0 +1,1 @@
+\Policies\System\ ShutdownWithoutLogon = 4,0 MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System\ UndockWithoutLogon = 4,1 MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System\ ValidateAdminCodeSignatures = 4,0

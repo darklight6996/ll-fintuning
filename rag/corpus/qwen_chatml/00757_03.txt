@@ -1,0 +1,10 @@
+e-check=0, post-check=0, max-age=0, s-maxage=0
+- Ref: https:/www.owasp.org/index.php/Testing_for_
+Browser_cache_weakness_(OTG-AUTHN-006)
+http:/msdn.microsoft.com/en-us/library/
+ms533020(v=vs.85).aspx
+Checking localhost:443 for Surf Jacking vulnerability (due to
+Session Cookie missing secure flag)...
+['] Secure Flag in Set-Cookie: PRESENT BUT NOT IN ALL COOK-
+IES
+[!] Vulnerable to Surf Jacking attack mentioned in https:/re-

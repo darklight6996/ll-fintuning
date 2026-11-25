@@ -1,0 +1,18 @@
+TECHNIQUE / QUESTION:
+Explain how to test for Business Logic vulnerabilities in web applications.
+
+CONTEXT:
+You are testing a web application for business logic flaws that automated scanners typically miss. Describe the systematic approach to identify and exploit logic vulnerabilities.
+
+METHOD / ANSWER:
+Business Logic Testing Methodology (OTG-BUSLOGIC):
+
+**Phase 1: Understand the Business Flow**
+- Map all user journeys:
+  - Registration → Verification → Onboarding
+  - Browse → Cart → Checkout → Payment → Fulfillment
+  - Account recovery → Password reset → Re-authentication
+  - Admin workflows: user management, content moderation
+  - Multi-step processes: KYC, loan application, booking
+- Identify state transitions and trust boundaries
+- Document assumptions the application makes

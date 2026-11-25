@@ -1,0 +1,13 @@
+TECHNIQUE / QUESTION:
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 8-8 Prompt Fuzzer
+Example 8-13 shows the available attacks in the Prompt Fuzzer (ps-fuzz)
+tool.
+Example 8-13 Showing Available Attacks in ps-fuzz

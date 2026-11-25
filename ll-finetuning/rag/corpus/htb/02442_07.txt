@@ -1,0 +1,1 @@
+l: oxdf@hacky$ evil-winrm -i freelancer.htb -u lorra199 -p 'PWN3D#l0rr@Armessa199' Evil-WinRM shell v3.4

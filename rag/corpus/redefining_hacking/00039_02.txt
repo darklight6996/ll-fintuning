@@ -1,0 +1,5 @@
+uration engagements and the
+knowledge of the environment give the red team the advantage to test the
+assumptions of the controls and illustrate the impact once bypassed. This
+improved understanding of the impact can better illustrate the risk—thus
+providing a holistic view rather than a single vulnerability.

@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you clear logs after exploitation?
+
+CONTEXT:
+Context: Post-Exploitation Cleanup. You have completed objectives and want to minimize forensic evidence.
+Principle to Apply: 'Minimize detectable traces of activities to reduce likelihood of detection and incident response.'

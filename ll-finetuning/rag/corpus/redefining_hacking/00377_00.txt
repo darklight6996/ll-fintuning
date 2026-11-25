@@ -1,0 +1,24 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+A. By completely eliminating the use of language models
+B. By cross-referencing generated responses with retrieved factual
+information
+C. By relying solely on preprogrammed responses
+D. By increasing the size of the language model
+4. What is prompt injection in the context of AI and cybersecurity?
+A. A technique to improve AI model training
+B. A method to insert malicious code into a database
+C. An attack that manipulates AI system inputs to produce unintended
+outputs
+D. A process to inject prompts into a user interface for better usability
+5. Which of the following is a common goal of prompt injection attacks?
+A. Improving the AI's performance
+B. Bypassing content filters or security measures
+C. Optimizing the AI's training data

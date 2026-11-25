@@ -82,6 +82,48 @@ class VulnValidationParams(BaseModel):
     payload: str = Field(..., description="Non-destructive benign test probe")
 
 
+class SqliDeepScanParams(BaseModel):
+    model_config = {"extra": "forbid"}
+    target: str = Field(
+        ...,
+        description=(
+            "Full target URL to test for SQL injection, ideally including a query "
+            "string with the parameter(s) to test, e.g. "
+            "https://site/filter?category=Gifts. sqlmap tests the parameters in "
+            "this URL."
+        ),
+    )
+    test_parameter: Optional[str] = Field(
+        None,
+        description=(
+            "Optional: focus the scan on a single named parameter (sqlmap -p). "
+            "Leave unset to let sqlmap test every parameter it finds in the URL."
+        ),
+    )
+    # NOTE: deliberately NO knobs for --level/--risk/--technique/--dump/etc. The
+    # command builder hardcodes a safe, detection-only, non-destructive flag set
+    # so the planner can never request a data-dumping or data-modifying sqlmap
+    # run. See agents/bug_bounty/command_builders.py::build_sqli_deep_scan.
+
+
+class NucleiScanParams(BaseModel):
+    model_config = {"extra": "forbid"}
+    target: str = Field(
+        ...,
+        description="Target URL or host to scan with nuclei's templated checks (CVEs, misconfigurations, exposures).",
+    )
+    # No template/severity/fuzzing knobs exposed: the builder hardcodes a safe,
+    # detection-only template posture (no -dast/fuzzing) and a severity floor.
+
+
+class DalfoxScanParams(BaseModel):
+    model_config = {"extra": "forbid"}
+    target: str = Field(
+        ...,
+        description="Target URL (ideally with a query string) to test for XSS. dalfox mines parameters itself.",
+    )
+
+
 # ---------------------------------------------------------------------------
 # Action Definitions
 # ---------------------------------------------------------------------------
@@ -97,6 +139,7 @@ SUBDOMAIN_ENUM = ActionDefinition(
     params_model=SubdomainEnumParams,
     allowed_target_kinds=["domain", "url"],
     command_builder="build_subdomain_enum",
+    request_volume="high",
     timeout_seconds=60,
     max_retries=2,
     satisfies_phase=True,
@@ -113,6 +156,7 @@ PORT_SCAN = ActionDefinition(
     params_model=PortScanParams,
     allowed_target_kinds=["ip", "domain"],
     command_builder="build_port_scan",
+    request_volume="high",
     timeout_seconds=60,
     max_retries=2,
     satisfies_phase=True,
@@ -145,6 +189,7 @@ DIR_BRUTE = ActionDefinition(
     params_model=DirBruteParams,
     allowed_target_kinds=["url", "domain"],
     command_builder="build_dir_brute",
+    request_volume="high",
     timeout_seconds=120,
     max_retries=1,
     satisfies_phase=True,
@@ -184,6 +229,8 @@ HEADER_ANALYSIS = ActionDefinition(
 
 IDOR_PROBE = ActionDefinition(
     action_id="idor_probe",
+    requires_suspicion=True,  # suspicion-gated: only offered once a matching hypothesis exists
+    vuln_class="idor",
     phase="vuln_validation",
     description="Test cross-tenant access to object identifiers on API endpoints",
     requires_active_testing=True,
@@ -200,6 +247,8 @@ IDOR_PROBE = ActionDefinition(
 
 SQLI_PROBE = ActionDefinition(
     action_id="sqli_probe",
+    requires_suspicion=True,  # suspicion-gated: only offered once a matching hypothesis exists
+    vuln_class="sqli",
     phase="vuln_validation",
     description="Send benign syntax probes to detect SQL syntax distortion or errors",
     requires_active_testing=True,
@@ -216,6 +265,8 @@ SQLI_PROBE = ActionDefinition(
 
 XSS_PROBE = ActionDefinition(
     action_id="xss_probe",
+    requires_suspicion=True,  # suspicion-gated: only offered once a matching hypothesis exists
+    vuln_class="xss",
     phase="vuln_validation",
     description="Send benign alphanumeric canary to test reflection and contextual encoding",
     requires_active_testing=True,
@@ -232,6 +283,7 @@ XSS_PROBE = ActionDefinition(
 
 VULN_VALIDATION = ActionDefinition(
     action_id="vuln_validation",
+    requires_suspicion=True,  # suspicion-gated: only offered once a matching hypothesis exists
     phase="vuln_validation",
     description="Execute a targeted, non-destructive probe to confirm or refute a vulnerability hypothesis",
     requires_active_testing=True,
@@ -246,18 +298,135 @@ VULN_VALIDATION = ActionDefinition(
     satisfies_phase=True,
 )
 
+# First specialist DETECTION ENGINE wired in as an action (2026-11-14): sqlmap
+# does deep, multi-technique SQLi detection (boolean/error/union/time-based
+# blind) that the shallow single-payload sqli_probe curl cannot -- this is the
+# "use a real technique the model can't reproduce by hand, read its structured
+# output, reason confirmed/refuted" capability. state_change="none" and the
+# hardcoded safe flag set in build_sqli_deep_scan make it strictly
+# detection-only and non-destructive; the verdict-aware evidence promotion in
+# base_agent._promote_evidence_if_warranted turns a CONFIRMED injection into a
+# real high-severity Finding and a CLEAN scan into a recorded non-finding.
+SQLI_DEEP_SCAN = ActionDefinition(
+    action_id="sqli_deep_scan",
+    requires_suspicion=True,  # suspicion-gated: only offered once a matching hypothesis exists
+    vuln_class="sqli",
+    phase="vuln_validation",
+    description="Run sqlmap for deep, multi-technique SQL injection detection on a URL's parameters",
+    requires_active_testing=True,
+    network_effect="active",
+    state_change="none",
+    risk_level="medium",
+    params_model=SqliDeepScanParams,
+    allowed_target_kinds=["url", "domain"],
+    command_builder="build_sqli_deep_scan",
+    request_volume="high",
+    timeout_seconds=300,
+    max_retries=1,
+    satisfies_phase=True,
+)
+
+# Second detection engine (2026-11-14): nuclei brings templated breadth --
+# thousands of community checks for known CVEs, misconfigurations, default
+# creds, and exposures -- the breadth layer complementing sqlmap's SQLi depth.
+# Detection-only (no fuzzing/-dast templates); the verdict-aware promotion maps
+# a matched template's severity straight onto the Finding, and a no-match scan
+# becomes a recorded non-finding.
+NUCLEI_SCAN = ActionDefinition(
+    action_id="nuclei_scan",
+    requires_suspicion=True,  # suspicion-gated: only offered once a matching hypothesis exists
+    phase="vuln_validation",
+    description="Run nuclei templated detection for known CVEs, misconfigurations, and exposures",
+    requires_active_testing=True,
+    network_effect="active",
+    state_change="none",
+    risk_level="medium",
+    params_model=NucleiScanParams,
+    allowed_target_kinds=["url", "domain"],
+    command_builder="build_nuclei_scan",
+    request_volume="high",
+    timeout_seconds=300,
+    max_retries=1,
+    satisfies_phase=True,
+)
+
+# Third detection engine (2026-11-16): dalfox -- real XSS detection/confirmation
+# (reflected, DOM, verified) that the shallow canary xss_probe cannot do. Sends
+# many payloads (request_volume="high", gated under stealth). The verdict-aware
+# promotion turns a VERIFIED XSS into a Finding and a clean scan into a
+# non-finding; reflected-only hits are reported as leads.
+DALFOX_SCAN = ActionDefinition(
+    action_id="dalfox_scan",
+    requires_suspicion=True,  # suspicion-gated: only offered once a matching hypothesis exists
+    vuln_class="xss",
+    phase="vuln_validation",
+    description="Run dalfox for deep XSS detection (reflected / DOM / verified) on a URL's parameters",
+    requires_active_testing=True,
+    network_effect="active",
+    state_change="none",
+    risk_level="medium",
+    params_model=DalfoxScanParams,
+    allowed_target_kinds=["url", "domain"],
+    command_builder="build_dalfox_scan",
+    request_volume="high",
+    timeout_seconds=300,
+    max_retries=1,
+    satisfies_phase=True,
+)
+
 
 def build_bug_bounty_registry() -> ActionRegistry:
     """Build and return the ActionRegistry for BugBountyAgent."""
     registry = ActionRegistry()
-    registry.register(SUBDOMAIN_ENUM)
-    registry.register(PORT_SCAN)
-    registry.register(ENDPOINT_DISCOVERY)
-    registry.register(DIR_BRUTE)
-    registry.register(PARAM_FUZZ)
-    registry.register(HEADER_ANALYSIS)
-    registry.register(IDOR_PROBE)
-    registry.register(SQLI_PROBE)
-    registry.register(XSS_PROBE)
-    registry.register(VULN_VALIDATION)
+    from agents.bug_bounty.command_builders import (
+        build_dir_brute,
+        build_endpoint_discovery,
+        build_header_analysis,
+        build_idor_probe,
+        build_param_fuzz,
+        build_port_scan,
+        build_nuclei_scan,
+        build_dalfox_scan,
+        build_sqli_deep_scan,
+        build_sqli_probe,
+        build_subdomain_enum,
+        build_vuln_validation,
+        build_xss_probe,
+    )
+
+    registry.register(SUBDOMAIN_ENUM, build_subdomain_enum)
+    registry.register(PORT_SCAN, build_port_scan)
+    registry.register(ENDPOINT_DISCOVERY, build_endpoint_discovery)
+    registry.register(DIR_BRUTE, build_dir_brute)
+    registry.register(PARAM_FUZZ, build_param_fuzz)
+    registry.register(HEADER_ANALYSIS, build_header_analysis)
+    registry.register(IDOR_PROBE, build_idor_probe)
+    registry.register(SQLI_PROBE, build_sqli_probe)
+    registry.register(XSS_PROBE, build_xss_probe)
+    registry.register(VULN_VALIDATION, build_vuln_validation)
+    registry.register(SQLI_DEEP_SCAN, build_sqli_deep_scan)
+    registry.register(NUCLEI_SCAN, build_nuclei_scan)
+    registry.register(DALFOX_SCAN, build_dalfox_scan)
+    # Framework-level shared primitives (cross-agent).
+    from agents.common.http_primitive import HTTP_PROBE, build_http_probe
+    registry.register(HTTP_PROBE, build_http_probe)
+    from agents.common.browser_primitive import BROWSER_PROBE, build_browser_probe
+    registry.register(BROWSER_PROBE, build_browser_probe)
+    # Breadth-first recon sweep (DNS/ports/TLS/tech/authsurface, parallel,
+    # read-only coverage). Domain-wide engagement -> the full mode set.
+    from agents.common.recon_primitive import RECON_SCAN, build_recon_scan
+    registry.register(RECON_SCAN, build_recon_scan)
+    # Self-scripting is OPT-IN (runs model-written code): registered only when
+    # the operator sets PENTEST_ENABLE_SELF_SCRIPTING=1.
+    from agents.common.self_scripting import SELF_SCRIPT, build_self_script, self_scripting_enabled
+    if self_scripting_enabled():
+        registry.register(SELF_SCRIPT, build_self_script)
+    # bounty_platform_recon is OPT-IN (calls a third-party platform with the
+    # operator's own credentials): registered only when the operator sets
+    # PENTEST_ENABLE_BOUNTY_PLATFORM=1.
+    from agents.common.bounty_platform_primitive import (
+        BOUNTY_PLATFORM_RECON, build_bounty_platform_recon, bounty_platform_enabled,
+    )
+    if bounty_platform_enabled():
+        registry.register(BOUNTY_PLATFORM_RECON, build_bounty_platform_recon)
     return registry

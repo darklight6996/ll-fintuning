@@ -1,0 +1,19 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+"key_path": "privkey.pem",
+"cert_path": "fullchain.pem",
+"debug": false,
+"use_ssl": true
+}
+]
+}
+Next, you need to stop and start your profile to ensure the changes went into
+effect (see Figure 3-9).
+Figure 3-9 Starting and Stopping the Profile

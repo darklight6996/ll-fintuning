@@ -1,0 +1,5 @@
+equences)
+.ocO%af represents ../
+C1%9C represents ..\
+There are other OS and application framework specific considerations
+as well. For instance, Windows is flexible in its parsing of file paths.

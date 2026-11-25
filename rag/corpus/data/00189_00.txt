@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Confirm system time sync.
+
+CONTEXT:
+Log integrity control.
+
+METHOD / ANSWER:
+Command: `timedatectl status`
+Explanation: Ensures accurate timestamps for logs.

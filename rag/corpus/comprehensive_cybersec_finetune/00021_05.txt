@@ -1,0 +1,15 @@
+l.company.com/login.php
+  2. Enter username: admin' UNION SELECT 1,2,3--
+  3. Enter any password
+  4. Click Login → Access granted as first user in DB
+  
+  Remediation:
+  - Immediate: Deploy WAF rule blocking UNION/SELECT patterns
+  - Short-term (1 week): Parameterize query using PDO prepared statements
+  - Long-term: Implement SAST in CI/CD, developer training
+  
+  References:
+  - OWASP: https://owasp.org/www-community/attacks/SQL_Injection
+  - CWE-89: https://cwe.mitre.org/data/definitions/89.html
+  - PCI DSS v4.0 Req 6.5.1
+  ```

@@ -1,0 +1,24 @@
+TECHNIQUE / QUESTION:
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+B. Evaluating model bias and fairness
+C. Optimizing model training efficiency
+D. Probing for prompt injection vulnerabilities
+9. What is a model inversion attack in the context of AI security?
+A. A technique to reverse-engineer the AI model's architecture
+B. An attack to extract training data from the model
+C. A method to invert the model's decision-making process
+D. A way to flip the model's output to its opposite
+10. What is the main goal of using differential privacy techniques in AI
+systems?
+A. To increase model accuracy
+B. To speed up model training
+C. To protect individual privacy in the training data
+D. To reduce model size
+11. In AI security, what does the term model stealing refer to?

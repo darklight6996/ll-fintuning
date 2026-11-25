@@ -1,0 +1,5 @@
+- `NSC_*` cookies
+  - `Server: Citrix`
+- **Sucuri**:
+  - `x-sucuri-id`, `x-sucuri-cache`
+  - `Server: Sucuri/Cloudproxy`

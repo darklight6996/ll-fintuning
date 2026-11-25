@@ -1,0 +1,26 @@
+**Common Targets**:
+- **Sub-GHz (315/433/868/915 MHz)**:
+  - Garage doors, gate openers, car keys (rolling code)
+  - TPMS (Tire Pressure Monitoring)
+  - Weather stations, soil sensors
+  - Home automation (Somfy, Nice, Chamberlain)
+  - Smart meters (wM-Bus, Zigbee)
+- **2.4 GHz**:
+  - Zigbee (802.15.4): `killerbee`, `zbwarden`, `zigbee2mqtt`
+  - Thread / Matter
+  - Bluetooth / BLE
+  - Wi-Fi (802.11)
+  - Wireless keyboards/mice (Logitech Unifying, Microsoft)
+  - `mousejack`, `keykeriki`
+- **5.8 GHz**:
+  - FPV drones, video transmitters
+  - Wi-Fi (802.11a/n/ac/ax)
+- **Cellular**:
+  - GSM: `gr-gsm`, `osmocom-bb`, `IMSI-catcher`
+  - LTE: `gr-lte`, `LTE-Cell-Scanner`
+  - 5G: `gr-5g-nr` (experimental)
+  - Baseband fuzzing
+- **Satellite**:
+  - GPS/GNSS spoofing (`gps-sdr-sim`, `hackrf`)
+  - Inmarsat, Iridium, Globalstar
+  - Satellite internet (Starlink, OneWeb)

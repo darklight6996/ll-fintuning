@@ -1,0 +1,1 @@
+6 bytes are copied into a 256-byte buffer, which is what’s passed into auth . In auth , password is unsafely copied into userpass , a 16-byte buffer (which I know the address of due to the DEBUG mode). Exploit Buffer Location Unfortunately, the leak of the address happens after I’m done sending overflowable input to the program. Still, I can check and see

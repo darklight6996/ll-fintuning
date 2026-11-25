@@ -1,0 +1,1 @@
+7-8157-42c5-92ad-704dc80749a3 RCE is definitely good. Web API - TCP 30686 This URL returns JSON about the “wp-nginx-service”: The HTTP response headers show an interesting header: HTTP / 1.1 200 OK Content-Type : application/json X-Content-Type-Options : nosniff X-Load-Balancing-Endpoint-Weight : 1 Date : Sat, 14 Feb 2026 02:47:54 GMT

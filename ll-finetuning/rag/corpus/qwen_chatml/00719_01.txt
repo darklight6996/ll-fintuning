@@ -1,0 +1,40 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+63
+Web Application Penetration Testing
+Example
+In the WordPress example below, the only identification require-
+ment is an email address that is accessible to the registrant.
+Get stared with VroniPress com by filing out this. simpde fom
+In contrast, in the Google example below the identification require-
+ments include name, date of birth, country, mobile phone number,
+email address and CAPTCHA response. While only two of these can be
+verified (email address and mobile number), the identification require-
+ments are stricter than WordPress.
+Et!
+—
+a
+(ote gie
+| oe
+|
+Create your Google Account
+BHeétaeawlit
+Tools
+AHTTP proxy can be a useful tool to test this control.
+References
+User Registration Design
+Remediation
+Implement identification and verification requirements that corre-
+spond to the security requirements of the information the credentials
+protect.
+Test Account Provisioning Process
+(OTG-IDENT-003)
+Summary
+The provisioning of accounts presents an opportunity for an attacker
+to create a valid account without application of the proper identifica-
+tion and authorization process.
+Test objectives
+Verify which accounts may

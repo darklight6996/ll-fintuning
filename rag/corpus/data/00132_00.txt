@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Identify network shares on different VMs.
+
+CONTEXT:
+You've gathered credentials for accessing other machines.
+
+METHOD / ANSWER:
+Command: `az vm list --output table`
+Purpose: Lists all VMs to locate resources for lateral movement.

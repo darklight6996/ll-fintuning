@@ -1,0 +1,27 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Chapter 2. Introduction to Red Teaming
+Chapter Objectives
+After reading this chapter and completing the exercises, you will be able to
+do the following:
+• Understand what red teaming is and its importance
+• Identify common red team frameworks and methodologies
+• Explain types of red team engagements
+• Understand the challenges that red teams may face
+What Is Red Teaming?
+In the preceding chapter, we dug into the history of red teaming and its
+roots in 1960s military war games. Then we followed along as it evolved
+into modern-day red teaming. Red teaming can take on a variety of forms
+because it can be applied in a variety of roles and even outside of
+cybersecurity.
+Let’s take a moment to outline what red teaming is. It is a broader, multi-
+layered approach that encompasses a wide variety of tactics, techniques,
+and procedures (TTPs). It utilizes not only TTPs from real-world
+adversaries to test technical security controls but also the human element,

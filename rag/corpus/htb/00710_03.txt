@@ -1,0 +1,1 @@
+ex ) { this . file_content = "Order not found!" ; } } Then when the getter on ReadFile is called, it returns this.file_content . WriteFile is similar: public string WriteFile { get { return this . IsSuccess ; } set { this . WriteContent ( this . directory + this . filename , value ); } } On calling the setter, it calls WriteContent on the current file, which writes the file,

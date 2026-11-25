@@ -1,0 +1,1 @@
+ky$ sshpass -p spongebob1 ssh joshua@codify.htb Warning: Permanently added 'codify.htb'

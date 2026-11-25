@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+locked. This capability is demonstrated in the following example:
+>PsExec -i -d -s regedit.exe
+Windows Remote Management (WinRM) for Post-Exploitation Tasks
+Windows Remote Management (WinRM) gives you a legitimate way to
+connect to Windows systems. WinRM is typically managed by Windows
+Group Policy (which is typically used for managing corporate Windows
+environments).
+WinRM can be useful for post-exploitation activities. An attacker could
+enable WinRM to allow further connections to the compromised systems
+and maintain persistent access. You can easily enable WinRM on a
+Windows system by using the following command:
+>Enable-PSRemoting -SkipNetworkProfileCheck -Force
+This command configures the WinRM service to automatically start and
+sets up a firewall rule to allow inbound connections to the compromised
+system.
+Living-Off-the-Land Bins, Libraries, and Useful Scripts
+GTFOBins is a carefully compiled list of UNIX binaries that can be
+leveraged to bypass local security restrictions on misconfigured systems.

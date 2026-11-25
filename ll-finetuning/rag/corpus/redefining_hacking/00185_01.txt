@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+The phase following a successful exploitation of a target system is known
+as post-exploitation. This critical stage determines a hacker’s ability to
+maintain access, escalate privileges, extract valuable data, and evade
+detection, ensuring long-term control over the compromised environment.
+The purpose of this chapter is to cover advanced post-exploitation
+techniques, equipping you with the knowledge and skills necessary to
+navigate this complex landscape effectively. By mastering these techniques,
+you will enhance your ability to understand and counteract real-world
+threats, ultimately becoming a better ethical hacker.
+An Overview of Post-Exploitation
+In some red team engagements, you may focus primarily on post-
+exploitation activities due to several strategic and practical reasons.
+Understanding these reasons provides insight into the importance and
+objectives of post-exploitation efforts within the broader context of
+cybersecurity assessments.
+Red team engagements aim to simulate realistic cyber attacks to evaluate an
+organization's security posture. Focusing on post-exploitation activities
+allows red teamers to mimic the actions of advanced persistent threats

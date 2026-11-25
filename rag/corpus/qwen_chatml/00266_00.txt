@@ -1,0 +1,22 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Define and explain the key concept presented in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+The loader installs hooks into the operating system's kernel, allowing it to
+intercept system calls and manipulate them to hide its presence and
+maintain control over the system. After establishing itself in the kernel, the
+loader activates the rootkit's payload, which can include various malicious
+activities such as keystroke logging, data exfiltration, and the installation of
+additional malware.
+To illustrate, let’s look at a simplified example of how the TDL3 loader
+might modify the MBR to include a jump to its loader code. This example
+is for educational purposes and does not represent the actual complexity of
+TDL3's implementation. Figure 6-6 shows the boot-start driver before
+infection. The HEADER label refers to the Portable Executable (PE) header
+along with the section table.

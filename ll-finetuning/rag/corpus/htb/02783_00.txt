@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from Htb Helpline Kali Hacks Stuff)
+
+CONTEXT:
+Source: Htb Helpline Kali Hacks Stuff
+Section: Writeup

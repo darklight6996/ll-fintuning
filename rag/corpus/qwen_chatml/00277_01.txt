@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+DNS is typically trusted and allowed through firewalls, making it an
+attractive channel for malicious communication.
+Now, let’s go over a more detailed breakdown of how DNS tunneling
+works. In the initial setup, you register a domain (such as h4cker.org) and
+configure the authoritative name server for this domain to point to a server
+they control. This server runs software capable of handling DNS tunneling.
+You then compromise a target system. Your payload is programmed to
+communicate with the DNS server using DNS queries.
+Once the malware is installed on the compromised system, it begins
+sending data or commands to your server via DNS queries. The malware
+encodes data (such as system information, commands, or exfiltrated files)
+into the subdomain part of a DNS query. For example, if the malware wants
+to send the string “payload”, it might encode this string into a query like
+“payload.h4cker.org”.
+The compromised system sends this query to its local DNS resolver (a
+legitimate DNS server). Since DNS traffic is generally allowed through
+firewalls, this query passes through without raising alarms.
+The local DNS resolver fo

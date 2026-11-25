@@ -1,0 +1,1 @@
+ge for http://europacorp.htb , https://europacorp.htb , http://www.europacorp.htb , https://www.europacorp.htb , and http://admin-portal.europacorp.htb . I also ran gobuster and didn’t find anything. admin-portal.europacorp.htb - TCP 443 Site https://admin-portal.europacorp.htb/login.php loads a login portal

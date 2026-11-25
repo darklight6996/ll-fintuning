@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: NetNTLMv2 Hash Capture.
+**Core Principle**: Responder mimics various network services (like HTTP, SMB, SQL) and responds to NetBIOS/LLMNR requests. When a client attempts to authenticate to these fake services, it sends a NetNTLMv2 hash, which Responder captures.
+**Actionable Steps**:
+1.  **Start Responder Listener**: `sudo responder -I tun0`
+    *   **Reasoning**: This starts Responder on your VPN/tunnel interface (`tun0`). It will begin answering NetBIOS Name Service (NBNS), Link-Local Multicast Name Resolution (LLMNR), and other queries, prompting clients to authenticate and capturing their hashes.
+**Guidance for Novel Context**: Specify the correct network interface (`eth0`, `tun0`). You can disable specific protocols with flags like `--disable-http` if needed. The principle is to **position yourself as a "poisonous" node on the network to intercept and respond to authentication attempts.** This works best in networks where LLMNR/NBNS are enabled (common in Windows environments).

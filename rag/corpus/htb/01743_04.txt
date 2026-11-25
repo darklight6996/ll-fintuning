@@ -1,0 +1,1 @@
+y makes easier is Windows kernel exploits. I’ll background my meterpreter session so I can use the exploit suggester to quickly look for potential privescs, and it

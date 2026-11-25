@@ -1,0 +1,26 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+```
+Replace `username:password` with the actual username
+authentication.
+Remember to handle any security implications and foll
+when using this tool.
+Understanding Retrieval-Augmented Generation (RAG) for
+Red Teaming
+RAG techniques are revolutionizing how red teams approach information
+gathering, exploitation, post-exploitation, and reporting. But what is RAG?
+Retrieval-augmented generation is an AI/ML technique that helps enhance
+the capabilities of generative AI models with external knowledge sourced
+from a document collection. RAG acts as an AI framework aimed at
+enhancing the quality of responses produced by language models (LLMs or
+SLMs) by attaching the model to external knowledge bases, thus enriching
+the model's inherent data representation.
+Figure 8-2 shows a high-level RAG architecture deployment.

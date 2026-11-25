@@ -1,0 +1,1 @@
+1.0.0 Microsoft.PowerShell.Management {Add-Content, Clear-Content, Clear-ItemProperty, Join-Path...} Script 1.0 Microsoft.PowerShell.ODataUtils Export-ODataEndpointProxy Manifest 3.0.0.0 Microsoft.PowerShell.Security {Get-Acl, Set-Acl, Get-PfxCertificate,

@@ -1,0 +1,38 @@
+METHOD / ANSWER:
+will be represented as:
+find(“(&(cn=John)(userPassword=mypass))”)
+Boolean conditions and group aggregations on an LDAP search fil-
+ter could be applied by using the following metacharacters:
+Metachar § Meaning
+Boolean AND
+Boolean OR
+Boolean NOT
+Equals
+Approx
+Greater than
+Less than
+Any character
+Grouping parenthesis
+More complete examples on how to build a search filter can be
+found in the related RFC.
+A successful exploitation of an LDAP injection vulnerability could
+allow the tester to:
+» Access unauthorized content
+« Evade application restrictions
+» Gather unauthorized informations
+» Add or modify Objects inside LDAP tree structure.
+How to Test
+Example 1: Search Filters
+Let's suppose we have a web application using a search filter like
+the following one:
+searchfilter="(cn="+user+")”
+which is instantiated by an HTTP request like this:
+http:/www.example.com/Idapsearch?user=John
+If the value ‘John’ is replaced with a ‘*’ by sending the request:
+http:/www.example.com/Idapsearch?user=*
+Web Application Penetration Testing
+the filter will look like:
+searchfilter="(cn=*)"
+which matches every object with a ‘cn’ attribute equals to any-
+thing.
+If the application is vulnera

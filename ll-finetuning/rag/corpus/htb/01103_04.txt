@@ -1,0 +1,1 @@
+Server listening on :: port 22. Mar 6 10:07:18 caption sshd[1400]: Accepted password for root from 10.10.15.13 port 44930 ssh2 Mar 6 10:07:18 caption sshd[1400]: pam_unix(sshd:session): session opened for user root(uid=0) by (uid=0) Mar

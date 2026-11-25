@@ -1,0 +1,1 @@
+some_id ;client_secret = some_secret ;scopes = api ;auth_url = https://gitlab.com/oauth/authorize

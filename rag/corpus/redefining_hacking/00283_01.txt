@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+from memory. Once obtained, these credentials can be used for further
+attacks such as pass-the-hash or replay attacks.
+Kernel exploits can be used to target the core of the operating system (the
+kernel) to bypass security controls and escalate privileges. These exploits
+allow attackers to execute arbitrary code with elevated permissions. For
+example, exploiting a kernel vulnerability could allow an attacker to gain
+root access on a Linux system.
+Attackers frequently take advantage of misconfigured systems that grant
+excessive permissions. They could include improperly set file permissions,
+weak authentication mechanisms, or services running with unnecessarily
+high privileges. In Chapter 7, “Active Directory and Linux Environments,”
+you will learn more about how you can take advantage of different
+vulnerabilities to perform privilege escalation and other attacks in Windows
+and Linux systems.
+How to Cover Your Tracks
+After compromising a system during a penetration testing engagement, you
+should always cover your tracks to avoid detection by suppressing logs
+(when possible), deleting user accounts that could have been created on the
+system, and deleting any files tha

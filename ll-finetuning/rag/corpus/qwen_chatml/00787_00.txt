@@ -1,0 +1,4 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the objectives and methodology for the PortSwigger lab: Lab: Clickjacking with form input data prefilled f

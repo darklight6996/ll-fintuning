@@ -1,0 +1,46 @@
+32bit FFFOFSSe( FFF)
+GS eee NULL
+LastErr ERROR_SUCCESS (8088808)
+EFL 88618246 (HO,HE,E,BE,NS,PE,GE,LE)
+ST@ empty -UNORM BOEC 81856164 BeeEkeoe?
+Pome lo es FB
+i
+ST1l empty 8.8
+ST2 empty 8.8
+STS empty 8.8
+ST4 empty 8.8
+STS empty 8.8
+5ST6 empty 4.8
+STr empty 8.8
+3 2 1.8
+i
+oe
+et
+sere
+FST 84H
+Cond
+8 6 HH
+Err BoB
+ee
+FCW B27FF
+Prec HEAR,5S3
+WNask
+tek
+eas Ba
+aS
+As shown in the registers window of the debugger, the EIP or Ex-
+tended Instruction Pointer, which points to the next instruction
+to be executed, contains the value ‘41414141’. ‘41' is a hexadeci-
+mal representation for the character ‘A’ and therefore the string
+‘AAAA translates to 41414141.
+This clearly demonstrates how input data can be used to over-
+write the instruction pointer with user-supplied values and con-
+trol program execution. A stack overflow can also allow over-
+writing of stack-based structures like SEH (Structured Exception
+Handler) to control code execution and bypass certain stack pro-
+tection mechanisms.
+As mentioned previously, other methods of testing such vul-
+nerabilities include reverse engineering the application binaries,
+which is a complex and tedious process, and using fuzzing tech-
+niques.
+Gray Box test

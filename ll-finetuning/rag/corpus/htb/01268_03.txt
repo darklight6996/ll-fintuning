@@ -1,0 +1,1 @@
+len ( local_78 ); strlen_res2 = strlen ( filename_buffer ); filename_buffer = ( char * ) calloc ( strlen_res2 + strlen_res + 1 , 1 ); strcat ( filename_buffer , local_78 ); strcat ( filename_buffer , __dest ); system ( filename_buffer ); } else { puts ( "File not readable or not found" ); } return_val = 0 ; } LAB_001015e1: if ( lVar1 == * ( long * )(

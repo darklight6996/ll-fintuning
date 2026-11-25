@@ -1,0 +1,22 @@
+**Phase 6: Specialized & Emerging Certifications**
+- **OSWA (Offensive Security Web Analyst)**: Web app assessment focus
+- **CRTE (Certified Red Team Expert)**: Advanced red teaming (Zero Point)
+- **CCTA (Certified Cyber Threat Analyst)**: Threat intelligence
+- **GXPN (GIAC Exploit Researcher)**: Exploit dev (SANS SEC760)
+- **GPN (GIAC Penetration Tester)**: SANS SEC560
+- **GWAPT (GIAC Web App Penetration Tester)**: SANS SEC542
+- **GPEN (GIAC Penetration Tester)**: SANS SEC560
+- **CEH (Certified Ethical Hacker)**: Entry-level, HR-friendly
+- **CPENT (EC-Council Penetration Tester)**: Practical exam
+- **LPT (Licensed Penetration Tester)**: Master level (EC-Council)
+
+**Recommended Learning Pathways**
+
+**Path A: Penetration Testing Generalist**
+1. eJPT (0-3 mo) → 2. PNPT (3-6 mo) → 3. OSCP (6-12 mo) → 4. eCPPT (12-18 mo) → 5. eCPPTX (18-30 mo) → 6. OSEP (30+ mo)
+
+**Path B: Web Application Specialist**
+1. eJPT → 2. PNPT → 3. OSCP → 4. AWAE/OSWE (12-24 mo) → 5. OSWA → 6. Bug Bounty / AppSec Engineer
+
+**Path C: Red Team / Adversary Emulation**
+1. eJPT → 2. PNPT → 3. OSCP → 4. CRTO (12-18 mo) → 5. OSEP (18-30 mo) → 6. CRTE / Custom C2 Development

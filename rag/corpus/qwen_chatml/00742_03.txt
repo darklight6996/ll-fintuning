@@ -1,0 +1,25 @@
+ntext in which they are executed, the next stage
+is exploiting the functionality.
+This stage has two possible outcomes:
+[1] The injection is possible in an unauthenticated state:
+the affected functionality does not require the user to be
+authenticated. The injected (IMAP) commands available are
+limited to: CAPABILITY, NOOP, AUTHENTICATE, LOGIN, and
+LOGOUT.
+[2] The injection is only possible in an authenticated state:
+the successful exploitation requires the user to be fully
+authenticated before testing can continue.
+In any case, the typical structure of an IMAP/SMTP Injection is
+as follows:
+« Header: ending of the expected command;
+» Body: injection of the new command;
+« Footer: beginning of the expected command.
+It is important to remember that, in order to execute an IMAP/
+SMTP command, the previous command must be terminated
+with the CRLF (%0d%0a) sequence.
+Let's suppose that in the stage 1 (“Identifying vulnerable param-
+eters”), the attacker detects that the parameter “message_id” in
+the following request is vulnerable:
+http:/<webmail>/read_email.php?message_id=4791
+Let's suppose also that the outcome of the analysis performed
+in the stage 2 ("Understanding the data flow and d

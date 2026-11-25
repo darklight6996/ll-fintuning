@@ -1,0 +1,10 @@
+Context:
+Context: Engagement Reporting. You have completed testing and gathered evidence.
+Principle to Apply: 'Findings without clear communication are useless. Document methodology, evidence, and impact for stakeholders.'
+assistant
+**Assessment Phase**: Professional Reporting.
+**Core Principle**: A clear, actionable report transforms technical findings into business risk understanding, enabling remediation.
+**Actionable Steps**:
+1.  **Structured Documentation**: Create reports with consistent sections: Executive Summary, Methodology, Detailed Findings (Vulnerability, Impact, Proof, Remediation), Appendices.
+    *   **Reasoning**: This structure ensures technical details are preserved while providing business context. Evidence (screenshots, command output) must be included to validate findings. Remediation advice should be practical and prioritized.
+**Guidance for Novel Context**: Use consistent naming for files and findings. Sanitize reports of sensitive data (real IPs, credentials) before distribution. Tools like `Dradis`, `Serpico`, or custom templates can streamline the process. The report is your primary deliverable—invest time in making it clear and useful.

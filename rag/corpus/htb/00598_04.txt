@@ -1,0 +1,1 @@
+bove that there’s a likely SSRF vulnerability in the /api/store-status endpoint. I’ll send that request to Burp Repeater (with or without a valid token) and change the GET parameter to be my IP instead of the store domain,

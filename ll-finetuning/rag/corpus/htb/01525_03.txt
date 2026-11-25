@@ -1,0 +1,1 @@
+} " , " token " : " { token } " }} ' ) data = ws . recv () return json . loads ( data )[ ' debug ' ] if __name__ == " __main__ " : app . run ( debug = True ) This will wait for

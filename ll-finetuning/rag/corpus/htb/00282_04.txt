@@ -1,0 +1,1 @@
+lient.py : oxdf@hacky$ smbclient.py 'absolute.htb/svc_smb:AbsoluteSMBService123!@dc.absolute.htb' -k -no-pass Impacket v0.10.0 - Copyright 2022 SecureAuth

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you verify access to sensitive data stores?
+
+CONTEXT:
+Check access to key vaults.
+
+METHOD / ANSWER:
+Command: `az keyvault list --query '[].{Name:name, ResourceGroup:resourceGroup}'`
+Purpose: Lists all Key Vaults.

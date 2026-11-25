@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check root account usage.
+
+CONTEXT:
+Privileged access audit.
+
+METHOD / ANSWER:
+Command: `aws iam get-account-summary`
+Explanation: Detects root account activity.

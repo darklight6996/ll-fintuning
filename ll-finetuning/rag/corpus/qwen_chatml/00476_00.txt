@@ -1,0 +1,17 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+workspaces Manages workspaces
+[recon-ng][default] >
+Before you can start gathering information using the Recon-ng tool, you
+need to understand what modules are available. Recon-ng comes with a
+“marketplace” where you can search for available modules to be installed.
+You can use the marketplace search command to search for all the
+available modules in Recon-ng, as demonstrated in Figure 9-3.

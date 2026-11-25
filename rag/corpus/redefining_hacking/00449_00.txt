@@ -1,0 +1,28 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+┌─[omar@websploit]─[~]
+└──╼ $recon-ng
+[*] Version check disabled.
+/\
+/ \\ /\
+Sponsored by... /\ /\/ \\V \/\
+/ \\/ // \\\\\ \\ \/\
+// // BLACK HILLS \/ \
+www.blackhillsinfosec.c
+____ ____ ____ ____ _____ _ _
+|____] | ___/ |____| | | | |_
+| | \_ | | |____ | | _
+www.practisec.com
+[recon-ng v5.1.2, Tim Tomes (@lanm
+[4] Recon modules
+[1] Discovery modules
+[recon-ng][default] >
+From the initial screen, you can see the current number of modules that are
+installed in Recon-ng. To get an idea of what commands are available at the

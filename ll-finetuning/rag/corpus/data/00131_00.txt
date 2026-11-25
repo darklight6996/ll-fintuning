@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Document findings and retain evidence.
+
+CONTEXT:
+Compile a report for further analysis.
+
+METHOD / ANSWER:
+Command: Use documentation tools to outline all gathered information and vulnerabilities.
+Purpose: Produce a report for remediation and analysis.

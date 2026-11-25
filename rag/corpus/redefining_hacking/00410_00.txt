@@ -1,0 +1,29 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Tools like MassDNS can help accelerate a lot of the DNS
+reconnaissance tasks. MassDNS is a scalable DNS stub
+resolver designed for individuals aiming to process a
+considerable number of domain names, ranging into the
+millions or even billions. Without requiring any specific
+settings, MassDNS can handle over 350,000 name
+resolutions per second utilizing publicly accessible resolvers.
+You can access MassDNS’s source code at
+https://github.com/blechschmidt/massdns.
+Identifying Technical and Administrative Contacts
+You can easily identify domain technical and administrative contacts by
+using the whois tool. Keep in mind that many organizations keep their
+registration details private and instead use the domain register organization
+contacts. For instance, let’s look at the whois details for tesla.com shown in
+Example 9-5.
+Example 9-5 Whois Information for the Domain tesla.com
+┌─[omar@websploit]─[~]
+└──╼ $whois tesla.com
+Domain Name: TESLA.COM
+Registry Domain ID: 187902_DOMAIN_COM-VRSN

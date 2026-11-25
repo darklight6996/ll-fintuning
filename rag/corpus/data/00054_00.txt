@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you obtain detailed service information from the open ports?
+
+CONTEXT:
+You have already conducted a full port scan.
+
+METHOD / ANSWER:
+Command: `nmap -p 22,53,80,88,135,139,389,445,464,593,636,3268,3269,9389 -vv -sCV 10.10.11.60`
+Explanation: This command performs version detection on specified open ports, revealing detailed info about the services running.

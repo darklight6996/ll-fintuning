@@ -1,0 +1,25 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+2. What is the purpose of the Common Vulnerability Scoring System
+(CVSS)?
+A. To predict the likelihood of a vulnerability being exploited
+B. To communicate the characteristics and severity of software
+vulnerabilities
+C. To list vulnerabilities that have been exploited in the wild
+D. To generate exploit code for known vulnerabilities
+3. What does EPSS stand for in the context of vulnerability assessment?
+A. Exploit Prediction Scoring System
+B. External Penetration Security System
+C. Enhanced Protection Scanning Service
+D. Exploit Prevention Scoring Standard
+4. Which organization maintains the Known Exploited Vulnerabilities
+(KEV) Catalog?
+A. NIST
+B. OWASP

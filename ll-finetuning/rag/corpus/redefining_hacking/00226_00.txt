@@ -1,0 +1,27 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+if (user_input == correct_value) {
+execute_command();
+}
+Example 6-14 shows the modified code.
+Example 6-14 Control Flow Obfuscation Obfuscated Code
+switch (user_input) {
+case correct_value:
+goto L1;
+default:
+goto L2;
+}
+L1:
+execute_command();
+L2:
+;
+Another technique is to use code inlining and unrolling. The attacker
+replaces function calls with the actual function code (inlining) and loops
+with repeated code blocks (unrolling).

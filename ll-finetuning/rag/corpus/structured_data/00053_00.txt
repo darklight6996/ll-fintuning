@@ -1,0 +1,14 @@
+TECHNIQUE / QUESTION:
+How do you check for subdomains?
+
+CONTEXT:
+Context: Web Application Reconnaissance. You have a target domain and want to discover additional virtual hosts or subdomains.
+Principle to Apply: 'Expand the perimeter. Often, the main site is hardened, but subdomains are not.'
+
+METHOD / ANSWER:
+**Assessment Phase**: Subdomain/Virtual Host Discovery.
+**Core Principle**: Applications are often deployed across multiple subdomains (admin., dev., api., staging.) which may have weaker security controls or different attack surfaces.
+**Actionable Steps**:
+1.  **Virtual Host Brute-Forcing**: `ffuf -u http://<target> -H 'Host: FUZZ.<domain>' -w <wordlist>`
+    *   **Reasoning**: Fuzzes the `Host` HTTP header with subdomain names. Different responses (size, status codes) indicate valid virtual hosts on the same IP address.
+**Guidance for Novel Context**: Combine with DNS brute-forcing (`gobuster dns`) for true subdomain enumeration. Also check SSL certificates (`crt.sh`) and search engines for passive discovery. Adjust wordlists based on organization naming conventions.

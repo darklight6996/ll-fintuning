@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Audit Azure Functions for potential exploits.
+
+CONTEXT:
+You want to ensure that no unauthorized triggers are set.
+
+METHOD / ANSWER:
+Command: `az functionapp show --name <function_name> --resource-group <resource_group>`
+Purpose: Identify configurations that may not be secure.

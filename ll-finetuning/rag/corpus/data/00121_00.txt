@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Discover role assignments.
+
+CONTEXT:
+Assess access rights on resources.
+
+METHOD / ANSWER:
+Command: `az role assignment list --assignee <user_email>`
+Purpose: Lists roles assigned to a specific user.

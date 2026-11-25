@@ -1,0 +1,1 @@
+range ( payload_length )) frame += masked_payload return frame Sending Messages The first message is the authentication message. I’ll add a couple of arguments to the script to read in the username, password, and command: parser . add_argument ( " -U " , " --admin-username " , help = "

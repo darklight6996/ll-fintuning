@@ -1,0 +1,3 @@
+compared to the sophisticated assessments performed today. They are
+often in response to “How secure is the system?” Similar to red teaming
+having its roots in the military, so does penetration testing. These tests were

@@ -1,0 +1,15 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+New tools are constantly being developed, so I will keep updating my
+GitHub repository with information about the latest tools and related
+resources. You can find updates at https://github.com/The-Art-of-
+Hacking/h4cker/blob/master/ai_research/ai_security_tools.md.
+Figure 8-8 shows the usage of the Prompt Fuzzer (ps-fuzz) tool.

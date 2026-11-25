@@ -1,0 +1,15 @@
+**Reporting**:
+- **Risk Assessment**: Likelihood × Impact (Safety, Environmental, Operational, Financial)
+- **MITRE ATT&CK for ICS**: Mapping to tactics/techniques
+- **IEC 62443 Compliance**: Zones, conduits, security levels (SL 1-4)
+- **Remediation**: Network segmentation, patch management, secure configuration, monitoring, incident response
+- **Compensating Controls**: When patching not possible
+
+**Tools Summary**:
+- **Network**: Wireshark, tcpdump, nmap, masscan, ics-scanner, plcscan
+- **Protocol**: pymodbus, modbus-cli, snap7, pycomm3, opcua-client, libiec61850, bacpypes, pydnp3
+- **Analysis**: Ghidra, IDA Pro, Binary Ninja, Radare2 (firmware/PLC logic)
+- **Fuzzing**: Boofuzz, Peach, Sulley
+- **Simulation**: PLCSim, ModbusSim, OPC-UA-Sim
+- **Hardware**: Bus Pirate, Shikra, CH341A, Segger J-Link, ST-Link, USB-RS485
+- **Frameworks**: Metasploit (ICS modules), ICS-Exploit-Framework

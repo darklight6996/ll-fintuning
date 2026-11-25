@@ -1,0 +1,7 @@
+t is advisable to
+search for calls to insecure library functions like gets(), strcpy(),
+strcat() etc which do not validate the length of source strings and
+blindly copy data into fixed size buffers.
+For example consider the following function:-
+void log_create(int severity, char *inpt) {
+char b[ 1024];

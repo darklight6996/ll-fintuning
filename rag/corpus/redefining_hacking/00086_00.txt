@@ -1,0 +1,19 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 3-6 Updating the C2 Profile Config
+Prior to editing the profile configuration, you will need to update the values
+for the profile by clicking the Clipboard icon and editing the fullchain.pem
+and privkey.pem files and adding in the domain certificates generated from
+Example 3-5.
+Simply copy the value from
+/etc/letsencrypt/live/yourdomain.com/fullchain.pem and add it into the
+fullchain.pem file. The same step can be done for the privkey.pem from
+/etc/letsencrypt/live/yourdomain.com/privkey.pem. Figure 3-7 illustrates
+where you can find those files in the C2 configuration.

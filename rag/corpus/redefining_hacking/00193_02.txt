@@ -1,0 +1,2 @@
+ncover ways to exploit
+systems without triggering PAM defenses directly. Familiarize yourself with

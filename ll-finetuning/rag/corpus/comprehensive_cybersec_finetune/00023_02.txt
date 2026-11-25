@@ -1,0 +1,29 @@
+**Firewall Fingerprinting**:
+- **Vendor-Specific Signatures**:
+  - **Cisco ASA**: `ICMP unreachable communication administratively prohibited`
+  - **Palo Alto**: `PA-` in HTTP headers, `panos` in SSL cert
+  - **FortiGate**: `FortiGate` in error pages, `FGD` cookies
+  - **Check Point**: `CP-` headers, `SecureXL`
+  - **Juniper SRX**: `Juniper` in banners, `ScreenOS`
+  - **pfSense**: `pfSense` in error pages, `pf` in headers
+  - **AWS Security Groups / NACLs**: No banner, silent drop
+  - **Azure NSG / AWS Network Firewall**: Silent drop, no ICMP
+- **Rule Enumeration**:
+  ```bash
+  # Test common ports to map allow/deny
+  for port in 21 22 23 25 53 80 110 135 139 143 443 445 993 995 1433 3306 3389 5432 5900 8080; do
+    nmap -sS -p $port target.com --max-retries 1
+  done
+  
+  # Test ICMP types
+  nmap -PE -PP -PM target.com  # Echo, Timestamp, Address mask
+  ```
+- **Stateful Inspection Testing**:
+  ```bash
+  # Test if firewall tracks connection state
+  hping3 -S -p 80 target.com  # SYN
+  hping3 -A -p 80 target.com  # ACK (should be dropped if stateful)
+  hping3 -F -p 80 target.com  # FIN
+  hping3 -X -p 80 target.com  # XMAS
+  hping3 -Y -p 80 target.com  # NULL
+  ```

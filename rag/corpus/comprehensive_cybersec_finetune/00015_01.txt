@@ -1,0 +1,14 @@
+**Phase 1: Reconnaissance (TA0043)**
+- **Passive (OSINT)**:
+  - Domain: `amass`, `subfinder`, `dnsrecon`, `crt.sh`, `securitytrails`
+  - Email: `theharvester`, `hunter.io`, `linkedin`, `github`
+  - Tech Stack: `whatweb`, `wappalyzer`, `builtwith`, `shodan`, `censys`
+  - Employees: LinkedIn, social media, data breaches (`dehashed`, `haveibeenpwned`)
+  - Documents: `googledorks`, `gitdorks`, `metagoofil`
+  - Cloud: `cloud_enum`, `awscli`, `az`, `gcloud` enumeration
+- **Active**:
+  - Network: `nmap`, `masscan`, `zmap`
+  - Web: `ffuf`, `feroxbuster`, `katana`, `gau`
+  - AD: `ldapsearch`, `bloodhound` (if creds), `enum4linux`
+  - Cloud: `pacu`, `scoutsuite`, `prowler`
+- **Deliverable**: Attack surface map, technology stack, employee list, potential entry points

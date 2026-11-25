@@ -1,0 +1,1 @@
+ict chain ... 127.0.0.1:1080 ... web-01.darkcorp.htb:135 ... OK [proxychains] Strict chain ... 127.0.0.1:1080 ... web-01.darkcorp.htb:135 ... OK [proxychains]

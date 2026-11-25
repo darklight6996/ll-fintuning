@@ -1,0 +1,59 @@
+METHOD / ANSWER:
+Test ID
+OTG-SESS-001
+OTG-SESS-002
+OTG-SESS-003
+OTG-SESS-004
+OTG-SESS-005
+OTG-SESS-006
+OTG-SESS-007
+OTG-SESS-008
+OTG-INPVAL-001
+OTG-INPVAL-002
+OTG-INPVAL-003
+OTG-INPVAL-004
+OTG-INPVAL-006
+OTG-INPVAL-007
+OTG-INPVAL-008
+OTG-INPVAL-009
+OTG-INPVAL-010
+OTG-INPVAL-011
+OTG-INPVAL-012
+OTG-INPVAL-013
+OTG-INPVAL-014
+OTG-INPVAL-015
+OTG-INPVAL-016
+OTG-INPVAL-017
+Error Handling
+OTG-ERR-001
+OTG-ERR-002
+Cryptography
+OTG-CRYPST-001
+OTG-CRYPST-002
+OTG-CRYPST-003
+Input Validation Testing
+Lowest version
+Session Management Testing
+Testing for Bypassing Session Management Schema
+Testing for Cookies attributes
+Testing for Session Fixation
+Testing for Exposed Session Variables
+Testing for Cross Site Request Forgery
+Testing for logout functionality
+Test Session Timeout
+Testing for Session puzzling
+Testing for Reflected Cross Site Scripting
+Testing for Stored Cross Site Scripting
+Testing for HTTP Verb Tampering
+Testing for HTTP Parameter pollution
+Testing for SQL Injection
+Oracle Testing
+SQL Server Testing
+Testing PostgreSQL
+MS Access Testing
+Testing for NoSQL injection
+Testing for LDAP Injection
+Testing for ORM Injection
+Testing for XML Injection
+Testing for SSI Injection
+Testing for XPath

@@ -1,0 +1,1 @@
+detection performed. Please report any incorrect results at https://nmap.org/submit/ . Nmap done: 1 IP address (1 host up) scanned in 93.05 seconds SMB reports that the OS is Windows 10 Pro, and the hostname is Atom. Apache on Windows suggests

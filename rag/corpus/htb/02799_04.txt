@@ -1,0 +1,1 @@
+s\backups.txt , I can control this input. What makes this an interesting challenge is the filtering that happen to prevent injection. For example: $file = Get-Content E:\Scripts\Processing\backups.txt $file -replace "exe" ,

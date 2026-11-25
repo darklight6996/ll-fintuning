@@ -1,0 +1,1 @@
+into the BloodHound-CE Docker , find A.Briggs, and mark them as owned: This user has one Outbound Object Control, which I’ll select. It’s GenericWrite

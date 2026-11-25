@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you perform DCSync or similar techniques?
+
+CONTEXT:
+Context: Active Directory Post-Compromise. You have obtained high-privileged domain credentials or compromised a Domain Controller.
+Principle to Apply: 'With appropriate permissions, extract the entire domain credential database for offline analysis and further attacks.'

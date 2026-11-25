@@ -1,0 +1,1 @@
+to execute, I’ll change into /etc , set the umask , and run screen (making sure to get the right one): www-data@haircut:/tmp$ cd /etc/ www-data@haircut:/etc$ umask 000 www-data@haircut:/etc$ screen-4.5.0

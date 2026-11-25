@@ -1,0 +1,25 @@
+**Phase 2: Core Professional (6-18 months experience)**
+- **eCPPT (eLearnSecurity Certified Professional Penetration Tester) - INE**
+  - **Prerequisites**: eJPT or equivalent knowledge
+  - **Exam**: 7-day practical engagement + professional report
+  - **Topics**:
+    - **Network Penetration Testing**:
+      - Advanced enumeration (SNMP, LDAP, RPC, SMB)
+      - Pivoting/tunneling (SSH, Meterpreter, Chisel, Ligolo-ng)
+      - Active Directory attacks (Kerberoasting, AS-REP, DCSync)
+      - Lateral movement (Pass-the-Hash, Pass-the-Ticket, Overpass-the-Hash)
+      - Privilege escalation (Windows kernel, Linux kernel, sudo)
+    - **Web Application Penetration Testing**:
+      - OWASP Top 10 deep dive
+      - Authentication/authorization bypass
+      - Business logic flaws
+      - API testing (GraphQL, REST, gRPC)
+      - Client-side attacks (XSS, CSRF, CORS)
+    - **Wireless**: WPA2-Enterprise, Evil Twin, KARMA
+    - **Reporting**: Executive summary, technical findings, remediation
+  - **Study Resources**:
+    - INE eCPPT course (PTP v4/v5)
+    - Hack The Box: Pro Labs (Dante, Rasta, Cybernetics)
+    - OffSec PG Practice (retired boxes)
+    - "Practical Malware Analysis" book
+  - **Cos

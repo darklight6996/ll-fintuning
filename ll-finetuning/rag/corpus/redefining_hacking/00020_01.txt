@@ -1,0 +1,18 @@
+METHOD / ANSWER:
+the Sigma War Games and was carried out in the Pentagon. A group of 40–
+50 experts would gather to prepare for each exercise. These individuals
+would develop the scenario based on current global conditions and predict
+future events. For the execution phase of the exercise, about 30 people
+would participate. This phase consisted of two teams: the Red Team, who
+played the role of the enemy forces, and the Blue Team, the friendly forces.
+A third group called Control, sometimes referred to as White Cell, would
+oversee the exercise. Their role during the exercise was to monitor for
+adherence to the rules of engagement (ROEs) and coordination of activities
+to achieve exercise goals.
+Since these early days of exercises, the term red teaming has been applied
+to a wider variety of activities. In the 1980s the concept began to be applied
+to cybersecurity. Many early engagements still required physical access to
+these systems. As ARPANET gave way to the public Internet and systems
+became more interconnected, the engagements transitioned to more remote
+attacks. The National Security Agency led the way in this new digital
+landscape. The NSA transitioned from its traditional sig

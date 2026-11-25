@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Use secretsdump to extract SMB/NT hashes.
+
+CONTEXT:
+Using the dumped registry hives to get NTLM hashes.
+
+METHOD / ANSWER:
+Command: `secretsdump.py -system system.save -sam sam.save LOCAL`
+Purpose: Dump hashes from registry hives for potential password cracking.

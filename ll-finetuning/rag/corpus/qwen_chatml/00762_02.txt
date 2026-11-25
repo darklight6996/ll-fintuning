@@ -1,0 +1,27 @@
+ion the browser will self-generate an
+HTML page as if it were hosted by the victim host.
+XSS
+GetURL (AS2) / NavigateToURL (AS3):
+The GetURL function in ActionScript 2.0 and NavigateToURL in Ac-
+tionScript 3.0 lets the movie load a URI into the browser's window.
+So if an undefined variable is used as the first argument for getURL:
+getURL(_root.URI/_targetFrame’);
+Or if a FlashVar is used as the parameter that is passed to a naviga-
+Web Application Penetration Testing
+teToURL function:
+var request: URLRequest = new URLRequest(FlashVarSup-
+pliedURL);
+navigateToURL(request);
+Then this will mean it’s possible to call JavaScript in the same domain
+where the movie is hosted by requesting:
+http:/victim/file.swf?URI=javascript:evilcode
+getURL(‘javascript:evilcode’
+_ self’);
+The same when only some part of getURL is controlled:
+Dom Injection with Flash JavaScript injection
+getUrl(‘javascript:function('+_root.arg+’))
+asfunction:
+You can use the special asfunction protocol to cause the link to exe-
+cute an ActionScript function in a SWF file instead of opening a URL.
+Until release Flash Player 9 r48 asfunction could be used on every
+method which has aURL as an argument. After that release, asf

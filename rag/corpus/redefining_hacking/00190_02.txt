@@ -1,0 +1,5 @@
+use this framework to map
+out adversary behaviors and identify gaps in their defenses.
+Observing post-exploitation scenarios helps blue teams identify weaknesses
+in their incident response plans. They can update and refine these plans to
+ensure a more effective and coordinated response to real-world incidents.

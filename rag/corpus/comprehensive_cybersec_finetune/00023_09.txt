@@ -1,0 +1,26 @@
+**IPS/IDS Vendor Fingerprinting**:
+- **Snort / Suricata**:
+  - Alert format in logs (if accessible)
+  - Rule syntax in block messages
+  - `sid:` `rev:` in error pages
+- **Cisco Firepower / Sourcefire**:
+  - `SFIPS` in headers
+  - Block page: `Cisco Firepower`
+- **Palo Alto Networks**:
+  - `PA-` in headers
+  - WildFire verdicts
+  - `panos` in SSL cert
+- **FortiGate IPS**:
+  - `FortiGuard` in block page
+  - `FGD` cookies
+- **Check Point IPS**:
+  - `CP-IPS` in headers
+  - `SmartEvent` correlation
+- **Trend Micro TippingPoint**:
+  - `TippingPoint` in block page
+  - `X-TippingPoint` header
+- **McAfee Network Security Platform**:
+  - `McAfee` in block page
+  - `NSM` headers
+
+**Phase 4: Antivirus / EDR Detection & Fingerprinting**

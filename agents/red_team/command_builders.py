@@ -60,7 +60,7 @@ def build_privesc_check(params: PrivescCheckParams) -> List[List[str]]:
     """Build command vector for privilege escalation checks."""
     if sys.platform == "win32":
         return [["whoami", "/priv"]]
-    return [["id"], ["sudo", "-l"]]
+    return [["id"], ["sudo", "-n", "-l"]]  # -n: never prompt for a password; fail fast instead of hanging an unattended run
 
 
 def build_defense_evasion(params: DefenseEvasionParams) -> List[List[str]]:

@@ -1,0 +1,27 @@
+**Authentication & Authorization**:
+- **Broken Object Level Authorization (BOLA/IDOR)**:
+  - `GET /api/users/123/orders` → change to `124`
+  - `DELETE /api/admin/users/456` as regular user
+  - Test with different user contexts
+- **Broken Authentication**:
+  - Weak token generation (JWT, API keys)
+  - Credential stuffing on `/login`
+  - Password reset token leakage
+  - API key rotation/revocation
+- **Broken Function Level Authorization**:
+  - `POST /api/admin/delete-user` as non-admin
+  - Missing role checks on sensitive endpoints
+- **Excessive Data Exposure**:
+  - `GET /api/users/123` returns password hash, SSN
+  - Filter sensitive fields server-side
+
+**Input Validation & Injection**:
+- **SQL/NoSQL Injection**:
+  - `GET /api/users?id=1' UNION SELECT * FROM users--`
+  - MongoDB: `{"$where": "this.password == 'admin'"}`
+  - GraphQL: `query { user(id: "1' OR '1'='1") { password } }`
+- **Command Injection**:
+  - `POST /api/export { "format": "pdf; rm -rf /" }`
+- **XSS in API Responses**:
+  - Reflected in JSON: `{"search": "<script>alert(1)</script>"}`
+  - Content-Type confusion (JSON returned as HTML)

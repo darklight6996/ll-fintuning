@@ -1,0 +1,19 @@
+**Hardware/Physical Testing**:
+- **UART**:
+  - Identify TX/RX/GND/VCC (multimeter, logic analyzer)
+  - Baud rate: 9600, 115200, 57600, 38400
+  - Access U-Boot: interrupt boot, `printenv`, `bootm`, `tftpboot`
+  - Linux console: `root` shell, dropbear/sshd start
+- **JTAG/SWD**:
+  - `openocd -f interface/ftdi/jtagkey.cfg -f target/stm32f4x.cfg`
+  - `telnet localhost 4444` → `halt`, `reset`, `mdw`, `mww`, `reg`
+  - Extract flash: `dump_image firmware.bin 0x08000000 0x100000`
+- **SPI Flash**:
+  - SOIC8/WSOP8 clip (no desoldering)
+  - `flashrom -p ch341a_spi -r firmware.bin`
+  - `flashrom -p buspirate_spi -r firmware.bin`
+- **Side Channels**:
+  - Power analysis (shunt resistor, oscilloscope)
+  - EM emanations (near-field probe)
+  - Timing (instruction, cache)
+  - Temperature, clock glitching

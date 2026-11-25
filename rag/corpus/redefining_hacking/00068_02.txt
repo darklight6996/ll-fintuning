@@ -1,0 +1,6 @@
+. The C2 also
+supports multiple operators, BOFs, malleable profiles, SOCKS4/SOCKS5,
+and covert communications.
+Mythic (https://docs.mythic-c2.net/) is intended to serve as a plug-and-play
+architecture where operators have the ability to create changes to
+communication channels, agents, and other aspects as they operate. This C2

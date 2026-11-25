@@ -1,0 +1,1 @@
+TypeError: argument of type 'NoneType' is not iterable So with a user cookie, 401, but with no cookie, 500.

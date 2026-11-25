@@ -1,0 +1,28 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+The HTTP 301 status code, also known as "Moved Permanently," indicates
+that the requested resource has been permanently moved to a new URL.
+This status code is part of the 3xx class of HTTP responses, which are used
+for redirection. When a server responds with a 301 status code, it includes a
+Location header that specifies the new URL where the resource can be
+found. Browsers and search engines will automatically follow this
+redirection to the new URL.
+Tools like gobuster, ffuf, and feroxbuster can be used to perform this type
+of reconnaissance. Example 9-45 shows how to use gobuster to perform
+directory enumeration.
+Example 9-45 Using gobuster to Perform Directory Enumeration
+┌──(root㉿websploit)-[~]
+└─# gobuster dir -w words.txt -u http://10.6.6.23
+=====================================================
+Gobuster v3.6
+by OJ Reeves (@TheColonial) & Christian Mehlmauer (@f
+=====================================================
+[+] Url: http://10.6.6.23
+[+] Method: GET
+[+] Threads: 10
+[+] Wordlist: /root/words.txt
+[+] Negative Status codes: 404
+[+] User Agent: gobuster/3.6

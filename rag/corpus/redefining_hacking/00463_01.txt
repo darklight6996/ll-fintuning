@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+• Reverse DNS sweeping: A range of IP addresses is queried to identify the
+domain names (or hostnames) associated with those IPs. This technique is
+particularly useful for discovering hidden or unlisted domains and services
+that may not be directly visible through traditional means. In this process,
+the PTR (Pointer) records of IP addresses are queried to retrieve the domain
+names linked to them.
+Amass integrates with a number of different data sources, including
+certificate transparency logs, whois databases, social networks, and DNS
+databases, to gather a large amount of information. It can create network
+maps and graphs that can help in visualizing the network structure of the
+target. It supports scripting, which can be used to automate various tasks
+and extend its functionality.
+Maltego is a data visualization and analysis tool used for gathering and
+analyzing information in the fields of cybersecurity and forensic
+investigations. It is often used for OSINT as well. Maltego has a graphical
+interface where data can be visualized in a graph format, making it easier to
+identify patterns and relationships between data points. In Maltego,
+information is represented

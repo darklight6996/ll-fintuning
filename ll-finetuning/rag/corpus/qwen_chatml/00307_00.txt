@@ -1,0 +1,18 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+You then find a way to escalate your privileges as the user hannah to access
+those files.
+Figure 6-12 Horizontal Privilege Escalation
+Let’s go over a few specific techniques to achieve privilege escalation.
+You can search for credentials stored on compromised systems. These
+credentials can be found in password caches (such as browser-stored
+passwords), configuration files, or memory dumps. Tools like Mimikatz are
+commonly used to extract plaintext passwords, hashes, and Kerberos tickets

@@ -1,0 +1,1 @@
+key = list ( key ) msg = list ( msg ) for char_key in key : for i in range ( len ( msg )): if i == 0 : tmp =

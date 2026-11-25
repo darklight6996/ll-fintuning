@@ -1,0 +1,2 @@
+I-powered applications. It is used
+to orchestrate actions by deciding the best steps to solve problems. It also

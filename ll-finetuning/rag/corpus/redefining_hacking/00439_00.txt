@@ -1,0 +1,30 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+snusbase.com.
+Recon from File Metadata
+You can obtain a lot of information from metadata in files such as images;
+Microsoft Word, Excel, PowerPoint documents; and more. For instance, the
+Exchangeable Image File Format (Exif) is a specification that defines the
+formats for images, sound, and supplementary tags used by digital cameras,
+mobile phones, scanners, and other systems that process image and sound
+files.
+Several tools can show the Exif details. One of the most popular tools is the
+Exif tool demonstrated in Example 9-16. It shows the Exif data of a digital
+image (picture) captured by an iPhone.
+Example 9-16 Using the Exif Tool
+┌─[omar@websploit]─[~]
+└──╼ $exiftool IMG_4730.jpg
+ExifTool Version Number : 12.06
+File Name : IMG_4730.jpg
+Directory : .
+File Size : 2.4 MB
+File Modification Date/Time : 2024:06:20 21:33:36
+File Access Date/Time : 2024:06:20 21:33:36-
+File Inode Change Date/Time : 2024:06:20 21:33:36

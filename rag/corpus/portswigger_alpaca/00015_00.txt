@@ -1,0 +1,5 @@
+TECHNIQUE / QUESTION:
+Explain the objectives and methodology for the PortSwigger lab: Lab: Clickjacking with a frame buster script
+
+CONTEXT:
+Context: Lab: Clickjacking with a frame buster script (Learning Module)

@@ -1,0 +1,1 @@
+it’s 0x00007f76cb58b660: gdb-peda$ x/xg 0x563e09523f60 0x563e09523f60 <write@got.plt>: 0x00007f76cb58b660 And that is the start of write in LIBC: gdb-peda$ x/xi 0x00007f76cb58b660 0x7f76cb58b660 <__GI___libc_write>: mov eax,DWORD PTR fs:0x18 The offset from the

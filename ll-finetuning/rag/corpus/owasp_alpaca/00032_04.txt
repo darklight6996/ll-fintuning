@@ -1,0 +1,4 @@
+m/pls/bookstore/books.search?au-
+thor=DICK’ENS
+returns an error or a 404, then there might be a SQL injection flaw.
+This can be confirmed by using the concatenation operator:

@@ -1,0 +1,17 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+You then find a way to escalate your privileges as the user hannah to access
+those files.
+Figure 6-12 Horizontal Privilege Escalation
+Let’s go over a few specific techniques to achieve privilege escalation.
+You can search for credentials stored on compromised systems. These
+credentials can be found in password caches (such as browser-stored
+passwords), configuration files, or memory dumps. Tools like Mimikatz are
+commonly used to extract plaintext passwords, hashes, and Kerberos tickets

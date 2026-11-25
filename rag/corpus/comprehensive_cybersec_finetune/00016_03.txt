@@ -1,0 +1,31 @@
+**WPA/WPA2-Enterprise (802.1X) Testing**:
+- **EAP Method Enumeration**:
+  - `eapmd5pass`, `eapmd5crack`
+  - `hostapd-wpe` (rogue AP)
+- **Rogue AP / Evil Twin**:
+  - `hostapd-wpe` + `freeradius-wpe`
+  - `airbase-ng -e "Corporate WiFi" -c 6 wlan0mon`
+  - `dnsspoof`, `bettercap` for MITM
+  - Capture credentials: `freeradius-wpe` logs
+- **Certificate Validation Bypass**:
+  - User accepts invalid cert (social engineering)
+  - Misconfigured client (no CA validation)
+- **Inner Method Attacks**:
+  - EAP-MSCHAPv2: `asleap`, `john` (NTLMv1)
+  - EAP-TTLS/MSCHAPv2: Inner MSCHAPv2
+  - PEAP/MSCHAPv2: Most common
+  - EAP-TLS: Client cert required (harder)
+- **Tools**: `eaphammer`, `hostapd-mana`, `wifiphisher`, `fluxion`
+
+**WPA3 Testing**:
+- **SAE (Simultaneous Authentication of Equals)**:
+  - Dragonfly handshake
+  - Side-channel attacks (timing, cache)
+  - Downgrade to WPA2 (if transition mode)
+- **Tools**: `wpa_supplicant` with SAE, `hostapd` with SAE
+
+**Wi-Fi 6/6E/7 (802.11ax/be) Considerations**:
+- OFDMA, MU-MIMO, BSS Coloring
+- Target Wake Time (TWT)
+- 6 GHz band (5.925-7.125 GHz)
+- WPA3 mandatory

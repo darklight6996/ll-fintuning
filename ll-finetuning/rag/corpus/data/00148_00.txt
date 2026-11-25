@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check specific service versions.
+
+CONTEXT:
+Use Nmap to get service versions.
+
+METHOD / ANSWER:
+Command: `nmap -p 53,88,135,139,389,445,464,593,636,3268,3269,5985 -sCV 10.10.11.35`
+Purpose: Provides detailed information about services running on the open ports.

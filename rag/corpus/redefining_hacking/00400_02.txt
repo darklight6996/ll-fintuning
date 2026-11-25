@@ -1,0 +1,5 @@
+ssance. Some involve using third-party
+databases to gather information. Others might also use tools in such a way
+that they will not be detected by the target. These tools, in particular, work
+by simply listening to the traffic on the network and using intelligence to
+deduce information about the device communication on the network. This

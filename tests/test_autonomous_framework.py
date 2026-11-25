@@ -564,11 +564,15 @@ def test_bug_bounty_action_registry_and_builders():
 
     registry = build_bug_bounty_registry()
     actions = registry.list_actions()
-    assert len(actions) == 10
+    # >= 10: the 10 original actions PLUS the detection engines (sqlmap, nuclei)
+    # and the framework-level shared primitives (http_probe, browser_probe; and
+    # self_script when opted in) added 2026-11. The original 10 must all remain.
+    assert len(actions) >= 10
     action_ids = [a.action_id for a in actions]
-    assert "subdomain_enum" in action_ids
-    assert "idor_probe" in action_ids
-    assert "vuln_validation" in action_ids
+    for original in ("subdomain_enum", "port_scan", "endpoint_discovery", "dir_brute",
+                     "param_fuzz", "header_analysis", "idor_probe", "sqli_probe",
+                     "xss_probe", "vuln_validation"):
+        assert original in action_ids, f"original action {original} missing from registry"
 
     # Verify builders return List[List[str]] with NO shell strings
     builders_and_params = [
@@ -625,7 +629,7 @@ def test_pentest_action_registry_and_builders():
 
     registry = build_pentest_registry()
     actions = registry.list_actions()
-    assert len(actions) == 10
+    assert len(actions) >= 10  # core 10 + shared primitives (http_probe, browser_probe; self_script when opted in)
     action_ids = [a.action_id for a in actions]
     assert "host_discovery" in action_ids
     assert "service_scan" in action_ids
@@ -683,7 +687,7 @@ def test_active_directory_action_registry_and_builders():
 
     registry = build_ad_registry()
     actions = registry.list_actions()
-    assert len(actions) == 10
+    assert len(actions) >= 10  # core 10 + shared primitives (http_probe, browser_probe; self_script when opted in)
     action_ids = [a.action_id for a in actions]
     assert "dc_discovery" in action_ids
     assert "kerberoast" in action_ids
@@ -741,7 +745,7 @@ def test_cloud_action_registry_and_builders():
 
     registry = build_cloud_registry()
     actions = registry.list_actions()
-    assert len(actions) == 10
+    assert len(actions) >= 10  # core 10 + shared primitives (http_probe, browser_probe; self_script when opted in)
     action_ids = [a.action_id for a in actions]
     assert "iam_audit" in action_ids
     assert "s3_bucket_audit" in action_ids
@@ -799,7 +803,7 @@ def test_red_team_action_registry_and_builders():
 
     registry = build_red_team_registry()
     actions = registry.list_actions()
-    assert len(actions) == 10
+    assert len(actions) >= 10  # core 10 + shared primitives (http_probe, browser_probe; self_script when opted in)
     action_ids = [a.action_id for a in actions]
     assert "external_recon" in action_ids
     assert "initial_access_probe" in action_ids
@@ -856,7 +860,7 @@ def test_mobile_action_registry_and_builders():
 
     registry = build_mobile_registry()
     actions = registry.list_actions()
-    assert len(actions) == 10
+    assert len(actions) >= 10  # core 10 + shared primitives (http_probe, browser_probe; self_script when opted in)
     action_ids = [a.action_id for a in actions]
     assert "static_analysis" in action_ids
     assert "decompile_app" in action_ids
@@ -913,7 +917,7 @@ def test_firewall_bypass_action_registry_and_builders():
 
     registry = build_firewall_registry()
     actions = registry.list_actions()
-    assert len(actions) == 10
+    assert len(actions) >= 10  # core 10 + shared primitives (http_probe, browser_probe; self_script when opted in)
     action_ids = [a.action_id for a in actions]
     assert "waf_fingerprint" in action_ids
     assert "chunked_encoding" in action_ids
@@ -970,7 +974,7 @@ def test_security_research_action_registry_and_builders():
 
     registry = build_research_registry()
     actions = registry.list_actions()
-    assert len(actions) == 10
+    assert len(actions) >= 10  # core 10 + shared primitives (http_probe, browser_probe; self_script when opted in)
     action_ids = [a.action_id for a in actions]
     assert "cve_lookup" in action_ids
     assert "benign_poc_dev" in action_ids
@@ -1040,6 +1044,8 @@ def test_all_9_agents_autonomous_ready():
         assert hasattr(agent, "get_completion_criteria"), f"{agent.agent_type} missing get_completion_criteria"
         assert hasattr(agent, "run_autonomous_default"), f"{agent.agent_type} missing run_autonomous_default"
         registry = agent.get_action_registry()
-        assert len(registry.list_actions()) == 10, f"{agent.agent_type} expected 10 actions, got {len(registry.list_actions())}"
+        # >= 10: every agent has its 10 core actions; bug_bounty also carries the
+        # detection engines + shared primitives added 2026-11, so it has more.
+        assert len(registry.list_actions()) >= 10, f"{agent.agent_type} expected >=10 actions, got {len(registry.list_actions())}"
         criteria = agent.get_completion_criteria()
         assert criteria is not None, f"{agent.agent_type} criteria is None"

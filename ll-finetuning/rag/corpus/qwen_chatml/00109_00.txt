@@ -1,0 +1,23 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+sudo -E ./mythic-cli start
+To access the Mythic GUI, you can do SSH local port forwarding from your
+operator box with the command demonstrated in Example 3-9.
+Tip
+It is recommended that you operate from an operator box for
+each engagement as you conduct operations. An Ubuntu
+virtual machine or cloud instance will suffice for this
+purpose.
+Example 3-9 Accessing the GUI
+ssh -L 7443:127.0.0.1:7443 user@mythicserver
+Once the forwarding is in effect, navigate to https://127.0.0.1:7443 to log in
+(see Figure 3-5). You can find the mythic_admin password in the .env file
+of the Mythic directory.

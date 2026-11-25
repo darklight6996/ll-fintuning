@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What command should you run after obtaining a hash from DCSync?
+
+CONTEXT:
+You want to crack the NTLM hash.
+
+METHOD / ANSWER:
+Command: `hashcat <hash_file> /opt/SecLists/Passwords/Leaked-Databases/rockyou.txt`
+Explanation: Use Hashcat to attempt to crack the NTLM hash obtained from the DCSync.

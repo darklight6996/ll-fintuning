@@ -1,0 +1,26 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+7. Which tool can be used to obtain an Azure Refresh Token from
+Evilginx’s session?
+A. TokenTacticsv1
+B. TokenTacticsv2
+C. Evilginx3
+D. Mailgun
+Answer – B. TokenTacticsv2 integrated the ability to obtain an Azure
+Refresh Token from Evilginx’s session cookies.
+8. Which document is crucial for physical assessments?
+A. No documents are needed.
+B. Letter of authorization (LOA)
+C. Badges
+D. None of these answers are correct
+Answer – B. Explanation: Letter of authorization documents are your “get
+out of jail free” card showing you are authorized by the company that hired
+you to be performing the engagement.

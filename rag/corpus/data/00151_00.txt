@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Retrieve usernames with RID cycling.
+
+CONTEXT:
+Run a brute-force attack to collect usernames.
+
+METHOD / ANSWER:
+Command: `netexec smb CICADA-DC -u guest --rid-brute`
+Purpose: Enumerates domain users for valid accounts.

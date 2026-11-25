@@ -1,0 +1,27 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+|--[omar@websploit]─[~]
+|---- $steghide embed -ef secret.txt -cf websploit-lo
+Enter passphrase: this-is-a-passphrase
+Re-Enter passphrase: this-is-a-passphrase
+embedding "secret.txt" in "websploit-logo.jpg"... don
+|--[omar@websploit]─[~]
+|---- $
+Example 6-27 shows how the sensitive data is retrieved from the image and
+saved in a file (extracted_data.txt).
+Example 6-27 Extracting Hidden Data from an Image File
+|--[omar@websploit]─[~]
+|---- $steghide extract -sf websploit-logo.jpg -xf ex
+Enter passphrase: this-is-a-passphrase
+wrote extracted data to "extracted_data.txt".
+Example 6-28 shows the contents of the extracted data file
+(extracted_data.txt).
+Example 6-28 The Contents of the Extracted Data File

@@ -1,0 +1,30 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Now, let’s create a Python script that can do this for us very conveniently.
+Example 9-9 shows a Python script that takes a domain as an argument,
+performs a DNS lookup to get its IP address, and then performs a WHOIS
+lookup to determine if the IP address belongs to a major cloud provider. We
+will use the socket module for DNS lookup and python-whois package for
+the WHOIS lookup. You will need to install the python-whois package to
+run this script. You can do this by running pip install python-whois.
+Example 9-9 Using Python: Cloud Checker Script
+import socket
+import whois
+def get_domain_ip(domain):
+'''
+get domain IP address
+:param domain: domain
+:return: ip_address
+'''
+try:
+ip_address = socket.gethostbyname(domain)
+return ip_address
+except socket.gaierror:
+return None

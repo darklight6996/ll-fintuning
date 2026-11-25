@@ -1,0 +1,1 @@
+m the website. I’ll try adding something to the end of the injection: oxdf@parrot$ curl -G --data-urlencode 'hostname=;id;0xdf.no-ip.htb' 'http://dynadns:sndanyd@10.10.10.244/nic/update' 911 [nsupdate failed] That’s good confirmation that it’s using nsupdate , and the fact that I broke it is a good sign that

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check installed updates.
+
+CONTEXT:
+Patch management review.
+
+METHOD / ANSWER:
+Command: `apt list --upgradable`
+Explanation: Identifies missing security updates.

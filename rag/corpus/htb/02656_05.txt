@@ -1,0 +1,1 @@
+be post ) and users (or maybe user ). Of those four, only users returns something: oxdf@hacky$ uv run ssti.py 0xdf@hacknet.htb 0xdf '{{ users }}' [*] Logging in as 0xdf@hacknet.htb... [+] Logged in as 0xdf@hacknet.htb [*]

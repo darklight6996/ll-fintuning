@@ -1,0 +1,36 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Chain of trust Ok
+EV cert (experimental) no
+ETS/"eTLS", visibility info not present
+Certificate Validity (UTC) 55 >= 30 days (2023-08-1
+Certificate Revocation List --
+OCSP URI http://r3.o.lencr.org
+OCSP stapling offered, not revoked
+OCSP must staple extension --
+DNS CAA RR (experimental) not offered
+Certificate Transparency yes (certificate extensi
+<output omitted for brevity>
+Testing vulnerabilities
+Heartbleed (CVE-2014-0160) not vulnerabl
+extension
+CCS (CVE-2014-0224) not vulnerable
+Ticketbleed (CVE-2016-9244), experiment. not vulner
+ROBOT not vulnerable (
+Secure Renegotiation (RFC 5746) supported (O
+Secure Client-Initiated Renegotiation likely not
+CRIME, TLS (CVE-2012-4929) not vulnerab
+BREACH (CVE-2013-3587) potentially N
+compression detected. - only supplied "/" tested
+Can be ignored fo
+secrets in the page
+POODLE, SSL (CVE-2014-3566) not vulnerabl
+TLS_FALLBACK_SCSV (RFC 7507) No fallback p
+below TLS 1.2 offered

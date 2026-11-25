@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you establish a command shell once authenticated as the Administrator?
+
+CONTEXT:
+Context: Gaining Interactive Access. You have successfully performed Pass-the-Hash and confirmed SMB access as the Administrator. You now need an interactive command shell.
+Principle to Apply: 'Upgrade authenticated network access to an interactive command-line session for deeper control.'

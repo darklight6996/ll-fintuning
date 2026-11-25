@@ -1,0 +1,1 @@
+: self . connect () return self . send_ws ( params ) def default

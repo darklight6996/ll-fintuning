@@ -1,0 +1,1 @@
+works with the id as a string instead of an int: This is important because if I send in something like a SQL injection payload, it can’t go in an integer field, but it fits fine into a string. SQL Injection Identify To test for SQL injection, I’ll start with a simply "1'" to see if

@@ -1,0 +1,18 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Prior to running Evilginx3, you will need to change a few network settings
+to ensure Evilginx3 can take control of the DNS, as demonstrated in
+Example 5-7. Additionally, you have the option to generate your own
+certificate.
+Example 5-7 Virtual Instance Settings Commands
+## Updating network settings
+sudo rm /etc/resolv.conf
+sudo ln -sf /run/systemd/resolve/resolv.conf /etc/res
+## Edit /etc/hosts

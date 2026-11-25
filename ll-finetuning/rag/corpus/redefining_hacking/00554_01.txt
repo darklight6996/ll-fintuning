@@ -1,0 +1,18 @@
+METHOD / ANSWER:
+Figure 11-1 The Bug Bounty Hunter Workflow
+At the top of the hierarchy are the bug bounty platforms like Bugcrowd,
+HackerOne, Intigriti, and others. Next, the program is the specific bug
+bounty program offered by a company or organization on the platform. For
+example, a company may set up a program with Bugcrowd to allow
+researchers to test their web applications for vulnerabilities.
+The root domain represents the main domain or scope of the program. For
+example, if the company’s main website is websploit.org, this would be the
+root domain in scope for bug testing. Programs often list which root
+domains are in scope for testing.
+Beneath the root domain are subdomains, which are more specific areas of
+the website (such as api.websploit.org or admin.websploit.org). Bug bounty
+programs may specify which subdomains are part of the scope because
+certain subdomains may expose different services or applications.
+The IP address represents the network layer, where subdomains are resolved
+to one or more IP addresses. This allows ethical hackers to probe network-
+level configurations, services, and open ports that could be vulnerable.

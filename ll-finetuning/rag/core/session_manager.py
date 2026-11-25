@@ -219,11 +219,22 @@ class SessionManager:
         self.state["updated_at"] = self._get_timestamp()
         temp_file = self.session_dir / "state.json.tmp"
 
+        # DEFENSIVE FALLBACK (2026-11-13): a non-JSON-serializable value (e.g. raw
+        # bytes from a subprocess.TimeoutExpired.stdout, before the dedicated fix in
+        # command_executor.py) must never crash the whole autonomous run by failing
+        # to persist state. default=_json_fallback degrades anything json can't
+        # natively encode to a string instead of raising, trading perfect fidelity
+        # for "the run keeps going and the history is still inspectable."
+        def _json_fallback(obj):
+            if isinstance(obj, bytes):
+                return obj.decode("utf-8", errors="replace")
+            return repr(obj)
+
         import time
         for attempt in range(5):
             try:
                 with open(temp_file, "w", encoding="utf-8") as f:
-                    json.dump(self.state, f, indent=2, ensure_ascii=False)
+                    json.dump(self.state, f, indent=2, ensure_ascii=False, default=_json_fallback)
                 temp_file.replace(self.state_file)
                 return
             except (PermissionError, OSError):
@@ -231,7 +242,7 @@ class SessionManager:
 
         # Direct write fallback if atomic replace is blocked by OneDrive sync lock
         with open(self.state_file, "w", encoding="utf-8") as f:
-            json.dump(self.state, f, indent=2, ensure_ascii=False)
+            json.dump(self.state, f, indent=2, ensure_ascii=False, default=_json_fallback)
         if temp_file.exists():
             try:
                 temp_file.unlink(missing_ok=True)

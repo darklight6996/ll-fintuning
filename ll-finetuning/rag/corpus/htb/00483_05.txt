@@ -1,0 +1,1 @@
+ection to remote endpoint *Evil-WinRM* PS C:\Users\Administrator\Documents> And get the root flag: *Evil-WinRM* PS C:\Users\Administrator\desktop> type root.txt d93e6432************************

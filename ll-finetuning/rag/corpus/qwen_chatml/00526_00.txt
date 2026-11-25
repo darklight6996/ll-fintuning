@@ -1,0 +1,30 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+[-] Could not check share: STATUS_OBJECT_NAME_NOT_FOU
+[*] <output omitted for brevity>
+The highlighted lines in Example 9-39 show the enumerated users, Samba
+version, and shared folders. You can also use simple tools such as
+smbclient to enumerate shares and other information from a system
+running SMB, as demonstrated in Example 9-40.
+Example 9-40 Enumeration Using smbclient
+┌─[root@websploit]
+└──╼ #smbclient -L \\\\192.168.88.251
+Sharename Type Comment
+--------- ---- -------
+print$ Disk Printer Drivers
+secret_folder Disk Extremely sensitive
+IPC$ IPC IPC Service (Samba 4.
+SMB1 disabled -- no workgroup available
+┌─[root@websploit]─[~/enum4linux-ng]
+└──╼ #
+Web Page Enumeration/Web Application Enumeration
+Once you have identified that a web server is running on a target host, the
+next step is to take a look at the web application and begin to map out the

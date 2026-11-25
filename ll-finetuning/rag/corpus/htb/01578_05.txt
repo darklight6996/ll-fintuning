@@ -1,0 +1,1 @@
+these I’ve seen before, but /dashboard is new. Trying to visit while logged in redirects to /home . However, trying to visit while logged out returns a Laravel debug crash: “Attempt to read property “isAdmin” on

@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+teaming AI” means will get you 50 different answers. While some might
+describe it as testing AI applications and models through prompt injection
+attacks to assess security posture, others focus on evaluating biases, ethics,
+and discrimination. Each perspective holds validity. However, in this
+discussion, I will specifically concentrate on the security aspects of red
+teaming AI.
+There is no universally accepted standard for AI red teaming, leading to
+inconsistencies in how vulnerabilities are assessed and addressed. This lack
+of standardization makes it challenging to objectively compare the safety of
+different AI systems. AI models, especially LLMs, are complex and can be
+difficult to test comprehensively. They are susceptible to various
+vulnerabilities, such as adversarial attacks and data poisoning, which
+require sophisticated testing strategies.
+AI red teams must develop techniques to generate adversarial examples that
+can fool the model without being easily detected by traditional validation
+methods. Most of AI “algorithmic red teaming” is performed by using
+automated tools.
+Different models may have different vulne

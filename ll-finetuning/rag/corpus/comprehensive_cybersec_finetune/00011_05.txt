@@ -1,0 +1,29 @@
+**Phase 11: E-commerce Specific Logic Flaws**
+- **Price Manipulation**:
+  - Negative quantity → negative total → credit
+  - Coupon stacking → free items
+  - Currency conversion rounding
+  - Gift card balance transfer
+- **Inventory/Reservation**:
+  - Hold items without payment
+  - Race condition on limited stock
+  - Cart reservation timeout bypass
+- **Payment Logic**:
+  - Callback URL manipulation
+  - Amount mismatch (client vs server)
+  - Refund abuse (refund > purchase)
+  - Trial/subscription bypass
+
+**Phase 12: API Business Logic**
+- **Mass Assignment**: Extra fields in create/update
+- **IDOR in API**: `/api/v1/users/123/orders`
+- **Rate Limit per User vs Global**
+- **Pagination/Filter Bypass**: Access unauthorized data
+- **GraphQL**: Field suggestions, introspection, depth limits
+
+**Phase 13: Testing Techniques**
+- **Manual Exploration**: Burp Suite, browser DevTools
+- **Automated Fuzzing**: ffuf, custom scripts for logic flows
+- **State Modeling**: Map states, transitions, test invalid paths
+- **Pairwise Testing**: Combine parameters systematically
+- **Chaos Engineering**: Random valid/invalid inputs

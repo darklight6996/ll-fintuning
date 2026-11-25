@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify logout timeout.
+
+CONTEXT:
+Session management.
+
+METHOD / ANSWER:
+Command: `grep TMOUT /etc/profile`
+Explanation: Confirms session timeout enforcement.

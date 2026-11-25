@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Which tool can you use for service enumeration?
+
+CONTEXT:
+You want to map out relationships and permissions in Active Directory.
+
+METHOD / ANSWER:
+Tool: `BloodHound`
+Purpose: Identify relationships and potential attack paths.

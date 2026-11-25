@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How can you brute force subdomains that may exist for the domain?
+
+CONTEXT:
+Context: Web Application Reconnaissance. Target domain is 'editor.htb'. You suspect there may be other virtual hosts or subdomains.
+Principle to Apply: 'Expand the perimeter. Often, the main site is hardened, but subdomains are not.'

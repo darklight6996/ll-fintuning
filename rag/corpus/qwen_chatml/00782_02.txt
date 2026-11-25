@@ -1,0 +1,1 @@
+URL in the browser. When you move the mouse over the injected element it should trigger an alert. Community solutions z3nsh3ll Michael Sommer Find XSS vulnerabilities using Burp Suite Try for free

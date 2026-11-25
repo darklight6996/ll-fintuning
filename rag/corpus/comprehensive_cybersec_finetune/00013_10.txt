@@ -1,0 +1,22 @@
+**Phase 4: Cross-Cloud / Multi-Cloud Considerations**
+- **Identity Federation**:
+  - AWS IAM Identity Center ↔ Azure AD ↔ GCP Workload Identity Federation
+  - SAML/OIDC trust relationships
+- **Network Connectivity**:
+  - Transit Gateway ↔ Virtual WAN ↔ Network Connectivity Center
+  - Direct Connect ↔ ExpressRoute ↔ Cloud Interconnect
+- **Security Posture Management**:
+  - CSPM tools (Wiz, Orca, Prisma Cloud, Defender for Cloud, SCC)
+  - IaC Scanning (Checkov, tfsec, Terrascan, KICS)
+  - Container Security (Trivy, Syft, Grype, Aqua, Twistlock)
+  - CI/CD Security (GitHub Advanced Security, GitLab SAST, Azure DevOps)
+
+**Remediation Priorities**:
+1. Public exposure (storage, compute, databases)
+2. Overprivileged identities (human + machine)
+3. Missing encryption (at rest, in transit)
+4. Logging/monitoring gaps
+5. Network segmentation failures
+6. Secrets management
+7. Backup/recovery validation
+8. Compliance drift

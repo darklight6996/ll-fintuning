@@ -1,0 +1,12 @@
+**Phase 8: Policy & Risk (Requirement 12)**
+- Information security policy
+- Risk assessment annually
+- Incident response plan (tested annually)
+- Service provider management
+- Security awareness training
+
+**Validation Tools**:
+- `pcidss-scanner`, `nessus` PCI policy
+- `aws config` rules for PCI
+- `azure policy` PCI initiative
+- Custom scripts for requirement-specific checks

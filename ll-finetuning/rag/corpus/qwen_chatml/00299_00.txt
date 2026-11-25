@@ -1,0 +1,25 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+reveal information about running processes, and you can kill or stop
+services. Penetration testers commonly use the following Sysinternals tools
+post-exploitation:
+• PsExec: Executes processes
+• PsFile: Shows open files
+• PsGetSid: Displays security identifiers of users
+• PsInfo: Gives detailed information about a computer
+• PsKill: Kills processes
+• PsList: Lists information about processes
+• PsLoggedOn: Lists logged-in accounts
+• PsLogList: Pulls event logs
+• PsPassword: Changes passwords
+• PsPing: Starts ping requests
+• PsService: Makes changes to Windows services
+• PsShutdown: Shuts down a computer

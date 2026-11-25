@@ -1,0 +1,1 @@
+sh_path ); fputs (( char * ) row [ 3 ], f_hash_path ); fputc ( 0x20 , f_hash_path ); fputs (( char * ) row [ 2 ], f_hash_path ); fclose ( f_hash_path );

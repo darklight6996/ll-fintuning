@@ -1,0 +1,1 @@
+'sado');" And it works: auctioneer@gavel:/$ gavel-util submit /tmp/sample.yaml Item submitted

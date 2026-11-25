@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Explain the purpose and usage of the code/command in the following text: (Context: Writeup from Htb Dump Hacks Stuff)
+
+CONTEXT:
+Source: Htb Dump Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+(ie, read pcap files from other sources) /var/log/snort/ * log * r, /usr/bin/tcpdump mr, # Site-specific additions and overrides. See local/README for details. #include <local/usr.bin.tcpdump> } This configuration blocks several escalation methods. This part blocks writing to writing hidden files and directories in the current user’s home directory (which is root when running as root): audit deny @ { HOME } /. * mrwkl, # Denies hidden files in HOME audit deny @ { HOME } /. * / rw, # Denies hidden directories audit deny @ { HOME } /. * / ** mrwkl, # Denies files inside hidden dirs The -z flag allows specifying the command to run to compress, which typically would allow me to run arbitrary commands. However, this section of the AppArmor config blocks that: / { usr/, } bin/gzip ixr, / { usr/, } bin/bzip2 ixr, Only gzip and bzip2 can be run here.

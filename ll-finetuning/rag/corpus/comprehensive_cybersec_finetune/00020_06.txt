@@ -1,0 +1,36 @@
+**Phase 5: Reliability & Weaponization**
+- **Handle Edge Cases**:
+  - Connection timeouts
+  - Partial sends
+  - Service restart behavior
+  - Multiple connections for brute force (if ASLR)
+- **Encoder/Bad Character Handling**:
+  ```python
+  # Check bad chars
+  badchars = b"\x00\x0a\x0d\x20"  # null, newline, carriage return, space
+  # Encode with shikata_ga_nai or custom encoder
+  ```
+- **Staged Payload** (if space limited):
+  - Stage 1: Small ROP to read() larger payload
+  - Stage 2: Full shellcode
+- **Persistence** (post-exploitation):
+  - SSH key injection
+  - Systemd service
+  - Cron job
+  - SUID binary
+
+**Phase 6: Testing Checklist**
+- [ ] Local exploit works (same binary)
+- [ ] Remote exploit works (target IP)
+- [ ] Multiple runs stable
+- [ ] Handles network latency
+- [ ] Clean exit (no crash after shell)
+- [ ] Bypasses any logging/monitoring
+
+**Advanced: ASLR Bypass** (if enabled)
+- **Info Leak**: Format string, out-of-bounds read
+- **Partial Overwrite**: Last 2-3 bytes of return address
+- **Ret2dlresolve**: Resolve symbols at runtime
+- **Brute Force**: Forking service, 2^16 entropy
+
+**Tools**: pwntools, ROPgadget, ropper, one_gadget, checksec, gdb-pwndbg, gef, pwndbg

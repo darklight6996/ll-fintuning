@@ -1,0 +1,15 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 3-20 Mythic SOCKS Proxies
+To test the proxy, navigate to the C2 server and grab your IP through
+ipconfig.io. For the example in Figure 3-21, the curl without proxychains4
+versus with proxychains4 showcases how the traffic is properly routing
+through the victim’s item when using proxychains4.
+Figure 3-21 Testing Proxy

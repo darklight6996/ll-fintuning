@@ -1,0 +1,23 @@
+METHOD / ANSWER:
+Test File Extensions Handling for Sensitive Information (OTG-CONFIG-003)
+Review Old, Backup and Unreferenced Files for Sensitive Information (OTG-CONFIG-004)
+Enumerate Infrastructure and Application Admin Interfaces (OTG-CONFIG-005)
+Test HTTP Methods (OTG-CONFIG-006)
+Test HTTP Strict Transport Security (OTG-CONFIG-007)
+Test RIA cross domain policy (QTG-CONFIG-008)
+Identity Management Testing
+Test Role Definitions (OTG-IDENT-001)
+Test User Registration Process (OTG-IDENT-002)
+Test Account Provisioning Process (OTG-IDENT-003)
+Testing for Account Enumeration and Guessable User Account (OTG-IDENT-004)
+Testing for Weak or unenforced username policy (OTG-IDENT-005)
+Authentication Testing
+Testing for Credentials Transported over an Encrypted Channel (OTG-AUTHN-001)
+Testing for default credentials (OTG-AUTHN-002)
+Testing for Weak lock out mechanism (OTG-AUTHN-003)
+Testing for bypassing authentication schema (OTG-AUTHN-004)
+Test remember password functionality (OTG-AUTHN-005)
+Testing for Browser cache weakness (OTG-AUTHN-006)
+Testing for Weak password policy (OTG-AUTHN-007)
+Testing for Weak security question/answer (OTG-AUTHN-008)
+Testing for weak password change or reset f

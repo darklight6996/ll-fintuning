@@ -1,0 +1,36 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Authentication/Encryption, 3DES, RC4
+PFS is offered (OK) TLS_AES_256_GCM_SHA384 TLS
+ECDHE-RSA-AES256-GCM-SHA384 ECDHE-RSA-AES256-SHA384 E
+ECDHE-RSA-CHACHA20-POLY1305 TLS_AES_128_GCM_SHA256 EC
+ECDHE-RSA-AES128-SHA256 ECDHE-RSA-AES128-SHA
+Elliptic curves offered: prime256v1 secp384r1 sec
+Testing server preferences
+Has server cipher order? yes (OK) -- only for < T
+Negotiated protocol TLSv1.3
+Negotiated cipher TLS_AES_256_GCM_SHA384, 25
+Cipher order
+TLSv1.2: ECDHE-RSA-AES128-GCM-SHA256 ECDHE-RSA-A
+ECDHE-RSA-CHACHA20-POLY1305 ECDHE-RSA-AES128-SHA256 E
+ECDHE-RSA-AES128-SHA ECDHE-RSA-AES256-SHA
+AES128-SHA AES256-SHA
+<output omitted for brevity>
+Server extended key usage TLS Web Server Authentic
+Authentication
+Serial 03C3A18FC6D788539C0BFEE16E5
+Fingerprints SHA1 4AB6BA78E972C99CA947A
+SHA256
+489964F5A7ABB9F8ADC0082652A6F978E379F2496247045850C96
+Common Name (CN) websploit.org (CN in res
+*.github.io )
+subjectAltName (SAN) websploit.org
+Issuer R3 (Let's Encrypt from US)
+Trust (hostname) Ok via SAN (SNI mandator

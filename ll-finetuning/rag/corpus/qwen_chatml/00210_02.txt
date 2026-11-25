@@ -1,0 +1,4 @@
+ic the actions of advanced persistent threats
+(APTs) who, after gaining initial access, prioritize maintaining long-term
+control, extracting sensitive data, and evading detection. By concentrating
+on these activities, red teamers can provide a more accurate and

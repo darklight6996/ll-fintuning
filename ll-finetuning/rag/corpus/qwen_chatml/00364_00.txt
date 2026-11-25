@@ -1,0 +1,26 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+documents = loader.load()
+text_splitter = CharacterTextSplitter(chunk_size=1
+docs = text_splitter.split_documents(documents)
+print("\n--- Document Chunks Information ---")
+print(f"Number of document chunks: {len(docs)}")
+print(f"Sample chunk:\n{docs[0].page_content}\n")
+print("\n--- Creating embeddings ---")
+embeddings = OpenAIEmbeddings(
+model="text-embedding-3-small")
+print("\n--- Finished creating embeddings ---")
+print("\n--- Creating vector store ---")
+db = Chroma.from_documents(
+docs, embeddings, persist_directory=persistent_
+print("\n--- Finished creating vector store ---")
+else:
+print("The vector store already exists. No need to

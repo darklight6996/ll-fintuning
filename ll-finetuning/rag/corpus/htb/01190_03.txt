@@ -1,0 +1,1 @@
+real requests (they seem to get cleared as the admin views them), and then load /admin . It worked! [XSS](javascript: document.write%28%22<script>alert(1)</script>%22%29) Unintended Root »

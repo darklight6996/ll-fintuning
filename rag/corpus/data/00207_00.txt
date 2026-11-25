@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check IAM access keys.
+
+CONTEXT:
+Credential hygiene review.
+
+METHOD / ANSWER:
+Command: `aws iam list-access-keys --user-name <user>`
+Explanation: Identifies active API keys.

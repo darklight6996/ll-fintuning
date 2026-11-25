@@ -1,0 +1,1 @@
+e/floris/admin-area/input 2018/10/29 21:06:01 CMD: UID=0 PID=25423 | /bin/sh -c curl -K /home/floris/admin-area/input -o /home/floris/admin-area/report 2018/10/29 21:06:01 CMD: UID=0 PID=25421 | /usr/sbin/CRON -f 2018/10/29 21:06:01 CMD: UID=0 PID=25420 | /usr/sbin/CRON -f curl -K The -K

@@ -1,0 +1,1 @@
+t: oxdf@hacky$ curl -sv 'http://localhost:8088/profile' -d "new_name=AAAAAAAAAAAAAAA," -H "Cookie: user_id=49f5f0062780bed62dc06bf4a8d2dd9cb5c3fda50e19a5a840262c26c001bb0338550635d9fd36fef81113d9fbd15805193308e099ee214406b0a87c0b6587fb"

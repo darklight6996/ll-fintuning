@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check kernel parameters.
+
+CONTEXT:
+System hardening.
+
+METHOD / ANSWER:
+Command: `sysctl -a`
+Explanation: Reviews security-relevant parameters.

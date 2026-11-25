@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify SELinux/AppArmor status.
+
+CONTEXT:
+System hardening audit.
+
+METHOD / ANSWER:
+Command: `aa-status`
+Explanation: Confirms mandatory access controls.

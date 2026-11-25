@@ -1,0 +1,26 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Shodan offers two primary lifetime subscription options. A
+one-time payment grants users lifetime access to advanced
+features on Shodan, such as unlimited search results, API
+access, and access to advanced filters. Shodan also offers a
+free upgrade to students, professors, or IT staff at
+universities.
+Example 9-26 shows a query performed using the Shodan API to find
+network infrastructure devices that are running a broken protocol called the
+“Cisco Smart Install” protocol. Attackers have leveraged that protocol for
+years to compromise different infrastructures. Cisco removed this protocol
+from its systems many years ago. However, many people are still using it in
+devices connected to the public Internet. Cisco has warned customers for
+many years in a security advisory that can be accessed at
+https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco
+-sa-20170214-smi.
+Example 9-26 Setting the Source Domain and Running the Query
+┌──(omar㉿websploit)-[~]
+└─$ shodan search "smart install client active"
+50.238.151.242 4786 Cisco Smart Install Clie
+192.100.201.249 4786 Cisco Smart Install Clie
+38.143.52.1 4786

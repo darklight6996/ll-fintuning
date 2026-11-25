@@ -1,0 +1,25 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+When you are categorizing your domain, there are various resources you
+can utilize from bluscreenofjeff’s Red Team Guide to get your domain in a
+categorized state, including
+• McAfee
+• TrendoMicro
+• BrightCloud
+• Fortiguard
+• Other domain reputation providers
+I recommend reviewing other sources to use when categorizing your
+domain. It is best practice to submit your domain to multiple domain
+categorization services to ensure the reputation is strong prior to your
+engagement. When submitting your domain, you can point your DNS
+records to the site you are hosting for categorization with an A Record
+pointing to WWW for the domain, as shown in Figure 5-4. Figure 5-5
+shows how a domain has been successfully categorized as Business and
+Economy.

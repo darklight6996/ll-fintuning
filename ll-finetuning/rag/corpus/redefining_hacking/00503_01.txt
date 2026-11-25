@@ -1,0 +1,24 @@
+METHOD / ANSWER:
+PORT STATE SERVICE VERSION
+80/tcp open http nginx 1.17.2
+| http-enum:
+| /admin/: Possible admin folder
+| /admin/index.html: Possible admin folder
+|_ /s/: Potentially interesting folder
+|_http-server-header: nginx/1.17.2
+Service detection performed. Please report any incorr
+https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 8.54 s
+┌─[root@websploit]─[~]
+└──╼ #
+The highlighted output in Example 9-38 shows several enumerated
+directories/folders and the version of the web server being used (nginix
+1.17.2). This is a good place to start in attacking a web application.
+Another web server enumeration tool we should talk about is Nikto. Nikto
+is an open-source web vulnerability scanner that has been around for many
+years. It’s not as robust as the commercial web vulnerability scanners;
+however, it is very handy for running a quick script to enumerate
+information about a web server and the applications it is hosting. Because
+of the speed at which Nikto works to scan a web server, it is very noisy. It
+provides a number of options for scanning, including the capability to
+authenticate to a web application that requires a username and password.

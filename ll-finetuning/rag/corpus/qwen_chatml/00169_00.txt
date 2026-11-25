@@ -1,0 +1,13 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+screen -S evilginx
+./evilginx2 -p phishlets/ -debug
+config autocert off (disables auto generation of Lets

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Conduct a threat analysis on identified resources.
+
+CONTEXT:
+You want to classify risks associated with each resource.
+
+METHOD / ANSWER:
+Command: Document findings in a threat model format.
+Purpose: Provide a visual representation of threat vectors.

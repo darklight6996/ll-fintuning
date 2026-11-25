@@ -1,0 +1,1 @@
+/ is a banned character. But it exists in the binary: oxdf@hacky$ strings -a -t x doodleGrive-cli | grep bin/sh 97cd5 /bin/sh Because the binary has PIE disabled, this should be at the same place every time: gdb-peda$ checksec CANARY

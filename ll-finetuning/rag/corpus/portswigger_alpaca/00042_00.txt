@@ -1,0 +1,5 @@
+TECHNIQUE / QUESTION:
+Explain the objectives and methodology for the PortSwigger lab: Lab: Excessive trust in client-side controls
+
+CONTEXT:
+Context: Lab: Excessive trust in client-side controls (Learning Module)

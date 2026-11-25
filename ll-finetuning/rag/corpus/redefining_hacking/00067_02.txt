@@ -1,0 +1,3 @@
+ts. An advantage of public C2 frameworks is the
+flexibility for customization to be most effective, whereas commercial C2s
+can be more restrictive in terms of customization. Commercial C2s are still

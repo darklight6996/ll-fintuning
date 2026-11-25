@@ -1,0 +1,32 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+name = Column(String)
+platform_id = Column(Integer, ForeignKey('platform
+platform = relationship('Platform', back_populates
+root_domains = relationship('RootDomain', back_pop
+class RootDomain(Base):
+__tablename__ = 'root_domains'
+id = Column(Integer, primary_key=True)
+name = Column(String)
+program_id = Column(Integer, ForeignKey('programs.
+program = relationship('Program', back_populates=
+subdomains = relationship('Subdomain', back_popula
+class Subdomain(Base):
+__tablename__ = 'subdomains'
+id = Column(Integer, primary_key=True)
+name = Column(String)
+root_domain_id = Column(Integer, ForeignKey('root_
+root_domain = relationship('RootDomain', back_popu
+ips = relationship('IP', back_populates='subdomain
+class IP(Base):
+__tablename__ = 'ips'
+id = Column(Integer, primary_key=True)
+address = Column(String)

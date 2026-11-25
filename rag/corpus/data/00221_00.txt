@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check cron job ownership.
+
+CONTEXT:
+Job integrity review.
+
+METHOD / ANSWER:
+Command: `ls -l /etc/cron.*`
+Explanation: Confirms authorized job ownership.

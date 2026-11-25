@@ -1,0 +1,37 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+CT Precertificate SCTs:
+Signed Certificate Timestamp:
+Version : v1 (0x0)
+Log ID : B7:3E:FB:24:DF:9C:4D:BA:75
+5D:FC:42:CF:7A:9F:35:C4:9E:1
+Timestamp : Aug 15 23:14:30.605 2023 G
+Extensions: none
+Signature : ecdsa-with-SHA256
+30:46:02:21:00:8E:EE:71:7F:6
+0D:67:9F:B8:44:E3:57:24:19:C
+CB:AB:7A:7D:5D:02:21:00:CD:B
+16:A8:E3:D8:CD:9D:C5:EA:AB:6
+4B:0F:57:34:A0:84:32:9C
+Signed Certificate Timestamp:
+Version : v1 (0x0)
+Log ID : 7A:32:8C:54:D8:B7:2D:B6:20
+16:70:32:13:85:4D:3B:D2:2B:C
+Timestamp : Aug 15 23:14:30.644 2023 G
+Extensions: none
+Signature : ecdsa-with-SHA256
+30:44:02:20:6F:55:96:EA:54:2
+9A:E4:A7:50:5A:C3:60:F6:F7:A
+2A:0A:3F:E3:02:20:78:A2:EC:9
+0F:30:4F:B9:8C:79:6B:5C:9E:F
+31:D1:71:14:36:0E
+Signature Algorithm: sha256WithRSAEncryption
+Signature Value:
+56:27:a3:e0:8a:7e:18:85:23:04:84:73:f4:63:53:f5:

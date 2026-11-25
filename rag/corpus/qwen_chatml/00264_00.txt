@@ -1,0 +1,27 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+}
+module_init(rootkit_init);
+module_exit(rootkit_exit);
+Once you compile the rootkit, load it. In other words, load the kernel
+module:
+sudo insmod rootkit.ko
+Then check if the rootkit is loaded and hidden:
+lsmod | grep rootkit
+Running this command should show nothing if the rootkit is hidden
+correctly.
+Let’s go over a real-world use case of a sophisticated rootkit known as
+TDL3 (also referred to as TDSS or Alureon). This rootkit is known for its
+ability to operate at the kernel level, providing deep system access and
+significant stealth capabilities. The TDL3 loader is responsible for loading
+and initiating the rootkit's malicious payload while evading detection from
+traditional security mechanisms. The following are the key characteristics
+of the TDL3 loader:

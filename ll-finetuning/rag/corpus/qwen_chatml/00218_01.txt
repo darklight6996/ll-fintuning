@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+challenging to extract passwords from scripts, configuration files, or
+memory, common techniques used during red team engagements. Even if
+you compromise a lower-level account, its access may be too restricted to
+pivot effectively.
+PAM solutions often enforce frequent password changes, session timeouts,
+and one-time access tokens, making it harder for you to maintain
+persistence in the environment without being detected.
+PAM tools use logging and alerting to detect unusual access patterns, such
+as accessing systems outside of normal hours or from unexpected locations.
+These alerts can notify blue teams about potential unauthorized activity,
+including your presence in the environment.
+To effectively deal with PAM as a red teamer, look for potential
+misconfigurations, such as accounts not enrolled in PAM or PAM processes
+that are not applied uniformly across the environment. You can also exploit
+the human factor. Perform phishing for privileged users or exploiting weak
+approval processes for access requests can help you bypass PAM controls
+indirectly.
+You can also focus on non-privileged accounts first. By compromising an

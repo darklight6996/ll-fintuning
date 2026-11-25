@@ -1,0 +1,10 @@
+Context:
+Context: Initial Reconnaissance. New target IP: 10.10.11.80. No prior knowledge.
+Principle to Apply: 'Cast a wide net first to map the entire attack surface.'
+assistant
+**Assessment Phase**: Comprehensive Port Discovery.
+**Core Principle**: Discover every listening TCP port to avoid missing obscure services that could be the easiest entry point.
+**Actionable Steps**:
+1.  **Fast Full-Port Scan**: `nmap -p- -vvv --min-rate 10000 10.10.11.80`
+    *   **Reasoning**: The `-p-` scans all 65535 ports. `--min-rate 10000` sends packets very quickly to complete the scan in a reasonable time. `-vvv` provides verbose output to see progress. This is a 'discovery' scan to get the complete list of open ports.
+**Guidance for Novel Context**: This aggressive scan may be detected by IDS/IPS. If stealth is required, apply the principle of 'slower, more stealthy discovery' with options like `-sS -T2`. If the target is a web application server, also consider a quick UDP scan (`-sU -p 53,161,123`) for DNS, SNMP, or NTP, which can leak information.

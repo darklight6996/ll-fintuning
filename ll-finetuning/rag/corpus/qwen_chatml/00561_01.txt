@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+types of bug bounty programs. Beyond technical expertise, you've delved
+into the realm of legal and ethical considerations. This chapter has
+emphasized the importance of proper scope and adhering to legal
+boundaries while engaging in bug bounty programs and conducting
+reconnaissance activities.
+As technology advances, the integration of AI technologies has become a
+significant aspect of cybersecurity. You now have an understanding of how
+AI can enhance the efficiency and effectiveness of reconnaissance
+processes, keeping you at the forefront of cybersecurity advancements. You
+will learn more about how to use AI for bug bounty operations in Chapter
+11.
+Test Your Skills
+MULTIPLE-CHOICE QUESTIONS
+1. What is the primary objective of attack surface management (ASM)?
+A. Identifying and mitigating vulnerabilities before they can be exploited
+B. Offering monetary rewards to individuals who find vulnerabilities
+C. Establishing a formal process to report vulnerabilities
+D. Encouraging community participation and collaboration

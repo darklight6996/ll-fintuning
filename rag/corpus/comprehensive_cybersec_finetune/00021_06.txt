@@ -1,0 +1,23 @@
+**Section 5: Remediation Roadmap**
+- **Prioritization Framework**:
+  - Quick Wins (Low effort, High impact): Config changes, patching
+  - Strategic Projects (High effort, High impact): Architecture changes, WAF, SIEM
+  - Hygiene (Low effort, Low impact): Headers, banners, version hiding
+- **Remediation Tracking Table**:
+  | Finding | Owner | Action | Due Date | Status | Verification |
+  |---------|-------|--------|----------|--------|--------------|
+  | PT-001 | Dev Lead | Parameterize login query | 2024-02-15 | In Progress | Re-test |
+  | PT-002 | SysAdmin | Harden SSH config | 2024-02-01 | Complete | Verified |
+- **Phased Approach**:
+  - Phase 1 (0-30 days): Critical/High findings
+  - Phase 2 (30-90 days): Medium findings
+  - Phase 3 (90-180 days): Low/Info findings
+- **Compensating Controls**: When patching not immediately possible
+
+**Section 6: Appendices**
+- **Appendix A**: Full CVSS 4.0 vectors for each finding
+- **Appendix B**: Tool output (raw scanner results, truncated)
+- **Appendix C**: Network diagrams, architecture
+- **Appendix D**: Credentials tested (redacted)
+- **Appendix E**: Glossary of terms
+- **Appendix F**: References & Standards

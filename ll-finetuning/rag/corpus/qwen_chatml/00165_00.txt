@@ -1,0 +1,32 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Example 5-6 shows a sample redirector from Evilginx; however, a tool such
+as ChatGPT can create a fake HTML landing page to leverage where you
+can customize as needed.
+Example 5-6 A Redirector HTML File
+(https://help.evilginx.com/docs/guides/redirectors)
+<!doctype html>
+<html lang="en">
+<head>
+<title>{from_name} ({from_email}) shared a file w
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width
+</head>
+<body>
+<div class="download">
+<button type="button" class="btn btn-primary
+"{filename}"</button>
+</div>
+<script>
+function clickedDownload() {
+window.location.assign({lure_url_js});
+}
+</script>

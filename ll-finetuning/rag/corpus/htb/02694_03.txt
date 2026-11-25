@@ -1,0 +1,1 @@
+v it can write in this space. I don’t want EIP to run into ESP this way, so I’ll just subtract a value from ESP to move it up above EIP Next I’m going to make some more space on the stack.

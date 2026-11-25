@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you retrieve the root flag after gaining access as Administrator?
+
+CONTEXT:
+You are now operating as the Administrator.
+
+METHOD / ANSWER:
+Command: `cat C:\Users\Administrator\Desktop\root.txt`
+Explanation: This command retrieves the root flag from the Administrator's desktop, confirming successful exploitation of the box.

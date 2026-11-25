@@ -1,0 +1,14 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 3-11 Output Option–Executable
+Ultimately, an operator determines which commands are built into the agent
+and can add or remove which ones are included in the payload (see Figure
+3-12).

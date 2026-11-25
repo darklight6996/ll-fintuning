@@ -1,0 +1,1 @@
+y ; -- -';-- -` FROM inventory WHERE user_id = x` FROM (SELECT VERSION() AS `\'x`)y;-- - ORDER BY item_name ASC The single quote in user_id is escaped, which now matches the column being selected. The y at the end is the name given to the derived table (it can be anything).

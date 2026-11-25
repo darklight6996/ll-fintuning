@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What should you do after successfully gaining root access?
+
+CONTEXT:
+You have confirmed your shell as root.
+
+METHOD / ANSWER:
+Command: `cat /root/root.txt`
+Explanation: Retrieve the root flag to complete the penetration test and document your findings.

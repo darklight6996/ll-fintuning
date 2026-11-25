@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Objective Completion & Proof Collection.
+**Core Principle**: In a penetration test or CTF, the final objective is often to retrieve a specific 'flag' or proof file. Systematically locate and document this proof.
+**Actionable Steps**:
+1.  **Retrieve the Proof of Compromise**: `cat /root/root.txt`
+    *   **Reasoning**: In many structured exercises (like HTB), the final flag is traditionally located in `/root/root.txt`. This command retrieves its contents, which serves as undeniable proof of full system compromise.
+**Guidance for Novel Context**: The location of the proof (`/root/root.txt`) is context-specific. In a real assessment, the objective might be different: exfiltrate a specific database, find a particular document, or demonstrate access to a sensitive system. The principle is: **identify and execute the final, goal-oriented action that was defined at the start of the engagement.** Always document the command output as evidence.

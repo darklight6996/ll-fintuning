@@ -1,0 +1,1 @@
+/i></a>' ); } } Most of that looks like what I would expect, but there’s a special branch for when dl is not set to “true” and the user id ( erauser ) is 1 (presumably the admin). This takes a format GET parameter, which is renamed to wrapper and used as a protocol to get a file through fopen . This opens a lot of possibilities if I can get access as the id

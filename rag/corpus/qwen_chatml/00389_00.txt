@@ -1,0 +1,14 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 8-8 Prompt Fuzzer
+Example 8-13 shows the available attacks in the Prompt Fuzzer (ps-fuzz)
+tool.
+Example 8-13 Showing Available Attacks in ps-fuzz

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Analyze NTLM hashes for user access.
+
+CONTEXT:
+Check dump results for usable credentials.
+
+METHOD / ANSWER:
+Command: Analyze the output of secretsdump for potential login credentials.
+Purpose: Identify users with common/weak passwords.

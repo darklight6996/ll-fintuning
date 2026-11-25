@@ -1,0 +1,45 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+THE
+ICONS
+BELOW
+REPRESENT
+WHAT
+OTHER VERSIONS ARE AVAILABLE IN PRINT
+FOR THIS BOOK TITLE.
+ALPHA: “Alpha Quality” book content is a
+working draft. Content is very rough and in
+development until the next level of publishing.
+BETA: “Beta Quality” book content is the next
+highest level. Content is still in development
+until the next publishing.
+RELEASE: “Release Quality”
+book content
+is the highest level of quality in a book title's
+lifecycle, and is a final product.
+ALPHA
+BETA
+RELEASE
+OWASP
+Open Web Application
+Security Project
+YOU ARE FREE:
+To Share - to copy, distribute and
+transmit the work
+To Remix - to adapt the work
+UNDER THE FOLLOWING CONDITIONS:
+Attribution. You must attribute the work
+in the manner specified by the author or
+licensor (but not in any way that suggests
+that they endorse you or your use of the
+work),
+Share Alike.
+If you alter, transform, or
+build upon this work, you may distribute
+the resulting work only under the same,
+similar or a compatible license.
+The Open Web Application Security Project (OWASP) is a worldwide free and open com-
+munity focused on improving the security of application software.

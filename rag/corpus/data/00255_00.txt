@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check SSH key permissions.
+
+CONTEXT:
+Credential security.
+
+METHOD / ANSWER:
+Command: `ls -l ~/.ssh`
+Explanation: Confirms secure key storage.

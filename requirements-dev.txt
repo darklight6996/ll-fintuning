@@ -1,0 +1,2 @@
+# Developer tooling (not needed at runtime). Install: pip install -r requirements-dev.txt
+ruff>=0.6

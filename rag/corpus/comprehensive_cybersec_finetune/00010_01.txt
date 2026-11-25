@@ -1,0 +1,27 @@
+**OTG-AUTHN-004: Bypassing Authentication Schema**
+- **Forced Browsing**: Direct access to authenticated URLs
+- **Parameter Tampering**: `authenticated=true`, `role=admin`, `user_id=1`
+- **Session Prediction**: Analyze session ID generation
+- **SQL Injection in Login**: `' OR '1'='1`
+- **Password Reset Token Reuse**: Predictable/weak tokens
+
+**OTG-AUTHN-005: Remember Password Functionality**
+- Check cookie: persistent, HttpOnly, Secure, SameSite
+- Token entropy, rotation, invalidation on logout
+- Test "Remember Me" bypass
+
+**OTG-AUTHN-006: Browser Cache Weakness**
+- Check `Cache-Control: no-store, no-cache, must-revalidate`
+- `Pragma: no-cache`
+- Test back button after logout
+- Autocomplete on password fields
+
+**OTG-AUTHN-007: Weak Password Policy**
+- Min length, complexity, history, rotation
+- Test common passwords (rockyou)
+- Check for password reuse prevention
+
+**OTG-AUTHN-008: Weak Security Questions**
+- Answers discoverable via OSINT
+- Limited answer space
+- Case-insensitive comparison

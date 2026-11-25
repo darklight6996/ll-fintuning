@@ -1,0 +1,23 @@
+METHOD / ANSWER:
+185.199.108.0/22 (Netblock) --> contains --> 185.199.
+15169 (ASN) --> announces --> 2001:4860::/32 (Netbloc
+54113 (ASN) --> managed_by --> FASTLY - Fastly (RIROr
+54113 (ASN) --> announces --> 185.199.108.0/22 (Netbl
+secretcorp.org (FQDN) --> node --> sslvpn.secretcorp.
+sslvpn.secretcorp.org (FQDN) --> cname_record --> ext
+mxa.mailgun.org (FQDN) --> a_record --> 34.149.236.64
+34.144.0.0/13 (Netblock) --> contains --> 34.149.236.
+15169 (ASN) --> announces --> 34.144.0.0/13 (Netblock
+ext-sq.squarespace.com (FQDN) --> a_record --> 198.49
+ext-sq.squarespace.com (FQDN) --> a_record --> 198.18
+ext-sq.squarespace.com (FQDN) --> a_record --> 198.18
+ext-sq.squarespace.com (FQDN) --> a_record --> 198.49
+198.49.23.0/24 (Netblock) --> contains --> 198.49.23.
+198.49.23.0/24 (Netblock) --> contains --> 198.49.23.
+198.185.159.0/24 (Netblock) --> contains --> 198.185.
+198.185.159.0/24 (Netblock) --> contains --> 198.185.
+53831 (ASN) --> managed_by --> SQUARESPACE - Squaresp
+53831 (ASN) --> announces --> 198.49.23.0/24 (Netbloc
+53831 (ASN) --> announces --> 198.185.159.0/24 (Netbl
+mxb.mailgun.org (FQDN) --> a_record --> 34.160.157.95
+34.160.0.0/13 (Netblock) --> contains --> 34.160.

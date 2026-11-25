@@ -1,0 +1,20 @@
+**Compute (EC2, Lambda, ECS/EKS)**:
+- **EC2**:
+  - Public IPs on instances: `aws ec2 describe-instances --filters Name=ip-address,Values=*`
+  - Security groups: `0.0.0.0/0` on sensitive ports (22, 3389, 3306, 5432)
+  - IMDSv2 enforcement: `HttpTokens: required`
+  - User data secrets: `aws ec2 describe-instance-attribute --attribute userData`
+  - Unencrypted EBS volumes
+  - Instance profiles with excessive permissions
+- **Lambda**:
+  - Public functions: `aws lambda get-policy --function-name`
+  - Environment variables with secrets
+  - VPC configuration (or lack thereof)
+  - Runtime versions (deprecated: Node.js 12, Python 3.7)
+  - Layer permissions
+- **ECS/EKS**:
+  - Public endpoint access
+  - Pod security policies / admission controllers
+  - Service account tokens (IRSA)
+  - Network policies
+  - Container images (ECR scanning)

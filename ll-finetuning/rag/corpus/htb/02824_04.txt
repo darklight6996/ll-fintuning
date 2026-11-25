@@ -1,0 +1,1 @@
+e , Luckily, the docs say: *infile* can be a regular file, or it can be --empty to start with an empty PDF file. There is no way to use standard input since the input file has to be seekable. Running this does create a PDF: consuela@iclean:/dev/shm$ qpdf --empty test consuela@iclean:/dev/shm$ file test test: PDF document, version 1.3,

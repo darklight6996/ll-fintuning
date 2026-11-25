@@ -1,0 +1,1 @@
+ainObjectAcl -Credential $Cred -TargetIdentity testlab.local -Rights DCSync Once I do that, I can run a DCSync attack, either with Mimikatz locally, or with secretsdump.py from my Kali box, since DCSync only requires access to TCP 445, TCP 135, and a TCP RPC port (49XXX). (How did I know that? I’ll explore

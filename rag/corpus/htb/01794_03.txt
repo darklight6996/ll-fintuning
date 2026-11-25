@@ -1,0 +1,1 @@
+anitization of the inputs, so I can likely do a path traversal here to read files anywhere on the system. File Read I’ll connect to the dev version from Devzat (it doesn’t

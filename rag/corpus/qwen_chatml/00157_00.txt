@@ -1,0 +1,12 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 5-4 DNS Record for WWW
+Figure 5-5 Reviewing the Domain for Categorization

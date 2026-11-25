@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Query Azure Function Apps and Logic Apps.
+
+CONTEXT:
+Identify potential attack vectors.
+
+METHOD / ANSWER:
+Command: `az functionapp list --output table`
+Purpose: Enumerate all Azure Functions for exploitation opportunities.

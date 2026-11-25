@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 9-1 The OSINT Framework
+Leveraging DNS for Recon
+Suppose, for example, that an attacker has a target, h4cker.org, in its sights.
+In this case, h4cker.org has an Internet presence, as most companies do.
+This presence is a website hosted at www.h4cker.org. Just as a home burglar
+would need to determine which entry and exit points exist in a home before
+being able to commit a robbery, a cyber attacker needs to determine which
+of the target’s ports and protocols are exposed to the Internet. A burglar
+might walk around the outside of the house, looking for doors and windows
+and then possibly looking at the locks on the doors to determine their
+weaknesses. Similarly, a cyber attacker would perform tasks like scanning
+and enumeration.
+Typically, an attacker would start with a small amount of information and
+gather more information while scanning, eventually moving on to perform
+different types of scans and to gather additional information. For instance,
+the attacker targeting h4cker.org might start by using DNS lookups to
+determine the IP address or addresses used by h4cker.org and any other
+subdomains that might be in

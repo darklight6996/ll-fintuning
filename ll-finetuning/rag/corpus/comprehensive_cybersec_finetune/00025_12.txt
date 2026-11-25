@@ -1,0 +1,17 @@
+- **OSEP (Offensive Security Experienced Penetration Tester) - OffSec**
+  - **Prerequisites**: PEN-300 course, OSCP required
+  - **Exam**: 48-hour practical (6 machines) + 24-hour report
+  - **Topics**:
+    - **Evasion**: AMSI, ETW, WDAC, AppLocker, PowerShell CLM
+    - **C2**: Custom C2, domain fronting, redirectors
+    - **Active Directory**: Advanced delegation, shadow credentials
+    - **Linux**: Container escape, kernel exploits, eBPF
+    - **Cloud**: Azure AD, AWS IAM, GCP IAM exploitation
+    - **Reporting**: Red team style report
+  - **Study Resources**:
+    - OffSec PEN-300 course (90/120/180 day lab)
+    - "Evasion Techniques" by Rastamouse
+    - Hack The Box: Pro Labs (Fortress, APTSimulator)
+    - Red Team Notes (zer0pointsecurity)
+  - **Cost**: $1,599 (90-day lab)
+  - **ROI**: Red team operator, senior consultant

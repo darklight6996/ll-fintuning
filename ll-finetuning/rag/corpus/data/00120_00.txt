@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+List Active Directory users.
+
+CONTEXT:
+Using Azure CLI for user enumeration.
+
+METHOD / ANSWER:
+Command: `az ad user show --id <user_id>`
+Purpose: Provides detailed user information.

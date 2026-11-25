@@ -1,0 +1,13 @@
+**Phase 13: Exfiltration (TA0010)**
+- **Exfiltration Over C2 Channel (T1041)**: Built into C2
+- **Exfiltration Over Web Service (T1567)**:
+  - Exfiltration to Cloud Storage (T1567.002): `aws s3 cp`, `az storage blob upload`
+  - Exfiltration to Code Repository (T1567.003): `git push`
+- **Exfiltration Over Alternative Protocol (T1048)**:
+  - Exfiltration Over DNS (T1048.003): `dnscat2`
+  - Exfiltration Over SMB (T1048.002): `copy`, `robocopy`
+- **Automated Exfiltration (T1020)**: Scheduled, triggered
+- **Scheduled Transfer (T1029)**: `at`, `schtasks`, `cron`
+- **Data Compressed (T1002)**: `7z`, `gzip`, `tar`
+- **Data Encrypted (T1022)**: `openssl`, `gpg`, `age`
+- **Transfer Data to Cloud Account (T1537)**: `rclone`, `awscli`

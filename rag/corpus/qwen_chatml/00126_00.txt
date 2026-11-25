@@ -1,0 +1,15 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 3-19 Mythic help Output
+The socks option will be the most useful option for an operator gaining
+access on a victim host because it allows the operator to leverage the
+victim’s internal connection and route traffic through the victim’s host via a
+SOCKS5 proxy. Example 3-12 demonstrates how to install proxychains4 on

@@ -1,0 +1,29 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+provides short-term and long-term memory capabilities to remember user
+interactions.
+Prompt Templates and System Prompts
+The script in Example 8-1 created a prompt template that included very
+prescriptive instructions to the LLM. The prompt template is also shown in
+Example 8-3.
+Example 8-3 An Example of a Prompt Template
+You are an expert security researcher and OSINT inves
+analyzing domain information for {domain}.
+Given the following information about SSL/TLS certifi
+{domain}, provide an analysis:
+Domain: {domain}
+Certificate Information:
+{{cert_info}}
+Please analyze this information and provide insights
+1. The security posture of the domain
+2. Any potential sensitive hosts
+3. Additional reconnaissance steps that could be take
+4. Any other relevant observations

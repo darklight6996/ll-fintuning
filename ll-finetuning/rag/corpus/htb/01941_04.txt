@@ -1,0 +1,1 @@
+ubdomains that respond differently ( ffuf -u http://10.129.21.40 -H "Host: FUZZ.eighteen.htb" -w /opt/SecLists/Discovery/DNS/subdomains-top1million-20000.txt -ac ) but not find any. I’ll update my hosts file: 10.129.21.40 eighteen.htb I’ll also re-scan with nmap using the hostname, but there’s nothing of note.

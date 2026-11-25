@@ -1,0 +1,24 @@
+**Phase 12: Command & Control (TA0011)**
+- **Application Layer Protocol (T1071)**:
+  - Web Protocols (T1071.001): HTTP/HTTPS, WebSocket
+  - DNS (T1071.004): `dnscat2`, `iodine`
+  - Mail Protocols (T1071.003): SMTP, IMAP, POP3
+- **Proxy (T1090)**:
+  - Internal Proxy (T1090.001): `reGeorg`, `Tunna`, `SharpProxy`
+  - External Proxy (T1090.002): Redirectors, Cloudflare, Ngrok
+  - Multi-hop Proxy (T1090.003)
+- **Communication Through Removable Media (T1092)**: `USBCulprit`
+- **Non-Application Layer Protocol (T1095)**: `ICMP`, `TCP`, `UDP` custom
+- **Web Service (T1102)**:
+  - Dead Drop Resolver (T1102.001): GitHub, Pastebin, Twitter
+  - Bidirectional (T1102.002): C2 Frameworks
+- **Ingress Tool Transfer (T1105)**: `certutil`, `bitsadmin`, `wget`, `curl`, `Invoke-WebRequest`
+- **Data Encoding (T1132)**:
+  - Standard Encoding (T1132.001): Base64, Hex, URL
+  - Non-Standard Encoding (T1132.002): Custom, XOR, AES
+- **Protocol Tunneling (T1572)**: `SSH`, `RDP`, `SOCKS`, `VPN`, `Chisel`, `Ligolo-ng`
+- **Encrypted Channel (T1573)**:
+  - Symmetric (T1573.001): AES, RC4
+  - Asymmetric (T1573.002): RSA, ECC
+  - TLS/SSL (T1573.003): `Malleable C2`, `Malleable C2 Profiles`
+- **Dynamic Resolution (T15

@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+When you find a vulnerability, it's vital to report that vulnerability in a
+structured manner, detailing the steps to reproduce the bug and potential
+impacts. Additionally, maintain a portfolio where you document your
+achievements, certifications, and the bugs you have identified. This
+portfolio will serve as a testament to your skills and experience.
+Tip
+You can find a collection of real-life bug bounty reports and
+walkthroughs at my GitHub repository by going to
+https://hackerrepo.org and navigating under bug-bounties.
+You should also develop soft skills like clear communication
+and problem-solving, which are also important in becoming
+successful and communicating your findings effectively.
+Understanding the Scope and Rules of Engagement
+Understanding the scope within bug bounty programs is a critical element,
+often serving as the foundation upon which the success and efficacy of the
+program are established. The scope of a bug bounty program outlines the
+specific parameters within which hackers are permitted to operate, thus
+delineating clear boundaries and expectations. This delineation is extremely
+important for bot

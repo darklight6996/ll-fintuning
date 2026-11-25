@@ -1,0 +1,12 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Next, you will configure the compression and caching settings on your
+CDN endpoint, as illustrated in Figure 3-4. You should disable both of these
+settings to avoid any issues with communications to your end server.

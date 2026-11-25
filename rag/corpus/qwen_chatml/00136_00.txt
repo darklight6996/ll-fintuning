@@ -1,0 +1,18 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 3-28 Mythic Report Output
+The MITRE mapping in the report shown in Figure 3-29 points back to the
+example shown in Figure 3-23.
+Figure 3-29 Mythic Report MITRE ATT&CK Mappings
+Test Your Skills
+MULTIPLE-CHOICE QUESTIONS
+1. Which redirector is the most sophisticated for red team operations?
+A. iptables

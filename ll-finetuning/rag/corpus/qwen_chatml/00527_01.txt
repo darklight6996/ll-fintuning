@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+attack surface. You can map out the attack surface of a web application in a
+few different ways. The handy Nmap tool actually has an NSE script
+available for brute-forcing the directory and file paths of web applications.
+Armed with a list of known files and directories used by common web
+applications, it probes the server for each of the items on the list. Based on
+the response from the server, it can determine whether those paths exist.
+This capability is handy for identifying things, like the Apache or Tomcat
+default manager page, that are commonly left on web servers and can be
+potential paths for exploitation.
+The syntax of the http-enum NSE script is as follows:
+nmap -sV --script=http-enum <target>
+Example 9-41 displays the results of running the script against the host with
+the IP address 192.168.88.251.
+Example 9-41 Sample Nmap http-enum Script Output
+┌─[root@websploit]─[~]
+└──╼ #nmap -sV --script=http-enum -p 80 192.168.88.25
+Starting Nmap 7.91 ( https://nmap.org ) at 2024-06-22
+Nmap scan report for 192.168.88.251
+Host is up (0.0011s latency).

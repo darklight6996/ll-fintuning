@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from Htb Blurry Hacks Stuff)
+
+CONTEXT:
+Source: Htb Blurry Hacks Stuff
+Section: Writeup

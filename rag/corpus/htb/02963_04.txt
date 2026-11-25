@@ -1,0 +1,1 @@
+### ] - 3m 129024/129024 689/s http://eforenzics.htb/assets/imgs/ There’s a bunch there, but nothing interesting. Shell as www-data CVE-2022-23935 Identify Googling for “exiftool 12.37”, the top result is about a command injection vulnerability in Exiftool before 12.38: The issue, as described in this gist ,

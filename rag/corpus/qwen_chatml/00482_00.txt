@@ -1,0 +1,37 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+H4CKER.ORG
+----------
+[*] URL: https://www.bing.com/search?first=0&q=domain
+[*] Country: None
+[*] Host: bootcamp.h4cker.org
+[*] Ip_Address: None
+[*] Latitude: None
+[*] Longitude: None
+[*] Notes: None
+[*] Region: None
+[*] -------------------------------------------------
+[*] Country: None
+[*] Host: webapps.h4cker.org
+[*] Ip_Address: None
+<output omitted for brevity>
+[*] -------------------------------------------------
+[*] Country: None
+[*] Host: lpb.h4cker.org
+<output omitted for brevity>
+[*] -------------------------------------------------
+[*] Country: None
+[*] Host: malicious.h4cker.org
+<output omitted for brevity>
+SUMMARY
+-------
+[*] 4 total (0 new) hosts found.
+[recon-ng][default][bing_domain_web] >

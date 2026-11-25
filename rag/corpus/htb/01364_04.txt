@@ -1,0 +1,1 @@
+(2), followed by the SocketIO Javascript (3) and then a websocket connection (4): The HTTP 101 Switching Protocols response is indicitive of websockets. There are messages

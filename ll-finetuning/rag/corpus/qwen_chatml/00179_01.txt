@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+physical access technologies and physical bypass tools that can be
+leveraged for a physical assessment. An important aspect prior to diving
+into these sections is understanding your client’s expectations for physically
+breaching their building. You will need to identify which methods are in
+and out of scope for gaining access, establishing hours allowed to access the
+facility, evidence they wish to be collected, and how they would like the
+impact to be shown.
+It is crucial to have points of contact (POCs) available at all times during a
+physical engagement because things can go wrong at any time. An
+additional component to take note of is ensuring a letter of authorization
+(LOA) has been established authorizing you to perform the engagement.
+Regarding the facility you are targeting, you should also plan to obtain
+third-party consent from whoever owns the actual facility. A legal counsel
+can help provide answers regarding LOAs and third-party consent forms.
+Remote Reconnaissance
+During the OSINT stage of remote information gathering, you’ll want to
+identify images of badges, understand the dress code, and gather satellit

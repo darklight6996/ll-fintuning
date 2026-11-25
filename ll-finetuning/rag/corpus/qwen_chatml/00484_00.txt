@@ -1,0 +1,19 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Shodan
+Shodan is the name of an organization that is scanning the Internet 24 hours
+a day, 365 days a year. The results of those scans are stored in a database
+that you can query by going to shodan.io or by using an API. You can use
+Shodan to query for vulnerable hosts, IoT devices, and many other systems
+that should not be exposed or connected to the public Internet.
+Figure 9-4 shows different categories of systems found by Shodan scans,
+including industrial control systems, databases, network infrastructure
+devices, video games, and more.

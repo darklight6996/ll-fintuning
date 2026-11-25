@@ -1,0 +1,2 @@
+re you to understand how the application is supposed to function
+and then identify edge cases that could have security or business

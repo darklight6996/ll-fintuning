@@ -1,0 +1,12 @@
+Context:
+Context: Previous Scan Result. Ports open: 80 (HTTP), 443 (HTTPS).
+Principle to Apply: 'Understand the service before attacking it.'
+assistant
+**Assessment Phase**: Web Service Enumeration.
+**Core Principle**: Catalog technologies, endpoints, and configurations to identify potential weak points.
+**Actionable Steps**:
+1.  **Vulnerability Discovery**: `nikto -h http://example.com`
+    *   **Reasoning**: Automatically checks for known misconfigurations, outdated software, and common vulnerabilities in web servers and applications. It provides a quick, automated baseline.
+2.  **Technology Fingerprinting**: `whatweb http://example.com`
+    *   **Reasoning**: Identifies frameworks (e.g., WordPress, Django), web servers (Apache, nginx), and plugins. This informs which exploit databases or manual tests are relevant.
+**Guidance for Novel Context**: If `nikto` reveals nothing, the next principle is 'manual inspection > automated tools.' Proceed to manually browse the site, review source code, and fuzz parameters. The action is guided by the outcome of the previous step.

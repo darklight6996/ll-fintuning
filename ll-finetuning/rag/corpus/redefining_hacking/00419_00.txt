@@ -1,0 +1,34 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+:param domain: domain
+:return: None
+'''
+ip_address = get_domain_ip(domain)
+if ip_address:
+print(f"The IP address of {domain} is {ip_addre
+whois_info = get_whois_info(ip_address)
+if whois_info and whois_info.org:
+print(f"The organization owning the IP is: {
+if is_major_cloud_provider(str(whois_info.or
+print(f"The IP address belongs to a major
+else:
+print(f"The IP address does not belong to
+provider.")
+else:
+print(f"Could not retrieve WHOIS information
+else:
+print(f"Could not find IP address for {domain}.
+if __name__ == "__main__":
+domain = input("""Cloud Checker example by Omar Sa
+Please enter a domain: """)
+main(domain)
+The script in Example 9-9 is also available at the GitHub repository at
+https://github.com/The-Art-of-
+Hacking/h4cker/tree/master/programming_and_scripting_for_cybersecurity

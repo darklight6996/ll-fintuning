@@ -1,0 +1,1 @@
+printing information about a host onto the host’s wallpaper. I’ll remember that Bginfo at this path is whitelisted with AppLocker, and that AutoIt is blocked at the firewall. In scripts , there’s a 7Zip library and a bunch of AutoIt scripts: smb: \scripts\> ls . D 0

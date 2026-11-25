@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you create an entry in your hosts file for the target?
+
+CONTEXT:
+You need to set up your local hosts file for easier access to the target.
+
+METHOD / ANSWER:
+Command: `netexec smb 10.10.11.58 --generate-hosts-file hosts`
+Explanation: This generates a formatted line for your hosts file, mapping the target’s IP address to its hostname.

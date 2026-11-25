@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+A large number of open-source C2 and adversarial emulation tools are listed
+in the C2 Matrix, along with supported features, implant support, and other
+information, at https://howto.thec2matrix.com. The C2 Matrix is a
+framework used by penetration testers, red teamers, and adversaries to
+control compromised systems. It serves as a valuable resource for
+cybersecurity professionals to understand, evaluate, and choose the right C2
+framework for their needs. The C2 Matrix is designed to provide detailed
+information about each C2 framework's features, capabilities, and use cases,
+enabling users to make informed decisions.
+The C2 Matrix allows you to compare different C2 frameworks based on
+various criteria, such as features, operating system compatibility, network
+protocols, and more. It serves as an educational tool for understanding the
+capabilities and functionalities of various C2 frameworks, which is crucial
+for both defensive and offensive security practices.
+The C2 Matrix helps penetration testers and red teamers select the most
+suitable C2 framework for their engagements, ensuring they have the
+necessary tools to eff

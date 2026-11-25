@@ -1,0 +1,29 @@
+SQL Native Client error ‘80040e14'
+Unclosed quotation mark after the character string
+PostgreSQL:
+Query failed: ERROR: syntax error at or near
+“ at character 56 in /www/site/test.php on line 121.
+2) If there is no error message or a custom error message, the tes-
+ter can try to inject into string field using concatenation technique:
+MySql: ‘test’ + ‘ing’
+SQL Server: ‘test’ ‘ing’
+Oracle: ‘test’||'ing’
+PostgreSQL: 'test’||'ing’
+Exploitation Techniques
+Union Exploitation Technique
+The UNION operator is used in SQL injections to join a query, pur-
+posely forged by the tester, to the original query.
+The result of the forged query will be joined to the result of the
+original query, allowing the tester to obtain the values of columns
+of other tables. Suppose for our examples that the query executed
+from the server is the following:
+SELECT Name, Phone, Address FROM Users WHERE Id=$id
+We will set the following $id value:
+$id=1 UNION ALL SELECT creditCardNumber,1,1 FROM Credit-
+CardTable
+We will have the following query:
+SELECT Name, Phone, Address FROM Users WHERE Id=1
+UNION ALL SELECT creditCardNumber,
+1,1 FROM CreditCard-
+Table
+Which will join the result of the original query with all the

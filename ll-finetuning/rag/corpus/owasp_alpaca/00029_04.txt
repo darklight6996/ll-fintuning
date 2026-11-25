@@ -1,0 +1,4 @@
+eck if there is a valid result:
+http:/www.example.com/product.php?id=10 AND 1=1
+Example 3 (Stacked queries):
+Depending on the API which the web application is using and the

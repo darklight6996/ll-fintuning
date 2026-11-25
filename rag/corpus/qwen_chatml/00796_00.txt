@@ -1,0 +1,9 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the objectives and methodology for the PortSwigger lab: Lab: File path traversal, simple case
+
+Context:
+Context: Lab: File path traversal, simple case (Learning Module)
+assistant
+Web Security AcademyPath traversalLab Lab: File path traversal, simple case This lab contains a path traversal vulnerability in the display of product images. To solve the lab, retrieve the contents of the /etc/passwd file. Solution Use Burp Suite to intercept and modify a request that fetches a product image. Modify the filename parameter, giving it the value: ../../../etc/passwd Observe that the response contains the contents of the /etc/passwd file. Community solutions Rana Khalil Intigriti z3nsh3ll Michael Sommer Find path traversal vulnerabilities using Burp Suite Try for free

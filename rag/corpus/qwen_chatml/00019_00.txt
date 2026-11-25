@@ -1,0 +1,22 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the methodology for conducting a risk assessment following NIST SP 800-30 and ISO 27005 frameworks.
+
+Context:
+You need to perform an organizational risk assessment for an enterprise with cloud, on-premises, and hybrid environments. Explain the systematic approach to identify, analyze, and evaluate information security risks.
+assistant
+Risk Assessment Methodology (NIST SP 800-30 / ISO 27005):
+
+**Phase 1: Preparation & Context Establishment**
+- **Define Scope**:
+  - Assets: systems, data, processes, people, facilities
+  - Boundaries: organizational, technical, physical
+  - Risk criteria: risk appetite, tolerance, acceptance levels
+- **Establish Risk Management Team**:
+  - Risk owner, asset owners, SMEs, legal, compliance
+- **Select Framework**:
+  - NIST SP 800-30 (US federal, contractors)
+  - ISO 27005 (international, certifiable)
+  - FAIR (quantitative)
+  - OCTAVE (operational)

@@ -1,0 +1,5 @@
+TECHNIQUE / QUESTION:
+Explain the objectives and methodology for the PortSwigger lab: Lab: Username enumeration via different responses
+
+CONTEXT:
+Context: Lab: Username enumeration via different responses (Learning Module)

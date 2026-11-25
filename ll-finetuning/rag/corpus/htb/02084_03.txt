@@ -1,0 +1,1 @@
+ax 30 chars, EscapeChar not allowed PRINT ' Carriage return IF LEN ( PassPhrase ) = 0 THEN SLEEP 2000 , 1 : PRINT "Password rejected." : END ( 1 ) PassPhrase = LEFT (( PassPhrase & CHR ( 3 , 141 , 59

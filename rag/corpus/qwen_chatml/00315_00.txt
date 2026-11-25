@@ -1,0 +1,25 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+A. To install antivirus software
+B. To simulate advanced persistent threats (APTs)
+C. To perform hardware upgrades
+D. To deploy firewalls
+3. Which of the following is a technique used for maintaining persistent
+access on a compromised system?
+A. Using a password manager
+B. Installing a firewall
+C. Creating scheduled tasks
+D. Running a disk cleanup
+4. What is the role of web shells in post-exploitation?
+A. To create secure connections
+B. To execute arbitrary commands on a web server
+C. To update system software
+D. To monitor network traffic

@@ -1,0 +1,1 @@
+ophish php php-disable-functions aspx rot13 javascript gobuster tio-run log-poisoning python python-cmd regeorge winrm proxychains cron named-pipe seimpersonate command-injection service arbitrary-write diaghub

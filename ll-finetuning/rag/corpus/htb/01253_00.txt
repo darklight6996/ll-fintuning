@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: Writeup from Htb Cicada Hacks Stuff)
+
+CONTEXT:
+Source: Htb Cicada Hacks Stuff
+Section: Writeup

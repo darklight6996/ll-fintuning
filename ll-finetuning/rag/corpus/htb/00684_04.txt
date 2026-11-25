@@ -1,0 +1,1 @@
+e_token),\n new_user: schemas.user.PasswordUpdate,\n user_id: int\n) -> Any:\n \"\"\"\n Update the password of a user\n \"\"\"\n u = db.query(User).filter(User.id == token[' \' 'sub' \' ']).first()\n if token[' \' 'is_superuser'

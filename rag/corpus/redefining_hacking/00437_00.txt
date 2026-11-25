@@ -1,0 +1,37 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+-c CONFIG_FILE [CONFIG_FILE ...], --config CONFIG_F
+Configuration file for API keys.
+Snusbase, WeLeakInfo, Leak-Lookup
+Emailrep, Dehashed and hunterio
+-o OUTPUT_FILE, --output OUTPUT_FILE
+File to write CSV output
+-j OUTPUT_JSON, --json OUTPUT_JSON
+File to write JSON output
+-bc BC_PATH, --breachcomp BC_PATH
+Path to the breachcompilation tor
+query.sh script included in the t
+-sk, --skip-defaults Skips Scylla and HunterIO che
+-k CLI_APIKEYS [CLI_APIKEYS ...], --apikey CLI_APIK
+Pass config options. Supported fo
+-lb LOCAL_BREACH_SRC [LOCAL_BREACH_SRC ...], --loca
+[LOCAL_BREACH_SRC ...]
+Local cleartext breaches to scan
+multiprocesses, one separate proc
+separate worker pool by arguments
+folder as input, and filepath glo
+-gz LOCAL_GZIP_SRC [LOCAL_GZIP_SRC ...], --gzip LOC
+...]
+Local tar.gz (gzip) compressed b
+targets. Uses multiprocesses, on
+file. Supports file or folder as
+globing. Looks for 'gz' in filen
+-sf, --single-file If breach contains big cleart
+this flag to view the progress b

@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Amass, Maltego, and Other OSINT Tools
+There are dozens of additional OSINT tools such as Amass and Maltego.
+Amass is an advanced open-source tool that is used to help information
+security researchers in the process of external asset discovery and OSINT. It
+is mainly utilized to discover names and information associated with
+businesses and organizations on the web. Amass uses several techniques to
+find subdomains associated with the target domain. These techniques may
+include DNS brute-forcing, reverse DNS sweeping, and more. It maps out
+the network infrastructure by identifying IP addresses, autonomous system
+numbers (ASNs), and netblocks related to the target. It can help identify
+assets that are exposed to the Internet and that might be associated with the
+target organization.
+DNS sweeping is a technique used in network reconnaissance that involves
+querying DNS records across a range of IP addresses or domain names to
+gather information about the associated hosts. There are two primary forms
+of DNS sweeping:
+• Forward DNS sweeping: A list of domain names is queried to resolve
+their corresponding IP addresses. This tec

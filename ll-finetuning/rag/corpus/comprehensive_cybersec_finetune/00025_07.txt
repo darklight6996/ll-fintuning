@@ -1,0 +1,21 @@
+- **OSCP (Offensive Security Certified Professional) - OffSec**
+  - **Prerequisites**: PWK (Penetration Testing with Kali) course
+  - **Exam**: 24-hour practical (5 machines) + 24-hour report
+  - **Passing**: 70/100 points (min 10 pts per machine)
+  - **Topics**:
+    - **Information Gathering**: Nmap, SMB, SNMP, SMTP, DNS
+    - **Vulnerability Scanning**: Nessus, manual enumeration
+    - **Buffer Overflows**: Windows x86 (Immunity Debugger, Mona.py)
+    - **Client-Side Attacks**: Phishing, macros, HTA, shortcuts
+    - **Privilege Escalation**: Windows (kernel, services, tokens), Linux (kernel, SUID, capabilities, cron)
+    - **Tunneling/Pivoting**: SSH, Meterpreter, Proxychains, Rpivot
+    - **Active Directory**: Enumeration, Kerberos attacks, GPO abuse
+    - **AV Evasion**: Basic obfuscation, shellcode injection
+  - **Study Resources**:
+    - OffSec PWK course (90/120/180 day lab)
+    - TryHackMe: OSCP Prep, Complete OSCP Prep
+    - Hack The Box: TJnull's OSCP list, Pro Labs
+    - VulnHub: Kioptrix, Brainpan, FristiLeaks
+    - "The OSCP Prep Guide" by Will Schroeder
+  - **Cost**: $1,599 (90-day lab) + $200 retake
+  - **ROI**: Gold standard for pentesting, DoD 8570 compliant

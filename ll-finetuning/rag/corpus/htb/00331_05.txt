@@ -1,0 +1,1 @@
+ad the final flag: *Evil-WinRM* PS C:\Users\Administrator\desktop> cat root.txt 4cf2d737************************

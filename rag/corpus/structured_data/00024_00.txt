@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How can you collect BloodHound data to map Active Directory relationships?
+
+CONTEXT:
+Context: Active Directory Intelligence Gathering. You have valid domain credentials (`tombwatcher.htb\henry`). Goal: Collect comprehensive data on users, groups, computers, and permissions for offline analysis.
+Principle to Apply: 'Extract the entire AD graph to find privilege escalation and lateral movement paths.'

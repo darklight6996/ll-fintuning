@@ -1,0 +1,24 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+C. Hypervisor Rootkit
+D. Network Mode Rootkit
+11. How do hardware and firmware backdoors typically persist even after
+an OS reinstall?
+A. They hide within user files.
+B. They infect system applications.
+C. They inject malicious code into the firmware, which runs before the OS
+loads.
+D. They use remote servers to maintain control.
+12. What is the function of a custom daemon in post-exploitation?
+A. To disable security software
+B. To perform system updates and provide persistent access
+C. To run with elevated privileges and provide persistent access
+D. To log user activities and run with medium privileges
+13. What technique does the TDL3 rootkit use to evade detection?

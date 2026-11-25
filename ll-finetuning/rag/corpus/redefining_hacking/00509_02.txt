@@ -1,0 +1,4 @@
+scanners is false
+positives; the output from a vulnerability scan can sometimes be useless if
+there is no validation done on the findings. Turning over a report full of
+false positives to a developer or an administrator who is then responsible

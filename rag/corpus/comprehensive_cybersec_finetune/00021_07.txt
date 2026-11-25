@@ -1,0 +1,23 @@
+**Quality Assurance Checklist**
+- [ ] Executive summary readable by non-technical stakeholder
+- [ ] All findings have: ID, Title, Severity, CVSS, Evidence, Impact, Root Cause, Remediation
+- [ ] CVSS vectors are accurate and version 4.0
+- [ ] Screenshots redacted (IPs, credentials, PII)
+- [ ] No sensitive data in report (passwords, tokens, keys)
+- [ ] Consistent formatting, numbering, cross-references
+- [ ] Spell check, grammar, technical accuracy review
+- [ ] Peer reviewed by second tester
+- [ ] Client review meeting scheduled
+
+**Delivery & Follow-up**
+- **Formats**: PDF (encrypted), HTML (interactive), JSON (for GRC import)
+- **Encryption**: AES-256, password via separate channel
+- **Presentation**: 30-min executive, 2-hour technical walkthrough
+- **Retest**: Included in engagement (typically 30 days)
+- **Attestation**: Letter of attestation for compliance
+
+**Reporting Tools**:
+- **Templates**: Dradis, Faraday, Plextrac, DefectDojo, custom Markdown/LaTeX
+- **Evidence Management**: Burp Suite export, screenshots, PCAPs
+- **Collaboration**: Git for version control, peer review
+- **Automation**: Custom scripts for CVSS calculation, finding templates

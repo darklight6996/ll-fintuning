@@ -1,0 +1,1 @@
+he user account page to solve the lab. Note It's also possible to brute-force the login using a single cluster bomb attack. However, it's generally much more efficient to enumerate a valid username first if possible. Community solutions Rana Khalil Michael Sommer Find vulnerabilities in your authentication using Burp Suite Try for free

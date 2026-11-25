@@ -1,0 +1,4 @@
+te that
+the script was able to enumerate the users that are configured on this
+Windows target.
+Example 9-33 Enumerating SMB Users

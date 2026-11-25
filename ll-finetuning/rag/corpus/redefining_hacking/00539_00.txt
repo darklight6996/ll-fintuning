@@ -1,0 +1,24 @@
+TECHNIQUE / QUESTION:
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+B. Ethical hackers and security researchers from the external community
+C. External consultants only
+D. General public without any restrictions
+8. What is the approach of attack surface management regarding frequency
+and adjustments?
+A. Periodic with defined periods
+B. Reactive with spontaneous assessments
+C. Ongoing with regular assessments and adjustments
+D. Only initiated after a security incident
+9. Which of the following is a characteristic of a proactive security
+approach?
+A. Vulnerability disclosure program (VDP)
+B. Bug bounty program
+C. Attack surface management
+D. Reactive incident response

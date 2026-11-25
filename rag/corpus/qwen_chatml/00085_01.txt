@@ -1,0 +1,27 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Dupont, Benoît. "The Cyber-Resilience of Financial Institutions:
+Significance and Applicability." Journal of Cybersecurity 5, no. 1 (2019):
+tyz013.
+https://pdfs.semanticscholar.org/9742/e8565cd96c2af5d04cb99bf144f97104
+3796.pdf
+European Central Bank. "Threat Intelligence-Based Ethical Red Teaming
+(TIBER-EU) Framework." (2018). https://www.ecb.europa.eu/paym/cyber-
+resilience/tiber-eu/html/index.en.html
+Hutchins, Eric M., Michael J. Cloppert, and Rohan M. Amin. "Intelligence-
+Driven Computer Network Defense Informed by Analysis of Adversary
+Campaigns and Intrusion Kill Chains." Leading Issues in Information
+Warfare & Security Research 1, no. 1 (2011): 80.
+https://books.google.co.uk/books?
+hl=en&lr=&id=oukNfumrXpcC&oi=fnd&pg=PA80&dq=Intelligence-
+Driven+Computer+Network+Defense+Informed+by+Analysis+of+Adversa
+ry+Campaigns+and+Intrusion+Kill+Chains&ots=fdHQatiZ4h&sig=FhOtIv
+n-5MXuAbm4h1nbLkXoAS8&redir_esc=y#v=onepage&q=Intelligence-
+Driven%20Computer%20Network%20Defense%20Informed%20by%20An
+alysis%20of%20Adversary%20Campaigns%20and%20Intrusion%20Kill%
+20Chains&f=false
+MITRE Corporation."MITRE ATT&CK® Framework."
+https://at

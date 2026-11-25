@@ -1,0 +1,1 @@
+onfig.php`, `.env`, `application.properties`). Credentials found here may be reused for the underlying database server or other services.

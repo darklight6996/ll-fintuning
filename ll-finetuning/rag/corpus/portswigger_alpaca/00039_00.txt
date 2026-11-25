@@ -1,0 +1,5 @@
+TECHNIQUE / QUESTION:
+Explain the objectives and methodology for the PortSwigger lab: Lab: Information disclosure on debug page
+
+CONTEXT:
+Context: Lab: Information disclosure on debug page (Learning Module)

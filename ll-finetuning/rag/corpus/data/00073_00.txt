@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you extract database credentials from the web application?
+
+CONTEXT:
+You have access to the application's configuration files.
+
+METHOD / ANSWER:
+Command: `cat /var/www/html/Gibbon-LMS/settings.php`
+Explanation: This pulls the database connection information, including the username and password needed for further exploitation.

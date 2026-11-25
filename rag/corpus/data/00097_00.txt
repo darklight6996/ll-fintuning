@@ -1,0 +1,8 @@
+TECHNIQUE / QUESTION:
+How do you use privilege escalation scripts?
+
+CONTEXT:
+Look for scripts that run with elevated privileges.
+
+METHOD / ANSWER:
+Purpose: Access sensitive information.

@@ -1,0 +1,23 @@
+**Budget Planning (USD Estimates)**
+- Entry: eJPT ($300) + PNPT ($550) = $850
+- Core: OSCP ($1,799) + CRTO ($1,300) = $3,099
+- Specialization: AWAE ($1,599) or OSEP ($1,599)
+- Expert: OSED ($1,599) + OSEE ($1,599) = $3,198
+- **Total Path A-D**: $7,000 - $12,000 over 2-4 years
+- **Employer Reimbursement**: Many cover $2,000-$5,000/year
+
+**Career Outcomes by Certification Level**
+| Level | Certs | Typical Roles | Salary Range (US) |
+|-------|-------|---------------|-------------------|
+| Entry | eJPT, PNPT | Junior Pentester, SOC Analyst II | $70K-$95K |
+| Core | OSCP, eCPPT, CRTO | Penetration Tester, Red Teamer | $95K-$140K |
+| Specialized | AWAE, OSWE, OSEP | Senior Pentester, Web App Specialist | $130K-$180K |
+| Expert | eCPPTX, ASEP, OSED, OSEE | Principal Consultant, Exploit Dev, VR | $170K-$250K+ |
+
+**Maintenance & Continuing Education**
+- **OffSec**: No expiration, but version updates (OSCP v2.0 → v3.0)
+- **INE**: No expiration, content updates
+- **TCM**: No expiration
+- **GIAC**: 4-year renewal (CPEs)
+- **EC-Council**: 3-year renewal (ECE credits)
+- **Continuous Learning**: 10-15 hrs/week minimum to stay current

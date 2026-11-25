@@ -1,0 +1,64 @@
+person takes de-
+scriptive or prescriptive advice depends on the maturity of the SDLC
+Figure 2: Window of Vulnerability
+The vendor
+notifies it's clients
+(sometimes)
+A security vulerability
+Securtity
+is discovered
+tools are
+Vulerability is
+udpdated (IDS
+made pubic
+@
+signatures,
+A patch is
+-
+~
+new modules
+published
+©
+_
+yO
+for VA tools)
+a r)
+°
+The existence
+of the patch is
+ae
+widely known
+e N
+XN
+s
+.
+n
+The patch is
+Ny
+installed in
+.
+all systems
+‘e
+affected
+NS
+XN
+N
+XN
+N
+N
+‘e
+1
+i]
+1
+cause they lack knowledge about the existence of the patch.
+It is essential to build security into the Software Development Life
+Cycle (SDLC) to prevent reoccurring security problems within an ap-
+plication. Developers can build security into the SDLC by developing
+standards, policies, and guidelines that fit and work within the devel-
+opment methodology. Threat modeling and other techniques should
+be used to help assign appropriate resources to those parts of a sys-
+tem that are most at risk.
+The SDLC is King
+The SDLC is a process that is well-known to developers. By integrating
+security into each phase of the SDLC, it allows for a holistic approach
+to application security that leverages the procedures alre

@@ -1,0 +1,20 @@
+METHOD / ANSWER:
++ 1 host(s) tested
+┌─[root@websploit]─[~]
+└──╼ #
+No tool is perfect! It is recommended that you become familiar with the
+behavior and output of different tools.
+Using BloodHound for a Bug Bounty
+In Chapter 7, “Active Directory and Linux Environments,” you learned
+different techniques to attack Active Directory (AD). You learned about
+powerful tools like BloodHound and how it is widely used to identify and
+analyze security risks and potential pathways of attack within AD domains.
+Using BloodHound in bug bounty programs can be a strategic approach,
+especially when the scope of the program includes complex environments
+with AD. First and foremost, ensure that the use of BloodHound is within
+the permissible scope of the bug bounty program. You can use BloodHound
+during the initial reconnaissance phase to gather detailed information about
+the AD environment. This could include identifying trusts, group
+memberships, permission assignments, and session information.
+You can see many different examples and “recipes” about how to use
+BloodHound at https://www.thehacker.recipes/ad/recon/bloodhound.

@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+The purpose of this chapter is to review how development of infrastructure
+has shifted in the past few years, reviewing common C2 communication
+channels, and how you can set up your infrastructure for success. When
+you’re preparing your red team infrastructure, you might want to set up
+some items versus other items that may not be needed, depending on the
+objective of your engagement. Red teams can operate from an assumed
+breach standpoint or start from the perimeter, which requires targeting an
+external application or user. We will dive deeper into the methodology side
+of red teaming in Chapter 4, “Modern Red Teaming Methodology and
+Tools.” Additionally, if social engineering is involved, you will need to
+prepare phishing infrastructure or vishing infrastructure, which we will
+discuss in Chapter 5, “Social Engineering and Physical Assessments.”
+An Overview of Red Team Infrastructure
+In years past, red team infrastructure for Command and Control
+communications didn’t need to be as sophisticated as needed today;
+however, there has been a shift in recent years. For example, leveraging
+CDNs makes red teamers’ traffic appea

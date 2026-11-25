@@ -1,0 +1,3 @@
+Business Associate Agreements
+    - BAA with all vendors processing PHI
+    - Vendor risk assessment program

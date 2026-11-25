@@ -1,0 +1,5 @@
+TECHNIQUE / QUESTION:
+Explain the objectives and methodology for the PortSwigger lab: Lab: Exploiting XXE to perform SSRF attacks
+
+CONTEXT:
+Context: Lab: Exploiting XXE to perform SSRF attacks (Learning Module)

@@ -1,0 +1,3 @@
+an API client. The goal is to
+familiarize yourself with all the potential interactive elements and scrutinize
+them closely. In essence, you will be investigating the web page,

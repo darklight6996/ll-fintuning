@@ -1,0 +1,26 @@
+**Phase 5: Unified Evidence Collection & Automation**
+- **Evidence Mapping**:
+  - Single evidence artifact satisfies multiple frameworks
+  - Example: CloudTrail logs → SOC 2 CC7.2, CIS 3.1, HIPAA §164.312(b)
+- **Automated Collection**:
+  - `aws config` rules → continuous compliance
+  - `prowler` daily scans → CIS, SOC 2, HIPAA evidence
+  - `cloud-custodian` policies → remediation + evidence
+  - `vanta`, `drata`, `secureframe` → GRC automation
+- **Continuous Monitoring Dashboard**:
+  - Real-time compliance posture
+  - Drift detection, auto-remediation
+  - Audit-ready evidence packages
+
+**Phase 6: Audit Preparation & Attestation**
+- **SOC 2 Type II**:
+  - 6-12 month observation period
+  - CPA firm audit, management assertion
+  - SOC 3 for public distribution
+- **HIPAA**:
+  - Self-assessment (no formal audit)
+  - OCR investigation readiness
+  - Breach notification procedures tested
+- **CIS**:
+  - Continuous benchmark scoring
+  - Hardening validation in CI/CD

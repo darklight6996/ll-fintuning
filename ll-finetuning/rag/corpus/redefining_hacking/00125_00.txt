@@ -1,0 +1,25 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 5-2 ChatGPT: Nonmalicious Behavior
+You can take this script as a starting point and alter the talking points, but
+this figure gives you an idea of how you should word your script.
+Execution
+Now that you understand how to identify targets for phone pretexting and
+how to prepare the script, let’s dive into execution.
+SpoofCard
+The next step is choosing a tool to spoof your number. SpoofCard is
+commonly used as a mobile application to spoof your number to folks you
+intend to speak to only once; however, you can abuse the mobile application
+to enter in a number of your choosing and dial the target through the
+application. If you are impersonating the help desk, for example, you can
+leverage the corporate HQ number to have as the Number to Display (see
+Figure 5-3). SpoofCard’s features allow you to alter your voice, create
+background noise, and log the timestamps and length of calls. There are
+also plenty of other useful features for us as red teamers.

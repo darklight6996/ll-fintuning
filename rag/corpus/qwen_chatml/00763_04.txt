@@ -1,0 +1,8 @@
+lopers to
+protect the web page from CSRF attacks, could be bypassed.
+How to Test
+As mentioned above, this type of attack is often designed to al-
+low an attacker site to induce user's actions on the target site
+even if anti-CSRF tokens are being used. So it’s important, like
+for the CSRF attack, to individuate web pages of the target site
+200

@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+report it via phone or mail. The program gained notoriety not just for the
+uniqueness of the advertising but also for the award of a “Bug for a bug.”
+This program demonstrated an early understanding that external
+perspectives could be invaluable in enhancing software security. It
+foreshadowed the collaborative approach that would become a cornerstone
+of modern bug bounty programs.
+A little over a decade later, Netscape launched a more formal bug bounty
+program that most closely resembles something we see today. In 1995, the
+company launched a “Bugs Bounty” initiative for the Netscape Navigator
+2.0 browser. This program marked a turning point for the industry and is
+recognized as the first formal bug bounty program. The program focused on
+cash rewards and responsible disclosure of the bugs. This approach
+incentivized ethical hackers and security researchers to actively search for
+vulnerabilities within a specific product. This program created a symbiotic
+relationship between the company and the community. It created a shift in
+perspectives. Instead of relying solely on internal testing, Netscape
+embraced external expertise to enhance its security posture. It was a
+s

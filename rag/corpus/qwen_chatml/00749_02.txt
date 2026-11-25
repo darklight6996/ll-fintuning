@@ -1,0 +1,75 @@
+_CBC_SHA - strong
+|
+TLS_RSA_WITH_RC4_128_SHA - strong
+|
+compressors:
+|
+NULL
+|_ least strength: strong
+465/tcp open smtps
+| ssl-cert: Subject: commonName=*.exapmple.com
+| Issuer: CommonName=*******
+| Public Key type: rsa
+| Public Key bits: 2048
+| Not valid before: 2010-01-23T00:00:00+00:00
+| Not valid after: 2020-02-28T23:59:59+00:00
+| MD5:
+AHHH AHH
+|_SHA-1: HHH HA HH
+| ssl-enum-ciphers:
+SSLv3:
+ciphers:
+TLS_RSA_WITH_CAMELLIA_128_CBC_SHA - strong
+TLS_RSA_WITH_CAMELLIA_256_CBC_SHA - strong
+TLS_RSA_WITH_RC4_128_SHA - strong
+compressors:
+NULL
+TLSv1.0:
+ciphers:
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+| TLS_RSA_WITH_CAMELLIA_128_CBC_SHA
+- strong
+NULL
+least strength: strong
+993/tcp open imaps
+| ssl-cert: Subject: commonName=*.exapmple.com
+| Issuer: CommonName=*******
+| Public Key type: rsa
+| Public Key bits: 2048
+| Not valid before: 2010-01-23T00:00:00+00:00
+| Not valid after: 2020-02-28T23:59:59+00:00
+| MD5:
+HH
+|_ SHA-1: HHH HHH
+| ssl-enum-ciphers:
+|
+SSLv3:
+|
+ciphers:
+|
+TLS_RSA_WITH_CAMELLIA_128_CBC_SHA - strong
+|
+TLS RSA_WITH_CAMELLIA_256_CBC_SHA - strong
+|
+TLS_RSA_WITH_RC4_128_SHA - strong
+|
+compressors:
+|
+NULL
+|
+TLSv1.0:
+|
+ciphers:
+|
+TLS_RSA_WITH_CAMELLIA_128_CBC_SHA - strong
+|
+TLS _RSA_WITH_CAMELLIA_256_

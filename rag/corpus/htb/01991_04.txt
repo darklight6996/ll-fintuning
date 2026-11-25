@@ -1,0 +1,1 @@
+ss to the web directory, but the most interesting file, \inetput\wwwroot\web.config returns access denied:

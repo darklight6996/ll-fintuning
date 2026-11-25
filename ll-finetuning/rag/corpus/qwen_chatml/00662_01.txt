@@ -1,0 +1,10 @@
+Context:
+Context: Credential Access & Lateral Movement. You have acquired the NTLM hash for the built-in Administrator account through a technique like DCSync, LSASS dump, or certificate abuse.
+Principle to Apply: 'Use captured credential material (hashes) for authenticated access to systems and services.'
+assistant
+**Assessment Phase**: Lateral Movement via Pass-the-Hash.
+**Core Principle**: Possessing a user's NTLM hash is functionally equivalent to having their password for many network authentication protocols (NTLM). It can be used to move laterally to other systems where that user has access.
+**Actionable Steps**:
+1.  **Authenticate to Target Service**: `netexec smb dc01.tombwatcher.htb -u administrator -H <hash>`
+    *   **Reasoning**: This command uses the Administrator's NTLM hash to authenticate to the SMB service on the Domain Controller. Success confirms the hash is valid and grants file share access, which can be used for further exploitation (e.g., uploading tools, retrieving data).
+**Guidance for Novel Context**: Replace `smb` with `winrm` to get a shell via Evil-WinRM, or `ssh` if it's a Linux host with SSH accepting keyboard-interactive auth. The principle is: **fe

@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Pass-the-Hash (PtH) Authentication.
+**Core Principle**: Many Windows authentication protocols (like NTLM) allow using the password hash directly for authentication, bypassing the need to crack it to plaintext.
+**Actionable Steps**:
+1.  **SMB Authentication with Hash**: `netexec smb dc01.tombwatcher.htb -u administrator -H ad9324754583e42b55aad4d3b8d2bf`
+    *   **Reasoning**: This command uses the NTLM hash (`-H`) to authenticate to the SMB service on the Domain Controller. Successful authentication grants access to SMB shares and other network resources as the Administrator.
+**Guidance for Novel Context**: The tool can be `crackmapexec`, `smbclient`, or `pth-winexe`. The protocol can be other than SMB (e.g., `winrm`, `wmi`). The principle is constant: **provide the NTLM or Kerberos hash to a tool that supports PtH for the target service.**

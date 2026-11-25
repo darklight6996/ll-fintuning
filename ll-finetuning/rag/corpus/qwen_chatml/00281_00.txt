@@ -1,0 +1,18 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Additional C2 Techniques and Tools
+Earlier you learned that attackers often use virtual machines in a cloud
+service or even use other compromised systems as C2 servers. Even
+services such as X, Dropbox, and Photobucket have been used for C2 tasks.
+The C2 communication can be as simple as maintaining a timed beacon, or
+“heartbeat,” to launch additional attacks or for data exfiltration. Figure 6-8
+shows how an attacker uses C2 to send instructions to two compromised
+systems.

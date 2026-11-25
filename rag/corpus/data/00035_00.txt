@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you begin the pentest on the Fluffy box?
+
+CONTEXT:
+You have the credentials for the user account j.fleischman with password J0elTHEM4n1990!.
+
+METHOD / ANSWER:
+Command: `netexec smb dc01.fluffy.htb -u j.fleischman -p 'J0elTHEM4n1990!'`
+Explanation: Use these credentials to authenticate against the SMB service of the target, establishing your session on the Domain Controller.

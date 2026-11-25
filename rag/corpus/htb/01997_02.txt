@@ -1,0 +1,1 @@
+account. Each time the lab got reset, and I would have to go into the DB, bound to add an sa user, start a shell, upload JuicyPotato and a bat file to add the account and add it to the administrators group, and then WinRM as that account. After a couple times, I decided to try the creds from the web.config , and they worked. It was both a relief and maddening.

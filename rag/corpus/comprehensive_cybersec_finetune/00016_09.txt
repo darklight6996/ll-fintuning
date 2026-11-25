@@ -1,0 +1,24 @@
+**Software**:
+- **GNU Radio** (flowgraphs, signal processing)
+- **GQRX / SDR# / SDR++ / CubicSDR** (spectrum visualization)
+- **Universal Radio Hacker (URH)** (protocol analysis)
+- **Inspectrum** (signal analysis)
+- **SigDigger** (digital signal analysis)
+- **grgsm / gr-lte / gr-ieee802-11 / gr-ieee802-15-4** (GNU Radio OOT)
+- **Kalibrate / CellSearch** (GSM/LTE)
+- **ADS-B / AIS / ACARS** (aviation/maritime)
+- **RDS / RDS-TMC** (FM radio data)
+- **Weather Satellite** (NOAA, METEOR, GOES)
+- **Amateur Radio** (APRS, DMR, D-STAR, FT8)
+
+**Signal Analysis Workflow**:
+1. **Spectrum Survey**: `gqrx` → identify active frequencies
+2. **Record**: `hackrf_transfer -r capture.cfile -f 433920000 -s 2000000`
+3. **Analyze**: `inspectrum capture.cfile` → measure symbol rate, modulation
+4. **Demodulate**: `urh` → auto-detect or manual (ASK, FSK, PSK, QAM, OFDM)
+5. **Decode**: Manchester, NRZ, PWM, custom encoding
+6. **Protocol Reverse Engineering**:
+   - Frame structure (preamble, sync, header, payload, CRC)
+   - State machine (retransmission, ACK, encryption)
+   - Key derivation (fixed, rolling code, challenge-response)
+7. **Replay/Injection**: `hackrf_transfer -t replay.cfile`

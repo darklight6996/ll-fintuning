@@ -1,0 +1,1 @@
+[10.10.10.116] scheduling reauthentication in 10078s maximum IKE_SA lifetime 10618s generating QUICK_MODE request 2936760209 [ HASH SA No ID ID ] sending packet: from 10.10.14.15[500] to 10.10.10.116[500] (164 bytes) received packet: from 10.10.10.116[500] to 10.10.14.15[500] (188

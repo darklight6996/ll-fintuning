@@ -1,0 +1,64 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Reporting
+Test ID
+Lowest version
+ow
+c
+Y.
+5
+rv)
+un
+1)
+-°
+ack
+n
+a
+vi
+an
+=
+e}(eS=\0}S\Kelelleeeye)
+Test Business Logic Data Validation
+(eS =\0)s\Relel@seleya5
+Test Ability to Forge Requests
+OUICE SU Rele Geese
+Test Integrity Checks
+OUICE =U) Rele |@reeae
+Test for Process Timing
+(@} (es 6) Rele|(@selesy)
+Test Number of Times a Function Can be Used Limits
+@j}(eS=)0)s\Relelleselelsy)
+Testing for the Circumvention of Work Flows
+(eS
+=l0}s\ Kee (ereey)
+Test Defenses Against Application Mis-use
+ej}fes S0}\Keleil@seles)
+Test Upload of Unexpected File Types
+(@)}(e==10)s\Keleilezelesey
+Test Upload of Malicious Files
+Client Side Testing
+OTG-CLIENT-001
+Testing for DOM based Cross Site Scripting
+OTG-CLIENT-002
+Testing for JavaScript Execution
+OTG-CLIENT-003
+Testing for HTML Injection
+OTG-CLIENT-004
+Testing for Client Side URL Redirect
+OTG-CLIENT-005
+Testing for CSS Injection
+OTG-CLIENT-006
+Testing for Client Side Resource Manipulation
+OTG-CLIENT-007
+Test Cross Origin Resource Sharing
+OTG-CLIENT-008
+Testing for Cross Site Flashing
+OTG-CLIENT-009
+Testing for Clickjacking
+OTG-CLIENT-010
+Testing WebSockets
+OTG-CLIENT-011
+Test Web Messaging

@@ -1,0 +1,1 @@
+current templates: *Evil-WinRM* PS C:\programdata> get-adcstemplate | fl displayname displayname : User displayname : User Signature Only displayname : Smartcard User displayname : Authenticated Session displayname : Smartcard Logon displayname : Basic EFS displayname :

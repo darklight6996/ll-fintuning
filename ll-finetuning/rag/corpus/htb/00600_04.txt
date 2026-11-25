@@ -1,0 +1,1 @@
+t", "credits" or "license" for more information. >>> import jwt >>> token = ' eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImNocmlzdG9waGVyLmpvbmVzIiwiaWF0IjoxNjY0MjE1MzgxfQ.9jp7Obm_6-Z3A3GyueqnbMBX26R7_qKNoLXR5JjT7Ew ' >>> jwt . decode ( token , '

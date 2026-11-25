@@ -1,0 +1,1 @@
+e\0\x06\x81\x04\0\x01\0\0\0\0\0\0\x07version\ SF:x04bind\0\0\x10\0\x03"); Service Info: Host: FUSE; OS: Windows; CPE: cpe:/o:microsoft:windows Host script results: |_clock-skew: mean: 2h37m20s, deviation: 4h02m30s, median: 17m20s | smb-os-discovery: | OS: Windows Server 2016 Standard 14393 (Windows Server 2016 Standard 6.3) | Computer

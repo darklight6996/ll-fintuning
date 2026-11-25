@@ -1,0 +1,23 @@
+**Phase 3: Protect Cardholder Data (Requirements 3-4)**
+- **Req 3: Stored Data Protection**
+  - Data discovery: `grep -r -E "[0-9]{13,16}" /var/www/`
+  - Encryption: AES-256, RSA-2048, key management
+  - Mask PAN (first 6, last 4)
+  - Render unrecoverable: truncation, hashing, tokenization
+  - Key rotation, split knowledge, dual control
+- **Req 4: Transmission Encryption**
+  - TLS 1.2+ everywhere: `nmap --script ssl-enum-ciphers <IP>`
+  - No SSL/TLS 1.0, 1.1
+  - Certificate validation, pinning
+  - Wireless: WPA2-Enterprise, WPA3
+
+**Phase 4: Vulnerability Management (Requirements 5-6)**
+- **Req 5: Anti-Malware**
+  - Deploy on all CDE systems
+  - Automatic updates, periodic scans
+  - Audit logs retained 1 year
+- **Req 6: Secure Development**
+  - SDLC with security: threat modeling, code review
+  - OWASP Top 10 training for developers
+  - WAF for public apps: `modsecurity`, `cloudflare WAF`
+  - Patch management: critical within 30 days

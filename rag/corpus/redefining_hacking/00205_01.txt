@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+like GitHub or GitLab and modify them. In proprietary software, they
+obtain the binary files through reverse engineering or insider threats.
+To inject malicious code, modify the source code to include backdoor
+capabilities. For binary files, use tools like a hex editor or binary patching
+tools to alter the executable. For source code, recompile the application to
+produce a modified executable. For binary modifications, repack the binary
+to ensure it runs smoothly. You can distribute the modified application
+through official channels, phishing, or social engineering. The backdoor can
+be activated upon a specific trigger, such as opening the application or
+performing a specific action within the application.
+Let’s go over a fictitious example of modifying an open-source text editor
+to include a reverse shell. Example 6-5 includes an example of the original
+source code (simplified).
+Example 6-5 Original Source Code Before Backdoor
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MAX_LINE_LENGTH 1024
+#define MAX_LINES 100

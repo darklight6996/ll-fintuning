@@ -1,0 +1,24 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Example 6-10 Modified Binary Section in Hex
+55 48 89 E5 48 83 EC 10 48 31 C0 50 48 B8 00 00 00 00
+48 89 E2 48 83 EC 10 48 31 C0 50 48 B8 02 00 00 00 00
+48 89 C7 48 31 C0 B0 3B 48 89 E7 48 31 F6 48 89 54 24
+48 C7 C0 3B 00 00 00 0F 05
+In Example 6-10, the modified binary contains injected machine code to
+create a reverse shell. This code, when executed, connects back to the
+attacker's server and opens a shell.
+There are many hex editors. I (Omar) have several examples in my GitHub
+repository at https://github.com/The-Art-of-
+Hacking/h4cker/tree/master/reverse_engineering.
+One that you can start using without the need of installing anything in your
+system is Hexed.it. Hexed.it is an online hex editor and is shown in Figure
+6-5.

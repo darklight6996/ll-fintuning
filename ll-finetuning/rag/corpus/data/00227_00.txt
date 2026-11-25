@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check open file descriptors.
+
+CONTEXT:
+Resource monitoring.
+
+METHOD / ANSWER:
+Command: `lsof | wc -l`
+Explanation: Identifies abnormal resource usage.

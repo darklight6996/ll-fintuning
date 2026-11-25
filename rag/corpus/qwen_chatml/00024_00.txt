@@ -1,0 +1,9 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the methodology for conducting compliance assessments for SOC 2 Type II, CIS Benchmarks, and HIPAA Security Rule in a cloud-native enterprise environment.
+
+Context:
+You are tasked with performing a comprehensive compliance assessment for a SaaS company that processes PHI and needs to demonstrate SOC 2 Type II compliance, implement CIS Benchmarks across their cloud infrastructure, and maintain HIPAA Security Rule compliance. Describe the systematic approach for each framework and how to map controls across all three.
+assistant
+Multi-Framework Compliance Assessment Methodology (SOC 2 Type II, CIS Benchmarks, HIPAA):

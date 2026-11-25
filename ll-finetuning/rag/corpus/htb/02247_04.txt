@@ -1,0 +1,1 @@
+. When I change it to 1-- -abcd , it returns 302 again! That’s SQL injection. Union Injection Identify To do a UNION injection, I’ll need to figure out how many columns are being returned by the query. I’ll start with 1

@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Obtaining Sensitive Information About External and Internal Hosts
+Using Certificate Transparency
+You can also leverage certificate transparency to reveal additional
+information and enumerate subdomains. What is certificate transparency?
+More than a decade ago, there was a major attack against DigiNotar (an
+organization that creates, maintains, and authorizes digital certificates for
+many companies and government institutions). This attack (along with other
+similar attacks) caused concerns around how organizations generate and
+manage digital certificates and, subsequently, why certificate transparency
+was created to better detect the issuing of malicious certificates. The goal of
+certificate transparency is for any organization or individual to be able to
+“transparently” verify the issuance of a digital certificate.
+Certificate transparency allows certificate authorities (CAs) to provide
+details about all related certificates that have been issued for a given
+domain and organization. Attackers can also use this information to reveal
+what other subdomains and systems an organization may own.
+Tip
+You can obtain detailed in

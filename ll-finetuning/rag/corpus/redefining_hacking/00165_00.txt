@@ -1,0 +1,13 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 5-15 Doppelgänger Tool Interface
+Ready to Grab Credentials?
+Figure 5-16 shows an iClass R90 (HF) reader reconfigured with
+Doppelgänger’s firmware. The reconfiguration is done within the reader

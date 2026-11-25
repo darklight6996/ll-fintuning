@@ -1,0 +1,19 @@
+**Phase 4: DOM-Based XSS Testing (OTG-CLIENT-001)**
+- Analyze client-side JavaScript:
+  - Sources: `location.hash`, `location.search`, `location.href`, `document.referrer`, `window.name`, `localStorage`, `sessionStorage`, `postMessage`
+  - Sinks: `innerHTML`, `outerHTML`, `document.write`, `eval()`, `setTimeout()`, `setInterval()`, `Function()`, `location.href`, `element.src`, `element.href`
+- Trace data flow from source to sink
+- Test with payloads in URL fragment: `#<img src=x onerror=alert(1)>`
+- Check if payload reaches sink without server interaction
+- Test CSP bypasses if Content-Security-Policy present
+
+**Phase 5: Advanced XSS Techniques**
+- **Mutation XSS (mXSS)**: Payloads that mutate during parsing
+  - `<svg><p><style><img src=`` onerror=alert(1)></style></p></svg>`
+- **XSS in JSON/JSONP**: Callback manipulation
+  - `callback=alert(1)//`
+- **XSS via File Upload**:
+  - Upload HTML/SVG with JS
+  - Polyglot files (valid image + valid HTML)
+- **XSS in WebSocket Messages**: Inject in message payload
+- **Self-XSS to Stored/Reflected**: Combine with CSRF/Clickjacking

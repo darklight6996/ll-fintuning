@@ -1,0 +1,22 @@
+on aims to help identify
+and map out areas within the application that should be investigated
+once enumeration and mapping have been completed.
+Test Objectives
+Understand how requests are formed and typical responses from the
+application
+How to Test
+Before any testing begins, the tester should always get a good under-
+standing of the application and how the user and browser communi-
+cates with it. As the tester walks through the application, they should
+pay special attention to all HTTP requests (GET and POST Methods,
+also known as Verbs), as well as every parameter and form field that
+is passed to the application. In addition, they should pay attention to
+when GET requests are used and when POST requests are used to
+pass parameters to the application. It is very common that GET re-
+quests are used, but when sensitive information is passed, it is often
+done within the body of a POST request.
+Note that to see the parameters sent in a POST request, the tester will
+need to use a tool such as an intercepting proxy (for example, OWASP:
+Zed Attack Proxy (ZAP)) or a browser plug-in. Within the POST request,
+the tester should also make special note of any hidden form fields that
+are being

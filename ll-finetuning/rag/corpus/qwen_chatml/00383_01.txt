@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Methods like the Fast Gradient Sign Method (FGSM) or Projected Gradient
+Descent (PGD) are commonly used to generate adversarial examples by
+directly manipulating the model’s gradients. In cases where the model’s
+internal structure is unknown, red teams might employ black-box attacks,
+using techniques like query-based or transfer-based attacks to craft
+adversarial inputs.
+Red teams might simulate backdoor attacks where a model behaves
+normally except when a specific trigger is present in the input. As a result,
+attackers can manipulate outputs for certain conditions while maintaining
+overall performance.
+Challenges in Red Teaming AI Systems
+Anthropic explains some of the challenges in red teaming AI systems in an
+article available at https://www.anthropic.com/news/challenges-in-red-
+teaming-ai-systems. This article outlines several red teaming methods, each
+with its own advantages and challenges. First, it explains the importance of
+domain-specific expert red teaming by collaborating with subject matter
+experts to identify risks in specific areas like trust and safety and even
+national security. This includes Policy Vuln

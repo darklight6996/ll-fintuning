@@ -1,0 +1,1 @@
+-19 22:57:34] [INFO] No encryption password provided and application is in 'no password' mode. Creating unencrypted file. [2026-01-19 22:57:34] [INFO] Attempting to fetch from URL: http://10.10.15.179/ed25519_gen.pub [2026-01-19 22:57:34] [INFO] Output file will be: /tmp/0xdf.key [2026-01-19 22:57:34] [INFO] Downloading file to

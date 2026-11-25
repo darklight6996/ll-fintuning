@@ -1,0 +1,1 @@
+/var/run/docker.sock I can look at the running processes: boris@data:~$ ps auxww | grep docker root 1001 0.0 3.9 1496232 79728 ? Ssl 01:15 0:12 dockerd --group docker --exec-root=/run/snap.docker --data-root=/var/snap/docker/common/var-lib-docker --pidfile=/run/snap.docker/docker.pid --config-file=/var/snap/docker/1125/config/daemon.json root 1246 0.2 2.1 1351056 44512 ? Ssl

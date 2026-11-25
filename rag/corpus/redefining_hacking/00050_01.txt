@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+Adversary Emulation (Scenario-Based)
+In adversary emulation engagements, the focus is on simulating a realistic,
+end-to-end attack scenario that mimics the tactics, techniques, and
+procedures of a specific threat actor or type of adversary. Unlike objective-
+based engagements that have a narrowly defined goal, adversary emulation-
+based engagements take a broader approach, replicating the lifecycle of an
+attack from initial reconnaissance to achieving multiple potential outcomes.
+The scenarios are designed to represent real-world attack conditions,
+emphasizing the organization’s ability to defend against, detect, and
+respond to evolving threats. These engagements are often rooted in specific
+use cases, such as advanced persistent threat (APT) simulations, supply
+chain attacks, or ransomware incidents, and can range from a few weeks to
+several months, depending on the complexity and scope. The use of threat
+intelligence is critical in determining the relevant threat actor and TTPs to
+emulate.
+Table 2-3 outlines the benefits and drawbacks of adversary emulation
+(scenario-based) engagements.
+Table 2-3 Adversary Emulation (Scenario-Based) Engagement
+Benefits/Drawbacks

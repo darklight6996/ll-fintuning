@@ -1,0 +1,34 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+def create_prompt_template(domain):
+template = f"""You are an expert security research
+specializing in analyzing domain information for {dom
+Given the following information about SSL/TLS cert
+{domain}, provide an analysis:
+Domain: {domain}
+Certificate Information:
+{{cert_info}}
+Please analyze this information and provide insigh
+1. The security posture of the domain
+2. Any potential sensitive hosts
+3. Additional reconnaissance steps that could be t
+4. Any other relevant observations
+Your analysis:"""
+return ChatPromptTemplate.from_template(template)
+def get_certificate_info(domain):
+try:
+api = certspy.certspy()
+results = api.search(domain)
+if results:
+formatted_results = api.format_results(resul
+common_name_only=True)
+return formatted_results
+return None

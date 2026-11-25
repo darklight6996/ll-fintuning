@@ -1,0 +1,1 @@
+ing the hashing algorithm to sha1 instead of md5. By

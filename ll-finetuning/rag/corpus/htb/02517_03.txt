@@ -1,0 +1,1 @@
+known )) } } In backend/src/api/dev/scan.rs , there’s an API endpoint for scanning blog posts: // Scans an url inside a blog post // This will be called by the blog to ensure all URLs in posts are safe #[post( "/scan" , format = "json" , data = "<data>" )] pub fn scan ( _guard : DevGuard

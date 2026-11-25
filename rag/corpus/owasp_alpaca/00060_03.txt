@@ -1,0 +1,10 @@
+automated scanners as
+well as a set of tools that allow you to find security vulnerabil-
+ities manually.
+References
+OWASP Resources
+= OWASP HTML5 Security Cheat Sheet: https://www.owasp
+org/index.php/HTML5_Security_Cheat_Sheet
+Whitepapers
+= W3C - CORS W3C Specification: http://www.w3.org/TR/cors/
+196

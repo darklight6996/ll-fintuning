@@ -1,0 +1,1 @@
+it worked! " ) break time . sleep ( 1 ) I’ll run this, giving it a PYTHONPATH of this directory: fismathack@conversor:/tmp/48990$ PYTHONPATH = /tmp/48990 python3 run.py Error processing line 1 of /usr/lib/python3/dist-packages/zope.interface-5.4.0-nspkg.pth: Traceback (most

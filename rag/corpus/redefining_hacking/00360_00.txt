@@ -1,0 +1,11 @@
+TECHNIQUE / QUESTION:
+Define and explain the key concept presented in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+generating new adversarial prompts, and the Evaluator LLM assesses the
+effectiveness of each prompt. Figure 8-7 illustrates this concept.

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify NTP service.
+
+CONTEXT:
+Time synchronization audit.
+
+METHOD / ANSWER:
+Command: `systemctl status chronyd`
+Explanation: Confirms time sync service.

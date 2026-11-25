@@ -1,0 +1,3 @@
+efine their C2 communications strategies by
+understanding what TTPs will likely get picked up in an operation from
+previous adversaries and how they can fill those gaps to go under the radar.

@@ -1,0 +1,19 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+vulnerability discovery and mitigation to keep pace. Organizations with the
+resources for internal teams can optimize investments through
+collaboration, whether that is internal or external. While each one of these
+requires specialized skill sets to excel in their respective fields, there is
+some overlap, as illustrated in Figure 1-2. There is a baseline of common
+knowledge across these roles and, when paired with each other, they
+provide complementary skills to enhance their overall capabilities. Internal
+security teams can benefit greatly from the fresh eyes and expertise of
+external security researchers like bug bounty hunters.

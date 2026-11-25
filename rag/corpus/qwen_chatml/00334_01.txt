@@ -1,0 +1,27 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+The script in Example 8-1 is designed to be run from the command line,
+taking a domain name as an argument. It provides a comprehensive OSINT
+analysis of the domain, combining technical data with AI-generated insights
+to assist security researchers and OSINT investigators.
+Example 8-2 shows the output (in markdown) of the script when it was run
+against the domain secretcorp.org.
+Example 8-2 The AI-Driven Output of ai_recon.py
+-----OSINT Analysis of Domain secretcorp.org-----
+### Analysis of SSL/TLS Certificates for secretcorp.o
+#### 1. Security Posture of the Domain
+The domain secretcorp.org has multiple subdomains tha
+IP addresses and organizations.
+- Organization: The majority of the subdomains (backd
+secretcorp, app1, vpn, finance-app, cloud) are associ
+`US-GITHUB-20170413`, suggesting a centralized contro
+resources. The presence of a subdomain named `backdoo
+as it may imply a weak or intentionally lax security
+unauthorized access or exploitation.
+- IP Addresses: The IP addresses associated with the
+different CIDR blocks (185.199.108.0/22 and 198.49.23
+associated with Squarespace, which indicates that som
+a third-par

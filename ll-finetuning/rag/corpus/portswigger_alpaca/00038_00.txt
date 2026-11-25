@@ -1,0 +1,5 @@
+TECHNIQUE / QUESTION:
+Explain the objectives and methodology for the PortSwigger lab: Lab: Information disclosure in error messages
+
+CONTEXT:
+Context: Lab: Information disclosure in error messages (Learning Module)

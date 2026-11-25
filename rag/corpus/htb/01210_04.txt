@@ -1,0 +1,1 @@
+ce = 0 ; function getUsername () public view returns ( string ) { return username ; } function setUsername ( string _value ) public { username = _value ; } function getPassword () public view returns ( string ) { return password ; } function setPassword ( string _value ) public { password = _value ; } function getApprove () public

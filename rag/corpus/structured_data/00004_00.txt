@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How can you enumerate users for a suspected login brute-force attack?
+
+CONTEXT:
+Context: Target Service. A login form found at `/login`. Goal: Test authentication strength.
+Principle to Apply: 'Test the mechanism, not just the password.'

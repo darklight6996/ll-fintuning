@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+framework is the only one supporting Linux, Mac, and Windows implants
+that provides flexibility for operators. Additionally, Mythic supports socks
+and secure communications. Mythic is made up of a web-based frontend
+utilizing React and Docker contained for the backend of the C2. Another
+great feature with Mythic is the ability to map tasks executed during an
+engagement to the MITRE (https://attack.mitre.org) framework.
+The MITRE Framework
+MITRE ATT&CK, also known as MITRE Adversarial Tactics, Techniques,
+and Common Knowledge, is a publicly available knowledge base of threat
+actor behaviors. These behaviors are mapped to specific tactics, techniques,
+and procedures (TTPs) that any organization can utilize to have a common
+language between offensive and defensive security teams. The tactic areas
+include reconnaissance, resource development, initial access, execution,
+persistence, privilege escalation, defense evasion, credential access,
+discovery, lateral movement, collection, C2, exfiltration, and impact in the
+ATT&CK matrix. The tactics areas are also broken out into 191 techniques
+and 385 subtechniques. Operators can l

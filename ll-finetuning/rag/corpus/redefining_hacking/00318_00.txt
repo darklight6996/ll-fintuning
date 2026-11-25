@@ -1,0 +1,32 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+"""
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"
+prompt = f"""Analyze the following Nmap SSL cipher
+insights on the security posture, potential vulnerabi
+for improvement:
+{scan_results}
+Please structure your analysis as follows:
+1. Overall Security Posture
+2. Identified Vulnerabilities
+3. Recommendations for Improvement
+"""
+response = client.chat.completions.create(
+model="gpt-4o-mini",
+messages=[
+{"role": "system", "content": "You are a cy
+specializing in SSL/TLS analysis."},
+{"role": "user", "content": prompt}
+]
+)
+return response.choices[0].message.content
+def save_results(hostname, ip, analysis):
+"""
+Saves the analysis results to cipher_scan_results.

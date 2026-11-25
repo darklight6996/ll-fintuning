@@ -1,0 +1,17 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 5-18 Proxmark3 LF Search to Verify
+Creating Badges
+You can create badges relatively easily by leveraging the following supplies
+and steps shown here. Something to take note of when creating badges is
+ensuring whatever logo you’re using is clear, unless it is not clear on the
+actual badge. Another item to take note of is using the proper colors
+associated with the company, that is, their HEX values. This is the time to
+be persistent about making something look identical. There have been

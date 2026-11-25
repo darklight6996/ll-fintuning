@@ -1,0 +1,7 @@
+e scanning tool sends different
+types of probes to the target IP address and then examines the responses to
+determine whether the service is actually listening. For instance, with an
+Nmap SYN scan, the tool sends a TCP SYN packet to the TCP port it is
+probing. This process is also referred to as half-open scanning because it
+does not open a full TCP connection. If the response is a SYN/ACK, this
+would indicate that the port is actually in a listening state. If the response to

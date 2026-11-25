@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify memory usage.
+
+CONTEXT:
+System stability audit.
+
+METHOD / ANSWER:
+Command: `free -h`
+Explanation: Confirms healthy memory usage.

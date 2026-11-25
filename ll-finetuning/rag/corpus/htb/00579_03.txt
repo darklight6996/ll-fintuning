@@ -1,0 +1,1 @@
+ng with less than two. I thought maybe the null byte might be necessary to make sure the n isn’t negative, but I can’t explain why I needed 0xcc

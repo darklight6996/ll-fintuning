@@ -1,0 +1,24 @@
+by a virtual machine embedded in the
+player itself, they can be potentially decompiled and analysed. The
+most known and free ActionScript 2.0 decompiler is flare.
+To decompile a SWF file with flare just type:
+$ flare hello.swf
+it will result in a new file called hello.flr.
+Decompilation helps testers because it allows for source code as-
+sisted, or white-box, testing of the Flash applications. HP's free
+SWFScan tool can decompile both ActionScript 2.0 and ActionScript
+3.0 SWFScan
+The OWASP Flash Security Project maintains a list of current disas-
+semblers, decompilers and other Adobe Flash related testing tools.
+Undefined Variables FlashVars
+FlashVars are the variables that the SWF developer planned on re-
+ceiving from the web page. FlashVars are typically passed in from
+the Object or Embed tag within the HTML. For instance:
+<object width="550" height="400" classid="clsid:D27CDB6E
+-AE6D-11cf-96B8-444553540000"
+codebase="http:/download.macromedia.com/pub/shock-
+wave/cabs/flash/swflash.cab#version=9,0,124,0">
+<param name="movie” value="Somefilename.swf">
+<param name="FlashVars” value="var1=val1&var2=val2">
+<embed src="somefilename.swf" width="550"
+height="400" FlashVars="var 1=val1&v

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you retrieve flags in post-exploitation?
+
+CONTEXT:
+You are confirming successful exploitation.
+
+METHOD / ANSWER:
+Command: `cat /root/root.txt`
+Purpose: Collect endpoint flags.

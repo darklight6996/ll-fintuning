@@ -1,0 +1,1 @@
+hash can then be used with `netexec`, `evil-winrm`, or mimikatz for full access.

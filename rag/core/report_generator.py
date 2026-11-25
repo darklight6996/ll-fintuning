@@ -27,7 +27,8 @@ class ReportGenerator:
     def generate(
         self,
         session_state: Dict[str, Any],
-        output_path: Optional[str] = None
+        output_path: Optional[str] = None,
+        context: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         Generate Markdown report from session state.
@@ -35,6 +36,12 @@ class ReportGenerator:
         Args:
             session_state: Dictionary containing full session data.
             output_path: Optional custom destination file path.
+            context: Optional dict; when it carries an "evidence_store" (a
+                core.investigation.EvidenceStore instance), a "Risk Assessment
+                & Dual-Perspective Analysis" section is rendered from
+                core.risk_assessment.build_risk_report() ahead of the
+                Strategic Recommendations section. Absent context -> the
+                report renders exactly as before (static recommendations).
 
         Returns:
             The complete Markdown report string.
@@ -243,11 +250,75 @@ class ReportGenerator:
             lines.append(f"*No command execution evidence records captured.*")
             lines.append("")
 
+        # Risk Assessment & Dual-Perspective Analysis (only when an
+        # EvidenceStore was supplied via context -- see core/risk_assessment.py).
+        # Absent context -> this section is skipped and numbering below falls
+        # back to the original "## 7." for Strategic Recommendations, so any
+        # caller that doesn't pass a context renders byte-for-byte as before.
+        evidence_store = (context or {}).get("evidence_store")
+        recommendations_section_number = 7
+        if evidence_store is not None:
+            try:
+                from core.risk_assessment import build_risk_report
+                risk_report = build_risk_report(evidence_store)
+            except Exception as e:
+                risk_report = None
+                lines.extend([f"---", f"", f"## 7. Risk Assessment & Dual-Perspective Analysis", f"",
+                              f"*Risk assessment unavailable: {e}*", f""])
+            if risk_report is not None:
+                recommendations_section_number = 8
+                risk = risk_report["risk_assessment"]
+                owner = risk_report["owner_analysis"]
+                hunter = risk_report["hunter_analysis"]
+                lines.extend([
+                    f"---",
+                    f"",
+                    f"## 7. Risk Assessment & Dual-Perspective Analysis",
+                    f"",
+                    f"**Risk Level:** `{risk['level']}` ({risk['score']}/100)",
+                    f"",
+                ])
+                if risk["factors"]:
+                    lines.append("**Risk Factors:**")
+                    for factor in risk["factors"]:
+                        lines.append(f"- {factor}")
+                    lines.append("")
+
+                lines.extend([f"### Owner Perspective", f"", owner["summary"], f""])
+                if owner["key_findings"]:
+                    lines.append("**Key Findings:**")
+                    for item in owner["key_findings"]:
+                        lines.append(f"- {item}")
+                    lines.append("")
+                if owner["protection_recommendations"]:
+                    lines.append("**Protection Recommendations:**")
+                    for item in owner["protection_recommendations"]:
+                        lines.append(f"- {item}")
+                    lines.append("")
+                if owner["immediate_actions"]:
+                    lines.append("**Immediate Actions:**")
+                    for item in owner["immediate_actions"]:
+                        lines.append(f"- {item}")
+                    lines.append("")
+
+                lines.extend([f"### Hunter Perspective", f"", hunter["summary"], f""])
+                if hunter["promising_targets"]:
+                    lines.append("| Target | Reason |")
+                    lines.append("| :--- | :--- |")
+                    for t in hunter["promising_targets"]:
+                        lines.append(f"| {t['target']} | {t['reason']} |")
+                    lines.append("")
+                if hunter["attack_vectors"]:
+                    lines.append("**Attack Vectors:**")
+                    for v in hunter["attack_vectors"]:
+                        lines.append(f"- {v['type']}: {v['description']}")
+                    lines.append("")
+
         # Strategic Recommendations
         lines.extend([
             f"---",
             f"",
-            f"## 7. Strategic Recommendations & Remediation Plan",
+            f"## {recommendations_section_number}. Strategic Recommendations & Remediation Plan",
             f"",
             f"Based on the observed attack surface and findings in this engagement:",
             f"",

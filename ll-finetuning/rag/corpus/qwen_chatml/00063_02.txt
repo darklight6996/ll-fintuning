@@ -1,0 +1,6 @@
+or
+past experiences. While these approaches provide a foundation, they may
+overlook evolving threats, misjudge the ingenuity of real attackers, or rely
+too heavily on untested assumptions.
+By simulating real-world adversarial behavior, red teams put these
+assumptions to the test, identifying gaps or weaknesses that would

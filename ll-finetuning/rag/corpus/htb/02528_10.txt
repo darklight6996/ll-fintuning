@@ -1,0 +1,1 @@
+h a new cookie: I’ll put that cookie into my browser and refresh / and it loads: It is equally good to use interception in Burp Proxy and edit the payload in there as well. Database Execution Enumeration This page seems to be an overlay to

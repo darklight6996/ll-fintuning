@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check outbound connections.
+
+CONTEXT:
+Data exfiltration review.
+
+METHOD / ANSWER:
+Command: `ss -tunap`
+Explanation: Monitors active connections.

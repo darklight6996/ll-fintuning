@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Download registry hives using SeBackupPrivilege.
+
+CONTEXT:
+If the user has backup privileges, utilize these for access.
+
+METHOD / ANSWER:
+Command: `reg save hklm\system system.save`
+Purpose: Extract relevant registry data to analyze for credentials.

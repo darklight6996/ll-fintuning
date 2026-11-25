@@ -1,0 +1,31 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Example 9-14 Obtaining the Hostnames Only
+┌──(omar㉿websploit)-[~]
+└─$ certspy secretcorp.org | grep common_name
+"common_name": "secretcorp.org",
+"common_name": "secretcorp.org",
+"common_name": "mail.secretcorp.org",
+"common_name": "mail.secretcorp.org",
+"common_name": "app1.secretcorp.org",
+"common_name": "app1.secretcorp.org",
+"common_name": "internal.secretcorp.org",
+"common_name": "internal.secretcorp.org",
+"common_name": "cloud.secretcorp.org",
+"common_name": "cloud.secretcorp.org",
+"common_name": "finance-app.secretcorp.org",
+"common_name": "finance-app.secretcorp.org",
+"common_name": "backdoor.secretcorp.org",
+"common_name": "backdoor.secretcorp.org",
+"common_name": "vpn.secretcorp.org",
+"common_name": "vpn.secretcorp.org",
+"common_name": "secretcorp.org",
+"common_name": "secretcorp.org",
+Tip

@@ -12,6 +12,7 @@ Responsibilities
 3. Safe execution wrapper returning standardized execution results.
 """
 
+import os
 import sys
 import time
 import ipaddress
@@ -117,6 +118,20 @@ class CommandExecutor:
             read_only: If True, commands are only formatted and explained, never run automatically.
         """
         self.read_only = read_only
+        self._stealth_ctl = None  # lazily built from scope on first execute_action()
+
+    def _stealth(self, scope):
+        """Return the per-run StealthController, built once from scope (persists
+        on this executor instance so adaptive backoff accumulates across steps).
+        A no-op controller under the default lab profile."""
+        if self._stealth_ctl is None:
+            try:
+                from core.stealth import StealthController
+                self._stealth_ctl = StealthController.from_scope(scope)
+            except Exception:
+                from core.stealth import StealthController
+                self._stealth_ctl = StealthController(enabled=False)
+        return self._stealth_ctl
 
     def prepare_step_commands(
         self,
@@ -251,6 +266,55 @@ class CommandExecutor:
         action_id = getattr(proposal, "action_id", None) or ""
         action_identity = getattr(proposal, "compute_identity", lambda: action_id)()
 
+        # GATE 0: Action-ID Retry Budget (runs BEFORE validation).
+        #
+        # BUG FIX (found via live GPU smoke test, pentest agent, 2026-11-14):
+        # steps 13-20 of one run re-proposed `exploit_probe` eight times after it
+        # had already exhausted its retry budget (max_retries=1, first attempt at
+        # step 9). Two cooperating gaps let that spin burn the whole step budget:
+        #
+        #   1. Gate 6's budget keyed on action_IDENTITY (AIActionProposal.
+        #      compute_identity() = hash of action_id + target + params). The weak
+        #      7B model supplied DIFFERENT (and invalid) params on each re-proposal,
+        #      so every attempt had a distinct identity and Gate 6's
+        #      prior_attempts stayed at 0 -- it never fired.
+        #   2. Gate 1 (registry validation) runs before Gate 6, so each malformed
+        #      re-proposal died at Gate 1 with a confusing `registry_validation`
+        #      param error rather than the truthful "this action is exhausted".
+        #
+        # Meanwhile the PLANNER already filters exhausted actions by action_id
+        # (ai_planner._build_prompt's exhausted_action_ids, attempts >= max_retries)
+        # and stops OFFERING them -- the model just ignored that (a known 7B
+        # limitation). This gate makes the executor's HARD enforcement agree with
+        # the planner's own filtering: count prior attempts for this action_id
+        # (every history entry, matching base_agent's retry_counts and the
+        # planner's filter exactly) and reject at/over max_retries, before
+        # validation, regardless of how the params vary. It is strictly
+        # safety-preserving -- it only ever rejects MORE, never allows more -- and
+        # the first attempt (prior_attempts == 0) is always still allowed through.
+        # Gate 6 below is retained as the finer identity-level check for the
+        # within-budget exact-repeat case.
+        defn_for_budget = registry.get(action_id)
+        if defn_for_budget is not None:
+            prior_attempts_by_id = sum(
+                1 for h in execution_history if h.get("action_id") == action_id
+            )
+            if prior_attempts_by_id >= defn_for_budget.max_retries:
+                return {
+                    "status": "rejected",
+                    "action_id": action_id,
+                    "action_identity": action_identity,
+                    "results": [],
+                    "approval_record": {"policy": approval_policy, "timestamp": time.time(), "approved_by": None},
+                    "rejection_reason": (
+                        f"Retry budget exhausted: {prior_attempts_by_id}/"
+                        f"{defn_for_budget.max_retries} prior attempt(s) for action "
+                        f"'{action_id}' (counted by action_id across all parameter "
+                        f"variations)."
+                    ),
+                    "rejection_category": "retry_budget_exhausted",
+                }
+
         # GATE 1: Registry Validation
         is_valid, typed_params, reg_err = registry.validate_proposal(proposal)
         if not is_valid:
@@ -284,19 +348,39 @@ class CommandExecutor:
         )
         target_str = str(target or "").strip()
 
-        is_local_target = target_str.lower() in ("local", "localhost", "127.0.0.1", "::1", "") or target_str.startswith(("/", "\\", "."))
-        if is_local_target and "local" not in defn.allowed_target_kinds:
-            return {
-                "status": "rejected",
-                "action_id": action_id,
-                "action_identity": action_identity,
-                "results": [],
-                "approval_record": {"policy": approval_policy, "timestamp": time.time(), "approved_by": None},
-                "rejection_reason": f"Local target is not permitted for action '{action_id}'. Allowed kinds: {defn.allowed_target_kinds}",
-                "rejection_category": "out_of_scope",
-            }
-
-        if not is_local_target:
+        # BUG FIX (found via live GPU smoke test, pentest agent, 2026-11-14): a bare
+        # sentinel with no real network identity ("local", "", or a filesystem path)
+        # is genuinely un-classifiable and can ONLY be satisfied by an action that
+        # declares allowed_target_kinds=["local"] (CTF's filesystem-only actions:
+        # suid_audit, find_writable, ...). But "127.0.0.1" / "::1" / "localhost" are
+        # NOT mere placeholders -- they are legitimate, classifiable loopback
+        # network targets (verify_pentest_smoke_test.py deliberately scans
+        # 127.0.0.1 with real nmap/curl commands, and it must be accepted by
+        # host_discovery/service_scan/etc., none of which declare "local" support).
+        # The previous version treated all five of these strings identically as
+        # "local", which let CTF's sentinel-based actions work (their
+        # allowed_target_kinds=["local"]) but wrongly rejected every pentest action
+        # against the loopback interface before Gate 2's own real
+        # scope-membership/target-kind checks below ever got a chance to run --
+        # exactly the kind of real target those checks are built to classify
+        # correctly via _classify_target_kind() ("127.0.0.1"/"::1" -> "ip",
+        # "localhost" -> "domain").
+        bare_local_sentinel = (
+            target_str.lower() in ("local", "")
+            or target_str.startswith(("/", "\\", "."))
+        )
+        if bare_local_sentinel:
+            if "local" not in defn.allowed_target_kinds:
+                return {
+                    "status": "rejected",
+                    "action_id": action_id,
+                    "action_identity": action_identity,
+                    "results": [],
+                    "approval_record": {"policy": approval_policy, "timestamp": time.time(), "approved_by": None},
+                    "rejection_reason": f"Local target is not permitted for action '{action_id}'. Allowed kinds: {defn.allowed_target_kinds}",
+                    "rejection_category": "out_of_scope",
+                }
+        else:
             in_scope, scope_reason = scope.is_asset_in_scope(target_str)
             if not in_scope:
                 return {
@@ -317,8 +401,14 @@ class CommandExecutor:
             # a URL or domain target as long as that string happened to pass
             # scope.is_asset_in_scope() -- kind enforcement existed only in the type hints
             # and the docs, never at the gate.
+            #
+            # "or 'local' in defn.allowed_target_kinds" lets a loopback string
+            # (127.0.0.1/::1/localhost) still satisfy a "local"-only action (CTF),
+            # exactly as the old bare is_local_target check did, while ALSO letting
+            # it satisfy any action whose allowed_target_kinds correctly includes the
+            # real classified kind (pentest's "ip"/"domain").
             target_kind = _classify_target_kind(target_str)
-            if target_kind not in defn.allowed_target_kinds:
+            if target_kind not in defn.allowed_target_kinds and "local" not in defn.allowed_target_kinds:
                 return {
                     "status": "rejected",
                     "action_id": action_id,
@@ -441,6 +531,23 @@ class CommandExecutor:
                 "approval_record": {"policy": approval_policy, "timestamp": time.time(), "approved_by": None},
                 "rejection_reason": f"Retry budget exhausted: {prior_attempts}/{defn.max_retries} attempts made for this action identity.",
                 "rejection_category": "retry_budget_exhausted",
+            }
+
+        # GATE 6.5: Stealth Gate (no-op unless a stealth profile is active).
+        # On a real target under stealth, loud high-volume scanners are gated off
+        # in favor of surgical actions, so the agent doesn't rate-limit/WAF-ban
+        # the operator's account. Default (lab) profile allows everything.
+        stealth = self._stealth(scope)
+        s_allowed, s_reason = stealth.is_action_allowed(defn)
+        if not s_allowed:
+            return {
+                "status": "rejected",
+                "action_id": action_id,
+                "action_identity": action_identity,
+                "results": [],
+                "approval_record": {"policy": approval_policy, "timestamp": time.time(), "approved_by": None},
+                "rejection_reason": s_reason,
+                "rejection_category": "stealth_gated",
             }
 
         # GATE 7: Command Build (Deterministic pure Python builder)
@@ -602,6 +709,12 @@ class CommandExecutor:
             else:
                 approval_record["approved_by"] = "autonomous_policy"
 
+        # STEALTH PACING: before active requests, sleep a jittered delay (scaled
+        # by adaptive backoff). No-op under the default lab profile.
+        is_active = bool(getattr(defn, "requires_active_testing", False)) or \
+            getattr(defn, "network_effect", "none") == "active"
+        stealth.pace(is_active)
+
         # GATE 10: Subprocess Execution (shell=False, timeout, text=True, errors='replace')
         cmd_results = []
         overall_status = "success"
@@ -625,13 +738,43 @@ class CommandExecutor:
                     "returncode": proc.returncode,
                     "duration_seconds": duration,
                 })
-                if proc.returncode != 0:
+                # BUG FIX (live WSL smoke test, 2026-11-13): `find`'s exit status is
+                # 0 only if EVERY directory it descended into was readable. As a
+                # non-root user -- which is exactly how suid_audit/find_writable/
+                # flag_search are meant to be run, since privesc-hunting implies you
+                # don't have root yet -- a `find /` sweep will almost always hit a
+                # handful of permission-denied directories (/root, /etc/ssl/private,
+                # systemd sandboxes, ...) and exit 1 purely from that noise, even
+                # though stdout still carries every real match it found. Treating
+                # that the same as a hard failure silently discarded suid_audit's
+                # genuine findings on this exact run: exec_status != "success" means
+                # base_agent.run_autonomous never records an Observation for it at
+                # all (see the `if exec_status == "success":` gate there), so two
+                # full retry-budget attempts produced zero usable evidence despite
+                # the command actually working. `find` exit code 1 specifically is
+                # "completed with some inaccessible paths," not "this command is
+                # broken" -- only treat 2+ (a real usage/argument error) as a failure
+                # for `find`. Every other command keeps the strict != 0 check.
+                is_find = bool(argv) and os.path.basename(argv[0]) == "find"
+                if proc.returncode != 0 and not (is_find and proc.returncode == 1):
                     overall_status = "failed"
             except subprocess.TimeoutExpired as te:
                 duration = time.time() - t0
+                # BUG FIX (live WSL smoke test, 2026-11-13): TimeoutExpired.stdout is
+                # raw bytes even when the original subprocess.run() call used
+                # text=True/errors="replace" -- that decoding only applies to the
+                # normal (non-timeout) return path. A long-running command that times
+                # out (e.g. `find /` sweeping a large mount) left raw bytes in
+                # cmd_results, which later crashed session_manager.save_current_state()
+                # with "TypeError: Object of type bytes is not JSON serializable" when
+                # it tried to persist execution_history. Decode defensively here,
+                # matching the same errors="replace" policy used everywhere else.
+                partial_stdout = te.stdout
+                if isinstance(partial_stdout, bytes):
+                    partial_stdout = partial_stdout.decode("utf-8", errors="replace")
                 cmd_results.append({
                     "argv": argv,
-                    "stdout": te.stdout or "",
+                    "stdout": partial_stdout or "",
                     "stderr": f"Command timed out after {defn.timeout_seconds}s",
                     "returncode": -1,
                     "duration_seconds": duration,
@@ -649,6 +792,12 @@ class CommandExecutor:
                 })
                 overall_status = "error"
                 break
+
+        # STEALTH ADAPTIVE BACKOFF: scan this action's output for rate-limit/WAF
+        # signatures and adjust the pacing multiplier for subsequent requests.
+        stealth.note_result(
+            " ".join(((r.get("stdout") or "") + " " + (r.get("stderr") or "")) for r in cmd_results)
+        )
 
         return {
             "status": overall_status,

@@ -1,0 +1,43 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+From a Microsoft IIS 5.0 server:
+HTTP/1.1 200 OK
+Server: Microsoft-lIS/5.0
+Expires: Yours, 17 Jun 2003 01:41: 33 GMT
+Date: Mon, 16 Jun 2003 01:41: 33 GMT
+Content-Type: text/HTML
+Accept-Ranges: bytes
+Last-Modified: Wed, 28 May 2003 15:32: 21 GMT
+ETag: b0aac0542e25c31: 89d
+Content-Length: 7369
+From a Netscape Enterprise 4.1 server:
+HTTP/1.1 200 OK
+Server: Netscape-Enterprise/4.1
+Date: Mon, 16 Jun 2003 06:19: 04 GMT
+Content-type: text/HTML
+Last-modified: Wed, 31 Jul 2002 15:37: 56 GMT
+Content-length: 57
+Accept-ranges: bytes
+Connection: close
+From a SunONE 6.1 server:
+HTTP/1.1 200 OK
+Server: Sun-ONE-Web-Server/6.1
+Date: Tue, 16 Jan 2007 14:53:45 GMT
+Content-length:
+1186
+Content-type: text/html
+Date: Tue, 16 Jan 2007 14:50:31 GMT
+Last-Modified: Wed, 10 Jan 2007 09:58:26 GMT
+Accept-Ranges: bytes
+Connection: close
+However, this testing methodology is limited in accuracy. There are
+several techniques that allow a web site to obfuscate or to modify the
+server banner string. For example one could obtain the following an-
+swer:
+403 HTTP/1.1 Forbidden
+Date: Mon, 16 Jun 2003 02:41: 27 GMT
+Server: Unknown-Webserver/1.0
+Connection: cl

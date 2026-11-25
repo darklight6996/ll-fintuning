@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+• Sensitive Data Patterns: These patterns help in identifying sensitive
+information such as credit card numbers, Social Security numbers, and
+other personally identifiable information (PII) during scans and audits. They
+include regular expressions for matching credit card numbers, Social
+Security numbers, email addresses, and other sensitive data formats.
+• Fuzzing Payloads: They are used for input fuzzing to discover
+vulnerabilities by providing unexpected inputs to applications. For example,
+wordlists of payloads that test for SQL injection, cross-site scripting (XSS),
+buffer overflow, and other injection attacks.
+• Other Wordlists: They are used for many types of password cracking,
+including offline attacks against hashed passwords and online attacks
+against authentication mechanisms. These are wordlists containing common
+words, phrases, and combinations that might be used in passwords.
+Modified Applications and Hidden Functionalities in Legitimate
+Software
+Attackers can modify legitimate applications to include backdoor
+functionalities by altering the application's source code or binary files.
+These modifications can be made to both open-source and proprietary

@@ -1,0 +1,14 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 8-1 LangSmith’s Playground
+You can obtain the prompt template shown in Figure 8-1 from
+https://smith.langchain.com/hub/dsfsdkjhfsd/red_team_expert. You can also
+use this template programmatically, as shown in Example 8-6.

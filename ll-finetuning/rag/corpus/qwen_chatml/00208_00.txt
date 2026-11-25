@@ -1,0 +1,24 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+9. Which physical bypass tool can be used on improperly installed latches?
+A. Quick Jim
+B. REX Sensor Bypass Gun
+C. DDT
+D. UDT
+Answer – A Quick Jim can be used to pull a disengaged latch out of place
+when not installed properly.
+10. What is the latest badge cloning firmware available open source?
+A. Wiegotcha
+B. Doppelgänger
+C. RFID Swiss Army Knife
+D. Wiegand
+Answer – B. Doppelgänger is the latest badge cloning firmware that is
+available open source.

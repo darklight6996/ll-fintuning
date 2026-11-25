@@ -1,0 +1,1 @@
+1000(waldo) gid=1000(waldo) euid=0(root) groups=1000(waldo),1001(admins) Either way, grab root.txt : root@admirer:~# cat root.txt 996a2609************************

@@ -1,0 +1,27 @@
+**Phase 6: Privilege Escalation (TA0004)**
+- **Windows**:
+  - Token Impersonation (T1134): `SeImpersonatePrivilege` → `PrintSpoofer`, `RoguePotato`, `JuicyPotato`
+  - Bypass UAC (T1548.002): `fodhelper`, `eventvwr`, `sdclt`, `slui`, `cmstp`
+  - Kernel Exploits: CVE-2024-2025, `CVE-2021-1732`, `CVE-2020-0796`
+  - Stored Credentials (T1552): `cmdkey`, `Credential Manager`, `WebCredentials`
+  - DLL Hijacking (T1574.001): `PATH` directories, `AppInit_DLLs`
+  - Service Permissions (T1543.003): `sc qc`, `accesschk`
+  - AlwaysInstallElevated (T1548.003): MSI install
+  - Unquoted Service Paths (T1574.009)
+- **Linux**:
+  - SUID/SGID Binaries: `find / -perm -4000 2>/dev/null`
+  - Sudo Misconfig: `sudo -l`, `gtfobins`
+  - Kernel Exploits: `DirtyPipe`, `DirtyCow`, `Overlayfs`
+  - Capabilities: `getcap -r / 2>/dev/null`
+  - Cron Jobs: `crontab -l`, `/etc/cron*`
+  - PATH Hijacking
+  - LD_PRELOAD
+  - Container Escape: `cgroups`, `docker.sock`, `runc` CVE
+- **Active Directory**:
+  - Kerberoasting, AS-REP Roasting
+  - Shadow Credentials, RBCD
+  - ADCS (ESC1-ESC16)
+  - GPO Abuse, Delegation (Constrained/Unconstrained)
+  - DCSync (if Domain Admin)
+- **Cloud**:
+  - AWS: IAM privesc (AttachUserPolicy,

@@ -1,0 +1,5 @@
+TECHNIQUE / QUESTION:
+Explain the objectives and methodology for the PortSwigger lab: Lab: Password reset broken logic
+
+CONTEXT:
+Context: Lab: Password reset broken logic (Learning Module)

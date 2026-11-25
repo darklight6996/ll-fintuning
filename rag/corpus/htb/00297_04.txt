@@ -1,0 +1,1 @@
+3-18 09:16PM <DIR> Backups 08-24-18 10:00PM <DIR> Engineer 226 Transfer complete. ftp> cd Backups 250 CWD command successful. ftp> ls 200 PORT

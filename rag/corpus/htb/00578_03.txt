@@ -1,0 +1,1 @@
+ax (so rax) to 0x300. Then it copies rax to rcx. The address of the decoded output (rsp) is copied to rsi, and the static buffer is copied to rdi. Then it calls rep movsb , which effectively copies rcx bytes from rsi to rdi. So as long as I write things I need in the first 0x300 bytes of the payload, I can

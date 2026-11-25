@@ -1,0 +1,1 @@
+...[ snip ] ... DATABASES = { ' default ' : { ' ENGINE ' : ' sentry.db.postgres ' , ' NAME ' : ' sentry ' , ' USER ' : ' sentry ' , ' PASSWORD ' : ' SentryPassword2021 ' , ' HOST ' : ' localhost ' , ' PORT ' : '' , } } ...[ snip ] ... On connecting, judging

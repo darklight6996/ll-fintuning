@@ -1,0 +1,1 @@
+0 0 127.0.0.1:4444 0.0.0.0:* LISTEN - tcp 0 0 172.21.0.1:21 0.0.0.0:* LISTEN - tcp 0 0 127.0.0.1:8080 0.0.0.0:* LISTEN - tcp6 0 0 :::22 :::* LISTEN - But it is listening on the container: dev_acc@intuition:~$ nc -zv 172.21.0.4 5900 Connection to 172.21.0.4 5900 port

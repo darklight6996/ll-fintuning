@@ -1,0 +1,25 @@
+**Phase 6: Filter Evasion & Bypass Testing**
+- **Context-Specific Payloads**:
+  - HTML body: `<img src=x onerror=alert(1)>`
+  - Attribute: `" onfocus=alert(1) autofocus "`
+  - JavaScript: `'-alert(1)-'` or `</script><script>alert(1)</script>`
+  - CSS: `expression(alert(1))` (IE) or `@import 'javascript:alert(1)'`
+- **Encoding Layers**: URL, HTML entity, Unicode, Base64
+- **WAF Bypass**: Fragmentation, HTTP parameter pollution, chunked encoding
+
+**Phase 7: Impact Assessment & Exploitation**
+- Session hijacking: `document.cookie` exfiltration
+- Keylogging: Event listeners on input fields
+- Credential harvesting: Fake login forms
+- CSRF token theft
+- BeEF hooking for persistent control
+- Chaining with other vulnerabilities
+
+**Phase 8: Remediation Verification**
+- Context-aware output encoding
+- Content-Security-Policy (CSP) with nonce/hash
+- HttpOnly, Secure, SameSite cookies
+- Input validation with allowlists
+- DOM sanitization (DOMPurify)
+
+**Tools**: Burp Suite (XSS Validator), XSStrike, DalFox, XSS Hunter, BeEF.

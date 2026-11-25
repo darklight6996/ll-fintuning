@@ -1,0 +1,15 @@
+on recording)
+    - **CC6.6**: Least privilege (IAM conditions, SCPs, permission boundaries)
+    - **CC6.7**: Data transmission (TLS 1.2+, mTLS, VPN)
+    - **CC6.8**: Physical access (data center SOC 2 reports)
+  - **CC7.1-CC7.5**: System Operations
+    - **CC7.1**: Vulnerability management (Tenable, Qualys, Trivy)
+    - **CC7.2**: Malware protection (CrowdStrike, SentinelOne, Defender)
+    - **CC7.3**: Incident detection (SIEM rules, MITRE ATT&CK mapping)
+    - **CC7.4**: Incident response (playbooks, tabletop exercises)
+    - **CC7.5**: Recovery testing (DR drills, RTO/RPO validation)
+  - **CC8.1-CC8.2**: Change Management
+    - SDLC security, IaC scanning (Checkov, tfsec, Terrascan)
+    - CI/CD: GitHub Actions, GitLab CI, ArgoCD with policy gates
+  - **CC9.1-CC9.2**: Risk Mitigation
+    - Vendor assessment, BAA management, supply chain

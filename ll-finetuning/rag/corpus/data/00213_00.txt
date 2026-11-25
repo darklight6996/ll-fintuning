@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check container image sources.
+
+CONTEXT:
+Supply chain audit.
+
+METHOD / ANSWER:
+Command: `docker images`
+Explanation: Reviews approved container images.

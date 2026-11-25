@@ -1,0 +1,10 @@
+Context:
+Context: Cloud Environment Reconnaissance. You have access to Azure CLI or PowerShell with valid credentials.
+Principle to Apply: 'Map the cloud tenant structure to understand resource hierarchy, permissions, and potential attack surfaces.'
+assistant
+**Assessment Phase**: Azure Tenant Enumeration.
+**Core Principle**: Cloud environments have hierarchical structures (Management Groups → Subscriptions → Resource Groups → Resources). Understanding this layout is prerequisite to finding misconfigurations.
+**Actionable Steps**:
+1.  **Subscription Discovery**: `az account list`
+    *   **Reasoning**: Lists all Azure subscriptions accessible to the current identity. Each subscription is a billing and management boundary containing resources. This reveals the initial scope of your access.
+**Guidance for Novel Context**: Follow with `az resource list` to see all resources across subscriptions. Note that permissions can be scoped at different levels (management group, subscription, resource group, resource). Use `az role assignment list` to understand who can do what where.

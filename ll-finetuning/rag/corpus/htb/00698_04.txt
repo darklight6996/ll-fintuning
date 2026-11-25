@@ -1,0 +1,1 @@
+.6 6.4 274262820 258032 ? Ssl 16:00 0:11 /home/sergej/.dotnet/dotnet run --project TeamServer --configuration Release sergej 6979 2.1 3.3 274203412 131524 ? Sl 16:00 0:08 /home/sergej/HardHatC2/TeamServer/bin/Release/net7.0/TeamServer sergej 6992 1.2 3.2 274195036 131112 ?

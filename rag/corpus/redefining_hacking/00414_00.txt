@@ -1,0 +1,26 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+protecting personal data has led to substantial changes in
+how this information is handled by most companies.
+Example 9-6 shows another example (the technical and administrative
+email contacts for the domain cisco.com).
+Example 9-6 Showing Technical and Administrative Email Contacts
+┌─[omar@websploit]─[~]
+└──╼ $whois cisco.com | grep '@cisco.com'
+Registrant Email: infosec@cisco.com
+Admin Email: infosec@cisco.com
+Tech Email: infosec@cisco.com
+In Example 9-6, the technical and administrative contacts point to the
+InfoSec team at Cisco (infosec@cisco.com) instead of the registrant.
+Tip
+Tools such as recon-ng, theharvester, maltego, and others
+help automate the process of passive reconnaissance and
+support many DNS-based and whois queries. Several of
+these tools are listed in my GitHub repository at

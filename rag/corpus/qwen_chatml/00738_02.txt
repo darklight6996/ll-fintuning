@@ -1,0 +1,31 @@
+in order to
+try to invalidate the XML document.
+userName = ]]>
+this will become:
+<username><![CDATA[]]>]]></username>
+which is not a valid XML fragment.
+Another test is related to CDATA tag. Suppose that the XML doc-
+ument is processed to generate an HTML page. In this case, the
+CDATA section delimiters may be simply eliminated, without fur-
+ther inspecting their contents. Then, it is possible to inject HTML
+tags, which will be included in the generated page, completely by-
+passing existing sanitization routines.
+Let's consider a concrete example. Suppose we have a node con-
+taining some text that will be displayed back to the user.
+<html>
+$HTMLCode
+</html>
+Then, an attacker can provide the following input:
+$HTMLCode = <![CDATA[<]]>script<![C-
+DATA[>]]>alert(’xss’)<![CDATA[<]]>/script<![CDATA[>]]>
+and obtain the following node:
+<html>
+<![CDATA[<]]>script<![CDATA[>]]>alert(’xss’)<![CDATA[<]]>/
+script<![CDATA[>]]>
+</html>
+During the processing, the CDATA section delimiters are eliminat-
+ed, generating the following HTML code:
+<script>alert(’XSS')</script>
+The result is that the application is vulnerable to XSS.
+External Entity:
+The set of valid entities can be extended by defining ne

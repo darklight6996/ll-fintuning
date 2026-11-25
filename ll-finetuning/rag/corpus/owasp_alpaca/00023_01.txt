@@ -1,0 +1,50 @@
+METHOD / ANSWER:
+Session ID Prediction
+Many web applications manage authentication by using session
+identifiers (session IDs). Therefore, if session ID generation is
+predictable, a malicious user could be able to find a valid session ID
+and gain unauthorized access to the application, impersonating a
+previously authenticated user.
+In the following figure, values inside cookies increase linearly, so it
+could be easy for an attacker to guess a valid session ID.
+Sepkle vahers ower ting
+i
+rey ee bab hie be ee
+i
+a
+dee ee ee
+Toni Tinie
+n the following figure, values inside cookies change only partially, so
+it's possible to restrict a brute force attack to the defined fields shown
+below.
+Session Identifier : 127.0.0.4. WebGoat WEAKID
+|
+Date
+—
+Value
+20081111 14a ser
+12430)116325200"026
+20069101 14:35:27
+12431);1 1683252007138
+20069111 14:35:27
+(2432/1 163252007247
+20069111 14:35:27
+124331 16S252007
+435
+2006111 14332
+12434)1 163252007544
+2008111 14aa2r
+12435)1 165252007655
+20069111 14:35:27
+12438)1 165252007
+BS
+20069111 14:35:27
+T2437 1 1bs252007387S
+2006111 14:33:28
+12438)1 163252007984
+20081111 14:33:28
+12439)1 163252008091
+2006/1111 14:33:28
+12440) 165252098200
+20069111 14:35:28
+1244271

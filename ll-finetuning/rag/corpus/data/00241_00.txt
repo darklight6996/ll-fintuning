@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check DNS configuration.
+
+CONTEXT:
+Network reliability audit.
+
+METHOD / ANSWER:
+Command: `cat /etc/resolv.conf`
+Explanation: Confirms DNS settings.

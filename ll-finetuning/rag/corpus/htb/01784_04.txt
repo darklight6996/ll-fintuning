@@ -1,0 +1,1 @@
+es elements.html and generic.html are both new, but both just return some Ipsum text and look like default pages for the Bootstrap theme. devzat - TCP 8000 nmap identified port 8000 as SSH, which matches the instructions from

@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+A proof-of-concept attack demonstrated how USB device firmware could
+be reprogrammed to execute malicious activities, such as emulating a
+keyboard to execute commands on the host system. Flipper Zero is a
+versatile, portable, open-source multi-tool designed for cybersecurity
+enthusiasts. It is equipped with various hardware and software capabilities
+that allow users to interact with and manipulate a wide range of electronic
+devices and systems. Flipper Zero can function as a BadUSB device, being
+recognized by computers as a human interface device (HID), like a
+keyboard. A BadUSB device can alter system settings, open backdoors,
+extract data, initiate reverse shells, or perform any action possible with
+physical access. It achieves this effect by executing a series of commands
+written in the Rubber Ducky Scripting Language, known as DuckyScript.
+These commands are collectively referred to as a payload. You can obtain
+more information about Flipper Zero at https://docs.flipper.net.
+Scheduled Jobs and Tasks
+Windows has a command that attackers can use to schedule automated
+execution of tasks on a local or remote computer. Y

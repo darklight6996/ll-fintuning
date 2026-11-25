@@ -1,0 +1,1 @@
+to the Key Credentials for 'edward.martin' [-] Could not update Key Credentials for 'edward.martin' due to insufficient access rights: 00002098: SecErr: DSID-031514B3, problem 4003 (INSUFF_ACCESS_RIGHTS), data 0 That hash works: oxdf@hacky$ netexec smb dc01.haze.htb -u edward.martin

@@ -1,0 +1,1 @@
+ry.vinson_adm\Documents> Invoke-Binary . /Seatbelt.exe -group=all ...[snip]... ====== NTLMSettings ====== LanmanCompatibilityLevel : 2(Send NTLM response only) NTLM Signing Settings ClientRequireSigning : False ClientNegotiateSigning : True ServerRequireSigning : True ServerNegotiateSigning : True LdapSigning : 1 (Negotiate signing) Session Security NTLMMinClientSec :

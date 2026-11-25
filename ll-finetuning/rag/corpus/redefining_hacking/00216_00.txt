@@ -1,0 +1,13 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Tip
+Additional Netcat commands and references for post-
+exploitation tools can be obtained from
+https://github.com/The-Art-of-Hacking/art-of-hacking.

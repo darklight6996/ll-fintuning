@@ -1,0 +1,23 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 3-18 Mythic Callback
+Note
+In a real scenario, you would need to alter the C2 agent
+because it’s heavily signatured and also would need to make
+additional modifications to obfuscate your shellcode for
+delivery to bypass protections in place for an endpoint. We
+will discuss potential options to obfuscate your shellcode in
+Chapter 4.
+In the Mythic agent, click the keyboard option to interact with the agent.
+Then type help in the console to see which command options the agent has
+the ability to use on the victim host, as demonstrated in Figure 3-19. Feel
+free to try different command options at this point and take into account
+which may be safer from an OPSEC perspective and which commands are
+better to stay away from for an operation.

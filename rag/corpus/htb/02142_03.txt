@@ -1,0 +1,1 @@
+0 1 cols 1 sub { cw mul /xp exch def % for each rows 0 1 nrows 1 sub { /rn exch def rn lineheight mul neg /yp exch def rn nlines idiv 2 mod 0 eq { % Draw highlight bar. 4 is just a magic indentation. xp 4 add yp

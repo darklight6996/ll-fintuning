@@ -1,0 +1,5 @@
+TECHNIQUE / QUESTION:
+Explain the objectives and methodology for the PortSwigger lab: Lab: Source code disclosure via backup files
+
+CONTEXT:
+Context: Lab: Source code disclosure via backup files (Learning Module)

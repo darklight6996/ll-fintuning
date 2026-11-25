@@ -1,0 +1,1 @@
+ll Copyright (C) Microsoft Corporation. All rights reserved. PS C:\windows\system32\inetsrv> whoami nt authority\system « HTB: Cereal

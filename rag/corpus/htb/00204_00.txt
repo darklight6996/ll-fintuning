@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from [Htb Blog] Exploiting Looney Tunables Hacks Stuff)
+
+CONTEXT:
+Source: [Htb Blog] Exploiting Looney Tunables Hacks Stuff
+Section: Writeup

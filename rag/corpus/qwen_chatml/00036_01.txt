@@ -1,0 +1,21 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+data when it ran. The process was painstaking, but eventually, we struck
+gold. Once we understood the data the model was training on, we also
+learned where it was located: a data source, non-anonymized customer data
+set that was ripe for the taking.
+Finally, we were in the last stages of the attack. We verified access controls
+of the data source, and to our surprise, we determined that we could write to
+the data source. Now if we were some nefarious attacker, we could just go
+ahead and start manipulating the data; however, we wanted to ensure that
+we would survive to run another engagement. During our initial queries of
+the database, we determined that it was a cloud-hosted database. We got
+lucky with some metadata that included the original query as the source of
+the data. We knew then that this was a copy of data used for training and not
+the original data. For training the model, it appeared that it was a one-time
+snapshot of the data. They were not refreshing the data regularly. This
+dataset consisted of competitor analysis and sales figures for our widgets.
+The function of the model was to predict competitor pricin

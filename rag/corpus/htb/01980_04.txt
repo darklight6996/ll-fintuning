@@ -1,0 +1,1 @@
+home/svc/.ssh/authorized_keys www-data@encoding:~/image$ chmod +x .git/hooks/post-commit I’ll also set it executable. This script writes a public SSH key into svc’s authorized_keys file. Make Changes In order

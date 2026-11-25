@@ -1,0 +1,21 @@
+on
+Testing for SSI Injection
+Testing for XPath Injection
+IMAP/SMTP Injection
+Testing for Code Injection
+Testing for Local File Inclusion
+Testing for Remote File Inclusion
+Testing for Command Injection
+Testing for Buffer overflow
+Testing for Heap overflow
+Testing for Stack overflow
+Testing for Format string
+Testing for incubated vulnerabilities
+Testing for HTTP Splitting/Smuggling
+Analysis of Error Codes
+Analysis of Stack Traces
+Testing for Weak SSL/TSL Ciphers, Insufficient Transport Layer Protection
+Testing for Padding Oracle
+Testing for Sensitive information sent via unencrypted channels
+Reporting
+212

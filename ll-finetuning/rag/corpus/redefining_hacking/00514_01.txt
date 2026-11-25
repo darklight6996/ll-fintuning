@@ -1,0 +1,18 @@
+METHOD / ANSWER:
+Another consideration in choosing a time to run a scan is the fact that many
+of the options or plug-ins that are performed in a vulnerability scan can and
+will crash the target device as well as the network infrastructure. For this
+reason, you should be sure that when scanning on a production network,
+you are scanning at times that will have less impact on end users and
+servers. Most of the time scanning in the early hours of the day, when no
+one is using a network for critical purposes, is best.
+Determining What Protocols Are in Use
+One of the first things you need to know about a network or target device
+before you begin running vulnerability scans is what actual protocols are
+being used. If a target device is using both Transmission Control Protocol
+(TCP) and User Datagram Protocol (UDP) for services that are running, and
+you only run a vulnerability scan against TCP ports, then you are going to
+miss any vulnerabilities that might be found on the UDP services.
+UDP scanning can indeed take significantly longer than TCP scanning and
+is more prone to false positives due to the inherent characteristics of UDP.
+Unlike TCP, which is a connection-oriented protocol that

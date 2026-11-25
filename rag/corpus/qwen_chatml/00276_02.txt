@@ -1,0 +1,2 @@
+e attacker’s DNS server decodes the payload part to
+extract the data or command.

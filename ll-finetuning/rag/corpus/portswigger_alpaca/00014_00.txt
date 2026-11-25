@@ -1,0 +1,5 @@
+TECHNIQUE / QUESTION:
+Explain the objectives and methodology for the PortSwigger lab: Lab: Clickjacking with form input data prefilled f
+
+CONTEXT:
+Context: Lab: Clickjacking with form input data prefilled from a URL parameter (Learning Module)

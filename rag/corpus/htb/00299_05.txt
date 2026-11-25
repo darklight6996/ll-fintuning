@@ -1,0 +1,1 @@
+7-Zip [64] 16.02 : Copyright (c) 1999-2016 Igor Pavlov : 2016-05-21 p7zip Version 16.02 (locale=en_US.UTF-8,Utf16=on,HugeFiles=on,64 bits,3 CPUs Intel(R) Core(TM) i7-7700 CPU @ 3.60GHz (906E9),ASM,AES-NI) Scanning the drive for archives: 1 file, 10870 bytes (11 KiB) Extracting

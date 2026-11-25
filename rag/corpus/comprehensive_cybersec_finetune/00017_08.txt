@@ -1,0 +1,21 @@
+**Passive Reconnaissance (Non-Intrusive)**:
+- **Traffic Capture**:
+  - SPAN/TAP ports, network taps
+  - `tcpdump -i eth0 -w capture.pcap -s 0`
+  - `wireshark`, `tshark`
+- **Protocol Analysis**:
+  - Modbus TCP/RTU: Function codes, register mapping
+  - DNP3: Object groups, variations, qualifiers
+  - IEC 60870-5-104: ASDU types, cause of transmission
+  - IEC 61850: MMS, GOOSE, Sampled Values
+  - OPC UA: Namespace, nodes, services
+  - PROFINET: RT/IRT, DCP, LLDP
+  - EtherCAT: CoE, FoE, SoE, EoE
+  - EtherNet/IP: CIP, implicit/explicit messaging
+  - BACnet: BIBBs, objects, services
+  - MQTT Sparkplug B: Namespace, payload
+- **Asset Inventory**:
+  - Passive identification (MAC, traffic patterns)
+  - `ics-scanner`, `plcscan`, `modbus-cli`
+  - `s7comm`, `snap7` (Siemens S7)
+  - `opcua-client`, `uaexpert`

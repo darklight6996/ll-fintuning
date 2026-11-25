@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+like search bars, login fields, and file upload buttons. Instead, API hacking
+revolves around the backend operations that underlie these GUI elements,
+specifically focusing on GET requests with query parameters and most
+POST/PUT/UPDATE/DELETE requests.
+Before you start crafting requests to interact with an API, you must gain an
+understanding of its endpoints, request parameters, required headers,
+authentication protocols, and administrative functionalities. Documentation
+typically serves as your guide to these elements. Consequently, to excel as
+an API hacker, you need to be proficient in reading and utilizing API
+documentation and, ideally, know how to locate it. Additionally, if you can
+access an API specification, you can directly import it into tools like
+Postman to automate the request crafting process.
+In scenarios where you are conducting a black-box API test and genuine
+documentation is unavailable, you'll need to reverse-engineer the API
+requests independently. This process entails thoroughly testing the API,
+experimenting with different inputs to discover endpoints, parameters, and
+header prerequisites, essentially mapping out the API and comprehending
+it

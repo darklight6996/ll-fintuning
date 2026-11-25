@@ -1,0 +1,35 @@
+METHOD / ANSWER:
+Web Application Penetration Testing
+Google Hacking Database
+The Google Hacking Database is list of useful search queries for Goo-
+gle. Queries are put in several categories:
+« Footholds
+« Files containing usernames
+« Web Server Detection
+« Vulnerable Files
+« Vulnerable Servers
+» Error Messages
+« Files containing juicy info
+« Files containing passwords
+« Sensitive Online Shopping Info
+Tools
+[4] FoundStone SiteDigger: http:/ www.mcafee.com/uk/downloads/
+free-tools/sitedigger.aspx
+[5] Google Hacker: http:/yehg.net/lab/prOjs/files.php/googlehacker.
+zip
+[6] Stach & Liu’s Google Hacking Diggity Project: http:/www.stach-
+liu.com/resources/tools/google-hacking-diggity-project/
+[7] PunkSPIDER: http:/punkspider.hyperiongray.com/
+References
+Web
+[1] “Google Basics: Learn how Google Discovers, Crawls, and
+Serves Web Pages” - https:/support.google.com/webmasters/an-
+swer/70897
+[2] “Operators and More Search Help”: https:/support.google.com/
+websearch/answer/136861?hl=en
+[3] “Google Hacking Database”: http:/www.exploit-db.com/goo-
+gle-dorks/
+Remediation
+Carefully consider the sensitivity of design and configuration informa-
+tion before it is posted online.
+Periodically review the

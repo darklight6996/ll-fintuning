@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Use CVE-2022-37706 for escalation.
+
+CONTEXT:
+Invoke vulnerable binaries with crafted arguments.
+
+METHOD / ANSWER:
+Command: `sudo /usr/lib/x86_64-linux-gnu/enlightenment/utils/enlightenment_sys /bin/mount ...`
+Purpose: Execute a payload that leads to a root shell.

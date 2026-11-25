@@ -1,0 +1,5 @@
+TECHNIQUE / QUESTION:
+Explain the objectives and methodology for the PortSwigger lab: Lab: Inconsistent security controls
+
+CONTEXT:
+Context: Lab: Inconsistent security controls (Learning Module)

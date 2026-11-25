@@ -1,0 +1,1 @@
+rok { match => { "message" => "Ejecutar \s *comando \s *: \s +%{GREEDYDATA:comando}" } } } } So this will look for anything of type execute (which things from the previous input will be),

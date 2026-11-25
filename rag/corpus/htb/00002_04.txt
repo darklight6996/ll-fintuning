@@ -1,0 +1,1 @@
+fine’s private temp directory, allowing me to win a race condition and replace the dynamic linker with a malicious payload that runs as root. Mar 30, 2026 HTB: Principal ctf hackthebox htb-principal nmap ubuntu spring-boot pac4j java javascript jwt jwks feroxbuster cve-2026-29000 python password-reuse credentials

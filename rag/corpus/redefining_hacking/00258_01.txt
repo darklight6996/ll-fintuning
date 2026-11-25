@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+compromised user endpoint. Many different techniques and utilities can be
+used to create a C2. The following are a few examples:
+• socat: A C2 utility that can be used to create multiple reverse shells (see
+http://www.dest-unreach.org/socat)
+• wsc2: A Python-based C2 utility that uses WebSockets (see
+https://github.com/Arno0x/WSC2)
+• WMImplant: A PowerShell-based tool that leverages WMI to create a C2
+channel (see https://github.com/ChrisTruncer/WMImplant)
+• DropboxC2 (DBC2): A C2 utility that uses Dropbox (see
+https://github.com/Arno0x/DBC2)
+• TrevorC2: A Python-based C2 utility created by Dave Kennedy of
+TrustedSec (see https://github.com/trustedsec/trevorc2)
+• Twittor: A C2 utility that uses X (formerly Twitter) direct messages for
+Command and Control (see https://github.com/PaulSec/twittor)
+• DNSCat2: A DNS-based C2 utility that supports encryption and that has
+been used by malware, threat actors, and pen testers (see
+https://github.com/iagox86/dnscat2)
+Figure 6-9 shows how TrevorC2 can be used as a Command and Control
+framework. This figure shows two terminal windows. The terminal window

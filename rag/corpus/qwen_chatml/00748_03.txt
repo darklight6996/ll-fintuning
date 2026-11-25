@@ -1,0 +1,26 @@
+mation shown by Apache in the HTTP errors can also be
+configured using the directives ServerTokens [4] and ServerSig-
+nature [5] at apache2.conf configuration file. “ServerSignature
+Off” (On by default) removes the server information from the
+error responses, while ServerTokens [ProductOnly|Major|Mi-
+nor|MinimalJOS|Full] (Full by default) defines what information
+has to be shown in the error pages.
+Error Handling in Tomcat
+Tomcat is a HTTP server to host JSP and Java Servlet applica-
+tions. By default, Tomcat shows the server version in the HTTP
+error responses.
+Customization of the error responses can be configured in the
+configuration file web.xml.
+<error-page>
+<error-code>404</error-code>
+<location>/myerrorpagefor404.html</location>
+</error-page>
+Testing for Stack Traces (OTG-ERR-002)
+Summary
+Stack traces are not vulnerabilities by themselves, but they often
+reveal information that is interesting to an attacker. Attackers
+attempt to generate these stack traces by tampering with the
+input to the web application with malformed HTTP requests and
+other input data.
+If the application responds with stack traces that are not man-
+aged it could reveal information useful to attackers. Th

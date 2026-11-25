@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Analyze the contact form and other functionalities.
+
+CONTEXT:
+Check how data is sent and handled.
+
+METHOD / ANSWER:
+Assessment of how forms transmit data (no data on submissions).
+Purpose: Identify inputs that could be exploited.

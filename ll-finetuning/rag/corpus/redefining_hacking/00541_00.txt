@@ -1,0 +1,24 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+C. Open-source intelligence gathering
+D. Certificate management
+13. Certificate transparency primarily helps in detecting
+A. Slow network connections.
+B. Fraudulent SSL certificates.
+C. Directory structures on web servers.
+D. API keys in source code.
+14. What is the main function of the tool Amass?
+A. Graphic representation of programming structures
+B. Advanced open-source intelligence gathering
+C. API hacking reconnaissance by evaluating application web content at
+scale
+D. Network defense
+15. Maltego is primarily used for
+A. Creating multiple-choice questions.

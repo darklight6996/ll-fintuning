@@ -1,0 +1,22 @@
+**Phase 5: Evasion Techniques by Technology**
+
+**Firewall Evasion**:
+- **Fragmentation**: `nmap -f`, `hping3 --frag`
+- **Source Port Manipulation**: `nmap --source-port 53` (DNS), `80`, `443`
+- **Decoys**: `nmap -D RND:10`
+- **Timing**: `nmap -T2` (slow), `--scan-delay`
+- **IP Spoofing**: `nmap -S 1.2.3.4` (if egress filtering allows)
+- **Tunneling**: SSH `-D`, `stunnel`, `sslh`, `proxychains`
+
+**WAF Evasion**:
+- **Encoding**: URL, double URL, Unicode, Base64, Hex
+- **Case Variation**: `<ScRiPt>`, `UnIoN SeLeCt`
+- **Comment Injection**: `/**/UNION/**/SELECT/**/`
+- **Parameter Pollution**: `?id=1&id=2`
+- **HTTP Method Override**: `X-HTTP-Method-Override: POST`
+- **Header Injection**: `X-Forwarded-For: <script>alert(1)</script>`
+- **Chunked Encoding**: `Transfer-Encoding: chunked`
+- **JSON/Content-Type Bypass**: `Content-Type: application/json` vs `text/xml`
+- **WAF-Specific**:
+  - Cloudflare: `cf-connecting-ip`, `cf-ipcountry` headers
+  - ModSecurity: `SecRuleEngine Off` via header injection (rare)

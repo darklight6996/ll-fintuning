@@ -1,0 +1,13 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+reword the request to get the information you want out of ChatGPT to
+leverage for your engagement (see Figure 5-2).
+Figure 5-1 ChatGPT: Malicious Behavior

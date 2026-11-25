@@ -1,0 +1,21 @@
+METHOD / ANSWER:
+• Tabletop Exercises: Discussion-based simulations to evaluate incident
+readiness.
+Finally, we emphasized how red teaming enhances detection, response, and
+recovery capabilities, fostering a resilient security posture aligned with
+modern threats.
+References
+Anderson, Ross J. Security Engineering: A Guide to Building Dependable
+Distributed Systems. John Wiley & Sons, 2010.
+https://cdimage.debian.org/mirror/archive/ftp.sunet.se/pub/security/docs/cry
+pt/Ross_Anderson/toc.pdf
+Angafor, Giddeon Njamngang, Iryna Yevseyeva, and Leandros Maglaras.
+"Scenario-Based Incident Response Training: Lessons Learnt from
+Conducting an Experiential Learning Virtual Incident Response Tabletop
+Exercise." Information & Computer Security 31, no. 4 (2023): 404–26.
+https://www.emerald.com/insight/content/doi/10.1108/ics-05-2022-
+0085/full/html
+Caltagirone, Sergio, Andrew Pendergast, and Christopher Betz. "The
+Diamond Model of Intrusion Analysis." Threat Connect 298, no. 0704
+(2013): 1–61. https://www.threatintel.academy/wp-
+content/uploads/2020/07/diamond-model.pdf

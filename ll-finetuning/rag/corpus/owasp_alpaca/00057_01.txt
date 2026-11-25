@@ -1,0 +1,40 @@
+METHOD / ANSWER:
+169
+Web Application Penetration Testing
+HTTP/1.1 200 OK
+Date: Wed, 23 Jul 2014 13:48:07 GMT
+Server: Apache/2.4.3 (Win32) OpenSSL/1.0.1¢ PHP/5.4.7
+X-Powered-By: PHP/5.4.7
+Set-Cookie: SessionID=xxx; expires=Wed, 23-Jul-2014 12:48:07
+GMT; path=/; secure
+Set-Cookie: SessionChallenge=yyy; expires=Wed, 23-Jul-2014
+12:48:07 GMT; path=/
+Content-Length: 193
+Connection: close
+Content-Type: text/html
+<html>
+<head>
+<title>Login
+page </title>
+</head>
+<body>
+<script src="http:/othersite/test.js"
+></script>
+<link rel="stylesheet” type="text/css” href="http:/somesite/
+test.css">
+Checking localhost:443 for correct use of Strict Transport Securi-
+ty (STS) response header (RFC6797)....
+[!] STS response header: NOT PRESENT
+[!] Vulnerable to MITM threats mentioned in https:/www.owasp.
+org/index.php/HTTP_Strict_Transport_Security#Threats
+[!] Vulnerability Status: VULNERABLE
+HTTP/1.1 200 OK
+Date: Wed, 23 Jul 2014 13:48:07 GMT
+Server: Apache/2.4.3 (Win32) OpenSSL/1.0.1¢ PHP/5.4.7
+X-Powered-By: PHP/5.4.7
+Set-Cookie: SessionID=xxx; expires=Wed, 23-Jul-2014 12:48:07
+GMT; path=/; secure
+Set-Cookie: SessionChallenge=yyy; expires=Wed, 23-Jul-2014
+12:48:07 GMT; path=/
+Content-Length: 193
+Connect

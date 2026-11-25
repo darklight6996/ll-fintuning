@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How can you collect BloodHound data to map Active Directory relationships?
+
+CONTEXT:
+You need to gather data about group memberships, permissions, and relationships in Active Directory.
+
+METHOD / ANSWER:
+Command: `rusthound-ce -d tombwatcher.htb -u henry -p 'H3nry_987TGV!' --zip -c All`
+Explanation: This command collects comprehensive data from Active Directory, storing it in a zipped file for analysis later.

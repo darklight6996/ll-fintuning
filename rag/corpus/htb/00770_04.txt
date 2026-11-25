@@ -1,0 +1,1 @@
+tcp 0 0 127.0.0.53:53 0.0.0.0:* LISTEN tcp 0 0 127.0.0.1:42571 0.0.0.0:* LISTEN tcp6 0 0 :::22 :::* LISTEN tcp6 0 0 :::80 :::* LISTEN I’ll want to check out ports 3000 and 9090. Satellite App Port 9090 doesn’t return anything useful: shawking@bigbang:~$ curl localhost:9090 -v * Trying 127.0.0.1:9090... * Connected to localhost (127.0.0.1) port 9090 (#0)

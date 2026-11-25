@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you escalate privileges after gaining access to XWiki?
+
+CONTEXT:
+Context: Post-Verification. Vulnerability confirmed (RCE achieved). Goal: Establish a persistent, interactive foothold on the underlying server.
+Principle to Apply: 'Upgrade a simple code execution to a stable, bidirectional communication channel.'

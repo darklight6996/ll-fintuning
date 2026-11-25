@@ -1,0 +1,25 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Group Enumeration
+For a penetration tester, enumerating groups is helpful in determining the
+authorization roles that are being used in the target environment. The Nmap
+NSE script for enumerating SMB groups is smb-enum-groups. This script
+attempts to pull a list of groups from a remote Windows machine. You can
+also reveal the list of users that are members of those groups. The syntax of
+the command is as follows:
+nmap --script smb-enum-groups.nse -p445 <host>
+Example 9-34 displays the sample output of this command run against
+another Windows server (192.168.56.3). This example uses known
+credentials to gather information.
+Example 9-34 Enumerating SMB Groups
+┌─[root@websploit]─[~]
+└──╼ #nmap --script smb-enum-groups.nse --script-args
+smbusername=vagrant,smbpass=vagrant 192.168.56.3
+Starting Nmap 7.91 ( https://nmap.org )
+Nmap scan report for 192.168.56.3
+Host is up (0.0062s latency).
+Not shown: 979 closed ports
+PORT STATE SERVICE

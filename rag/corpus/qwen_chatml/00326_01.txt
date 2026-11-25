@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+intuitively, while their ability to learn and evolve makes them good at
+identifying zero-day vulnerabilities and complex attacks.
+Are You Leaking Sensitive Information in Your Red Team Engagement?
+Knowing how AI-powered tools handle data is very important. Results from
+red team or traditional penetration testing engagements are highly sensitive.
+Some tools and their underlying AI models might use this data for training
+purposes, which can expose confidential information. Ensuring this
+sensitive data isn't used to train the model is essential because your
+customers will certainly expect their information to remain secure and
+private.
+The BurpGPT Pro edition supports the use of local LLMs, which eliminate
+the need for third-party data sharing and ensure confidentiality during client
+engagements. It also provides access to prompt libraries and the ability to
+support custom-trained models, allowing users to train models with their
+own application security (otherwise known as “appsec”) data and tap into
+internal knowledge bases.
+Using AI, you can now
+• Automate vulnerability scanning at unprecedented speeds and scales.

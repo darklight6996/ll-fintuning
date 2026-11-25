@@ -1,0 +1,23 @@
+handshake over HTTP and from then on all commu-
+nication is carried out over TCP channels by use of frames.
+Origin
+It is the server's responsibility to verify the Origin header in the initial
+HTTP WebSocket handshake. If the server does not validate the ori-
+gin header in the initial WebSocket handshake, the WebSocket server
+may accept connections from any origin. This could allow attackers
+to communicate with the WebSocket server cross-domain allowing
+for Top 10 2013-A8-Cross-Site Request Forgery (CSRF) type issues.
+Confidentiality and Integrity
+WebSockets can be used over unencrypted TCP or over encrypted
+TLS. To use unencrypted WebSockets the ws:// URI scheme is used
+(default port 80), to use encrypted (TLS) WebSockets the wss:// URI
+scheme is used (default port 443). Look out for Top 10 2013-A6-Sen-
+sitive Data Exposure type issues.
+Authentication
+WebSockets donothandle authentication, instead normal application
+authentication mechanisms apply, such as cookies, HTTP Authenti-
+cation or TLS authentication. Look out for Top 10 2013-A2-Broken
+Authentication and Session Management type Issues.
+Authorization
+WebSockets do not handle authorization, normal application autho-
+rization

@@ -1,0 +1,4 @@
+ation and persistence. You can take advantage
+of the Windows Task Scheduler to bypass User Account Control (UAC) if
+the user has access to its graphical interface. This is possible because the
+security option runs with the system's highest privileges. When a Windows

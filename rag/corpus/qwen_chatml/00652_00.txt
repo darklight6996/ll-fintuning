@@ -1,0 +1,4 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+How do you generate an SMB hosts file entry for a Windows Domain Controller?

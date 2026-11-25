@@ -1,0 +1,1 @@
+,LDAPS}] [-port {139,445,636}] [-baseDN DC=test,DC=local] [-computer-group CN=Computers,DC=test,DC=local] [-hashes LMHASH:NTHASH] [-no-pass] [-k] [-aesKey hex key] [-dc-host hostname] [-dc-ip ip] [domain/]username[:password] Adds a computer account to domain ...[snip]... -method {SAMR,LDAPS} Method of adding the computer.SAMR works over SMB.LDAPS

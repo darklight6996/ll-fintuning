@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+other personal background knowledge can be a way around not having that
+information.
+ChatGPT is a great resource to leverage for generating pretext scripts with
+artificial intelligence. It takes away the stress of putting together the
+verbiage of a script. As you perform more pretexting calls, you’ll be more
+comfortable executing those calls without using ChatGPT as a reference
+point. For beginners, you can take this as a starting point and alter it for
+what you’re trying to achieve. You will need to word questions in a way
+that doesn't make the questions come across as malicious behavior when
+requesting information from ChatGPT. The script generated later from
+ChatGPT is a scenario where you would leverage a landing page alongside
+your pretext to meet the following objectives:
+1. Convince the employee that there have been multiple login attempts
+related to their account and that they need to reset their password.
+2. Guide them to your controlled portal.
+3. Collect credentials and session cookies for the employee.
+Impersonating the Help Desk
+The figures that follow provide an example of how ChatGPT won’t respond
+to inquiries that appear malicious (see Figure 5-1) v

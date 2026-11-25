@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+teamer stumbling in the dark. I was a student, rapidly mastering a new
+language, a new way of thinking.
+The clock was still ticking, but the panic had subsided. I had the tools, the
+knowledge, and the resolve to face the AI challenge head-on. The sprint to
+the finish line had begun, and I was ready.
+Into the Breach
+We seeded the AI/ML platform with our newly created malicious model.
+We added a little bit of window dressing to enhance our lure. The trap was
+finally set, our malicious model mixed in with legitimate ones. Now the
+waiting game began.
+Then, it happened! A notification that a C2 agent beaconed back, and this
+time we weren’t testing. Our model had been downloaded and executed.
+The adrenaline surged through us, a mix of exhilaration and trepidation.
+Our objective was clear: infiltrate the research division. So, instead of the
+usual mad dash for domain admin, we took a more measured approach. We
+meticulously enumerated the host, cataloging its secrets. We identified some
+local data on the laptop, a potential treasure trove. There were numerous
+sets of training data to go through. However, as we dug deeper, our hopes
+plummeted. It was all synthetic or proper

@@ -1,0 +1,12 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 3-10 Selecting the Target OS
+The Target Payload Type will be apollo and the output will be WinExe, as
+illustrated in Figure 3-11.

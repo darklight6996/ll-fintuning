@@ -1,0 +1,10 @@
+Context:
+Context: Web Service Enumeration. You have a target URL but no knowledge of its underlying technologies.
+Principle to Apply: 'Identify the technology to tailor your attack.'
+assistant
+**Assessment Phase**: Technology Stack Identification.
+**Core Principle**: Knowing the specific web framework, server software, and plugins allows you to search for known vulnerabilities, default credentials, and framework-specific misconfigurations efficiently.
+**Actionable Steps**:
+1.  **Automated Fingerprinting**: `whatweb http://example.com`
+    *   **Reasoning**: WhatWeb analyzes HTTP headers, HTML content, and file structures to identify a wide array of technologies (e.g., `Apache 2.4.41`, `PHP 7.4`, `WordPress 6.2`, `jQuery 3.6`). It provides a quick, passive recon summary.
+**Guidance for Novel Context**: WhatWeb may miss custom or obscure frameworks. If it returns little data, apply the principle of 'manual banner grabbing': use `curl -I` to inspect headers and manually browse the application to look for tell-tale file paths (`/wp-admin`, `/.git`), comments, or scripts. The goal is to build a technology profile by any means available.

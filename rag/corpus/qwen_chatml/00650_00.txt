@@ -1,0 +1,15 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+How do you perform an initial reconnaissance scan to identify open ports on a target host?
+
+Context:
+Context: Initial Reconnaissance. New target IP: 10.10.11.72. No prior knowledge.
+Principle to Apply: 'Cast a wide net first to map the entire attack surface.'
+assistant
+**Assessment Phase**: Comprehensive Port Discovery.
+**Core Principle**: Discover every listening TCP port to avoid missing obscure services that could be the easiest entry point.
+**Actionable Steps**:
+1.  **Fast Full-Port Scan**: `nmap -p- --min-rate 10000 10.10.11.72`
+    *   **Reasoning**: The `-p-` scans all 65535 ports. `--min-rate 10000` sends packets very quickly to complete the scan in a reasonable time. This is a 'discovery' scan to get the complete list of open ports.
+**Guidance for Novel Context**: This aggressive scan may be detected. If stealth is required, apply the principle of 'slower, more stealthy discovery' with options like `-sS -T2`. If the target is suspected to be a Windows host, also consider scanning common Windows ports (135-139, 445, 3389) first.

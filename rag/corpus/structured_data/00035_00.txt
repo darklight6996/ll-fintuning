@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How can you explore additional opportunities for exploitation as Administrator?
+
+CONTEXT:
+Context: Post-Compromise Discovery. You have Domain Administrator privileges and want to identify further attack paths, misconfigurations, or sensitive data within the domain.
+Principle to Apply: 'With full privileges, perform deep discovery to uncover hidden vulnerabilities, sensitive data, and trust relationships.'

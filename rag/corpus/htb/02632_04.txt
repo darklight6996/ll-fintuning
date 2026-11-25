@@ -1,0 +1,1 @@
+37.248 - - [24/Feb/2026 22:57:54] code 404, message File not found 10.129.237.248 - - [24/Feb/2026 22:57:54] "GET /favicon.ico HTTP/1.1" 404 - Identify CSRF Target If the admin is going to click on a link I send them, I can use the source code to look for endpoints that do something interesting that I can get the admin to request. If I find a GET request, I can just make a

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Identify never-used accounts.
+
+CONTEXT:
+Account lifecycle review.
+
+METHOD / ANSWER:
+Command: `lastlog | grep 'Never logged in'`
+Explanation: Detects stale accounts needing removal.

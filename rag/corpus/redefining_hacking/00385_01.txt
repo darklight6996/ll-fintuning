@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+testing is a point-in-time effort. Bug bounty programs provide a continuous
+assessment (more on this later in the chapter).
+• Cost-Effectiveness: These programs can be more cost-effective than
+hiring a large full-time internal security team.
+• Diverse Set of Skills: Bug bounty programs attract individuals with many
+different skills. Some participants may be experts in API hacking and others
+in vulnerabilities such as SQL injection, insecure direct object reference
+(IDOR) vulnerabilities, and the like. Imagine having to hire hundreds of
+people with these skills. Well, you can’t.
+• Community Engagement: These programs foster a community of
+hackers focused on enhancing security.
+There are, of course, several challenges:
+• Quality Control: Sometimes the volume of reports can contain low-
+quality or irrelevant submissions.
+• Management Complexity: Managing the program and collaborating with
+a vast number of hackers can be complex.
+• Potential for Exploits: If the program is not managed well, there's a risk
+of vulnerabilities being exploited instead of being reported.

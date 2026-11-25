@@ -1,0 +1,47 @@
+guration
+Test Application Platform Configuration
+Test File Extensions Handling for Sensitive Information
+Backup and Unreferenced Files for Sensitive Information
+Enumerate Infrastructure and Application Admin Interfaces
+Test HTTP Methods
+Test HTTP Strict Transport Security
+Test RIA cross domain policy
+Test Role Definitions
+Test User Registration Process
+Test Account Provisioning Process
+Testing for Account Enumeration and Guessable User Account
+Testing for Weak or unenforced username policy
+Test Permissions of Guest/Training Accounts
+Test Account Suspension/Resumption Process
+Testing for Credentials Transported over an Encrypted Channel
+Testing for default credentials
+Testing for bypassing authentication schema
+Test remember password functionality
+Testing for Browser cache weakness
+Testing for Weak password policy
+Testing for Weak security question/answer
+Testing for weak password change or reset functionalities
+Db
+Cc
+on
+>
+°
+=,
+N
+iy)
+a.
+fe)
+|
+a
+un
+ian
+=]
+oa
+OTG-AUTHZ-001
+OTG-AUTHZ-002
+OTG-AUTHZ-003
+Testing for Privilege Escalation
+OTG-AUTHZ-004
+Testing for Insecure Direct Object References
+Testing Directory traversal/file include
+Testing for bypassing authorization schema

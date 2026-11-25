@@ -1,0 +1,28 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+code includes functions to process and interact with the data, such as adding
+records and querying vulnerabilities.
+Example 11-2 AI-Generated Code to Implement the Database to Support
+the Use Case of Figure 11-2
+from sqlalchemy import (
+create_engine, Column, Integer, String, ForeignKey
+)
+from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.ext.declarative import declarative_ba
+engine = create_engine('sqlite:///bug_bounty.db')
+Base = declarative_base()
+class Platform(Base):
+__tablename__ = 'platforms'
+id = Column(Integer, primary_key=True)
+name = Column(String, unique=True)
+programs = relationship('Program', back_populates=
+class Program(Base):
+__tablename__ = 'programs'
+id = Column(Integer, primary_key=True)

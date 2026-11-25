@@ -1,0 +1,1 @@
+s It is still being actively developed (unknown) :0 2019-04-03 06:34 (:0) djmardov pts/2 2019-04-04 09:01 (10.10.14.14) sh: 1: /tmp/listusers: not found It throws an error saying that sh can’t find /tmp/listusers . djmardov@irked:~$ echo "test" > /tmp/listusers djmardov@irked:~$ viewuser This application

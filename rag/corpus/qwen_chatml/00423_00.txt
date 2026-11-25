@@ -1,0 +1,32 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+- app1.websploit.org
+- app2.websploit.org
+- Mobile Applications
+- Android App (version x.x and above)
+- iOS App (version x.x and above)
+- APIs
+- api.websploit.org/v1/
+- api.websploit.org/v2/
+Out-of-Scope Targets
+--------------------
+- app3.websploit.org
+- partner.websploit.org
+Vulnerability Types
+===================
+In-Scope Vulnerabilities
+------------------------
+- Cross-Site Scripting (XSS)
+- SQL Injection
+- Cross-Site Request Forgery (CSRF)
+- Server-side Request Forgery (SSRF)
+- Business Logic Vulnerabilities
+Out-of-Scope Vulnerabilities

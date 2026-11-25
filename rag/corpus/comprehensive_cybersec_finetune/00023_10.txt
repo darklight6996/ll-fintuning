@@ -1,0 +1,29 @@
+**AV/EDR Presence Detection (Host-Based)**:
+- **Process Enumeration**:
+  ```powershell
+  # Windows
+  Get-Process | Where-Object {$_.ProcessName -match "symantec|mcafee|trend|kaspersky|bitdefender|sophos|crowdstrike|sentinelone|carbonblack|cybereason|elastic|defender|msmpeng"}
+  
+  # Services
+  Get-Service | Where-Object {$_.Name -match "av|edr|endpoint|protect"}
+  
+  # WMI
+  Get-WmiObject -Namespace "root\SecurityCenter2" -Class AntiVirusProduct
+  Get-WmiObject -Namespace "root\SecurityCenter2" -Class AntiSpywareProduct
+  ```
+- **File System Artifacts**:
+  ```powershell
+  # Installation directories
+  ls "C:\Program Files\" | Where-Object {$_.Name -match "Symantec|McAfee|Trend Micro|Kaspersky|Bitdefender|Sophos|CrowdStrike|SentinelOne|Carbon Black|Cybereason|Elastic|Microsoft Defender"}
+  
+  # Driver files
+  ls "C:\Windows\System32\drivers\" | Where-Object {$_.Name -match "av|edr|endpoint|filter"}
+  ```
+- **Registry Artifacts**:
+  ```powershell
+  # AV registration
+  reg query "HKLM\SOFTWARE\Microsoft\Security Center" /v AntiVirusOverride
+  reg query "HKLM\SOFTWARE\WOW6432Node\Microsoft\Security Center" /v AntiVirusOverride
+  
+  # EDR specific
+  reg query "HKLM\SYSTEM\CurrentControlS

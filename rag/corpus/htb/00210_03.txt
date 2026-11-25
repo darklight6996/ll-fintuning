@@ -1,0 +1,1 @@
+uffers and set them to 0. If some error code is -1, print error at (b) and return at (c). (d) check that the last memset returned ok, or else return at (c). (e) recv up to 0x20c (524) bytes into the first of the buffers, and check the return code. If 0 or an error (negative), jump to (f). At (f), if recv returned 0, go to (g), print “Connection closing”,

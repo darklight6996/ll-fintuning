@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Scan for specific services and their versions.
+
+CONTEXT:
+Refine the scan to critical ports.
+
+METHOD / ANSWER:
+Command: `nmap -p 22,80 -sCV 10.10.11.20`
+Purpose: Provides detailed versions of services, confirming server details.

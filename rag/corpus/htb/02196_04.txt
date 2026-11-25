@@ -1,0 +1,1 @@
+a bit of work. When I was first doing this box, I got it to work somehow using the --tamper-data but I both couldn’t repeat that, and don’t really understand why it worked. What we can do is use the fact

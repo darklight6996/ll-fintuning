@@ -1,0 +1,8 @@
+antly harder to
+exploit misconfigurations or default credentials for privilege escalation.
+They provide session monitoring and recording for privileged users. If you
+compromise a privileged account and attempt to access sensitive systems,
+your actions may be logged and reviewed, increasing the likelihood of
+detection during or after your engagement.
+PAM tools store privileged credentials in secure vaults, eliminating
+hardcoded credentials or direct access to passwords. This makes it

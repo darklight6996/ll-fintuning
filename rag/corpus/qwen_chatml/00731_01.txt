@@ -1,0 +1,28 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+117
+Web Application Penetration Testing
+will not work on Oracle Application Server 10g as it converts the
+user's request to lowercase before sending it to the database
+server and a quote literal is case sensitive - thus “SYS” and “sys”
+are not the same and requests for the latter will result in a 404
+Not Found. On earlier versions though the following can bypass
+the exclusion list:
+http:/www.example.com/pls/dad/"SYS".PACKAGE.PROC
+Bypassing the Exclusion List - Method 4
+Depending upon the character set in use on the web server and
+on the database server, some characters are translated. Thus, de-
+pending upon the character sets in use, the “y” character (OxFF)
+might be converted to a “Y” at the database server. Another char-
+acter that is often converted to an upper case “Y" is the Macron
+character - OxAF. This may allow an attacker to bypass the exclu-
+sion list:
+http:/www.example.com/pls/dad/S%FFS.PACKAGE.PROC
+http:/www.example.com/pls/dad/S%AFS.PACKAGE.PROC
+Bypassing the Exclusion List - Method 5
+Some versions of the PL/SQL Gateway allow the exclusion list to
+be bypassed with a backslash - Ox5C:
+http:/www.example.com/p

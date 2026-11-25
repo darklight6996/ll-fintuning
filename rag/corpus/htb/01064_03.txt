@@ -1,0 +1,1 @@
+cat /proc/sys/kernel/randomize_va_space 0 Summary To This Point Based on the analysis thus far, I can see how to interact with this program by giving it files to read in. There’s a very small buffer overflow in

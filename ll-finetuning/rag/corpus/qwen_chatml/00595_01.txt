@@ -1,0 +1,20 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+A Comprehensive View of an Organization’s External Risk Exposure
+An organization’s attack surface extends far beyond what is readily visible.
+The modern typical ecosystem consists of web domains, subdomains, IP
+addresses, cloud services, APIs of hundreds of applications (including AI
+applications) and more—each potentially serving as an entry point for an
+attacker. The first step in automated external attack surface management is
+to gain visibility into both known and unknown assets that an adversary
+might exploit. AI-powered tools can scan, map, and inventory these assets,
+giving you an “attacker’s perspective.”
+Figure 11-3 illustrates a process flow or a framework for external attack
+surface discovery and exploitation. The figure is structured with concentric
+circles, which could symbolize different layers or steps in the process. Each
+layer is associated with one of four core concepts: discovering assets,
+monitoring changes, getting actionable insights, and amplifying security
+testing.

@@ -1,0 +1,15 @@
+**iOS**:
+- **Jailbroken Device**:
+  - checkra1n, palera1n, doppler (iOS 15-16)
+  - Frida (`frida-server` via Cydia/Sileo)
+  - Objection (`objection --gadget com.package explore`)
+  - Cydia Substrate / Substitute
+  - SSL Kill Switch 2, AppSync Unified
+- **Tools**:
+  - `ideviceinstaller`, `ipainstaller`, `frida-ios-dump`
+  - `class-dump`, `class-dump-dyld`, `otool`, `nm`
+  - `ghidra`, `hopper`, `ida pro`
+  - `mobsf`, `needle`, `idb`
+  - Burp Suite (SSL Kill Switch, custom CA)
+
+**Phase 2: Static Analysis (SAST)**

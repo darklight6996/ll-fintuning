@@ -1,0 +1,1 @@
+bak /var/backups/flask-app-secure.bak: Zip archive data, at least v1.0 to extract I’ll copy that file to my host using scp with john’s key. Beta Flask I’ll use SSH tunneling to get access to the web application running on 8088. Using the cookie

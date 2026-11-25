@@ -1,0 +1,27 @@
+- **Physical Safeguards (§164.310)**:
+  - **§164.310(a)(1)**: Facility Access Controls
+    - Cloud: Rely on AWS/Azure/GCP SOC 2 reports
+    - On-prem: Badge access, visitor logs, camera retention
+  - **§164.310(b)**: Workstation Use/Security
+    - MDM: Jamf, Intune, Kandji
+    - Encryption: FileVault, BitLocker, LUKS
+    - Auto-lock, remote wipe
+  - **§164.310(c)**: Device & Media Controls
+    - Disposal: NIST 800-88, media sanitization
+    - Media re-use, accountability, backup storage
+
+- **Technical Safeguards (§164.312)**:
+  - **§164.312(a)**: Access Control
+    - Unique user ID, emergency access, auto logoff
+    - Encryption/decryption (AES-256)
+  - **§164.312(b)**: Audit Controls
+    - Hardware/software/mechanism to record activity
+    - Immutable logs, 6-year retention
+  - **§164.312(c)**: Integrity
+    - PHI not altered/destroyed improperly
+    - Digital signatures, checksums, blockchain
+  - **§164.312(d)**: Person/Entity Authentication
+    - MFA, biometrics, smart cards, FIDO2
+  - **§164.312(e)**: Transmission Security
+    - TLS 1.2+, VPN, SFTP, encrypted email
+    - Integrity controls, encryption

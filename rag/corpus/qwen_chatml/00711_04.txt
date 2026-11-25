@@ -1,0 +1,6 @@
+Thu, 27 Feb 2003 03:48: 19 GMT
+ETag: 32417-c4-3e5d8a83
+Accept-Ranges: bytes
+Content-Length: 196
+Connection: close
+Content-Type: text/HTML

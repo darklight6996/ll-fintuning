@@ -1,0 +1,43 @@
+METHOD / ANSWER:
+<password>Un6R34kb!e</password>
+<userid>500</userid>
+<mail>s4tan@hell.com</mail>
+</user>
+which will be added to the xmIDB:
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<users>
+<user>
+<username>gandalf</username>
+<password>!c3</password>
+<userid>0</userid>
+<mail>gandalf@middleearth.com</mail>
+</user>
+<user>
+<username>Stefan0</username>
+<password>w1s3c</password>
+<userid>500</userid>
+<mail>StefanO@whysec.hmm</mail>
+</user>
+<user>
+<username>tony</username>
+<password>Un6R34kb!e</password>
+<userid>500</userid>
+<mail>s4tan@hell.com</mail>
+</user>
+</users>
+Discovery
+The first step in order to test an application for the presence
+of a XML Injection vulnerability consists of trying to insert XML
+metacharacters.
+XML metacharacters are:
+» Single quote: ‘ - When not sanitized, this character could throw
+an exception during XML parsing, if the injected value is going to
+be part of an attribute value in a tag.
+As an example, let's suppose there is the following attribute
+<node attrib=’$inputValue’/>
+So, if:
+inputValue = foo’
+is instantiated and then is inserted as the attrib value:
+<node attrib='foo’/>
+then, the resulting XML document is not well formed.
+» Double quote: “ - this

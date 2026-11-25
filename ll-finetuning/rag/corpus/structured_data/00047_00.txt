@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you perform a shadow credential attack?
+
+CONTEXT:
+Context: Privilege Escalation via Key Credential. You have gained `GenericWrite` permissions over a target service account (`winrm_svc`) through group manipulation or other means.
+Principle to Apply: 'Write a public key to the target user's `msDS-KeyCredentialLink` attribute to enable certificate-based authentication as that user.'

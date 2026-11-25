@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What method can you use to escalate privileges through a shadow credential attack?
+
+CONTEXT:
+Context: Active Directory Privilege Escalation. You have standard user credentials ('sam'/'0xdf0xdf!') and have identified a target user ('john') over whom you have write permissions (e.g., via GenericWrite/GenericAll).
+Principle to Apply: 'Abuse write permissions on a user object to implant alternate authentication material.'

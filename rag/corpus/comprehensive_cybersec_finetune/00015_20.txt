@@ -1,0 +1,9 @@
+**Frameworks & References**:
+- MITRE ATT&CK Enterprise
+- Unified Kill Chain
+- Cyber Kill Chain (Lockheed Martin)
+- Diamond Model
+- NIST 800-53 / 800-171
+- TIBER-EU, CBEST, AASE
+- Red Team Operations (RTO) Course
+- CRTO, CRTE, OSEP, OSCP certifications

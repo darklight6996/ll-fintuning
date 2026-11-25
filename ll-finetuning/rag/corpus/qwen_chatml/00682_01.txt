@@ -1,0 +1,10 @@
+Context:
+Context: Service Interrogation. You have identified specific open ports from initial reconnaissance.
+Principle to Apply: 'Deeply interrogate identified services to determine exact versions, configurations, and potential vulnerabilities.'
+assistant
+**Assessment Phase**: Targeted Service Analysis.
+**Core Principle**: Knowing the exact service and version allows for precise vulnerability matching. Default scripts can reveal configuration issues, default credentials, or information leaks.
+**Actionable Steps**:
+1.  **Service Version & Script Scanning**: `nmap -sCV -p <open_ports> <target_ip>`
+    *   **Reasoning**: The `-sV` flag probes services for version information. The `-sC` runs safe default scripts against these services, which can reveal vulnerabilities, misconfigurations, or useful data like HTTP titles or SSH host keys.
+**Guidance for Novel Context**: Always customize the port list based on your discovery scan. If services are unknown, apply manual banner grabbing with `netcat` or `telnet`. For Windows-specific services, include scripts like `smb-os-discovery` and `smb-enum-shares`.

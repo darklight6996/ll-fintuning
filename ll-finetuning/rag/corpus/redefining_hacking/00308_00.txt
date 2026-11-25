@@ -1,0 +1,32 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+print("\n----- DNS Resolution and WHOIS Informa
+additional_info = []
+for hostname in cert_info:
+print(f"\nHostname: {hostname}")
+ip = resolve_dns(hostname)
+if ip:
+print(f"IP: {ip}")
+org, cidr = get_whois_info(ip)
+print(f"Organization: {org}")
+print(f"CIDR: {cidr}")
+additional_info.append(f"Hostname: {hostn
+{ip}\nOrganization: {org}\nCIDR: {cidr}\n")
+else:
+print("DNS resolution failed")
+full_info = "\n".join(cert_info) + "\n\nAdditio
+"\n".join(additional_info)
+print("\n----- AI Analysis -----")
+result = analyze_domain(model, prompt_template,
+print(result.content)
+else:
+print(f"No certificate information found for {do
+if __name__ == "__main__":
+main()

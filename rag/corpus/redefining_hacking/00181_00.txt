@@ -1,0 +1,25 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+the block you’d decrypt with the master key.
+5. Which physical bypass tool can bypass improperly installed latches on
+doors?
+A. Quick Jim
+B. Double door tool
+C. REX Sensor Bypass Gun
+D. Under the door tool
+Answer – A. The Quick Jim tool allows you to slide it behind the door’s
+latch and pull on the deadlatch that is not properly in place and engaged.
+6. Which physical bypass tool can you use to pull down a handle?
+A. Can of air
+B. Double door tool
+C. Under the door tool
+D. None of these answers are correct.
+Answer – C. The under the door tool can be utilized to go underneath a
+door; you pull down the handle on the other side of the door to open it.

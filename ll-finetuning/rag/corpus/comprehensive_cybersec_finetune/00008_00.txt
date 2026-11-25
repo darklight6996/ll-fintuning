@@ -1,0 +1,17 @@
+TECHNIQUE / QUESTION:
+Describe the methodology for testing XML External Entity (XXE) injection vulnerabilities.
+
+CONTEXT:
+You have identified an XML parsing endpoint in a web application. Explain how to systematically test for XXE vulnerabilities and escalate to file read, SSRF, and RCE.
+
+METHOD / ANSWER:
+XXE Injection Testing Methodology:
+
+**Phase 1: Identify XML Input Vectors**
+- Endpoints accepting XML:
+  - SOAP APIs, XML-RPC
+  - File upload (SVG, Office docs, PDF)
+  - SAML/OIDC metadata, SAML assertions
+  - REST APIs with `Content-Type: application/xml`
+  - Import/export functionality
+  - Webhooks with XML payloads

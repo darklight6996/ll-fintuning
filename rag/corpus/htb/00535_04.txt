@@ -1,0 +1,1 @@
+get the root flag: [root@armageddon ~]# cat root.txt a289b09c************************ Beyond Root To take a look at that Ruby script, I set

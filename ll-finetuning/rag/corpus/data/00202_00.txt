@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+List cloud role assignments.
+
+CONTEXT:
+Privilege review.
+
+METHOD / ANSWER:
+Command: `az role assignment list --all`
+Explanation: Identifies excessive permissions.

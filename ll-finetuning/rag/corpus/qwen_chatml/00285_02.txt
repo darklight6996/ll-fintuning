@@ -1,0 +1,5 @@
+ectively simulate adversarial behavior. It includes a
+wide range of C2 frameworks, from widely used open-source tools to
+advanced commercial solutions. It also has a detailed breakdown of each
+framework's features, such as supported operating systems, communication
+protocols, encryption methods, and more. The matrix has links to official

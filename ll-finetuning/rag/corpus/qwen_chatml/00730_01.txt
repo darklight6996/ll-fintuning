@@ -1,0 +1,32 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+111
+Web Application Penetration Testing
+DBMS (e.g. PHP + PostgreSQL, ASP+SQL SERVER) it may be possible
+to execute multiple queries in one call.
+Consider the following SQL query:
+SELECT * FROM products WHERE id_product=$id_ product
+A way to exploit the above scenario would be:
+http:/www.example.com/product.php?id=10; INSERT INTO
+users (...)
+This way is possible to execute many queries in a row and indepen-
+dent of the first query.
+Fingerprinting the Database
+Even the SQL language is a standard, every DBMS has its peculiarity
+and differs from each other in many aspects like special commands,
+functions to retrieve data such as users names and databases, fea-
+tures, comments line etc.
+When the testers move to a more advanced SQL injection exploitation
+they need to know what the back end database is.
+1) The first way to find out what back end database is used is by ob-
+serving the error returned by the application. Follow are some exam-
+ples:
+MySql:
+You have an error in your SQL syntax; check the manual
+that corresponds to your MySQL server version for the
+right syntax to use near ‘\" at line 1
+Oracle:
+ORA-00933: SQL comman

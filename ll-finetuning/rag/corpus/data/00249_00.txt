@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check umask settings.
+
+CONTEXT:
+Default permission audit.
+
+METHOD / ANSWER:
+Command: `umask`
+Explanation: Confirms secure defaults.

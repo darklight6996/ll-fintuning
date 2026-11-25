@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+The infrastructure for a red team is the heart of your engagement and how
+your operation comes together as a whole. Different elements should be
+considered when building your infrastructure, including what is required for
+meeting your objective, securing your infrastructure, having backup
+infrastructure in place, and ensuring proper logging throughout the
+engagement lifecycle for reporting purposes.
+Command and Control
+Command and Control servers are what operators use to manage their
+operation to remotely perform actions on victims’ computers. These servers
+are dependent on the C2 type being used because there are tons of
+commercial and open-source options. The C2 matrix is an available open-
+source document that professionals in the field can reference to understand
+every C2 available from a commercial and public perspective with
+information on agent types, socks support, and so on. The information is
+located at https://howto.thec2matrix.com.
+The top C2 options in the field from a commercial standpoint are
+Nighthawk by MDSec and Cobalt Strike by Forta. The most common
+publicly available C2 frameworks supported by the

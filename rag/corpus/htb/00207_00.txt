@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Explain the purpose and usage of the code/command in the following text: (Context: Writeup from Applocker Bypass Cor Profiler Hacks Stuff)
+
+CONTEXT:
+Source: Applocker Bypass Cor Profiler Hacks Stuff
+Section: Writeup

@@ -1,0 +1,22 @@
+**Development Environment**:
+- **Naming Conventions**:
+  - Hostnames: `dev-*`, `devel-*`, `local-*`, `feature-*`, `branch-*`
+  - Domains: `dev.company.com`, `local.dev`, `*.dev.internal`
+  - Kubernetes: namespace `dev`, `development`, `feature-*`
+- **Version Indicators**:
+  - SNAPSHOT, -dev, -alpha, -rc, commit hashes in version strings
+  - Debug builds, source maps exposed (`*.map` files)
+  - Verbose error messages, stack traces in responses
+- **Data Characteristics**:
+  - Synthetic/test data: `test@`, `user1`, `john.doe@example.com`
+  - Low data volume, predictable patterns
+  - `DROP TABLE`, `TRUNCATE` permissions for test users
+- **Infrastructure**:
+  - Single instance, no load balancer
+  - Direct database access, no read replicas
+  - Developer tools enabled: Swagger UI, Actuator, Django Debug Toolbar
+  - No WAF, no rate limiting, no CAPTCHA
+- **Access**:
+  - VPN only, or open with basic auth
+  - Shared credentials, default passwords
+  - No MFA, no IP restrictions

@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from Hackthebox Machines Interactive Hacks Stuff)
+
+CONTEXT:
+Source: Hackthebox Machines Interactive Hacks Stuff
+Section: Writeup

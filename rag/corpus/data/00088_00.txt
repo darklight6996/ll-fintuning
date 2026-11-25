@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you perform a network scan?
+
+CONTEXT:
+You want to identify open ports and services running on the target.
+
+METHOD / ANSWER:
+Command: `nmap -p- <target_ip>`
+Purpose: Identify open ports and services.

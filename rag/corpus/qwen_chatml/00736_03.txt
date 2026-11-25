@@ -1,0 +1,16 @@
+References
+Whitepapers
+» Sacha Faust: “LDAP Injection: Are Your Applications Vulnerable?”
+- http:/www.networkdls.com/articles/Idapinjection.pdf
+« Bruce Greenblatt: “LDAP Overview" -
+http:/www.directory-applications.com/Idap3_files/frame.htm
+« IBM paper: “Understanding LDAP” -
+http:/www.redbooks.ibm.com/redbooks/SG244986.html
+» RFC 1960: “A String Representation of LDAP Search Filters” -
+http:/www.ietf.org/rfc/rfc1960.txt
+Testing for ORM Injection
+(OTG-INPVAL-007)
+Summary
+ORM Injection is an attack using SQL Injection against an ORM
+generated data access object model. From the point of view of a
+132

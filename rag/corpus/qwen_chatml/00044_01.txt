@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 1-1 Computer Security Technology Planning Study
+The evolution of tooling within penetration tests mirrored that of the
+frameworks. In the early days, penetration testers relied heavily on manual
+techniques and command-line tools. These tools required a deep
+understanding of operating systems, network protocols, and programming
+languages. These efforts evolved into custom scripting as testers sought to
+automate specific tasks. This automation allowed them to increase in
+velocity and share among team members. Some of these tools would evolve
+into vulnerability scanners because they were packaged together, reducing
+the time and effort required for manual checks. As collaboration beyond
+teams grew, many of these tools would become open-sourced. This open
+access was a boon for the community and played a crucial role in their rapid
+development and expansion.
+The development of penetration testing methodologies and tools was a
+continuous process of innovation and refinement. Early pioneers paved the
+way for the sophisticated and structured approaches that are used today.
+They demonstrate the importance of proactive secu

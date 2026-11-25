@@ -1,0 +1,1 @@
+quest, id 1, seq 1, length 40 16:27:33.898266 IP kali > 10.10.10.130: ICMP echo reply, id 1, seq 1, length 40 16:27:34.910181 IP 10.10.10.130 > kali: ICMP echo request, id 1, seq 2, length 40 16:27:34.910199 IP kali > 10.10.10.130: ICMP echo reply, id 1, seq 2, length

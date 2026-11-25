@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What can you do to enumerate available SMB shares on the target?
+
+CONTEXT:
+Context: Network Share Discovery. You have valid domain credentials (`j.fleischman`).
+Principle to Apply: 'Enumerate accessible network shares to find potential data repositories, configuration files, or upload locations.'

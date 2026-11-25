@@ -1,0 +1,1 @@
+Server 2019 RTM (15.0.2000) [!] Press help for extra shell commands SQL (BREACH\svc_mssql guest@master)> Both users I have so far are

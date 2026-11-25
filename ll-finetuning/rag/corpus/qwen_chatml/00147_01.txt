@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+organization’s employees because they tend to list what technologies are
+used internally or the security stack for their environment. You will also
+want to grab the name of an employee and a few others to use as name
+droppers when browsing LinkedIn. During phone pretexting calls, a
+common question to ask an employee is the manager's name, which makes
+collecting this information useful for this type of situation. Whomever you
+choose, ensure you are comfortable playing the persona of that person and
+do extensive research on the individual's role.
+You could potentially impersonate the following types of employees:
+• Help desk personnel
+• Third third-party vendors
+• HR employees
+• Employees calling the help desk
+Keep in mind that these are just a few examples; there are other personas
+you could create when executing your pretext. When portraying the role of
+an employee calling the help desk for an account takeover, you should
+expect someone to ask personal questions about the person to confirm their
+identity, such as phone number, date of birth, current address, or employee
+ID number. You will likely not have an employee ID

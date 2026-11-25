@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Access LDAP with valid credentials.
+
+CONTEXT:
+Use the authenticated user to enumerate more information.
+
+METHOD / ANSWER:
+Command: `netexec ldap CICADA-DC -u <user> -p '<password>' --users`
+Purpose: Enumerate users and potential sensitive attributes.

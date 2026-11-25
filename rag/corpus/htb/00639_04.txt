@@ -1,0 +1,1 @@
+as 'Caroline.Robinson' evil-winrm-py PS C:\Users\Caroline.Robinson\Documents> And grab user.txt : evil-winrm-py PS C:\Users\Caroline.Robinson\Desktop>

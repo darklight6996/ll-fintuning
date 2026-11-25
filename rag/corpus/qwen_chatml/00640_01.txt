@@ -1,0 +1,10 @@
+Context:
+Context: Engagement Closure. You have completed testing and gathered evidence of vulnerabilities.
+Principle to Apply: 'Findings without clear communication are useless. Document as you go.'
+assistant
+**Assessment Phase**: Findings Documentation & Reporting.
+**Core Principle**: A professional report clearly documents the vulnerability, its impact, the steps to reproduce it, and evidence (screenshots, command output) for developers to fix it.
+**Actionable Steps**:
+1.  **Initiate Report Structure**: `echo 'Vulnerability Report for example.com' > report.txt`
+    *   **Reasoning**: This is a symbolic first step to create a centralized document. It emphasizes that reporting is a critical, non-optional phase. Real reporting involves structured documents (often in Markdown or a template) with sections for Executive Summary, Methodology, Detailed Findings, and Remediation Advice.
+**Guidance for Novel Context**: The tool (`echo`) is trivial; the principle is paramount. Use consistent naming conventions (`<Client>_<Date>_Report.md`). The content is far more important than the initial command. Evidence should be sanitized of sensitive data (e.g., IPs, credentials) before final deliver

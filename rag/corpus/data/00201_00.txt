@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify MFA configuration (cloud).
+
+CONTEXT:
+SOC 2 access control review.
+
+METHOD / ANSWER:
+Command: `az ad user list --query "[].userPrincipalName"`
+Explanation: Supports MFA enforcement verification.

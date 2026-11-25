@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+and tag the organization. A trick I tend to use for physical engagements for
+remote recon is finding employee photos based off hashtags or locations in
+Instagram. For example, if a company is named Acme, you would search
+for #Acme #AcmeCity or use the location filter to see if employees have
+tagged the address or facility name you are targeting for an engagement.
+Badge Cloning
+Next, we will dive into badge technology and the ability to clone badges.
+History of Badge Technology
+Badge technology has evolved over the past 40 years, beginning with
+magstripe and evolving into the latest cryptography.
+• 1980s—Magstripe: Magstripe technology consisted of a magnetic stripe
+on the back of PVC cards. The data on the magnetic stripe can be read
+through a reader when the card is swiped. These cards were intended to
+move away from old-fashioned locks being used for facilities. Over time,
+folks realized that these cards could be damaged easily, resulting in
+employees needing replacements.
+• 1990s—Low-Frequency (125 kHz) RFID: The idea of contactless cards
+came into play in the ’90s due to the damage continuously occurring to the
+magstripe cards. These LF cards allowed users to s

@@ -1,0 +1,1 @@
+ines how uwsgi will run (there’s a similar file for dev ): root@dab:/var/www/prod# cat prod.ini [uwsgi] module = wsgi:app master = true processes = 5 socket = prod.sock chmod-socket = 600 vacuum = true die-on-term = true This will run wsgi.py , as well as start 5 processes to handle connections. I see those in the process list (I cut out a lot of the processes

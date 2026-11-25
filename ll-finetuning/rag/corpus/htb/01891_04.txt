@@ -1,0 +1,1 @@
+able to resolve host dynstr.dyna.htb: Name or service not known [+] Running /usr/local/bin/bindmgr.sh to stage new configuration from /tmp/tmp.Fk4IdAaCre. [+] Creating /etc/bind/named.conf.bindmgr file. [+] Staging files to /etc/bind/named.bindmgr. cp: -r not specified;

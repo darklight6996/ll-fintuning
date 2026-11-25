@@ -1,0 +1,31 @@
+**Phase 6: Ruby Deserialization**
+- **Marshal**:
+  - `Marshal.load()` → `_load` method exploitation
+- **YAML (Psych)**:
+  - `YAML.load()` → `!ruby/object:Gem::SpecFetcher` etc.
+  - Tool: `ruby-deserialization-payloads`
+- **JSON (ActiveSupport)**:
+  - `JSON.load()` with `create_additions`
+
+**Phase 7: Node.js Deserialization**
+- **node-serialize**:
+  - IIFE in object: `{"rce":"_$$ND_FUNC$$_function(){require('child_process').exec('id')}()"}`
+- **funcster**:
+  - Function serialization
+- **eval/Function constructor** in JSON
+
+**Phase 8: Detection & Automation**
+- **Burp Suite**: Java Deserialization Scanner, .NET Deserialization Scanner
+- **ysoserial / ysoserial.net / phpggc** for payload generation
+- **GadgetProbe** (Java): Identify available gadget chains
+- **Freddy** (Burp): Automated deserialization testing
+- **Custom scripts** for framework-specific vectors
+
+**Phase 9: Remediation**
+- Avoid deserializing untrusted data
+- Use safe formats (JSON with schema validation)
+- Implement integrity checks (signatures, HMAC)
+- Use `ObjectInputFilter` (Java 9+)
+- Disable dangerous serializers
+- Keep libraries updated
+- WAF rules for known magic bytes

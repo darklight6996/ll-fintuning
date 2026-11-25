@@ -1,0 +1,9 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain how to conduct a Red Team engagement from initial access to objective completion.
+
+Context:
+You are leading a Red Team engagement. Describe the systematic methodology following modern frameworks like MITRE ATT&CK.
+assistant
+Red Team Engagement Methodology:

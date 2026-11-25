@@ -1,0 +1,8 @@
+TECHNIQUE / QUESTION:
+How do you document findings?
+
+CONTEXT:
+Record all techniques used and data acquired.
+
+METHOD / ANSWER:
+Purpose: For post-engagement reporting.

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify key vault access.
+
+CONTEXT:
+Secrets management review.
+
+METHOD / ANSWER:
+Command: `az keyvault show --name <vault>`
+Explanation: Reviews vault security settings.

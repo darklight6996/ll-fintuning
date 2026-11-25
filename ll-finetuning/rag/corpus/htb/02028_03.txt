@@ -1,0 +1,1 @@
+e often. Now I’ll replace user() with a query. I’ll also add in some tags that I could search on programmatically to extract the data. Finally, I want to put it into the format that

@@ -1,0 +1,1 @@
+8080 on my system and using --reverse so that I can do reverse tunnels): oxdf@hacky$ /opt/chisel/chisel_1.8.1_linux_amd64 server -p 8000 --reverse 2023/03/23 07:58:49 server: Reverse tunnelling enabled 2023/03/23 07:58:49 server: Fingerprint

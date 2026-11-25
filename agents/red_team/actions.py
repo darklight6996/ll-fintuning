@@ -244,15 +244,38 @@ OBJECTIVE_IMPACT = ActionDefinition(
 def build_red_team_registry() -> ActionRegistry:
     """Build and return the ActionRegistry for RedTeamAgent."""
     registry = ActionRegistry()
-    registry.register(EXTERNAL_RECON)
-    registry.register(PERIMETER_SCAN)
-    registry.register(INITIAL_ACCESS_PROBE)
-    registry.register(CREDENTIAL_STUFFING)
-    registry.register(PRIVESC_CHECK)
-    registry.register(DEFENSE_EVASION)
-    registry.register(LATERAL_MOVEMENT)
-    registry.register(DATA_DISCOVERY)
-    registry.register(EXFILTRATION_TEST)
-    registry.register(OBJECTIVE_IMPACT)
+    from agents.red_team.command_builders import (
+        build_credential_stuffing,
+        build_data_discovery,
+        build_defense_evasion,
+        build_exfiltration_test,
+        build_external_recon,
+        build_initial_access_probe,
+        build_lateral_movement,
+        build_objective_impact,
+        build_perimeter_scan,
+        build_privesc_check,
+    )
+
+    registry.register(EXTERNAL_RECON, build_external_recon)
+    registry.register(PERIMETER_SCAN, build_perimeter_scan)
+    registry.register(INITIAL_ACCESS_PROBE, build_initial_access_probe)
+    registry.register(CREDENTIAL_STUFFING, build_credential_stuffing)
+    registry.register(PRIVESC_CHECK, build_privesc_check)
+    registry.register(DEFENSE_EVASION, build_defense_evasion)
+    registry.register(LATERAL_MOVEMENT, build_lateral_movement)
+    registry.register(DATA_DISCOVERY, build_data_discovery)
+    registry.register(EXFILTRATION_TEST, build_exfiltration_test)
+    registry.register(OBJECTIVE_IMPACT, build_objective_impact)
+    # Framework-level shared primitives (cross-agent): HTTP primitive,
+    # headless-browser coverage, and opt-in self-scripting -- the same
+    # capabilities every agent gets, wired identically.
+    from agents.common.http_primitive import HTTP_PROBE, build_http_probe
+    registry.register(HTTP_PROBE, build_http_probe)
+    from agents.common.browser_primitive import BROWSER_PROBE, build_browser_probe
+    registry.register(BROWSER_PROBE, build_browser_probe)
+    from agents.common.self_scripting import SELF_SCRIPT, build_self_script, self_scripting_enabled
+    if self_scripting_enabled():
+        registry.register(SELF_SCRIPT, build_self_script)
     return registry
 

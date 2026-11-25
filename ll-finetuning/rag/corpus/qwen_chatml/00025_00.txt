@@ -1,0 +1,9 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a comprehensive guide to offensive cybersecurity certifications including eCPPT, OSCP, AWAE, eCPPTX, ASEP, OSED, and their career progression pathways.
+
+Context:
+You are advising a security professional on offensive cybersecurity certification pathways. Explain each major certification (eCPPT, OSCP, AWAE, eCPPTX, ASEP, OSED, OSWE, OSEE, CRTO, etc.), their prerequisites, exam format, difficulty, focus areas, and recommended learning path from beginner to expert level.
+assistant
+Offensive Cybersecurity Certification Roadmap & Career Progression:

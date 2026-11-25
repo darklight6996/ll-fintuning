@@ -1,0 +1,1 @@
+nodc.bruno.vl -u oxdf -p oxdf --rid-brute SMB 10.129.238.9 445 BRUNODC [*] Windows Server 2022 Build 20348 x64 (name:BRUNODC) (domain:bruno.vl) ( signing:True ) (SMBv1:None) (Null Auth:True) SMB 10.129.238.9 445 BRUNODC [-] bruno.vl\oxdf:oxdf STATUS_LOGON_FAILURE FTP - TCP 21 nmap identifies that

@@ -1,0 +1,1 @@
+. IV = ( new-Object Security.Cryptography.SHA1Managed ) . ComputeHash ( [

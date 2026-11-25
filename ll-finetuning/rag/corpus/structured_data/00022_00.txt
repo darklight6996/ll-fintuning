@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you generate an SMB hosts file entry for a Windows Domain Controller?
+
+CONTEXT:
+Context: Active Directory Engagement Setup. You have identified a host at `10.10.11.72` as a Domain Controller via port scanning.
+Principle to Apply: 'Ensure proper name resolution for all hosts in the target domain to avoid tool errors.'

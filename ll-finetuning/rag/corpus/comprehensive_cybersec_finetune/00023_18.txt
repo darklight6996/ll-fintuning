@@ -1,0 +1,4 @@
+**Phase 6: Automated Detection Script**
+```python
+# defense_detector.py
+import requests, socket, ssl, subprocess, re

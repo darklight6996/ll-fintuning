@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from Htb Ghost Hacks Stuff)
+
+CONTEXT:
+Source: Htb Ghost Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+= self . ad . dnsresolver . query ( self . hostname , tcp = self . ad . dns_tcp ) for r in q : ip = r . address ldap = self . ad . auth . getLDAPConnection ( hostname = self . hostname , ip = ip , baseDN = self . ad . baseDN , protocol = protocol ) self.ad.dnsresolver is a dns.resolver.Resolver object , which does not use the hosts file. It’s looping over the results from the DNS query and whatever is last is what is set. Repeated Failures / Successes I think that bloodhound-python actually makes the DNS query twice before failing (or at least trigger something else to make a query). So running it, failing, and running again will lead to the same unreachable IP each time. I can prove this by running the command and it works or times out. Then I’ll run dig dc01.ghost.htb @10.10.11.24 +short , which will query the DNS, and rotate the results. The next bloodhound-python run will do the opposite of the first.

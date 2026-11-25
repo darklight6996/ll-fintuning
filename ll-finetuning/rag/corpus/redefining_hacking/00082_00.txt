@@ -1,0 +1,26 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+scanners from directly reaching your C2. If the cloud instance where your
+C2 is hosted gets identified as malicious and is reachable from the Internet,
+you risk your instance being taken down by the cloud provider, along with
+scanners lighting up while scanning your host.
+Additionally, you can now remove your A record from your C2 domain
+because the change in Example 3-5 will show the redirector server where
+the C2 domain points to.
+Next, you can install Mythic by using the steps shown in Example 3-6.
+Example 3-6 Installing Mythic
+git clone https://github.com/its-a-feature/Mythic
+cd /Mythic
+./install_docker_ubuntu.sh
+Out of the box, Mythic does not come with any C2 profiles or agents. To
+install specific agents and profiles, you can use the various options
+available at the following locations:
+• Mythic Agents: https://github.com/MythicAgents
+• Mythic C2 Profiles: https://github.com/MythicC2Profiles

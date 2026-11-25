@@ -1,0 +1,21 @@
+**Post-Exploitation**:
+- **MITM**: `bettercap`, `ettercap`, `mitmproxy`
+- **DNS Spoofing**: `dnsspoof`, `bettercap dns`
+- **SSL Stripping**: `sslstrip2`, `bettercap https`
+- **Traffic Capture**: `tcpdump -i wlan0mon -w capture.pcap`
+- **Client Isolation Bypass**: ARP spoofing, multicast
+- **Lateral Movement**: Pivot to wired network
+
+**Phase 2: Bluetooth Security Testing**
+
+**Reconnaissance**:
+- **Classic Bluetooth (BR/EDR)**:
+  - `hcitool scan`, `btmon`, `bluez`
+  - `btscanner`, `bluelog`
+  - Class of Device (CoD) identification
+- **Bluetooth Low Energy (BLE)**:
+  - `hcitool lescan`, `bluetoothctl scan on`
+  - `gatttool`, `bleah`, `bluetooth-hcidump`
+  - `nrfconnect`, `LightBlue` (mobile)
+  - UUID enumeration (services, characteristics)
+- **Tools**: `ubertooth-one`, `hackrf-one`, `btlejack`, `btlejuice`

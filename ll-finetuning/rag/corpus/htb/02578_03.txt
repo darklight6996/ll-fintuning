@@ -1,0 +1,1 @@
+ngth : 160 Connection : close <html> <head><title> 504 Gateway Time-out </title></head> <body> <center><h1> 504 Gateway Time-out </h1></center> <hr><center> nginx </center> </body> </html> Command Script I’ll write a quick shell to allow me to enumerate the filesystem. This video shows

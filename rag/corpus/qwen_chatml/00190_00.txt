@@ -1,0 +1,14 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 5-15 Doppelgänger Tool Interface
+Ready to Grab Credentials?
+Figure 5-16 shows an iClass R90 (HF) reader reconfigured with
+Doppelgänger’s firmware. The reconfiguration is done within the reader

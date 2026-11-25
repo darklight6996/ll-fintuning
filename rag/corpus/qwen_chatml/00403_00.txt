@@ -1,0 +1,25 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+D. Enhancing the user experience
+6. In the context of prompt injection, what does jailbreaking typically refer
+to?
+A. Physically breaking into a secure facility
+B. Bypassing an AI system's ethical constraints or content filters
+C. Illegally accessing a smartphone's operating system
+D. Escaping from a virtual environment
+7. Which type of AI models are most vulnerable to prompt injection
+attacks?
+A. Embeddings
+B. Language models (LLMs and SLMs)
+C. Support vector machines (SVMs)
+D. Decision trees
+8. Which of the following is NOT typically a focus area for AI red teaming?
+A. Testing for adversarial attacks

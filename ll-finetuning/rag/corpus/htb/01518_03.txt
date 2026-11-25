@@ -1,0 +1,1 @@
+isible. There’s also a token , which is referenced throughout the JS. The new div is now visible floating at the bottom left of the page: Another interesting function from ws.js looks for keystrokes and eventually sends what I type: $ ( " #sendmsg

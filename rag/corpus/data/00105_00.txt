@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you gather Active Directory information?
+
+CONTEXT:
+You need users and groups.
+
+METHOD / ANSWER:
+Command: `az ad user list --output table`
+Purpose: Enumerate all AAD users.

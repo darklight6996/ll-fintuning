@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• socat is a client used to blindly forward all incoming connections, known
+as “dumb pipe” traffic. The tool establishes bidirectional streams between
+the specific IP and port.
+• iptables is typically used as a firewall tool to control network traffic and
+is a native component for Linux networking. With iptables, you can have
+multiple rules and configurations for your port forwarding.
+• Reverse proxies are used to protect your C2 backend by leveraging
+Apache or Nginx web server configurations to forward your traffic to the
+next web server specified. This helps protect the backend server’s identity
+and leverage SSL certificates from an external point of view.
+• Content delivery networks (CDNs) are a group of servers used to
+geographically distribute content from your site to provide faster
+performance for an end user. You can abuse CDNs by leveraging their
+distribution addresses that will be in front of your domain. CDNs are
+typically used alongside a reverse proxy setup and filter the web servers to
+allow only the CDNs’ source IPs to access the external redirector.
+• CDNs with reverse proxy using rewrites combine a stan

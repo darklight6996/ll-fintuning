@@ -1,0 +1,19 @@
+- **CRTO (Certified Red Team Operator) - Zero Point Security**
+  - **Prerequisites**: OSCP or equivalent, C# basics
+  - **Exam**: 48-hour practical (C2 operations, evasion)
+  - **Topics**:
+    - **C2 Frameworks**: Cobalt Strike, Sliver, Havoc, Brute Ratel
+    - **Malleable C2 Profiles**: Custom profiles, domain fronting
+    - **OPSEC**: Process injection, PPID spoofing, AMSI/ETW bypass
+    - **Lateral Movement**: SMB, WinRM, WMI, DCOM, RDP
+    - **Credential Theft**: LSASS dumping, DPAPI, Kerberos
+    - **Persistence**: Registry, WMI, Scheduled Tasks, COM
+    - **Domain Dominance**: DCSync, Golden/Silver Tickets, ACL abuse
+    - **Reporting**: Red team engagement report
+  - **Study Resources**:
+    - Zero Point Security CRTO course (RTO)
+    - "Red Team Operator" by Raj Chandel
+    - Hack The Box: Pro Labs (Fortress, Active Directory)
+    - RangeForce: Red Teaming path
+  - **Cost**: €1,200 (~$1,300)
+  - **ROI**: Red team roles, advanced adversary simulation

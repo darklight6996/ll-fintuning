@@ -1,0 +1,1 @@
+asploit. Looking (at least to start) for exploits against Windows itself, not IE or MsSQL. I like to start with ones that I can find a pre-compiled

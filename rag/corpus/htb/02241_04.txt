@@ -1,0 +1,1 @@
+TTP/1.1 Host: Connection: Upgrade Upgrade: tcp HTTP/1.1 101 UPGRADED Content-Type: application/vnd.docker.raw-stream Connection: Upgrade Upgrade: tcp At this point the terminal is just hanging, but if I give it a command, it runs and returns

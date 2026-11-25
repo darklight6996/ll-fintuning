@@ -1,0 +1,35 @@
+-SHA
+128 bits
+HTTP 200 OK
+Undefined - An unexpected error happened:
+ADH-CAMELLIA256-SHA
+socket.timeout - timed
+out
+SCAN COMPLETED IN 9.68 S
+Example 7. Testing SSL/TLS with testssl.sh
+Testssl.sh [38] is a Linux shell script which provides clear output to
+facilitate good decision making. It can not only check web servers
+but also services on other ports, supports STARTTLS, SNI, SPDY and
+does a few check on the HTTP header as well.
+It's
+avery easy to use tool. Here’s some sample output (without col-
+ors):
+user@myhost: % testssl.sh owasp.org
+a a
+a i
+EEECEE
+EEE EE EEE EE EEE
+testssl.sh v2.0rc3 (https:/testssl.sh)
+($ld: testssl.sh,v 1.97 2014/04/15 21:54:29 dirkw Exp $)
+This program is free software. Redistribution +
+modification under GPLv2 is permitted.
+USAGE w/o ANY WARRANTY. USE IT AT YOUR OWN RISK!
+Note you can only check the server against what is
+available (ciphers/protocols) locally on your machine
+CFESEEESESEEECEEE CECE EE EE ope cpecchoocceciccee ee Eee EEE epee pepo pep cpee spect pep ee
+EEECEE
+ERED EE EEC EEE
+Using “OpenSSL 1.0.2-beta1 24 Feb 2014" on
+“myhost:/<mypath>/bin/openssl64”"
+Testing now (2014-04-17 15:06) ---> owasp.org:443 <---
+(“owasp.org” resolves to “192.237.166

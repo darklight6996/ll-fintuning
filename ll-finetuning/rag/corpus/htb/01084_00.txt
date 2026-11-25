@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: Writeup from Htb Canape Hacks Stuff)
+
+CONTEXT:
+Source: Htb Canape Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+-tt /var/log/couchdb homer 1785 0.8 3.1 638992 31248 ? Sl 17:55 0:01 /home/homer/bin/../erts-7.3/bin/beam -K true -A 16 -Bd -- -root /home/homer/bin/.. -progname couchdb -- -home /home/homer -- -boot /home/homer/bi n/../releases/2.0.0/couchdb -name couchdb@localhost -setcookie monster -kernel error_logger silent -sasl sasl_error_logger false -noshell -noinput -config /home/homer/bin/../releases/2.0.0/sys.config If we kill that process, it comes right back (notice the new pid): root@canape:/home/homer/etc# kill 711 root@canape:/home/homer/etc# ps aux | grep runsrv root 2031 0.0 0.0 14224 980 pts/2 S+ 18:09 0:00 grep --color=auto runsrv And, on restart, runs the OS_Daemons: root@canape:/home/homer/etc# ls /tmp/0xdf /tmp/0xdf This too could get us a shell as homer.

@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+query based on the embeddings.
+Vector Databases and Encryption
+Some vector databases do not support encryption. As you learned earlier,
+vector embeddings are mathematical representations of data and are often
+used for similarity searches. Traditional encryption methods can disrupt the
+mathematical properties of vectors, making it difficult to perform operations
+like nearest neighbor searches directly on encrypted data. There also are
+more advanced encryption techniques, such as queryable/searchable
+encryption and homomorphic encryption. You can learn more about how to
+secure vector databases at
+https://sec.cloudapps.cisco.com/security/center/resources/securing-vector-
+databases.
+User Query Processing
+In the example shown in Figure 8-2, the red team member provides a
+prompt or question to the system. It could be a query about server-side
+request forgery (SSRF) vulnerabilities, potential attack vectors, or strategies
+for exploiting a target system.
+The user’s query is also converted into a vector representation (embedding).
+You can even use the same embedding model as used for document

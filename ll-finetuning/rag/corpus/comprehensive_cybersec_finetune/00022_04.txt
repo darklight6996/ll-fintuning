@@ -1,0 +1,37 @@
+**Error Page Analysis**:
+- Trigger 404, 500 errors
+- Development: Full stack trace, file paths, variable dumps
+- Staging: Generic error but with request ID
+- Production: Generic "Something went wrong" page
+
+**API Endpoint Enumeration**:
+```bash
+# Check for debug endpoints
+curl https://target.com/actuator/env
+curl https://target.com/actuator/health
+curl https://target.com/swagger.json
+curl https://target.com/api-docs
+curl https://target.com/.well-known/security.txt
+```
+
+**DNS & SSL Certificate Analysis**:
+```bash
+# Certificate transparency logs
+curl "https://crt.sh/?q=%.target.com&output=json"
+# Check SANs, issuer, validity
+openssl s_client -connect target.com:443 -servername target.com < /dev/null
+# Production: DigiCert, GlobalSign, Let's Encrypt (short validity)
+# Staging: Self-signed, internal CA, longer validity
+```
+
+**Infrastructure Fingerprinting**:
+```bash
+# Load balancer detection
+for i in {1..10}; do curl -s -o /dev/null -w "%{http_code} %{remote_ip}\n" target.com; done
+# Multiple IPs = production LB
+
+# CDN detection
+curl -I target.com | grep -i -E "cf-ray|x-amz-cf-id|x-azure-ref|server: akamai"
+```
+
+**Phase 3: Sandbox & Honeypot Detection**

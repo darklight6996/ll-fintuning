@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Credential Harvesting & Extraction.
+**Core Principle**: Systems store credentials in various forms (LSASS memory, SAM database, DPAPI, credential managers) that can be extracted with appropriate tools and permissions.
+**Actionable Steps**:
+1.  **Credential Extraction**: Use tools like `secretsdump.py` (Impacket), Mimikatz, or `LaZagne` appropriate to the context.
+    *   **Reasoning**: These tools extract hashes, tickets, and plaintext passwords from system memory, registry hives, or credential stores. The extracted material can be used for Pass-the-Hash, Pass-the-Ticket, or password reuse attacks.
+**Guidance for Novel Context**: The specific tool and technique depends on the OS and your access level. On Linux, check `/etc/shadow`, SSH keys, and configuration files. In cloud environments, check instance metadata services, environment variables, and managed identities.

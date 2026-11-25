@@ -1,0 +1,106 @@
+# Category: Insecure Direct Object Reference (IDOR)
+# Source: re-implemented (2026-11-25 harvest round) from the general IDOR hunting
+# methodology in Claude-BugHunter (github.com/elementalsouls/Claude-BugHunter)
+# hunt-idor skill, content licensed CC BY 4.0 International; adapted into this
+# framework's own scenario schema, not copied verbatim. See work.md.
+name: "Cross-account IDOR via object-ID replay"
+id: "idor-cross-tenant-001"
+category: "idor"
+subcategory: "cross_account_replay"
+difficulty: "apprentice"
+estimated_time: "30 minutes"
+
+description: |
+  Classic IDOR: an endpoint accepts a resource identifier (sequential integer,
+  UUID, or org/account id) and trusts whatever authenticated session presents
+  it, without checking that the session's own account actually owns that
+  resource. Confirming this requires TWO accounts at the SAME privilege
+  level -- a single-account test can only ever show that an account can
+  access its own data, never that the authorization check is missing.
+
+learning_objectives:
+  - Map every endpoint that accepts an object id (numeric, UUID, or org/account id)
+  - Set up two accounts at the same privilege level to test cross-account access
+  - Test every HTTP verb (GET/POST/PUT/PATCH/DELETE) on each id-bearing endpoint, not just reads
+  - Recognize GraphQL query/mutation arguments as the same IDOR surface as REST path/query params
+
+tools:
+  - curl
+  - Burp Suite (or any intercepting proxy)
+  - two authenticated test accounts at the same privilege tier
+
+prerequisites:
+  - Two accounts (A and B) that can each authenticate normally
+  - At least one endpoint that references a resource by id (path, query, or JSON body)
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Map every endpoint that takes an object id while authenticated as Account A"
+    commands:
+      - "# Browse every feature as Account A through an intercepting proxy"
+      - "# Record every request whose path/query/body contains an id-shaped value:"
+      - "# id=, _id=, uuid=, order_id=, invoice_id=, org_id=, /v1/<noun>/<id>"
+      - "# Note the exact id value Account A's own resources use"
+    expected_output: "A list of (endpoint, method, id parameter name, A's own id value) tuples"
+    detection: "None -- this step only touches the attacker's own account"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Replay Account A's resource id while authenticated as Account B"
+    commands:
+      - "curl -s -H \"Cookie: session=<ACCOUNT_B_SESSION>\" https://<target>/api/v1/<noun>/<ACCOUNT_A_ID>"
+      - "# Repeat for every HTTP verb the endpoint supports: GET, POST, PUT, PATCH, DELETE"
+      - "# Repeat for the GraphQL equivalent if the app exposes a GraphQL API:"
+      - "#   query { <resource>(id: \"<ACCOUNT_A_ID>\") { ...fields... } }"
+    expected_output: "Account B receives Account A's own data (200 OK with A's content), or successfully mutates/deletes it -- where the correct behavior would be 403/404"
+    detection: "Authorization logs showing Account B's session accessing a resource owned by a different account id"
+
+  - id: "step3"
+    phase: "validation"
+    action: "Confirm this is a real authorization gap, not a shared/public resource"
+    commands:
+      - "# Re-check: is this resource EVER intended to be shared between A and B (e.g. a public listing)?"
+      - "# If the app's own UI never lets B see A's resource through any legitimate path, the gap is real"
+      - "# Record the exact differential: expected 403/404, observed 200 with A's real data"
+    expected_output: "A reproducible before/after showing B obtained A's private data with no legitimate authorization path"
+    detection: "None beyond step 2 -- this step is analysis of the captured evidence"
+
+compliance_controls:
+  - standard: "OWASP"
+    control: "A01:2021"
+    description: "Broken Access Control"
+  - standard: "MITRE ATT&CK"
+    control: "T1565"
+    description: "Data Manipulation (where the IDOR allows write/delete, not just read)"
+
+detection:
+  network_indicators:
+    - "Repeated requests referencing the same object id from different session cookies/tokens"
+  log_indicators:
+    - "Authorization-layer logs showing an account id mismatch between the session and the resource owner"
+  endpoint_indicators:
+    - "None"
+
+remediation:
+  immediate:
+    - "Add an explicit ownership check on every id-bearing endpoint: does session.account_id match resource.owner_id?"
+    - "Apply the same check uniformly across GET/POST/PUT/PATCH/DELETE -- a read-only check is not enough"
+  long_term:
+    - "Prefer indirect references (a per-user lookup table) over exposing raw sequential/global ids"
+    - "Add automated cross-account authorization tests to the CI suite for every new id-bearing endpoint"
+
+variables:
+  target_url: "https://target.example/api/v1/invoices/{id}"
+  account_a_id: "12345"
+
+assessment_questions:
+  - "Why does testing IDOR with only one account prove nothing?"
+  - "Why must every HTTP verb be tested, not just GET?"
+  - "How does a GraphQL query argument expose the same IDOR surface as a REST path parameter?"
+
+references:
+  - url: "https://owasp.org/www-community/Broken_Access_Control"
+    title: "OWASP Broken Access Control"
+  - url: "https://portswigger.net/web-security/access-control/idor"
+    title: "PortSwigger IDOR"

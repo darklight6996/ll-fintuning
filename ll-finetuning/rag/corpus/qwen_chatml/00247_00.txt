@@ -1,0 +1,13 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 6-5 The Hexed.it Online Hex Editor
+After making modifications, an attacker can distribute the modified
+application via official channels (if they have access), phishing emails, or

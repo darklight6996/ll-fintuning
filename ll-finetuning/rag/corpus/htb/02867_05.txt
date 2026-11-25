@@ -1,0 +1,1 @@
+t to name it ping.bat , or the ping will try to run that, starting a loop. I’ll run it to make sure it works: *Evil-WinRM* PS C:\programdata> . \ping_test.bat C:\programdata> ping -n 1 10.10.14.6 Pinging 10.10.14.6 with 32 bytes of data: Reply from

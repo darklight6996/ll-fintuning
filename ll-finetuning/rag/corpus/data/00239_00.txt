@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check failed services.
+
+CONTEXT:
+Availability audit.
+
+METHOD / ANSWER:
+Command: `systemctl --failed`
+Explanation: Identifies service failures.

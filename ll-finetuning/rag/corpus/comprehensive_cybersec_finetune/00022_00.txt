@@ -1,0 +1,10 @@
+TECHNIQUE / QUESTION:
+Explain how to differentiate between testing environments (development, staging, production) and identify sandbox, honeypot, or isolated environments during a security assessment.
+
+CONTEXT:
+You are conducting a security assessment and need to determine what type of environment you are testing against. Describe the systematic approach to differentiate between development, staging, and production environments, and how to detect sandboxes, honeypots, or isolated test environments.
+
+METHOD / ANSWER:
+Environment Differentiation & Sandbox/Honeypot Detection Methodology:
+
+**Phase 1: Environment Classification Indicators**

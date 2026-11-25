@@ -1,0 +1,1 @@
+' account ' , ' intelligence ' , ' htb ' , ' login ' , ' service ' , ' new ' ] users = set () while True : url = t . strftime ( " http://intelligence.htb/documents/%Y-%m-%d-upload.pdf " ) resp = requests . get ( url

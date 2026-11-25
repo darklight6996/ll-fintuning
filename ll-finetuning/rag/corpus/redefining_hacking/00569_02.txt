@@ -1,0 +1,4 @@
+e new
+penetration tests directly from the EASM dashboards, with AI managing the
+integration and ensuring that tests are aligned with the current state of the
+attack surface.

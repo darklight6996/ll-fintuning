@@ -1,0 +1,1 @@
+the check for the group id number to be 0 or 4, and that’s how I can now run commands.

@@ -1,0 +1,23 @@
+**Phase 2: Network Security (Requirements 1-2)**
+- **Req 1: Firewall Configuration**
+  - Review firewall rules: `iptables -L -n -v`, `aws ec2 describe-security-groups`
+  - Default deny, explicit allow
+  - Quarterly rule review, change management
+  - DMZ for public-facing systems
+- **Req 2: Default Passwords/Config**
+  - Change all vendor defaults
+  - Remove unnecessary services: `systemctl list-unit-files --state=enabled`
+  - Secure config baselines (CIS Benchmarks)
+
+**Phase 3: Protect Cardholder Data (Requirements 3-4)**
+- **Req 3: Stored Data Protection**
+  - Data discovery: `grep -r -E "[0-9]{13,16}" /var/www/`
+  - Encryption: AES-256, RSA-2048, key management
+  - Mask PAN (first 6, last 4)
+  - Render unrecoverable: truncation, hashing, tokenization
+  - Key rotation, split knowledge, dual control
+- **Req 4: Transmission Encryption**
+  - TLS 1.2+ everywhere: `nmap --script ssl-enum-ciphers <IP>`
+  - No SSL/TLS 1.0, 1.1
+  - Certificate validation, pinning
+  - Wireless: WPA2-Enterprise, WPA3

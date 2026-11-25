@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• Windows virtual machine, or VM (proxy your traffic through your virtual
+instance).
+• Cookie Editor extension inside the browser of your Windows VM. The
+Cookie Editor extension is useful to import the session you’ve retrieved
+during your phishing campaign. You can ride on the session cookies to
+emulate the user you’ve obtained the cookies for during the campaign.
+• TokenTacticsv2 (https://github.com/f-bader/TokenTacticsV2). You can
+obtain an Azure Refresh Token from the ESTSAuth Cookie using this tool
+with the following command:
+Get-AzureTokenFromESTSCookie -ESTSAuthCookie "0.AbcAp
+• GraphRunner (https://github.com/dafthack/GraphRunner). This is another
+post-exploitation tool targeting the Microsoft Graph API that is useful to
+have ready to go into the post-exploitation phase.
+Can You Hear Us from the Inside?
+Keep in mind that anything discussed should be authorized and in scope for
+the client.
+Many individuals underestimate the access that can be obtained by
+physically breaching a building. In the following sections, we will discuss

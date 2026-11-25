@@ -1,0 +1,1 @@
+ss, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin User orestis may run the following commands on brainfuck: (ALL) NOPASSWD: ALL su gives a root shell: orestis@brainfuck:/dev/shm$ sudo su - root@brainfuck:~# I’ll make sure to clean up this addition so that other players can’t immediately get root.

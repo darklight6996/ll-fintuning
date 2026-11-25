@@ -1,0 +1,45 @@
+enegotiation IS NOT supported
+Compression: NONE
+Expansion: NONE
+SSL-Session:
+Protocol : TLSv1
+Cipher
+:DES-CBC3-SHA
+Session-ID: ******
+Session-ID-ctx:
+Master-Key: ******
+Key-Arg :None
+PSK identity: None
+PSK identity hint: None
+SRP username: None
+Start Time: ******
+Timeout
+: 300 (sec)
+Verify return code: 20 (unable to get local issuer certificate)
+Web Application Penetration Testing
+Now the tester can write the first line of an HTTP request and
+then Rin anew line.
+HEAD / HTTP/1.1
+R
+Server is renegotiating
+RENEGOTIATING
+depth=2 (Ceerestaeris
+verify error:num=20:unable to get local issuer certificate
+verify return:0
+And the tester can complete our request, checking for response.
+Even if the HEAD is not permitted, Client-intiated renegotiaion
+is permitted.
+HEAD / HTTP/1.1
+HTTP/1.1 403 Forbidden ( The server denies the specified Uni-
+form Resource Locator (URL). Contact the server administrator. )
+Connection: close
+Pragma: no-cache
+Cache-Control: no-cache
+Content-Type: text/html
+Content-Length:
+1792
+read:errno=O
+Example 5. Testing supported Cipher Suites, BEAST and CRIME
+attacks via TestSSLServer
+TestSSLServer [32] is a script which permits the tester to check
+the cipher suite and also f

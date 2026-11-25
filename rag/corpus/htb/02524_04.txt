@@ -1,0 +1,1 @@
+.htb [-] Connecting to host... [-] Binding to host [+] Bind OK [-] Adding new record [+] LDAP operation completed successfully -u ghost.htb\\florence.ramirez - the user to authenticate as; -k - use kerberos; -a add - the action is add; -r bitbucket

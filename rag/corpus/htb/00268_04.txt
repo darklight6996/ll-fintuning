@@ -1,0 +1,1 @@
+credentials cve-2019-12840 metasploit oscp-like-v2 Bankrobber Complete Release: 21 Sep 2019 Retire: 07 Mar 2020 OS: nmap mysql smb gobuster cookies xss csrf sqli injection bof ida chisel python pattern-create phantom-js reverse-engineering oscp-like-v2 oscp-like-v1 Scavenger Complete Release: 17 Aug 2019 Retire: 29 Feb 2020 OS: nmap whois sqli injection

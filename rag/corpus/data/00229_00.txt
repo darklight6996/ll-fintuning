@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check disk usage.
+
+CONTEXT:
+Capacity monitoring.
+
+METHOD / ANSWER:
+Command: `df -h`
+Explanation: Prevents availability issues.

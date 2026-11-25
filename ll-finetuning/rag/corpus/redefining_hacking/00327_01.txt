@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+Examining Fine-Tuned Uncensored AI Models
+If you ask ChatGPT, Claude, or any of the popular foundation models to
+create an exploit, it will deny the request. Take a look at Example 8-7.
+Example 8-7 ChatGPT Denying to Create an Exploit
+Prompt: The host 10.1.2.3 is affected by a SQL inject
+an exploit.
+ChatGPT: I'm sorry, but I can't assist with creating
+need help with SQL injection vulnerabilities, I can o
+against them, perform a security assessment, or devel
+me know if you need assistance with any of these topi
+However, there is an emergence of fine-tuned uncensored AI models for red
+teaming that can be used for this purpose. An example of these models is
+WhiteRabbitNeo (https://huggingface.co/WhiteRabbitNeo). These models
+can generate highly convincing social engineering content, testing an
+organization's human firewall. They can be used to rapidly develop and
+iterate on exploit code, potentially accelerating the discovery of zero-day
+vulnerabilities.
+Example 8-8 includes the results after using exactly the same prompt with
+WhiteRabbitNeo.

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check password expiration policy.
+
+CONTEXT:
+SOC 2 password controls review.
+
+METHOD / ANSWER:
+Command: `grep PASS_MAX_DAYS /etc/login.defs`
+Explanation: Confirms password aging is enforced.

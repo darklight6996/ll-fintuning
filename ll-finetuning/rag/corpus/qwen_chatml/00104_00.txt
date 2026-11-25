@@ -1,0 +1,12 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Next, you will create a CDN for your redirector domain with Azure Classic
+CDN, as demonstrated in Figure 3-3.

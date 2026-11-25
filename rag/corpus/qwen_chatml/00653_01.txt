@@ -1,0 +1,10 @@
+Context:
+Context: Active Directory Credential Use. Provided account is 'henry' with password 'H3nry_987TGV!'.
+Principle to Apply: 'Validate and utilize provided access to expand your foothold.'
+assistant
+**Assessment Phase**: Credential Validation & Initial Access.
+**Core Principle**: Provided credentials are your first key into the domain. Use them to authenticate to services and discover what permissions this account holds.
+**Actionable Steps**:
+1.  **Authenticate to a Core Service**: `netexec smb DC01.tombwatcher.htb -u henry -p 'H3nry_987TGV!'`
+    *   **Reasoning**: Attempting to authenticate via SMB (a core Windows service) serves multiple purposes: it validates the credentials, confirms network connectivity to the Domain Controller, and if successful, lists accessible SMB shares, providing immediate intelligence and potential data access.
+**Guidance for Novel Context**: The target service (`smb`) is a common first check. If SMB is blocked, apply the same credentials to other discovered services like LDAP (`-u henry -p ... ldap DC01...`) or WinRM. The principle is to **test the provided credentials against all available domain-joined services to map the account's access level

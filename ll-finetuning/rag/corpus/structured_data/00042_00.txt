@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How can you exploit CVE-2025-24071?
+
+CONTEXT:
+Context: Vulnerability Exploitation - Windows Library Files. You have write access to a network share that is accessible by other users. You need to coerce authentication from a machine or user account.
+Principle to Apply: 'Abuse file formats or features that trigger automatic network connections to capture credential material.'

@@ -1,0 +1,57 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Preferred Cipher Suite: None
+Accepted Cipher Suite(s): None
+Undefined - An unexpected error happened: None
+* SSLV3 Cipher Suites :
+Rejected Cipher Suite(s): Hidden
+Preferred Cipher Suite:
+RC4-SHA
+128 bits
+HTTP 200 0K
+Accepted Cipher Suite(s):
+CAMELLIA256-SHA
+256 bits
+HTTP 200 OK
+RC4-SHA
+128 bits
+HTTP 200 0K
+CAMELLIA128-SHA
+128 bits
+HTTP 200 OK
+Undefined - An unexpected error happened: None
+* TLSV1_1 Cipher Suites :
+Rejected Cipher Suite(s): Hidden
+Preferred Cipher Suite: None
+Accepted Cipher Suite(s): None
+Undefined - An unexpected error happened:
+ECDH-RSA-AES256-SHA
+socket.timeout - timed
+out
+ECDH-ECDSA-AES256-SHA
+socket.timeout - timed
+out
+* TLSV1_2 Cipher Suites :
+Rejected Cipher Suite(s): Hidden
+Preferred Cipher Suite: None
+Accepted Cipher Suite(s): None
+Undefined - An unexpected error happened:
+ECDH-RSA-AES256-GCM-SHA384 __ socket.timeout -
+timed out
+ECDH-ECDSA-AES256-GCM-SHA384__
+socket.timeout
+- timed out
+* TLSV1 Cipher Suites :
+Rejected Cipher Suite(s): Hidden
+Preferred Cipher Suite:
+Web Application Penetration Testing
+RC4-SHA
+128 bits
+Timeout on HTTP GET
+Accepted Cipher Suite(s):
+CAMELLIA256-SHA
+256 bits
+HTTP 2

@@ -1,0 +1,10 @@
+Context:
+Context: Active Directory Intelligence Gathering. You have valid domain credentials (`tombwatcher.htb\henry`). Goal: Collect comprehensive data on users, groups, computers, and permissions for offline analysis.
+Principle to Apply: 'Extract the entire AD graph to find privilege escalation and lateral movement paths.'
+assistant
+**Assessment Phase**: Active Directory Reconnaissance (Data Collection).
+**Core Principle**: Tools like BloodHound visualize attack paths. To use it, you must first programmatically 'ingest' AD data—collecting all objects and their relationships via authenticated LDAP queries.
+**Actionable Steps**:
+1.  **Run a Data Ingestor**: `rusthound-ce -d tombwatcher.htb -u henry -p 'H3nry_987TGV!' --zip -c All`
+    *   **Reasoning**: This command uses the Rust-based ingester `RustHound` to connect to the domain (`-d`), authenticate with provided credentials (`-u`/`-p`), collect all data categories (`-c All`), and compress the output (`--zip`). The resulting `.zip` file is imported into the BloodHound GUI for analysis.
+**Guidance for Novel Context**: The tool may vary (`SharpHound.ps1` is the original). The principle is constant: **use an authenticated session to

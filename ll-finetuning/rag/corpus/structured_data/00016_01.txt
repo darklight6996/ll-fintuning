@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Credential Discovery in Configuration Stores.
+**Core Principle**: Applications need to store database connection strings, API keys, and other secrets. These are frequently kept in configuration files within the application's directory or standard system paths.
+**Actionable Steps**:
+1.  **Inspect Known Configuration File**: `cat /etc/xwiki/hibernate.cfg.xml`
+    *   **Reasoning**: This is the standard configuration file for XWiki's Hibernate ORM, which manages database connections. It will likely contain JDBC URLs, usernames, and passwords in plaintext or a easily reversible format.
+**Guidance for Novel Context**: The exact file path (`/etc/xwiki/`) is application-specific. The universal principle is: **search for files containing keywords like `password`, `secret`, `jdbc`, `connect`, `database`**. Use commands like `grep -r "password" /path/to/app/ 2>/dev/null` or look for common filenames (`config.php`, `.env`, `application.properties`). Credentials found here may be reused for the underlying database server or other services.

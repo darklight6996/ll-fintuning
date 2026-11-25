@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+After exploiting a vulnerability, how do you ensure proper reporting?
+
+CONTEXT:
+You need to document the vulnerabilities found during the test.
+
+METHOD / ANSWER:
+Command: `echo 'Vulnerability report for example.com' > report.txt`
+Explanation: Start compiling your findings in a structured report, ensuring to document methodologies and findings for stakeholders.

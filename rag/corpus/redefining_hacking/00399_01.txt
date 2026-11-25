@@ -1,0 +1,23 @@
+METHOD / ANSWER:
+----------------------------
+- Denial of Service (DoS) attacks
+- Social Engineering Attacks
+Reward Structure
+================
+- Critical Vulnerabilities: $10,000 - $50,000 (or alt
+- High Severity Vulnerabilities: $500 - $1000 (or alt
+- Medium Severity Vulnerabilities: $100 - $500 (or al
+- Low Severity Vulnerabilities: $50 - $100 (or altern
+(Include criteria for determining the severity)
+Exploring Effective Reconnaisance
+The first step a threat actor takes when planning an attack is to gather
+information about the target. This act of information gathering is known as
+reconnaissance (or recon). Attackers use scanning and enumeration tools
+along with public information available on the Internet to build a dossier
+about a target. As you can imagine, as a penetration tester, you must also
+replicate these methods to determine the exposure of the networks and
+systems you are trying to defend.
+Let’s begin with a discussion of what’s an effective reconnaissance strategy.
+You will briefly learn about some of the common tools and techniques used.
+From there, we’ll dig deeper into the process of vulnerability scanning and
+how scanning tools work, including how to analyze the v

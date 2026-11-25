@@ -1,0 +1,14 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 6-2 How Web Shells Work
+In Figure 6-2, the attacker identifies a vulnerability in the frontend
+application, such as an insecure file upload or a code injection point, and
+uses it to upload a web shell script. For example, the attacker might exploit
+a file upload vulnerability to upload a PHP web shell script to the server.

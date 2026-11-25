@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Initial Access & Credential Validation.
+**Core Principle**: The first step with known credentials is to test them against accessible services to confirm they are valid and to discover what level of access they provide (e.g., network shares, remote management).
+**Actionable Steps**:
+1.  **Authenticate to a Core Service**: `netexec smb dc01.fluffy.htb -u j.fleischman -p 'J0elTHEM4n1990!'`
+    *   **Reasoning**: Authenticating via SMB serves multiple purposes: it validates the credentials, confirms the target's hostname/IP resolution, and if successful, will list accessible SMB shares, providing immediate intelligence and potential data access points.
+**Guidance for Novel Context**: If SMB is blocked, test the same credentials against other discovered services like LDAP (`-u ... ldap ...`) or WinRM (`-u ... winrm ...`). The principle is to **use the credentials to interact with the domain and map the account's permissions and accessible resources.**

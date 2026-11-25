@@ -1,0 +1,1 @@
+tadata C:\Windows\Temp\0xdf.cab -> set context clientaccessible -> begin backup -> add volume C: alias cdrive -> create Component

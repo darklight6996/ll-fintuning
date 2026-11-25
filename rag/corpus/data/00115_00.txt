@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you document findings after exploitation?
+
+CONTEXT:
+Compile a report for analysis.
+
+METHOD / ANSWER:
+Command: Use documentation tools to outline vulnerabilities.
+Purpose: Communicate findings.

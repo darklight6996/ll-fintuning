@@ -1,0 +1,1 @@
+ey, create the KeyCredential structure, modify the attribute via LDAP, then request the certificate with `certipy req`. The core principle of abusing write access to implant an authentication key remains the same.

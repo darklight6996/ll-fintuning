@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Use GitPython CVE to exploit privilege.
+
+CONTEXT:
+Execute the vulnerable Python script as root.
+
+METHOD / ANSWER:
+Command: `sudo python3 /opt/internal_apps/clone_changes/clone_prod_change.py 'ext::url'`
+Purpose: Trigger code execution via exploitation.

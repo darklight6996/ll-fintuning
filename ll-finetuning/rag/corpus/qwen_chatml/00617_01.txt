@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 11-11 Creating AI Agents in Google Vertex AI
+The configured “Goal” provides a description of the agent's purpose, which
+is to assist bug bounty hunters in identifying and exploiting vulnerabilities
+while promoting ethical hacking practices. The "Instructions" section
+provides guidelines for the agent's behavior. These instructions include
+offering explanations for bug hunting tactics, assisting with tools and
+frameworks, providing insights on various vulnerability types, and guiding
+on responsible disclosure.
+You can also configure data stores (using the built-in vector database) to use
+your data and very easily create a RAG deployment. These Vertex AI agents
+feature special state handlers known as data store handlers. These handlers
+allow the data store agent to engage in conversations with end users about
+the stored content.
+Tool Calling
+You can also link your agent to external tools (tool calling) and enable it to
+perform tasks more effectively. Figure 11-12 shows an example of tool
+calling in Google Vertex AI.

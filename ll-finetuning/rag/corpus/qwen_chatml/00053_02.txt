@@ -1,0 +1,6 @@
+testers are
+reviewing results, and providing prioritized targets. Lastly, a personal
+favorite is the ability to generate detailed reporting based on results with
+remediation recommendations.
+The ability of AI models to analyze and provide predictive threat modeling
+allows red teamers to focus on the advanced techniques and proactively

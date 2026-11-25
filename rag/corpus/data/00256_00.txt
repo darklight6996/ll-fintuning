@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify MOTD banner.
+
+CONTEXT:
+Compliance messaging.
+
+METHOD / ANSWER:
+Command: `cat /etc/motd`
+Explanation: Confirms login notices.

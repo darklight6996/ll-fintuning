@@ -1,0 +1,1 @@
+ent manipulation' might involve setting a different variable like `LD_PRELOAD` or manipulating a symlink.

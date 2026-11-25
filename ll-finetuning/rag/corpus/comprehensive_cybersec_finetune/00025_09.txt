@@ -1,0 +1,22 @@
+**Phase 3: Specialization - Web Application (12-24 months)**
+- **AWAE (Advanced Web Attacks and Exploitation) - OffSec**
+  - **Prerequisites**: AWAE course (WEB-300), OSCP recommended
+  - **Exam**: 48-hour practical (5 machines) + 24-hour report
+  - **Topics**:
+    - **Source Code Review**: Java, C#, Python, PHP, Node.js
+    - **Deserialization**: Java (ysoserial), .NET (ysoserial.net), PHP
+    - **Template Engines**: SSTI (Jinja2, Twig, Freemarker, Thymeleaf)
+    - **XXE**: Blind XXE, OOB exfiltration
+    - **SSRF**: Cloud metadata, internal services, bypass techniques
+    - **Authentication/Authorization**: JWT, OAuth, SAML, session fixation
+    - **Business Logic**: Race conditions, IDOR, workflow bypass
+    - **API Security**: GraphQL introspection, batching, REST
+    - **Client-Side**: DOM XSS, prototype pollution, postMessage
+  - **Study Resources**:
+    - OffSec WEB-300 course (90/120/180 day lab)
+    - PortSwigger Web Security Academy (all labs)
+    - Hack The Box: Web Pro Labs (Crypto, Web)
+    - "Web Application Hacker's Handbook" v2
+    - "Black Hat Web Application Exploitation" course
+  - **Cost**: $1,599 (90-day lab)
+  - **ROI**: Web app pentest specialist, bug bounty

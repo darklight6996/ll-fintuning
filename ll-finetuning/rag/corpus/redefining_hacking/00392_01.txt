@@ -1,0 +1,18 @@
+METHOD / ANSWER:
+Vulnerability Disclosure Programs (VDPs) vs. Bug Bounties
+A vulnerability disclosure program (VDP) is a structured process
+established by an organization to allow security researchers, ethical hackers,
+and sometimes the general public to report security vulnerabilities or
+weaknesses that they have identified in the organization's digital assets. The
+primary objective of a VDP is to facilitate the responsible disclosure of
+vulnerabilities, confirming that identified issues are communicated to the
+organization in a secure and structured manner, allowing for timely
+mitigation before potential exploitation by malicious threat actors.
+Bug bounty platforms such as Bugcrowd and HackerOne provide VDP
+services. These services generally outline the rules of engagement, which
+detail how individuals should report vulnerabilities and what kind of
+information should be included in the reports. VDP programs generally
+provide legal protection to the individuals who report vulnerabilities,
+safeguarding them from legal actions as long as they adhere to the
+guidelines stipulated in the VDP. This protection can help provide a good
+relationship between organizations and security resear

@@ -1,0 +1,27 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+from scapy.all import *
+import sys
+def tcp_port_scan(target, ports):
+for port in ports:
+tcp_packet = IP(dst=target) / TCP(dport=port, f
+response = sr1(tcp_packet, timeout=2, verbose=0
+if response is not None and response[TCP].flags
+print(f"Port {port} is open on {target}")
+else:
+print(f"Port {port} is closed on {target}")
+if __name__ == "__main__":
+target = sys.argv[1]
+ports = range(1, 1024)
+tcp_port_scan(target, ports)
+Here's how to use the script:
+1. Save the script in a file named port_scan.py.
+2. Run the script by using the following command in the terminal:

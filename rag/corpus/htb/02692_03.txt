@@ -1,0 +1,1 @@
+e at the crash, EIP is still one byte into the INTs, but there’s only 10 bytes of CC: Getting a Bit More Space Looking up the stack a bit, there’s 66 bytes of space I can use that I’ve currently filled with “A”. All I need is less than 10 bytes of shellcode that jumps back. I’ll write a short

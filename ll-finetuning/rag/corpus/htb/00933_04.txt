@@ -1,0 +1,1 @@
+cified metadata... Detecting structure... Auto generated TOC with 0 entries. Flattening CSS and remapping font sizes... Source base font size is 12.00000pt Removing fake margins... Cleaning up manifest... Trimming unused files from manifest... Creating TXT Output... 67% Running TXT Output plugin Converting XHTML to TXT... TXT output written to /tmp/output.txt Output saved

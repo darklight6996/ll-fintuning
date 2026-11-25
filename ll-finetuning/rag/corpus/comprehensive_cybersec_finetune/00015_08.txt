@@ -1,0 +1,28 @@
+**Phase 7: Defense Evasion (TA0005)**
+- **AV/EDR Evasion**:
+  - Direct Syscalls (HellsGate, HalosGate, TartarusGate)
+  - AMSI Bypass: `AmsiScanBuffer` patch, reflection
+  - ETW Patching: `EtwEventWrite` patch
+  - WDAC/AppLocker Bypass: `InstallUtil`, `RegAsm`, `MSBuild`, `RunDLL32`
+  - PPL Bypass: `PPLdump`, `Mimikatz` driver
+- **Obfuscation**:
+  - PowerShell: `Invoke-Obfuscation`, `ISE-Steroids`
+  - C#: `ConfuserEx`, `Obfuscar`, `Donut`
+  - Go: `garble`, `strip`
+  - Rust: `strip`, `cargo-obfuscate`
+- **Living Off The Land (LOLBins)**:
+  - `msbuild.exe`, `installutil.exe`, `regsvr32.exe`, `rundll32.exe`
+  - `wmic.exe`, `certutil.exe`, `bitsadmin.exe`, `mshta.exe`
+  - `powershell.exe -encodedcommand`, `pwsh.exe`
+  - `cscript.exe`, `wscript.exe`, `mshta.exe`
+- **Fileless/Memory-Only**:
+  - Reflective DLL Injection
+  - Process Hollowing, Process Doppleganging
+  - Module Stomping, Thread Execution Hijacking
+  - `Donut` (shellcode → .NET assembly → shellcode)
+- **Indicator Removal**:
+  - Clear Event Logs: `wevtutil cl Security`, `Clear-EventLog`
+  - Timestomp: `Set-ItemProperty -Path -Name LastWriteTime`
+  - Artifact Removal: `sdelete`, `cipher /w`
+- **Code Signing**:
+  - Stolen certifi

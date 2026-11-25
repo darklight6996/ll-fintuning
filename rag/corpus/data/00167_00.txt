@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Review available SUID binaries for exploitation.
+
+CONTEXT:
+Assess the user's directory for vulnerable scripts.
+
+METHOD / ANSWER:
+Command: `sudo -l` to check accessible commands.
+Purpose: Identify scripts that can be run as root.

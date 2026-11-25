@@ -1,0 +1,1 @@
+ut it effectively adds the onload attribute back into the HTML. onload actually won’t work here, but the article suggests the following POC: <body title= "bgcolor=foo" name=

@@ -1,0 +1,25 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+environments where cutting-edge or undiscovered vulnerabilities are the
+primary focus.
+Compliance with Bug Bounty Guidelines
+Many bug bounty programs have specific rules about how vulnerabilities
+should be tested or reported. If AI-generated exploits or tests do not align
+with these guidelines, the hunter risks violating the program's terms, which
+can lead to disqualification or legal ramifications.
+Test Your Skills
+Multiple-Choice Questions
+1. Which of the following is NOT a primary goal in the framework for
+external attack surface discovery and exploitation?
+A. Discover
+B. Monitor
+C. Actionable insights
+D. Patch management

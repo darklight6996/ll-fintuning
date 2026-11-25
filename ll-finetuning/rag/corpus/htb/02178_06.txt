@@ -1,0 +1,1 @@
+cs so it’s wrong. But return a 302 redirect. However, if I follow the redirect, when the cs is wrong, it has an error at the top: Hash Extension

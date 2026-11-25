@@ -1,0 +1,27 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+get_mx_record(‘websploit.org’);; MSG SIZE rcvd: 157
+This script is also available in my GitHub repository at hackerrepo.org.
+Before you run the Python script in Example 9-4, you will need to install
+the dnspython library using the command pip3 install dnspython. In this
+script:
+1. We first import the dns.resolver module from the dnspython library.
+2. We define a function called get_mx_record that takes a domain name as
+an argument.
+3. Inside the function, we use a try-except block to catch various potential
+exceptions that might occur during the DNS query.
+4. We use dns.resolver.resolve(domain, 'MX') to query the MX records
+for the domain.
+5. If the query is successful, we loop through each record and print the
+exchange and preference values.
+Remember to replace wesbploit.org with the domain for which you want to
+get the MX record information.
+Tip

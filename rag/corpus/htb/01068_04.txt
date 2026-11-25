@@ -1,0 +1,1 @@
+2f \x 00 \x 80" > /tmp/0xdf I’ll continue: action: 4 Filename: /tmp/0xdf -----MENU----- 1) leave message to admin 2) print session ID 3)login (admin only) 4)change user 5)exit action: 3

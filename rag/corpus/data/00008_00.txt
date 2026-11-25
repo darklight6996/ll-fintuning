@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What is a method to gather detailed information about the application framework?
+
+CONTEXT:
+You want to identify the technology stack used by the web application.
+
+METHOD / ANSWER:
+Command: `whatweb http://example.com`
+Explanation: WhatWeb identifies technology used by the web application (like server software, frameworks, plugins, etc.), aiding the assessment of potential vulnerabilities.

@@ -1,0 +1,1 @@
+6.856501 IP ethereal.htb.56939 > kali.domain: 5+ AAAA? Q06/30/2018X.Q10:10X.QPMX.Q<DIR>X.QinetpubX.QX.QX.QX.QX.QX.QX.QX.QX.QX.QX.QX.QX.QX.QX.QX.QX.QX.QX.QX.QX.QX. (124) I suspect that’s because it doesn’t get an answer, so it tries to ask again. I’ll update the DNS

@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Establishing a Shell with New Credentials.
+**Core Principle**: A certificate (`.pfx`) can be used for PKINIT authentication to get a TGT. Alternatively, the NTLM hash obtained during the process can be used directly for Pass-the-Hash.
+**Actionable Steps**:
+1.  **Authenticate via WinRM with Hash**: `evil-winrm -i dc01.fluffy.htb -u winrm_svc -H <NTLM_hash>`
+    *   **Reasoning**: Certipy's `shadow auto` outputs the NTLM hash of the target account. Using this hash with Evil-WinRM is a straightforward way to get a PowerShell shell as the `winrm_svc` user, leveraging the WinRM protocol which is often allowed for service accounts.
+**Guidance for Novel Context**: You could also use the `.pfx` with `certipy auth` to get a TGT/`.ccache` file, then use that with tools like `netexec` or `wmiexec.py`. The principle is to **convert the acquired certificate or hash into an active, authenticated session on a target system.**

@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+You can obtain additional examples of how to use ffuf at
+https://becomingahacker.org/a-quick-guide-to-using-ffuf-
+with-burp-suite-713492f62242.
+The following tools also can be used to obtain additional details about a
+web application:
+• Wappalyzer (https://www.wappalyzer.com) detects the content
+management systems, frameworks, and coding languages utilized on a
+website.
+• BuiltWith (https://builtwith.com) serves as a tool that reveals the web
+technologies underlying a particular website.
+• StackShare (https://stackshare.io) functions as a virtual hub where
+developers can divulge the technology stacks they employ, facilitating the
+gathering of data regarding your objective.
+• Retire.js (https://retirejs.github.io/retire.js) identifies obsolete JavaScript
+libraries and Node.js packages in use.
+• The OWASP Zed Attack Proxy (ZAP) is an open-source web application
+security testing tool used by developers, penetration testers, and security
+professionals to identify vulnerabilities in web applications.

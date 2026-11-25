@@ -1,0 +1,27 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+[internal IP] yourdomain.com
+sudo systemctl stop system-resolved.service
+## Option to generate out your certificate
+sudo certbot certonly -d "yourdomain.com" -d "*.yourd
+-register-unsafely-without-email
+Next, open a screen session and launch Evilginx. You have the option to let
+the tool generate a certificate for your domain; however, keep in mind that
+using the certificates generated from Evilginx intentionally inputs indicators
+of compromise (IOCs) into the certificate itself. It is best to manually
+generate a certificate using a tool such as certbot, as shown in Example 5-7.
+To manually import your certificate, place the certificate and private key
+under the following directory:
+~/.evilginx/crt/sites/hostname/phishletname.crt
+~/.evilginx/crt/sites/hostname/phishletname.key
+Ensure you place the certificates in this directory prior to launching
+Evilginx. Example 5-8 demonstrates the syntax, and Figure 5-8 shows how
+to launch your Evilginx instance.
+Example 5-8 Deploying Evilginx Commands

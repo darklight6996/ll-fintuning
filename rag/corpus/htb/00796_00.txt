@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from Htb Bitlab Hacks Stuff)
+
+CONTEXT:
+Source: Htb Bitlab Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+is too long. I can step over this call and see the pcbBuffer changes to 6, the number of characters required for “clave\x00”: I can also see the error in the LastError : When I do get to the compare with the string clave , it’s comparing “6” to it. That’s where this comes from. That’s why when I get to the compare, it’s comparing 6 to clave . There’s no way this could succeed as written.

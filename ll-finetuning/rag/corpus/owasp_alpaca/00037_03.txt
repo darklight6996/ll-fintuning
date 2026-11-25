@@ -1,0 +1,5 @@
+ty
+is mapped to a character in the Unicode character set.
+For example:
+<tagnode>&lt;</tagnode>
+134

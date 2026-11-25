@@ -1,0 +1,26 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+You can learn more about CertSPY at
+https://becomingahacker.org/introducing-certspy-
+89da08beca25.
+Leveraging Password Dumps
+Attackers can leverage password dumps from previous breaches. There are
+a number of ways that attackers can get access to such password dumps.
+These sources include Pastebin, dark web sites, and even GitHub in some
+cases. Different tools and websites make this task very easy. An example of
+a tool that allows you to find email addresses and passwords exposed in
+previous breaches is h8mail. You can install h8mail using the pip3 install
+h8mail command, as demonstrated in Example 9-15. This example also
+shows the h8mail command-line usage.
+Example 9-15 Installing and Using h8mail
+root@websploit# pip3 install h8mail
+Collecting h8mail
+Downloading h8mail-2.5.5-py3-none-any.whl (33 kB)
+Requirement already satisfied: requests in /usr/lib/p
+h8mail) (2.23.0)
+Installing collected packages: h8mail
+Successfully installed h8mail-2.5.5
+root@websploit# h8mail -h

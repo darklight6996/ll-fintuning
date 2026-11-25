@@ -1,0 +1,30 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+[+] Enumerating users using SID S-1-22-1 and logon us
+S-1-22-1-1000 Unix User\omar (Local User)
+S-1-22-1-1001 Unix User\derek (Local User)
+[+] Enumerating users using SID S-1-5-32 and logon us
+<output omitted for brevity>
+There is a Python-based enum4linux implementation called enum4linux-ng
+that can be downloaded from https://github.com/cddmp/enum4linux-ng.
+Example 9-39 includes an example of the SMB enumeration using
+enum4linux-ng.
+Example 9-39 Enumeration Using enum4linux-ng
+┌─[root@websploit]─[~/enum4linux-ng]
+└──╼ #./enum4linux-ng.py -As 192.168.88.251
+ENUM4LINUX - next generation
+==========================
+| Target Information |
+==========================
+[*] Target ........... 192.168.88.251
+[*] Username ......... ''
+[*] Random Username .. 'opaftohf'
+[*] Password ......... ''
+[*] Timeout .......... 5 second(s)

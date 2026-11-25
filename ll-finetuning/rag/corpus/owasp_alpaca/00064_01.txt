@@ -1,0 +1,26 @@
+METHOD / ANSWER:
+« Restricted frames with Internet Explorer: Starting from
+Internet Explorer 6, a frame can have the “security” attribute
+that, if it is set to the value “restricted”, ensures that JavaScript
+code, ActiveX controls, and re-directs to other sites do not
+work in the frame.
+Example:
+<iframe src="http:/target site” security="restricted"></
+iframe>
+» Sandbox attribute: with HTML5 there is a new attribute called
+“sandbox”. It enables a set of restrictions on content loaded
+into the iframe. At this moment this attribute is only compatible
+whit Chrome and Safari.
+Example:
+<iframe src="http:/target site” sandbox></iframe>
+« Design mode: Paul Stone showed a security issue concerning
+the “designMode” that can be turned on in the framing page (via
+document.designMode), disabling JavaScript in top and sub-
+frame. The design mode is currently implemented in Firefox
+and IE8.
+onBeforeUnload event
+The onBeforeUnload event could be used to evade frame busting
+code. This event is called when the frame busting code wants to
+destroy the iframe by loading the URL in the whole web page and
+not only in the iframe. The handler function returns a string that
+is prompted to the user asking co

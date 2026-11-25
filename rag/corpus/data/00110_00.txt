@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you implement password spraying on AAD users?
+
+CONTEXT:
+Evaluate common passwords against users.
+
+METHOD / ANSWER:
+Command: Use a PowerShell script to cycle through passwords.
+Purpose: Gain access through weak passwords.

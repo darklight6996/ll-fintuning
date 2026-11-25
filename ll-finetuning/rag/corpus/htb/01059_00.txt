@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: Writeup from Htb Calamity Hacks Stuff)
+
+CONTEXT:
+Source: Htb Calamity Hacks Stuff
+Section: Writeup

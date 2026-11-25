@@ -1,0 +1,32 @@
+ata__);
+39 endif;
+4O end if;
+41 :rC__ :=rc__;
+42 :db_proc_time__ := dbms_utility.get_time—start_
+time__;
+43 end;
+Notice lines 19 and 24. Online 19, the user's requestis checked against
+a list of known “bad” strings, i.e., the exclusion list. If the requested
+package and procedure co not contain bad strings, then the procedure
+is executed on line 24. The XYZ parameter is passed as a bind variable.
+If we then request the following:
+http:/server.example.com/pls/dad/INJECT'
+POINT
+the following PL/SQL is executed:
+18 simple_list__(7) := ‘htf.%’;
+19 if ((owa_match.match_pattern(‘inject’point! simple_
+list__, complex_list__, true))) then
+20 rc__:=2;
+21 else
+22 null;
+23 orasso.wpg_session.init();
+24 inject'point;
+This generates an error in the error log: “PLS-00103: Encountered the
+symbol ‘POINT’ when expecting one of the following. . “" What we have
+here is a way to inject arbitrary SQL. This can be exploited to bypass
+the exclusion list. First, the attacker needs to find a PL/SQL procedure
+that takes no parameters and doesn't match anything in the exclusion
+list. There are a good number of default packages that match this cri-
+teria, for example:
+JAVA_AUTONOMOUS_TRANSACTION.PUSH
+XMLGEN.U

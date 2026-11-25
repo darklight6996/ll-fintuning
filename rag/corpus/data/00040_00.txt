@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What should you do after identifying the shares?
+
+CONTEXT:
+You find an SMB share named 'IT' with read/write permissions.
+
+METHOD / ANSWER:
+Command: `netexec smb //10.10.11.69/IT -U 'j.fleischman%J0elTHEM4n1990!'`
+Explanation: Connect to the share and explore its contents for potentially useful files or executables that may assist with further exploitation.

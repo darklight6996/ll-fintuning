@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+• Inurl: Directs Google to search only within the specified URL of a
+document. Example: inurl:search-text
+• Link: Directs Google to search within hyperlinks for a specific term.
+Example: link:www.domain.com
+• Intitle: Directs Google to search for a term within the title of a document.
+Example: intitle: “Index of.etc”
+By using these advanced operators in combination with key terms, you can
+use Google to uncover many pieces of sensitive information that shouldn’t
+be revealed. A term even exists for the people who blindly post this
+information on the Internet; they are called Google dorks. To see how this
+works, enter the following phrase into Google:
+intext:JSESSIONID OR intext:PHPSESSID inurl:access.log ext:log
+This query searches in a URL for the session IDs that could be used to
+potentially impersonate users. In our case, the search found more than 100
+sites that store sensitive session IDs in publicly accessible logs. If these IDs
+have not timed out, they could be used to gain access to restricted resources.
+You can use advanced operators to search for many types of data. The
+following is another example of a Google search string (or Google dork)
+that can reveal

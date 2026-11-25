@@ -1,0 +1,1 @@
+ction , $data , $uri_path , $is_file ); echo $response ; ?> This file organizes the user input and passes it to make_api_call , which is defined in the included /var/www/api/utils.php . The function uses

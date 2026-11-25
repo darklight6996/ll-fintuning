@@ -1,0 +1,4 @@
+open-source project by adding extra code that
+checks for specific triggers or commands.
+Attackers gain access to the source code repository of an open-source
+project. This could be accomplished through compromising developer

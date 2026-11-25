@@ -1,0 +1,1 @@
+Up 3 hours 22/tcp, 127.0.0.1:3000->3000/tcp gitea a8d993b7ef40 roundcube/roundcubemail "/docker-entrypoint.…" 10 days ago Up 3 hours 127.0.0.1:8000->80/tcp roundcube 793abf612b3c mailserver/docker-mailserver:latest "/usr/bin/dumb-init …" 10 days ago Up 3 hours 127.0.0.1:25->25/tcp, 110/tcp, 127.0.0.1:143->143/tcp, 127.0.0.1:587->587/tcp,

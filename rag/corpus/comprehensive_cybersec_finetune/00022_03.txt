@@ -1,0 +1,35 @@
+**Production Environment**:
+- **Naming**: `prod-*`, `prd-*`, `www`, `api`, `app` (no prefix)
+- **Data**:
+  - Real customer data, PII, financial records
+  - High volume, growth patterns
+  - Audit logs, compliance retention
+- **Infrastructure**:
+  - High availability, multi-region, auto-scaling
+  - WAF blocking mode, strict rate limiting
+  - DDoS protection (Cloudflare, AWS Shield, Akamai)
+  - Certificate transparency logs, HSTS preload
+- **Access**:
+  - Break-glass procedures, just-in-time access
+  - MFA + hardware tokens (FIDO2)
+  - Privileged Access Management (PAM)
+  - No direct SSH/RDP, bastion hosts only
+- **Monitoring**:
+  - Real-time alerting, SLA/SLO dashboards
+  - Incident response integration
+  - Chaos engineering, game days
+
+**Phase 2: Active Environment Fingerprinting**
+
+**HTTP Headers & Responses**:
+```bash
+# Check headers
+curl -I https://target.com
+# Look for:
+# Server: nginx/1.18.0 (Ubuntu) vs Server: cloudflare
+# X-Environment: staging
+# X-Git-Commit: abc123
+# X-Debug-Token: xyz
+# Via: 1.1 vegur (Heroku)
+# X-Powered-By: Express
+```

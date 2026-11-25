@@ -1,0 +1,30 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Args:
+hostname (str): The hostname of the scanned tar
+ip (str): The IP address of the scanned target.
+analysis (str): The AI-generated analysis of th
+"""
+with open('cipher_scan_results.md', 'a') as f:
+f.write(f"# Analysis for {hostname} ({ip})\n\n"
+f.write(analysis)
+f.write("\n\n" + "="*50 + "\n\n")
+def main():
+"""
+Main function to execute the script.
+"""
+hostnames_and_ips = extract_hostnames_and_ips('res
+open('cipher_scan_results.md', 'w').close()
+for hostname, ip in hostnames_and_ips:
+print(f"Scanning {hostname} ({ip})...")
+scan_results = run_nmap_scan(ip)
+print(f"Analyzing results for {hostname}...")
+analysis = analyze_with_ai(scan_results)
+save_results(hostname, ip, analysis)

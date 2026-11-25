@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+Other methods of context preparation include context ordering by placing
+the most relevant information closer to the query in the input sequence.
+Additionally, you could add source information, timestamps, or confidence
+scores to the context.
+Note
+Regardless of the context preparation technique, you should
+always craft effective prompts (human and system prompts)
+that guide the LLM in using the provided context.
+Response Generation and Post-Processing and Refinement
+Response generation, post-processing, and refinement are the final stages in
+the RAG pipeline, where the system produces and refines the output based
+on the retrieved context and user query. This process involves the actual
+model response generation sending the constructed context and prompt to
+the LLM or SLM for processing. You could also use source attribution by
+adding citations or references to original sources (from the retrieved
+documents) used in the response and indicating which parts of the response
+are based on retrieved information versus model knowledge.
+Additionally, you can incorporate “human-in-the-loop” by allowing human
+review and editing of generated responses when necessary. Example 8

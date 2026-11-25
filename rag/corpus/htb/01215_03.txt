@@ -1,0 +1,1 @@
+ts inner_banner() , and then runs os.system("cd /home/bobby/projects/ChainsawClub && /bin/bash") , providing the root shell. This contract only allows one username / password at a time, and I suspect it was kind of a

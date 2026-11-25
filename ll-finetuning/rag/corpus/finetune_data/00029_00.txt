@@ -1,0 +1,1 @@
+Plan how to securely store any credentials or sensitive information obtained.

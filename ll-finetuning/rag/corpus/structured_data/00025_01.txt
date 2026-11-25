@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Kerberos Attack - Credential Harvesting.
+**Core Principle**: Any domain user can request the encrypted Ticket Granting Service (TGS) tickets for any service account. These tickets are encrypted with the service account's password hash. If the password is weak, it can be cracked offline, yielding the service account's plaintext password.
+**Actionable Steps**:
+1.  **Request & Extract Service Tickets**: `netexec ldap dc01.tombwatcher.htb -u henry -p 'H3nry_987TGV!' -k --kerberoasting kerberoasting.hashes`
+    *   **Reasoning**: This authenticates to the Domain Controller via LDAP (using the credentials you have), requests the TGS for all discovered SPN accounts, and extracts the crackable hash portion, saving it to a file (`kerberoasting.hashes`). The `-k` flag forces Kerberos authentication, which is required for this attack.
+**Guidance for Novel Context**: The tool can be `GetUserSPNs.py` (Impacket) or Rubeus. The core principle remains: **request service tickets as a domain user and extract the crackable hashes.** The resulting hash file is fed to a password cracker like `hashcat` (mode `13100`) or `john`. Success gives you the service account

@@ -1,0 +1,39 @@
+**Networking (VPC, Cloud Armor, Cloud CDN, Load Balancing)**:
+- **VPC**:
+  - VPC Flow Logs
+  - Firewall rules (ingress/egress)
+  - Private Google Access
+  - Service Controls (VPC Service Controls)
+  - Shared VPC
+- **Cloud Armor**:
+  - WAF rules (OWASP, custom)
+  - Rate limiting
+  - IP allow/deny lists
+  - Adaptive protection
+- **Load Balancing**:
+  - SSL policies (TLS 1.2+)
+  - Health checks
+  - Backend services
+  - CDN integration
+
+**Secret Manager**:
+- **Rotation**: Automatic rotation
+- **Replication**: Regional vs multi-regional
+- **Access**: IAM conditions
+- **Versioning**: Enabled
+- **Logging**: Audit logs
+
+**Monitoring (Security Command Center, Cloud Logging, Cloud Monitoring)**:
+- **Security Command Center**:
+  - Premium tier
+  - Detectors (Container Threat Detection, Event Threat Detection, etc.)
+  - Findings export
+  - MITRE ATT&CK mapping
+- **Cloud Logging**:
+  - Log sinks (BigQuery, Pub/Sub, Cloud Storage)
+  - Log-based metrics
+  - Alerting policies
+- **Cloud Monitoring**:
+  - Uptime checks
+  - SLOs
+  - Dashboards

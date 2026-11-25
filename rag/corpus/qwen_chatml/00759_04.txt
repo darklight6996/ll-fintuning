@@ -1,0 +1,9 @@
+ample, since some other
+interesting and more subtle cases can take place. A widespread
+scenario involves the possibility to control the URL called ina
+CORS request; since CORS allows the target resource to be ac-
+cessible by the requesting domain through a header based ap-
+proach, then the attacker may ask the target page to load mali-
+cious content loaded on its own web site.
+Refer to the following vulnerable code:
+<b id="p"></b>

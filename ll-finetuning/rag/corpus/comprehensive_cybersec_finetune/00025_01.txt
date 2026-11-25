@@ -1,0 +1,13 @@
+**Certification Overview Matrix**
+| Cert | Vendor | Level | Focus | Format | Duration | Prereqs |
+|------|--------|-------|-------|--------|----------|---------|
+| eJPT | INE | Entry | Penetration Testing Basics | Practical + MCQ | 48 hrs | None |
+| PNPT | TCM | Entry/Intermediate | Network Penetration Testing | Practical | 5 days | Basic networking |
+| eCPPT | INE | Intermediate | Penetration Testing Professional | Practical + Report | 7 days | eJPT or equivalent |
+| OSCP | OffSec | Intermediate | Penetration Testing with Kali | Practical (24h) + Report | 24h exam | PWK course |
+| CRTO | Zero Point | Intermediate | Adversary Emulation / C2 | Practical | 48 hrs | OSCP or equivalent |
+| AWAE | OffSec | Advanced | Web App Exploitation | Practical (48h) + Report | 48h exam | AWAE course |
+| OSWE | OffSec | Advanced | White Box Web App / Code Review | Practical (48h) + Report | 48h exam | AWAE course |
+| eCPPTX | INE | Advanced | Expert Penetration Testing | Practical + Report | 14 days | eCPPT |
+| ASEP | INE | Advanced | Advanced Stack Exploitation | Practical | 7 days | eCPPTX or OSCP |
+| OSED | OffSec | Expert | Exploit Development (Windows) | Practical (48h) + Report | 48h exam | E

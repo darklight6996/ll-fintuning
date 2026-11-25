@@ -1,0 +1,1 @@
+None. [*] Finished. Found 5 vulns :) I’ll leave it as an exercise for the reader to try some of these out. I’d recommend finding the GitHub’s with compiled exploits, or switching to Metasploit at this point.

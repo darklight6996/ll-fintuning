@@ -1,0 +1,10 @@
+Context:
+Context: Active Directory Engagement Setup. You have identified a host at `10.10.11.72` as a Domain Controller via port scanning.
+Principle to Apply: 'Ensure proper name resolution for all hosts in the target domain to avoid tool errors.'
+assistant
+**Assessment Phase**: Network/Name Resolution Configuration.
+**Core Principle**: Many Active Directory tools (like `netexec`, `BloodHound` ingesters) require the target's hostname and domain name to resolve correctly. They often fail or behave unexpectedly if you use only an IP address.
+**Actionable Steps**:
+1.  **Resolve NetBIOS/Domain Names**: Use a tool like `netexec smb 10.10.11.72 --generate-hosts-file`.
+    *   **Reasoning**: This command queries the target (via SMB or other protocols) to discover its NetBIOS name, DNS hostname, and primary domain. It then outputs a correctly formatted line like `10.10.11.72    DC01.tombwatcher.htb DC01` that you can add to your local `/etc/hosts` file.
+**Guidance for Novel Context**: If the tool fails, you may need to manually deduce the hostname from banners or other scans and add the entry yourself (`echo '10.10.11.72 DC01.tombwatcher.htb' >> /etc/hosts`). The principle is to **establis

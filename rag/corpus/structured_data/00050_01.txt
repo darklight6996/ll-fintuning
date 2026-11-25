@@ -1,0 +1,8 @@
+METHOD / ANSWER:
+**Assessment Phase**: ESC16 Exploitation.
+**Core Principle**: If a certificate template allows requesters to specify the SAN and has enrollment rights for your user, you can request a certificate with the SAN set to a privileged account (e.g., `Administrator`). This certificate can then be used for authentication as that privileged account.
+**Actionable Steps**:
+1.  **Request a Certificate with Spoofed SAN**: `certipy req -u ca_svc -hashes <NTLM_hash> -ca fluffy-DC01-CA -template WebServer -upn administrator@fluffy.htb`
+    *   **Reasoning**: This command requests a certificate from the specified template (`WebServer`), but overrides the Subject Alternative Name (SAN) with the Administrator's User Principal Name (`-upn administrator@fluffy.htb`). If the template allows SAN specification by the requester (ESC16 misconfiguration), the CA issues a certificate for the Administrator.
+2.  **Authenticate with the Fraudulent Certificate**: `certipy auth -pfx administrator.pfx -dc-ip 10.10.11.72`
+    *   **Reasoning**: Use the issued `.pfx` certificate to perform PKINIT authentication. This will grant you a Ticket Granting Ticket (TGT) as the Administrator, effectively esca

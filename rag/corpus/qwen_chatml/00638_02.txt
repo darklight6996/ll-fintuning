@@ -1,0 +1,1 @@
+or (common on Ubuntu), apply the same principle but with different tools: `aa-status`, `apparmor_status`.

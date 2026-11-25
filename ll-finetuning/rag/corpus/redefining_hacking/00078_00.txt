@@ -1,0 +1,18 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+Example 3-4 Adding in the IP of Your C2 Server in /etc/hosts
+echo <C2ServerIP> <C2Domain> >> /etc/hosts
+Now that your redirector is set up, you can configure your redirector to
+allow only Azure’s CDN from HTTP and HTTPS using the Azure service
+tag—AzureFrontDoor.Backend. Figure 3-2 shows how to update it for
+HTTP, but you must ensure that you update the rules for both HTTP and
+HTTPS.

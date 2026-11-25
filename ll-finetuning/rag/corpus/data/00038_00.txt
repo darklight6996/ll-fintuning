@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you generate a hosts file entry for the target?
+
+CONTEXT:
+You need to set up your local hosts file for easier access to the target.
+
+METHOD / ANSWER:
+Command: `netexec smb 10.10.11.69 --generate-hosts-file hosts`
+Explanation: This generates an entry for the target’s SMB share and outputs it in a format suitable for your `/etc/hosts` file.

@@ -1,0 +1,34 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+session.commit()
+print(f"Added IP: {address} under subdomain {subdo
+def add_port(number, ip_address):
+ip = session.query(IP).filter_by(address=ip_addres
+if not ip:
+print(f"IP {ip_address} not found.")
+return
+port = Port(number=number, ip=ip)
+session.add(port)
+session.commit()
+print(f"Added port: {number} to IP {ip_address}")
+def add_url(address, ip_address):
+ip = session.query(IP).filter_by(address=ip_addres
+if not ip:
+print(f"IP {ip_address} not found.")
+return
+url = URL(address=address, ip=ip)
+session.add(url)
+session.commit()
+print(f"Added URL: {address} to IP {ip_address}")
+def add_vulnerability(description, ip_address):
+ip = session.query(IP).filter_by(address=ip_addres
+if not ip:
+print(f"IP {ip_address} not found.")
+return

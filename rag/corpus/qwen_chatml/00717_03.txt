@@ -1,0 +1,22 @@
+what exactly helps an attack-
+er to disclose the web framework. By performing multiple scans
+after changes have been made to hide framework tracks, it’s pos-
+sible to achieve a better level of security and to make sure of the
+framework can not be detected by automatic scans. Below are
+some specific recommendations by framework marker location
+and some additional interesting approaches.
+HTTP headers
+Check the configuration and disable or obfuscate all HTTP-head-
+ers that disclose information the technologies used. Here is an
+interesting article about HTTP-headers obfuscation using Net-
+scaler:
+http:/grahamhosking.blogspot.ru/2013/07/obfuscat-
+ing-http-header-using-netscaler.html
+Cookies
+It is recommended to change cookie names by making changes in
+the corresponding configuration files.
+HTML source code
+Manually check the contents of the HTML code and remove every-
+thing that explicitly points to the framework.
+General guidelines:
+« Make sure there are no visual markers disclosing the framework

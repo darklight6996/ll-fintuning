@@ -1,0 +1,21 @@
+METHOD / ANSWER:
+user creates a new task, the system typically doesn't require the user to
+authenticate with an administrator account.
+Note
+You can access the scheduled tasks of a Windows system by
+navigating to Start > Administrative Tools > Task
+Scheduler. Alternatively, you can press Windows key+R to
+open the Run dialog box, type taskschd.msc, and then press
+Enter.
+Scheduled tasks can also be used to steal data over time without raising
+alarms. In Windows, Task Scheduler can be leveraged to schedule jobs that
+may use a significant amount of CPU resources and network bandwidth.
+This capability is helpful when huge files are to be compressed and
+transferred over a network (especially if you set them to execute at night or
+during weekends, when no users will be on the victim's system).
+Much as with scheduled tasks, as you previously learned, you can create
+your own custom daemons (services) and processes on a victim system, as
+well as additional backdoors. Whenever possible, a backdoor must survive
+reboots to maintain persistence on the victim's system. You can ensure this
+by creating daemons that are automatically started at bootup. These
+daemons can persist on the system to eithe

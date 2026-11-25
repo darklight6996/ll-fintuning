@@ -1,0 +1,4 @@
+horization, normal application autho-
+rization mechanisms apply. Look out for Top 10 2013-A4-Insecure
+Direct Object References and Top 10 2013-A7-Missing Function
+Level Access Control type issues.

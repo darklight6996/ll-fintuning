@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+List listening network services.
+
+CONTEXT:
+Attack surface review.
+
+METHOD / ANSWER:
+Command: `ss -tuln`
+Explanation: Identifies exposed services.

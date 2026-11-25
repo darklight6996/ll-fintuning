@@ -1,0 +1,33 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+PORTAL.WWV_HTP.CENTERCLOSE
+ORASSO.HOME
+WWC_VERSION.GET_HTTP_DATABASE
+_INFO
+An attacker should pick one of these functions that is actually
+available on the target system (i.e., returns a 200 OK when re-
+quested). As a test, an attacker can request
+http:/server.example.com/pls/dad/orasso.home?FOO=BAR
+the server should return a “404 File Not Found” response because
+the orasso.home procedure does not require parameters and one
+has been supplied. However, before the 404 is returned, the fol-
+lowing PL/SQL is executed:
+if ((owa_match.match_pattern(‘orasso.home’ simple_
+list__, complex_list__, true))) then
+rc__ :=2;
+else
+null:
+orasso.wpg_ session. init();
+orasso.home(FOO=>:FOO);
+Note the presence of FOO in the attacker's query string. Attackers
+can abuse this to run arbitrary SQL. First, they need to close the
+brackets:
+http:/server.example.com/pls/dad/orasso.home?);--=BAR
+This results in the following PL/SQL being executed:
+orasso.home();--=>:);--);
+Note that everything after the double minus (--) is treated as a
+comment. This request will cause an internal server error because
+one of the bind variables is no longer used, so

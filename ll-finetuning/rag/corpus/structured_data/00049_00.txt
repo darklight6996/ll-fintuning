@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What are the steps to exploit the ADCS environment?
+
+CONTEXT:
+Context: Post-Compromise ADCS Enumeration. You have access to the domain (e.g., as `ca_svc`) and want to audit the Certificate Services for misconfigurations.
+Principle to Apply: 'With domain access, enumerate ADCS to find misconfigured certificate templates that allow unauthorized enrollment or privilege escalation.'

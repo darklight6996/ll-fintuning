@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify CloudTrail enabled.
+
+CONTEXT:
+Audit logging review.
+
+METHOD / ANSWER:
+Command: `aws cloudtrail describe-trails`
+Explanation: Confirms API activity logging.

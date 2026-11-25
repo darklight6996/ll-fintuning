@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify process ownership.
+
+CONTEXT:
+Privilege abuse audit.
+
+METHOD / ANSWER:
+Command: `ps aux`
+Explanation: Identifies abnormal privileged processes.

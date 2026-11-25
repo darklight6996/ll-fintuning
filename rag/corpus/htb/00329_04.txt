@@ -1,0 +1,1 @@
+where an authenticated user requests a ticket for a service by it’s SPN, and the ticket that comes back is encrypted with the password of the user associated with that service. If that password

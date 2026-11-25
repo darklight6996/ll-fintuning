@@ -1,0 +1,1 @@
+33113b5dc0 13|axel|9347f9724ca083b17e39555c36fd9007 14|kristel|6896ba7b11a62cacffbdaded457c6d92 15|0xdf|465e929fc1e0853025faad58fc8cb47d I’ll note that one of the users is rosa (who has a system account on Chemistry). Just looking at the hashes, they are 32 hex characters, so likely MD5s. I

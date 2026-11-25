@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you retrieve environment variables?
+
+CONTEXT:
+You have access to Azure functions or web apps.
+
+METHOD / ANSWER:
+Command: `az webapp config appsettings list --name <app_name> --resource-group <resource_group>`
+Purpose: Lists environment variables.

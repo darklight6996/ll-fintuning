@@ -1,0 +1,26 @@
+METHOD / ANSWER:
+-sf <filename> write result to <filename> inst
+-e, --encryption select encryption parameters
+-e <a>[<m>]|<m>[<a>] specify an encryption algori
+-e none do not encrypt data before emb
+-z, --compress compress data before embeddin
+-z <l> using level <l> (1 best speed
+-Z, --dontcompress do not compress data before
+-K, --nochecksum do not embed crc32 checksum o
+-N, --dontembedname do not embed the name of the
+-f, --force overwrite existing files
+-q, --quiet suppress information messages
+-v, --verbose display detailed information
+extracting options:
+-sf, --stegofile select stego file
+-sf <filename> extract data from <filename>
+-p, --passphrase specify passphrase
+-p <passphrase> use <passphrase> to extract da
+-xf, --extractfile select file name for extracte
+-xf <filename> write the extracted data to <f
+-f, --force overwrite existing files
+-q, --quiet suppress information messages
+-v, --verbose display detailed information
+options for the info command:
+-p, --passphrase specify passphrase
+-p <passphrase> use <passphrase> to get info

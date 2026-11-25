@@ -1,0 +1,5 @@
+sponse code denotes
+nonexistence of the directory or file, while a 403 indicates its existence but
+with restricted access. It is advisable to scrutinize 403 pages meticulously to
+determine if there's a possibility to circumvent the security measures and
+access the information housed therein.

@@ -1,0 +1,1 @@
+Review threat intelligence for current vulnerabilities in Azure.

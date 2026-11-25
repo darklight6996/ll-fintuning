@@ -1,0 +1,1 @@
+|__ | |___ | \ | \ | \__, \__/ / \ | |__/ |___ by Ben "epi" Risher 🤓 ver: 2.9.3 ───────────────────────────┬────────────────────── 🎯 Target Url │ http://auth.comprezzor.htb 🚀 Threads │ 50 📖 Wordlist │ /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt 👌 Status Codes │ All Status Codes! 💥 Timeout (secs) │ 7

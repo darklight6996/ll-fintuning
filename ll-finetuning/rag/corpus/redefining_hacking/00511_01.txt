@@ -1,0 +1,18 @@
+METHOD / ANSWER:
+that there is not a vulnerability. Sometimes it is possible to access ports that
+are not exposed to the network via SSH port forwarding and other tricks. It
+is still important to run a credentialed scan when possible.
+Authenticated Scans
+In some cases, it is best to run a credentialed (or authenticated) scan against
+a target to get a full picture of the attack surface. An authenticated scan
+requires you to provide the scanner with a set of credentials that have root-
+level access to the system. The reason for this is that the scanner actually
+logs in to the target via SSH or some other mechanism. It then runs
+commands like netstat to gather information from inside the host. Many of
+the commands that the scanner runs require root-level access to be able to
+gather the correct information from the system.
+Example 9-43 shows the netstat command run by a nonprivileged user
+(omar) and then run again by a root user in Example 9-44. You can see that
+the output is different for the different user-level permissions. Specifically,
+notice that when running as the user omar, the PID/Program name is not
+available, and when running as the user root, that information is displayed.

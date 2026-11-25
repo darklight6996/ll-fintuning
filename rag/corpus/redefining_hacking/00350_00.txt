@@ -1,0 +1,13 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+You can also perform context preparation by doing information density
+optimization. This process involves prioritizing sentences or passages with
+high information content or removing redundant or less relevant
+information (see Figure 8-6).

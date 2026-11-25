@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+4. Prioritize and Contextualize
+A. Highlight the most critical vulnerabilities first, especially those that pose
+an immediate risk. Doing so helps the organization focus on addressing the
+most pressing issues.
+B. Provide context by explaining how each vulnerability could be exploited
+and the potential impact on the organization.
+C. Include evidence. Attach any relevant evidence, such as screenshots, log
+files, or proof-of-concept code, to substantiate your findings. Taking this
+step adds credibility to your report and helps the organization understand
+the issue better.
+5. Maintain Professionalism
+A. Maintain a professional and respectful tone throughout your
+communication. Avoid accusations or finger-pointing because your goal is
+to collaborate with the organization, not antagonize them.
+B. Be prepared to answer questions or provide clarifications promptly and
+courteously.
+6. Follow Secure Communication Practices
+A. Ensure that you use secure channels for communication, especially when
+sharing sensitive information. Encrypt emails or use secure messaging

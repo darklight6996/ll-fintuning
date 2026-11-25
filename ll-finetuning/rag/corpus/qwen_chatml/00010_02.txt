@@ -1,0 +1,34 @@
+**OTG-AUTHN-008: Weak Security Questions**
+- Answers discoverable via OSINT
+- Limited answer space
+- Case-insensitive comparison
+
+**OTG-AUTHN-009: Password Reset Functionality**
+- **Token Generation**: Cryptographically secure? Length? Entropy?
+- **Token Delivery**: Email only? SMS? In-band?
+- **Token Validation**:
+  - One-time use?
+  - Expiration (1hr max)?
+  - Rate limiting on validation endpoint?
+  - Case sensitivity?
+  - Token in URL vs POST body?
+- **Host Header Injection**: Reset link with attacker domain
+- **Username/Email Enumeration**: Different responses for valid/invalid
+
+**OTG-AUTHN-010: Weaker Auth in Alternative Channel**
+- Mobile API, legacy endpoints, backup codes
+- SSO/SAML/OIDC misconfigurations
+- Impersonation features
+
+**Phase 2: Session Management Testing (OTG-SESS)**
+
+**OTG-SESS-001: Bypassing Session Schema**
+- Session fixation: Set known session ID, login, verify same ID
+- Session donation: Attacker creates session, victim uses it
+
+**OTG-SESS-002: Cookie Attributes**
+- `Secure` (HTTPS only)
+- `HttpOnly` (no JS access)
+- `SameSite: Strict/Lax` (CSRF protection)
+- `Domain`/`Path` scope
+- `__Host-` / `__Secure-` prefixes

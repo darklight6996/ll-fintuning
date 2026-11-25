@@ -1,0 +1,1 @@
+rbx,0x1) [------------------------------------------------------------------------------] Legend: code , data , rodata , value Breakpoint 1, 0x0000000000400895 in main () About 2/3 of the way down, I can see that I’m at a call to strcmp and that the guessed

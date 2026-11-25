@@ -1,0 +1,1 @@
+ed context to modify target user credentials.** If you had different tools (e.g., `net` from a shell, `Set-ADAccountPassword` from PowerShell), the command changes, but the goal (password reset) and required permissions remain the same.

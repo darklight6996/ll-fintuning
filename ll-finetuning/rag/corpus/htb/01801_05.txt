@@ -1,0 +1,1 @@
+enticated [.] Creating malicious app bundle... [+] Created malicious app bundle in: /tmp/tmpwvtxfq84.tar [+] Started HTTP server for remote mode [.]

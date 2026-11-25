@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you authenticate using service principals?
+
+CONTEXT:
+You have identified service principal credentials.
+
+METHOD / ANSWER:
+Command: `az login --service-principal -u <app_id> -p <password> --tenant <tenant_id>`
+Purpose: Authenticates to access resources.

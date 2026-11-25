@@ -1,0 +1,14 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+on the left is the attacking system (C2 server), and the terminal window on
+the right is the victim (client).
+Figure 6-9 The TrevorC2 Framework
+The C2 Matrix

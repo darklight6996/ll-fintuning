@@ -1,0 +1,22 @@
+**Phase 2: SOC 2 Type II Assessment (Trust Services Criteria)**
+- **Common Criteria (CC) - Security**:
+  - **CC1.1-CC1.5**: Control Environment
+    - Org structure, authority, competence, accountability
+    - Evidence: Org charts, job descriptions, background checks
+  - **CC2.1-CC2.3**: Communication & Information
+    - Policy distribution, exception reporting, whistleblower
+    - Evidence: Policy acknowledgments, incident reports
+  - **CC3.1-CC3.4**: Risk Assessment
+    - Annual risk assessment, threat modeling, vendor risk
+    - Tools: `aws config`, `prowler`, `scoutsuite`, `riskoptics`
+  - **CC4.1-CC4.2**: Monitoring Activities
+    - Continuous monitoring, management review
+    - SIEM: Splunk, Elastic, Datadog, Panther
+  - **CC5.1-CC5.3**: Control Activities
+    - Policy implementation, technology controls, segregation
+  - **CC6.1-CC6.8**: Logical & Physical Access
+    - **CC6.1**: Identity management (Okta, Azure AD, AWS IAM)
+    - **CC6.2**: Credential management (MFA, rotation, vault)
+    - **CC6.3**: Network segmentation (VPC, SG, NACL, TGW)
+    - **CC6.4**: Access reviews (quarterly, automated via `cloudcustodian`)
+    - **CC6.5**: Privileged access (PAM, break-glass, sessi

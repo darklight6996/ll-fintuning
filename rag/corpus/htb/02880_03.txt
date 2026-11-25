@@ -1,0 +1,1 @@
+10.10.14.6 > 10.10.11.204: ICMP echo reply, id 2, seq 1, length 64 Shell Failures This is blind execution (the response is just a 500 error, without the output of the result). I’ll try a bash reverse shell , but with the special characters in that, it’s likely to not work: There’s no connection at my nc listening on 443. I’ll

@@ -1,0 +1,7 @@
+score.values()) > 0 else 0
+    
+    return {
+        'primary': primary,
+        'confidence': confidence,
+        'scores': score
+    }

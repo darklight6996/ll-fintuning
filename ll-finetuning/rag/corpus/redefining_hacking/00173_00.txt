@@ -1,0 +1,27 @@
+TECHNIQUE / QUESTION:
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+• Come Prepared
+• Ensure you have your tools on hand.
+• Identify the best time and point of entry.
+• Be prepared to turn away and adapt to the situation as needed.
+• Record your timestamps for ingress and egress.
+• Have a colleague help support your pretext externally through text
+messages or fake emails.
+Most gear used to develop your persona can easily be picked up at local
+thrift stores, and it’s cheaper there as well.
+Physical Building Bypasses
+Using physical bypass tools is useful when badge cloning is not possible as
+well as social engineering. From REX sensors, under the door tools, shanks,
+and double door tools, there are tons of physical bypass tools you can
+leverage, allowing you to bypass any access control systems in place.
+For this chapter, we won’t cover every single physical bypass, but we will
+dive into the most common options to choose from. Sparrows
+(https://www.sparrowslockpicks.com/), Red Team Tools
+(https://redteamtools.com), and Physical Exploit

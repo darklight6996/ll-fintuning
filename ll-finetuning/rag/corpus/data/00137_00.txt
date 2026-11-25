@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Review Azure Storage accounts for misconfigurations.
+
+CONTEXT:
+Audit storage accounts for public accessibility.
+
+METHOD / ANSWER:
+Command: `az storage account list --output table`
+Purpose: List storage accounts and check their public access settings.

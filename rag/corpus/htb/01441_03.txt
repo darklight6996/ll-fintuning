@@ -1,0 +1,1 @@
+({ success : true }); } }); }); }); }; The server is ldap.corporate.htb : const ldapConfig = { server : " ldaps://ldap.corporate.htb " , }; That continues the theme of using the same password both for auth to the

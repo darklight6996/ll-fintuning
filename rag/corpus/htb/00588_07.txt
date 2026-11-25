@@ -1,0 +1,1 @@
+:True ) ( SMBv1:False ) SMB 10.10.11.222 445 AUTHORITY [+] authority.htb\svc_pwm:pWm_@dm!N_!23 SMB 10.10.11.222 445 AUTHORITY

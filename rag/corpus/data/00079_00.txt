@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What follow-up command do you use to gather detailed service information?
+
+CONTEXT:
+You want to get information about the services running on open ports.
+
+METHOD / ANSWER:
+Command: `nmap -p 21,53,88,135,139,389,445,464,593,636,3268,3269,5985 -sCV 10.10.11.42`
+Explanation: This command performs service version detection on the specified open ports.

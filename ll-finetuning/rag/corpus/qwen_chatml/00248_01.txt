@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+by compromising legitimate distribution websites.
+The backdoor can be designed to activate when the application starts or
+upon a specific user action. For instance, the reverse shell could be initiated
+when the user opens a specific menu item or document. Some of these
+backdoors can be challenging to detect, especially if the modifications are
+subtle and well hidden. Understanding these techniques is crucial for
+defenders to implement proper security measures, such as code reviews,
+binary analysis, and behavior monitoring, to identify and mitigate such
+threats.
+Supply Chain Backdoors
+A supply chain backdoor refers to a malicious modification of a software
+application or library at some point in its development or distribution
+process, often unbeknownst to the end users. You can embed a backdoor in
+an open-source project by adding extra code that checks for specific triggers
+or commands. This type of attack leverages the trust that users place in
+legitimate software providers, aiming to insert malicious code into software
+that is widely distributed and used. One particularly insidious method is
+embedding a backdoor in an

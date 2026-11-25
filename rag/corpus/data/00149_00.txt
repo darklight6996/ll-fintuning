@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Connect to SMB shares with guest credentials.
+
+CONTEXT:
+Use netexec to enumerate shares.
+
+METHOD / ANSWER:
+Command: `netexec smb CICADA-DC --shares`
+Purpose: To identify accessible shares on the target.

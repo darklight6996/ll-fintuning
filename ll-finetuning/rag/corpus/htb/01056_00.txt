@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from Htb Calamity Hacks Stuff)
+
+CONTEXT:
+Source: Htb Calamity Hacks Stuff
+Section: Writeup

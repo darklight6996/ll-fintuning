@@ -1,0 +1,19 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 11-2 High-Level Building Blocks of an Automated Recon System
+Figure 11-2 represents the architecture of the building blocks for an
+automated system to automate reconnaissance and vulnerability in bug
+bounty programs.
+The platforms table represents the various bug bounty platforms such as
+Bugcrowd, HackerOne, and similar platforms. The following are the
+platforms fields:
+• id: A unique identifier for each platform (primary key)
+• name: The name of the platform (such as Bugcrowd, HackerOne)

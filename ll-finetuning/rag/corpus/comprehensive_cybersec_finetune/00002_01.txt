@@ -1,0 +1,24 @@
+3. **ESC2 Exploitation**
+   - Template allows enrollment + Any Purpose EKU (no Client Auth restriction)
+   - Can request cert for any purpose including Client Auth
+   - Same request process as ESC1
+
+4. **ESC3 Exploitation**
+   - Certificate Request Agent template
+   - Request cert on behalf of another user
+   - `certipy req -u <user> -p <pass> -ca <CA> -template <TEMPLATE> -on-behalf-of <target_user>`
+
+5. **ESC4 Exploitation**
+   - Vulnerable template configuration (e.g., low-priv users can modify template)
+   - Modify template to add Client Auth EKU, then exploit as ESC1
+
+6. **ESC16 Exploitation (SAN Spoofing via UPN)**
+   - Template allows SAN specification via UPN parameter
+   - `certipy req -u <user> -hashes <hash> -ca <CA> -template <TEMPLATE> -upn administrator@<domain>`
+
+7. **Post-Exploitation**
+   - Use obtained certificate for PKINIT auth
+   - Extract NTLM hash for Pass-the-Hash
+   - Request TGT for further Kerberos attacks
+
+Remediation: Restrict enrollment rights, remove Client Auth EKU from non-user templates, disable SAN specification by requesters, implement CA certificate manager approval.

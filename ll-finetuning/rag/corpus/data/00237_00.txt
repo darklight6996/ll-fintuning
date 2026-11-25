@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check package signatures.
+
+CONTEXT:
+Supply chain security.
+
+METHOD / ANSWER:
+Command: `apt-key list`
+Explanation: Verifies trusted repositories.

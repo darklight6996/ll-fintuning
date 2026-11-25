@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check sudo command usage.
+
+CONTEXT:
+Privileged activity review.
+
+METHOD / ANSWER:
+Command: `grep sudo /var/log/auth.log`
+Explanation: Audits sudo command execution.

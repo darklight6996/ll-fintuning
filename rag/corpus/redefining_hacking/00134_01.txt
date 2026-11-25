@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+Evilginx3
+For the phishing landing page, you will use Evilginx3 by Kuba Gretzky
+(@kgretzky). Evilginx3 is a man-in-the-middle framework that allows you
+to capture credentials and session cookies associated with a user. With the
+cookies, you can bypass multifactor authentication (MFA). The tool utilizes
+phishlets, consisting of a configuration file in YAML targeting your site of
+choice to capture the end user’s data through MiTM traffic.
+A few vital terms we will reference during this section are defined as
+follows:
+• Phishlets: Configuration files tailored to your targeted site for phishing.
+• Lures: Phishing links created from the phishlets that can be customized
+with paths, redirectors, OpenGraph options, and other options.
+• Redirectors: The site a user sees before the actual landing page to force
+user interaction and hide your actual phishlet from scanners on the Internet.
+• Sessions: Credentials and session cookies captured during the
+authentication process.
+• Blacklist: Feature that enables you to block specific source IPs or
+unauthorized requests from hitting your server. It is best to collect source
+IPs from email filters to have a large-scale list for bloc

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you escalate privileges to root using the Backdrop CMS management tool?
+
+CONTEXT:
+You are logged in as Developer with permission to run bee.
+
+METHOD / ANSWER:
+Command: `bee eval 'system("whoami")'`
+Explanation: Executes the command as root, allowing you to gain elevated privileges.

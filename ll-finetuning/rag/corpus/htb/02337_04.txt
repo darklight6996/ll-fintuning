@@ -1,0 +1,1 @@
+hacky$ echo "It worked!" > test.html oxdf@hacky$ curl --proxy 'http://lance.friedman:o>WJ5-jD<5^m3@10.10.11.131:3128' http://10.10.14.6/test.html It worked! At the Python webserver it’s clear that the request is coming from Flustered:

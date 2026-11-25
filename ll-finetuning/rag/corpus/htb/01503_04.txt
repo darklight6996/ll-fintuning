@@ -1,0 +1,1 @@
+k_cli gather_facts: false hosts: all tasks: - name: Add the user 'hank' with default password and make it a member of the 'admins' group user: name: hank shell: /bin/bash password: $6$e20D6nUeTJOIyRio$A777Jj8tk5.sfACzLuIqqfZOCsKTVCfNEQIbH79nZf09mM.Iov/pzDCE8xNZZCM9MuHKMcjqNUd8QUEzC1CZG/ groups: admins append: yes This playbook creates a user, and there’s a password hash. Cracking

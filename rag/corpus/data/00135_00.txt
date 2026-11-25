@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Gather Azure App Service configurations.
+
+CONTEXT:
+You've accessed services running in App Service.
+
+METHOD / ANSWER:
+Command: `az webapp show --name <app_name> --resource-group <resource_group>`
+Purpose: Retrieve configuration details that may expose vulnerabilities.

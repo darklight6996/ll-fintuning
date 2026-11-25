@@ -1,0 +1,4 @@
+68)**:
+  - Fast Flux (T1568.001), Domain Generation Algorithms (T1568.002)
+  - DNS Calculation (T1568.003)
+- **Non-Standard Port (T1571)**: `443`, `8080`, `8443`, `53`, `22`

@@ -1,0 +1,73 @@
+METHOD / ANSWER:
+v4 Authors
+Testing Guide Frontispiece
+» Matteo Meucci
+» Pavol Luptak
+» Marco Morana
+« Giorgio Fedon
+«» Stefano Di Paola
+« Gianrico Ingrosso
+« Giuseppe Bonfa
+» Andrew Muller
+» Robert Winkel
+» Roberto Suggi Liverani
+» Robert Smith
+« Tripurari Ral
+v4 Reviewers
+» Thomas Ryan
+= Tim Bertels
+= Cecil Su
+» Aung KhAnt
+» Norbert Szetei
+» Michael Boman
+» Wagner Elias
+= Kevin Horvat
+= Tom Brennan
+» Tomas Zatko
+» Juan Galiana Lara
+» Sumit Siddharth
+v3 Authors
+« Mike Hryekewicz
+» Simon Bennetts
+«» Ray Schippers
+« Raul Siles
+» Jayanta Karmakar
+« Brad Causey
+«» Vicente Aguilera
+« Ismael Goncalves
+« David Fern
+» Tom Eston
+» Kevin Horvath
+« Rick Mitchell
+» Babu Arokiadas
+» Rob Barnes
+» Ben Walther
+» Anant Shrivastava
+= Colin Watson
+» Luca Carettoni
+» Eoin Keary
+« Jeff Williams
+» Juan Manuel Bahamonde
+» Thomas Skora
+« Irene Abezgauz
+» Hugo Costa
+» Eduardo Castellanos
+» Simone Onofri
+» Harword Sheen
+« Amro AlOlagi
+» Suhas Desai
+» Ryan Dewhurst
+» Zaki Akhmad
+« Davide Danelon
+» Alexander Antukh
+» Thomas Kalamaris
+» Alexander Vavousis
+« Christian Heinrich
+v3 Reviewers
+» Davide Danelon
+» Andrea Rosignoli
+« Irene Abezgauz
+» Lode Vanstechelman
+» Sebastien Gioria
+« Yiannis Pavlosoglou
+» Anura

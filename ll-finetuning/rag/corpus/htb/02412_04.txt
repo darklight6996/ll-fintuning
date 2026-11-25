@@ -1,0 +1,1 @@
+il file. It contains an email: fortune$ cat /home/charlie/mbox From bob@fortune.htb Sat Nov 3 11:18:51 2018 Return-Path: <bob@fortune.htb> Delivered-To: charlie@fortune.htb Received: from localhost (fortune.htb

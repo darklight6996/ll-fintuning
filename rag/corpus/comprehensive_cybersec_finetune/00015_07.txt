@@ -1,0 +1,3 @@
+CreateAccessKey, PassRole)
+  - Azure: PIM, Managed Identity, App Registration, Automation Account
+  - GCP: Service Account Impersonation, Workload Identity, IAM Conditions

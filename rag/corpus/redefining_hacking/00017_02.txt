@@ -1,0 +1,7 @@
+re
+was a lack of standardized methodology, with a focus on improvisation and
+creativity to achieve success. Anderson’s framework, which he outlined in
+his “Computer Security Technology Planning Study,” paved the way for
+future frameworks to follow (see Figure 1-1). Helping to standardize the
+methodology, Penetration Testing Execution Standard (PTES) and Open
+Web Application Security Project (OWASP) Testing guide emerged. These

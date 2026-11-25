@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+Example 9-31 shows how to run a TCP SYN scan using Nmap by
+specifying the -sS option against a host with the IP address 192.168.88.251.
+As you can see, this system has several ports open. In some situations, you
+will want to use the many different Nmap options in your scans to get the
+results you’re looking for. The sections that follow take a look at some of
+the most common options and types of scans available in Nmap.
+Nmap allows you to adjust the timing of your scans to trade off between
+speed and being detected by a security operations center (SOC) tool. For
+example, you can use
+• -T0 (Paranoid): This option makes the scan very slow to evade detection
+by an intrusion detection systems (IDS).
+• -T1 (Sneaky): This option is a bit faster than T0 but still quite slow,
+aiming to avoid detection.
+• -T2 (Polite): This option slows down the scan to use less bandwidth and
+target machine resources.
+• -T3 (Normal): This option uses the default timing template that does not
+include any particular delays.
+• -T4 (Aggressive): This option increases the speed of the scan, potentially
+missing some targets or details.

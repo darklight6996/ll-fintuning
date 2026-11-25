@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+Post-exploitation activities often involve techniques that bypass signature-
+based detection systems. Blue teams learn to focus on behavioral analysis to
+identify anomalies in user activities, network traffic, and system processes.
+Exposure to sophisticated post-exploitation tactics encourages blue teams to
+deploy and fine-tune advanced monitoring tools, such as security
+information and event management (SIEM) systems, endpoint detection and
+response (EDR) solutions, extended detection and response (XDR), and
+network detection and response (NDR) tools.
+Exploring XDRs
+XDR systems represent the evolution of traditional security solutions by
+providing a unified, holistic approach to threat detection and response. In
+the past, we ran siloed security tools that operate independently. XDR
+integrates data from multiple sources including endpoints, networks, cloud
+workloads, email systems, and identity management platforms. The power
+of XDR lies in its ability to automatically correlate and analyze security
+events across different security layers, providing context-rich alerts that
+help security teams understand the full scope of potential threats. XDR
+platforms can automa

@@ -1,0 +1,28 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+The best way to blend in as an adversary is to look like a normal company
+by
+• Using aged and categorized domains
+• Deploying a cloud instance
+• Leveraging M365 for sending emails
+• Making the email believable
+• Performing post-exploitations with the data collected
+Infrastructure
+Many cloud providers, including Digital Ocean and Azure, can deploy
+virtual instances in the cloud to host your infrastructure. It is important to
+note that you must review any necessary legal information with the cloud
+provider you choose prior to deploying anything for an engagement to
+ensure your infrastructure is not burned. Additionally, you must be
+authorized to use these providers for engagements.
+Security Settings
+On whichever cloud provider you choose, you should configure access to
+allow 80 (HTTP)/443 (HTTPS) open to the world and 22 (SSH) open to
+only your IP. Do not open SSH to the world from your instance. The list that

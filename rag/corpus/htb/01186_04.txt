@@ -1,0 +1,1 @@
+: " { allPlants { id, location, status } } " }) }). then ( r => r . json ()). then ( r => r . data . allPlants . forEach ( d => document . getElementById ( ' opstatus ' ). innerHTML += `<tr><th scope="row"> ${ d

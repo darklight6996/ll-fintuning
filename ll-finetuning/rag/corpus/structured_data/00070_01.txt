@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: RBAC Permission Analysis.
+**Core Principle**: Azure permissions are granted through RBAC role assignments (like "Contributor," "Owner," "Key Vault Secrets Officer") scoped to management groups, subscriptions, resource groups, or individual resources.
+**Actionable Steps**:
+1.  **Comprehensive Role Assignment Review**: `az role assignment list --output json` (or `--query` for filtering)
+    *   **Reasoning**: Lists all role assignments within your scope. This reveals potentially dangerous configurations like service principals with overly broad permissions (e.g., "Owner" at subscription level), user assignments to high-privilege roles, or external identities with access.
+**Guidance for Novel Context**: Analyze for common misconfigurations: "Owner" or "Contributor" roles assigned too broadly, user accounts (not groups) assigned roles, external guests with elevated permissions. Use tools like `ScoutSuite`, `Prowler`, or `Stormspotter` for automated RBAC analysis.

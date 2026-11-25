@@ -1,0 +1,1 @@
+at’s used to create a unicode string, and then passed to NtUnloadDriver . Of course, this doesn’t clean up after a driver that’s been installed in a nonstandard location. For example, I loaded the driver to: \Registry\User\S-1-5-21-2633719317-1471316042-3957863514-1104\System\CurrentControlSet\dfserv Still, it will help clean up after people going the default route.

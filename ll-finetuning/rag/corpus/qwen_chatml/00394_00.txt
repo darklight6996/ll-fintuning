@@ -1,0 +1,38 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+probes: encoding.InjectBase2048
+probes: encoding.InjectBase32
+probes: encoding.InjectBase64
+probes: encoding.InjectBraille
+probes: encoding.InjectHex
+probes: encoding.InjectMime 💤
+probes: encoding.InjectMorse
+probes: encoding.InjectQP 💤
+probes: encoding.InjectROT13
+probes: encoding.InjectUU
+probes: gcg 🌟
+probes: gcg.GCG_Probe
+probes: glitch 🌟
+probes: glitch.Glitch 💤
+probes: glitch.Glitch100
+probes: goodside 🌟
+probes: goodside.Davidjl
+probes: goodside.Tag
+probes: goodside.ThreatenJSON
+probes: goodside.WhoIsRiley
+probes: knownbadsignatures 🌟
+probes: knownbadsignatures.EICAR
+probes: knownbadsignatures.GTUBE
+probes: knownbadsignatures.GTphish
+probes: leakreplay 🌟
+probes: leakreplay.GuardianCloze
+probes: leakreplay.GuardianComplete
+probes: leakreplay.LiteratureCloze 💤

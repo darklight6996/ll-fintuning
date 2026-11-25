@@ -1,0 +1,15 @@
+**Section 3: Findings Summary / Risk Dashboard**
+- **Risk Rating Matrix**:
+  | Severity | CVSS 4.0 | Business Impact | Timeline |
+  |----------|----------|-----------------|----------|
+  | Critical | 9.0-10.0 | Immediate breach, data loss, ransomware | 24-48 hrs |
+  | High     | 7.0-8.9  | Significant access, privilege escalation | 1-2 weeks |
+  | Medium   | 4.0-6.9  | Limited access, info disclosure | 30 days |
+  | Low      | 0.1-3.9  | Minimal impact, defense-in-depth | 90 days |
+  | Info     | 0.0      | No direct risk, hygiene | Next cycle |
+- **Summary Table**:
+  | ID | Title | Severity | CVSS | Asset | Status |
+  |----|-------|----------|------|-------|--------|
+  | PT-001 | SQLi in Customer Portal | Critical | 9.8 | web-app-01 | Open |
+  | PT-002 | Weak SSH Config | Medium | 5.3 | linux-srv-05 | Open |
+- **Statistics**: Total findings by severity, category, asset type

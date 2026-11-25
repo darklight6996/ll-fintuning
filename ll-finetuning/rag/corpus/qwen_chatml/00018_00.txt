@@ -1,0 +1,15 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain how to conduct a compliance assessment for PCI DSS requirements in a payment card environment.
+
+Context:
+You are assessing an organization that processes credit card payments. Describe the systematic approach to validate PCI DSS v4.0 compliance across all 12 requirements.
+assistant
+PCI DSS v4.0 Compliance Assessment Methodology:
+
+**Phase 1: Scope Definition (Requirement 1)**
+- Identify all system components in Cardholder Data Environment (CDE)
+- Network segmentation validation: `nmap -sS -p- <CDE_RANGE>`
+- Verify segmentation controls isolate CDE from non-CDE
+- Document scope with network diagrams, data flow diagrams

@@ -1,0 +1,29 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+http://iharder.sourceforge.net/current/macosx/image
+Options:
+Name Required Value Description
+---- -------- ------- -----------
+TempDir True /tmp/ Temporary directory to dro
+ImageSnap binary and picture.
+Agent True Agent to execute m
+(Empire: python/collection/osx/webcam) >
+BloodHound
+You can use a single-page JavaScript web application called BloodHound
+that uses graph theory to reveal the hidden relationships in a Windows
+Active Directory environment. An attacker can use BloodHound to identify
+numerous attack paths. Similarly, incident response teams can use
+BloodHound to detect and eliminate those same attack paths. You can
+download BloodHound from the following GitHub repository:
+https://github.com/SpecterOps/BloodHound.
+Note
+You can also use BloodHound to find complex attack paths
+in Microsoft Azure.

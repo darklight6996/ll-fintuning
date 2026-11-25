@@ -1,0 +1,16 @@
+METHOD / ANSWER:
+Depending on the persona of choice, you may or may not need to stand up
+infrastructure. If you choose to stand up a landing page, you can find
+instructions for standing up infrastructure for social engineering campaigns
+in the “Spear Phishing: Time to Reel In Your Target” section later in this
+chapter. You can leverage spear phishing scenarios alongside phone
+pretexting to coerce users to carry out whichever action you are looking for
+them to carry out, including having a target visit a phishing landing page
+that you control or downloading a payload on their machine.
+When you gather information on potential targets, you can prepare and
+organize your targets in a manner as outlined in Table 5-1. Documenting
+and organizing your data as you go are crucial from a reporting standpoint.
+Table 5-1 Documenting Phone Pretexting Data
+Preparing Pretext
+The best way to find employees from an organization is through LinkedIn
+using a sock puppet account. You can also gather talking points from an

@@ -1,0 +1,10 @@
+Context:
+Context: Active Directory Post-Compromise. You have obtained high-privileged domain credentials or compromised a Domain Controller.
+Principle to Apply: 'With appropriate permissions, extract the entire domain credential database for offline analysis and further attacks.'
+assistant
+**Assessment Phase**: Domain Credential Extraction.
+**Core Principle**: The `ntds.dit` file contains all domain user password hashes. With `Replicating Directory Changes` permissions, this can be extracted remotely via DCSync.
+**Actionable Steps**:
+1.  **Extract Domain Hashes**: Use Mimikatz (`lsadump::dcsync`) or Impacket's `secretsdump.py` with appropriate credentials.
+    *   **Reasoning**: These tools simulate domain replication to request and extract password hashes for all domain users from the Domain Controller. This provides material for Pass-the-Hash attacks, credential cracking, or Golden Ticket creation.
+**Guidance for Novel Context**: DCSync requires specific permissions (usually Domain Admins or equivalent). If you lack these, you may need to first compromise an account with these rights via other means. On a compromised DC directly, you can dump the `ntds.dit` and `SYSTEM` hive loca

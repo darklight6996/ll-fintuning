@@ -1,0 +1,21 @@
+METHOD / ANSWER:
+• Domain enumeration
+• Packet capturing and eavesdropping
+• Open-source intelligence (OSINT)
+Understanding OSINT
+Open-source intelligence (OSINT) refers to the process of collecting and
+analyzing publicly available information from different sources. In the
+context of bug bounty programs, OSINT serves as a powerful tool for
+security researchers to gather data and identify potential vulnerabilities in a
+target system. Leveraging OSINT can help in painting a comprehensive
+picture of the target’s security posture, ultimately aiding in effective
+vulnerability identification and exploitation.
+Tip
+I have compiled an extensive list of OSINT tools and
+resources in my GitHub repository. I continuously update
+this repository to include the latest resources available. You
+can access it at https://github.com/The-Art-of-
+Hacking/h4cker or at hackerrepo.org. I highly recommend
+bookmarking this link to stay informed of the most up-to-
+date tools and techniques that can significantly augment your
+bug bounty reconnaissance activities. Another great resource

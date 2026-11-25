@@ -1,0 +1,1 @@
+from Invoker.java above to: return this . response . getContentAsString () + " from server" ; The “from server” string was a part of the error message now. Bypassing the client side check here didn’t help as the server was doing the same check. Understanding

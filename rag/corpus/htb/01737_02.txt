@@ -1,0 +1,1 @@
+to find the overflow. Some trial and error shows that $func4 is strcpy . This code calls strcpy to copy the date string onto the stack, then moves 48 bytes up the stack and calls strcpy to copy the name. As it’s an unsafe strcpy (which I can tell by trying it and verifying that there’s no length check), the username string writes into the date string.

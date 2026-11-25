@@ -1,0 +1,1 @@
+6), the same principle applies, but the scripts run will be for SSH, HTTP, and MySQL, yielding different kinds of intelligence. Always review the NSE script categories (`--script-help`) to choose the most relevant ones for your target.

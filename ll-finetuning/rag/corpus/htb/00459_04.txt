@@ -1,0 +1,1 @@
+ss In looking around the host, I’ll notice there are a bunch more ports listening than the three I can connect to from my host: *Evil-WinRM* PS C:\Users\devdoc\Documents> netstat -ano Active Connections Proto Local Address Foreign Address State PID TCP 0.0.0.0:80 0.0.0.0:0

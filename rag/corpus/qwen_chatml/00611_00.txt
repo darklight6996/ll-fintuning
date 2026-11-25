@@ -1,0 +1,18 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+bug hunters because it allows you to tailor AI models to recognize specific
+types of vulnerabilities or security issues unique to certain software or
+systems. By fine-tuning models with data from known vulnerabilities, you
+can improve the accuracy and relevance of your automated tools and
+potentially AI agents.
+Figure 11-10 shows the interface of Google Cloud's Vertex AI and its Colab
+Enterprise environment. This notebook is used for fine-tuning the Meta-
+Llama 3.1 8B-Instruct model.

@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Packet Inspection and Eavesdropping
+As a bug bounty hunter, you can use tools like Wireshark, tshark, and
+tcpdump to collect packet captures for packet inspection and
+eavesdropping. Anyone who has been involved with networking or security
+has at some point used these tools to capture and analyze traffic on a
+network. For a penetration tester, such tools can be convenient for
+performing passive reconnaissance. Of course, this type of reconnaissance
+requires either a physical or wireless connection to the target. If your
+concern is being detected, you are probably safer to attempt a wireless
+connection because this would not require you to be inside the building.
+Many times, a company’s wireless footprint bleeds outside its physical
+walls. As a penetration tester, you then have the opportunity to potentially
+collect information about the target and possibly gain access to the network
+to sniff traffic.
+Note
+The majority of bug bounty programs focus on external-
+facing assets, such as websites, APIs, mobile apps, and
+public cloud services. These systems are accessible over the
+Internet and can be tested by ethical hackers f

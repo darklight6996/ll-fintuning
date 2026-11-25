@@ -1,0 +1,1 @@
+e mapping between the target's IP and its fully qualified domain name (FQDN) before proceeding with domain-aware attacks.**

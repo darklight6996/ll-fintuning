@@ -1,0 +1,21 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+adopt a hybrid testing approach that combines manual testing with
+automated tools to provide a more comprehensive security assessment. In
+the following sections, we will explore the benefits and limitations of using
+AI in bug hunting.
+AI-Powered Automation in Bug Hunting
+You’ve probably heard the phrase "the sky's the limit." When it comes to
+using AI for bug bounty hunting, that statement couldn't be more accurate.
+The possibilities are amazing, and AI has the potential to revolutionize the
+way vulnerabilities are detected and exploited.
+Figure 11-1 illustrates a simplified hierarchy of how bug bounty workflow
+entities are related.

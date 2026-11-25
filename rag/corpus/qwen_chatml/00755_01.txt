@@ -1,0 +1,38 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+167
+Web Application Penetration Testing
+[-] ServerHello received
+[-] Sending Heartbeat
+[Vulnerable] Heartbeat response was 16384 bytes instead of 3!
+127.0.0.1:443 is vulnerable over TLSv1.0
+[-] Displaying response (lines consisting entirely of null bytes are
+removed):
+0000: 02 FF FF 08 03 01 53 48 73 FO 7C CA C1 D9 02 04
+SHs]].....
+0010: F2 1D 2D
+49 F5 12 BF 40 1B 94 D9 93 E4 C4 F4 FO
+0020: DO 42 CD 44 A2 59 00 02 96 00 00 00 01 00 02 00
+0060: 1B 00 1C 00 1D 00 1E 00 1F 00 20 00 21 00 22 00
+"
+0070: 23 00 24 00 25 00 26 00 27 00 28 00 29 00 2A 00
+#.$.%.8.(.).*.
+0080: 2B 00 2C 00 2D 00 2E 00 2F 00 30 00 31 00 32 00
+/ 0.1.2.
+0090: 33 00 34 00 35 00 36 00 37 00 38 00 39 00 3A 00
+3.4.5.6.7.8.9.:.
+00a0: 3B 00 3C 00 3D 00 3E 00 3F 00 40 00 41 00 42 00
+.<.=.>.?,@.A.B.
+OOb0: 43 00 44 00 45 00 46 00 60 00 61 00 62 00 63 00
+C.D.E.F...a.b.c.
+00c0: 64 00 65 00 66 00 67 00 68 00 69 00 6A 00 6B 00
+d.e.f.g.huij.k.
+OOdO: 6C 00 6D 00 80 00 81 00 82 00 83 00 84 00 85 00
+01a0: 20 CO 21 CO 22 CO 23 CO 24 CO 25 CO 26 CO 27 CO
+M$. %.8t
+01b0: 28 CO 29 CO 2A CO 2B CO 2C CO 2D CO 2E CO 2F CO
+(.).*.4..7/.
+01c0: 30 CO 31 CO 32 CO 33 CO 34 CO 35 CO

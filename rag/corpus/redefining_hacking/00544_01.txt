@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+docker-compose pull
+docker-compose -f docker-compose.yml --compatibility
+EXERCISE 9.3: API Documentation Standards and Specifications
+Task: Become familiar with API documentation standards and related
+resources.
+1. OpenAPI (Swagger): You can find information about OpenAPI on the
+OpenAPI Initiative website at https://www.openapis.org.
+2. API Blueprint: Learn about API Blueprint on the API Blueprint website
+at https://apiblueprint.org. You can find tools like Aglio on GitHub.
+3. RAML (RESTful API Modeling Language): You can find information
+about RAML on the RAML website at https://raml.org. Tools like
+RAML2HTML and API Designer are available on GitHub.
+4. GraphQL Documentation: You can find GraphQL documentation at
+https://graphql.org/learn. Learn about Apollo Server at
+https://www.apollographql.com/docs/apollo-server.
+5. WSDL (Web Services Description Language): WSDL is commonly
+used for SOAP-based web services. It defines the structure and methods of
+the web service, including input and output data types. SOAP-based
+services often generate documentation automatically from the WSDL file.

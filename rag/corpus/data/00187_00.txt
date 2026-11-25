@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify SSH root login disabled.
+
+CONTEXT:
+Remote access review.
+
+METHOD / ANSWER:
+Command: `sshd -T | grep permitrootlogin`
+Explanation: Confirms root SSH access is restricted.

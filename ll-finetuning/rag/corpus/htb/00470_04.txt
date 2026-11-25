@@ -1,0 +1,1 @@
+, it asks for a password: oxdf@parrot$ unzip backup.zip Archive: backup.zip creating: Active Directory/ [backup.zip] Active Directory/ntds.dit password: Generate/Crack Hash zip2john will provide a

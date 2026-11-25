@@ -1,0 +1,25 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+One of the primary uses of BloodHound is to identify
+potential attack paths that an attacker could exploit to
+escalate privileges or move laterally within the network. By
+identifying potential vulnerabilities and attack paths,
+BloodHound assists security professionals in strengthening
+the security posture of the AD environment by remedying
+identified issues.
+BloodHound is commonly used in red team operations to
+simulate sophisticated attacks on AD environments;
+however, it also can be used in some bug bounty
+engagements.
+BloodHound has three main components:
+• SharpHound: The data collector component, which gathers a multitude of
+data types from the target environments.
+• BloodHound Interface: The frontend interface where the data is
+visualized and analyzed. It provides various analytics and querying
+capabilities to understand complex relationships and identify attack paths.
+• Neo4j Database: The backend database where collected data is stored.
+BloodHound uses the Neo4j graph database to manage and query
+relationship data effectively.

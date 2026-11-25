@@ -1,0 +1,1 @@
+Look for unauthorized subdomains or misconfigurations.

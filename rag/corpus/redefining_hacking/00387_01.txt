@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+Clear Bug Bounty Programs
+Bug bounty platforms like HackerOne offer a "clear"
+program where only individuals who have undergone and
+cleared background checks are permitted to take part in the
+bug bounty. This additional scrutiny is mandated due to the
+highly sensitive nature of the systems involved. Only
+hackers who have met these stringent background check
+criteria can participate in these exclusive programs.
+Which one to use? Often, organizations at the early stages of developing a
+bug bounty initiative opt for private bug bounties as their preferred choice.
+This choice can be attributed to the controlled environment that private
+bounties offer, where access is limited to a select group of vetted and
+experienced researchers. This choice not only ensures a focused and
+efficient approach to identifying vulnerabilities but also allows you to learn
+about scope, support, and overall cost. You have a more conducive
+environment for thorough and meticulous rectification work before possibly
+transitioning to a public bounty program in the future.
+You can start a bug bounty program yourself or leverage bug bounty
+platform providers like HackerOne and Bugcrowd. Platform-bas

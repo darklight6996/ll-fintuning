@@ -1,0 +1,13 @@
+ass
+    
+    # SSL Certificate for vendor hints
+    try:
+        cert = ssl.get_server_certificate((target, 443))
+        if 'paloalto' in cert.lower() or 'panos' in cert.lower():
+            results['firewall']['vendor'] = 'paloalto'
+        if 'fortinet' in cert.lower() or 'fortigate' in cert.lower():
+            results['firewall']['vendor'] = 'fortinet'
+    except:
+        pass
+    
+    return results

@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+languages and cultural contexts is important to better understand and
+mitigate potential biases.
+You should leverage AI to automatically generate adversarial examples,
+complementing manual testing efforts. Doing so includes automated red
+teaming to improve model robustness against harmful behavior.
+You should also test AI systems that process various forms of input, such as
+images or audio, to identify novel risks before deployment.
+You should red team not only the AI models but also their underlying data
+infrastructure and interconnected tools to ensure all potential vulnerabilities
+are addressed. AI red teaming should be part of an ongoing effort to monitor
+and improve AI systems, adapting to new threats as they emerge.
+Tree of Attacks with Pruning (TAP)
+AI security researchers from Robust Intelligence (a company acquired by
+Cisco in 2024), in partnership with Yale University, created an automated
+adversarial machine learning technique that effectively bypasses the
+safeguards of advanced models. This technique is called the Tree of Attacks
+with Pruning (TAP) and uses two large language models to generate and
+iteratively refine malicious prompts. The Attacker LLM

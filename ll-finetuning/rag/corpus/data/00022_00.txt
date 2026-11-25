@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What initial credentials are provided for the penetration test?
+
+CONTEXT:
+The provided account is 'henry' with password 'H3nry_987TGV!'.
+
+METHOD / ANSWER:
+Command: `netexec smb DC01.tombwatcher.htb -u henry -p 'H3nry_987TGV!'`
+Explanation: Utilize these credentials to authenticate against the SMB service of the target, establishing your session with the Domain Controller.

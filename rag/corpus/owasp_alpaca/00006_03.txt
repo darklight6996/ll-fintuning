@@ -1,0 +1,19 @@
+, the Code Review Guide will tell
+you how to verify the security of your application’s source code,
+and this Testing Guide will show you how to verify the security of
+your running application. | highly recommend using these guides
+as part of your application security initiatives.
+Why OWASP?
+Creating a guide like this is a huge undertaking, requiring the ex-
+pertise of hundreds of people around the world. There are many
+different ways to test for security flaws and this guide captures
+the consensus of the leading experts on how to perform this test-
+ing quickly, accurately, and efficiently. OWASP gives like minded
+security folks the ability to work together and form a leading prac-
+tice approach to a security problem.
+The importance of having this guide available in a completely free
+and open way is important for the foundations mission. It gives
+anyone the ability to understand the techniques used to test for
+common security issues. Security should not be a black art or
+closed secret that only a few can practice. It should be open to all
+and not exclusive to security practitioners but also QA, Developers

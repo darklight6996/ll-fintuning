@@ -1,0 +1,1 @@
+s -L 'http://barrier.vl:9000/api/v3/admin/version/' -H 'Accept: application/json' {"detail":"Authentication credentials were not provided."} oxdf@hacky$ AUTHENTIK_API_TOKEN = MqL8GPTr7y4EDMWsp7gxb2YiKEzuNpLZ2QVia8HD4MLc93vgublgL5xQEvTc oxdf@hacky$ curl -s -L 'http://barrier.vl:9000/api/v3/admin/version/' -H 'Accept: application/json' -H "Authorization: Bearer

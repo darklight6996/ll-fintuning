@@ -1,0 +1,1 @@
+installing: [paul@blockblock oxdf-install]$ ls PKGBUILD shell.sh [paul@blockblock oxdf-install]$ cat shell.sh

@@ -1,0 +1,28 @@
+**Phase 4: Vulnerability Management (Requirements 5-6)**
+- **Req 5: Anti-Malware**
+  - Deploy on all CDE systems
+  - Automatic updates, periodic scans
+  - Audit logs retained 1 year
+- **Req 6: Secure Development**
+  - SDLC with security: threat modeling, code review
+  - OWASP Top 10 training for developers
+  - WAF for public apps: `modsecurity`, `cloudflare WAF`
+  - Patch management: critical within 30 days
+
+**Phase 5: Access Control (Requirements 7-8)**
+- **Req 7: Need-to-Know Access**
+  - Role-based access control (RBAC)
+  - Least privilege, default deny
+  - Quarterly access reviews
+- **Req 8: Identify & Authenticate**
+  - Unique IDs, no shared accounts
+  - MFA for all CDE access (Req 8.3, 8.4)
+  - MFA for remote access
+  - Password complexity: 12 chars, rotation 90 days
+  - Service accounts: managed, documented
+
+**Phase 6: Physical Security (Requirement 9)**
+- Facility entry controls, visitor logs
+- Media handling: secure storage, destruction
+- Device inventory, tamper-evident
+- POS device inspection

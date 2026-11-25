@@ -1,0 +1,21 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Performing Active Reconnaissance
+As mentioned earlier, with each step of the information-gathering phase, the
+goal is to gather additional information about the target. The act of
+gathering this information is called enumeration. So, let’s talk about what
+kind of enumeration you would typically be doing in a penetration test. In
+an earlier example, we looked at the enumeration of hosts exposed to the
+Internet by h4cker.org. External enumeration of hosts is usually one of the
+first things you would do in a penetration test. Determining the Internet-
+facing hosts of a target network can help you identify the systems that are
+most exposed. Obviously, having a device that is publicly accessible over
+the Internet opens it up to attack from malicious actors all over the world.
+After you identify those systems, you then need to identify which services
+are accessible. The device should be behind a firewall, allowing minimal
+exposure to the services it is running. Sometimes, however, services that are
+not expected are exposed. To determine this, you can run a port scan to
+enumerate the services that are running on the exposed ho

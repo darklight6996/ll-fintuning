@@ -1,0 +1,1 @@
+th = re . search ( r " CMD: cd /var/www/html(/uploads/[\w\-]+); " , resp . text ). group

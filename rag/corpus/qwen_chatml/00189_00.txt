@@ -1,0 +1,21 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+rewire the badge reader yourself, there is also a full guide at
+https://github.com/tweathers-sec/doppelganger?tab=readme-ov-file#diy-
+build.
+Once the firmware is configured, you have the ability to receive text
+messages on your phone when a badge credential has been picked up by
+your reconfigured badge reader. Notifications for badge cloning have
+stepped up the game because before you had to just hope you picked up the
+badge credentials.
+Figure 5-15 shows the interface of the tool and how you can access the
+credentials being read via the web page and have notifications sent to your
+phone.

@@ -1,0 +1,8 @@
+g and suggest
+pricing for our widgets.
+With our lack of data analytic skills, the most straightforward attack we
+thought of was reducing competitor pricing. This should result in
+suggesting lower prices, thus reducing profitability. We wrote a rough
+Python script to randomly reduce a competitor's price by 1–10 percent.
+Now we had to wait for them to tweak and train the model. I wish I could
+say it happened quickly, but we ended up waiting a week before they ran it

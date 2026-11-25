@@ -1,0 +1,1 @@
+Use endpoints that return useful user credentials.

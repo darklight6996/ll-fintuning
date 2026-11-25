@@ -49,7 +49,7 @@ def test_model_router_generate_passes_min_new_tokens_to_model_generate(monkeypat
     router.model_name = "Qwen/Qwen2.5-7B-Instruct"
     router.tokenizer = _FakeTokenizer()
     router.model = _FakeModel()
-    router.device = "cuda"
+    router.device = "cpu"
     router.max_new_tokens = 512
     router.max_input_tokens = 4096
 
@@ -87,7 +87,7 @@ def test_model_router_generate_omits_min_new_tokens_when_not_passed(monkeypatch)
     router.model_name = "Qwen/Qwen2.5-7B-Instruct"
     router.tokenizer = _FakeTokenizer()
     router.model = _FakeModel()
-    router.device = "cuda"
+    router.device = "cpu"
     router.max_new_tokens = 512
     router.max_input_tokens = 4096
 

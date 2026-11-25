@@ -1,0 +1,1 @@
+s read from the command line first and then from config files in lexical order. https://www.consul.io/docs/agent/options#configuration Looking at the command line for the running consul process shows that it’s running with both -config-dir and -config-file : developer@ambassador:/etc/consul.d$ ps auxww | grep consul root 1013

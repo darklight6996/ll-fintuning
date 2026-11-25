@@ -1,0 +1,1 @@
+rruns 0 frame 0 TX packets 38560 bytes 30718388 (30.7 MB) TX errors 0 dropped 0 overruns 0 carrier 0 collisions 0 root@kali# ssh -6 dom@dead:beef::250:56ff:feb9:3d9b

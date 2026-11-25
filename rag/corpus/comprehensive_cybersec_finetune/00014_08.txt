@@ -1,0 +1,24 @@
+**iOS**:
+- **Keychain Accessibility**: `kSecAttrAccessibleAlways`
+- **Pasteboard Monitoring**: `UIPasteboardChangedNotification`
+- **Screenshot Caching**: `applicationDidEnterBackground`
+- **URL Scheme Hijacking**: `CFBundleURLSchemes` collision
+- **Universal Link Takeover**: `apple-app-site-association`
+- **XPC Service Exploitation**: `NSXPCConnection`
+- **WebView Navigation**: `WKNavigationDelegate` bypass
+- **Keychain Item Sharing**: Access groups
+
+**Phase 5: Network & Communication Security**
+- **TLS/SSL**:
+  - Certificate validation (hostname, chain, expiration)
+  - Certificate pinning (leaf vs root, backup pins)
+  - TLS version (1.2+), cipher suites
+  - HSTS, HPKP (deprecated)
+- **Custom Protocols**:
+  - Proprietary encryption (avoid)
+  - Message signing/verification
+  - Replay protection (nonces, timestamps)
+- **Push Notifications**:
+  - FCM/APNs token handling
+  - Payload validation
+  - Silent push abuse

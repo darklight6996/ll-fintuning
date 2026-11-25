@@ -1,0 +1,20 @@
+**UHF (860-960 MHz) Testing**:
+- **EPC Gen2 / ISO 18000-6C**:
+  - `proxmark3> lf uhf` (limited)
+  - `rfidtool`, `uhf-reader`
+  - Kill password, Access password
+  - TID (Tag Identifier) uniqueness
+  - EPC memory bank
+- **Tools**: `ThingMagic`, `Impinj`, `Zebra` readers
+
+**NFC Relay Attacks**:
+- **Ghost & Leech**: `nfc-relay`, `proxmark3` HF sniff + emulate
+- **Payment Relay**: Apple Pay / Google Pay relay
+- **Tools**: `NFCGate`, `RelayAttack`, `Proxmark3`
+
+**Phase 4: Software Defined Radio (SDR) Testing**
+
+**Hardware**:
+- **Receive Only**: RTL-SDR (RTL2832U), Airspy, SDRplay
+- **Transmit Capable**: HackRF One, BladeRF, LimeSDR, PlutoSDR, USRP
+- **Antennas**: Discone, Log-periodic, Yagi, Loop, Dipole

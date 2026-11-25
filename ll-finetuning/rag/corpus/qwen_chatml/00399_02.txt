@@ -1,0 +1,5 @@
+literature to stay current. OpenResearcher
+uses AI to assist with tasks such as answering questions, summarizing
+research, and recommending papers. It uses BM25, hybrid retrieval (dense
+and sparse vector representations), and Internet search to gather accurate
+and comprehensive information.

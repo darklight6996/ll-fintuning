@@ -1,0 +1,26 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 5-8 Evilginx Startup
+Upon starting Evilginx, you can use several options to understand some of
+the major features and their syntax.
+To list phishlet commands, enter help phishlets to generate the output
+shown in Example 5-9.
+Example 5-9 Listing Phishlet Commands
+: help phishlets
+phishlets
+Shows status of all available phishlets and allows t
+parameters and enabled status.
+phishlets
+show status of all available phishlets
+phishlets <phishlet>
+show details of a specific phishlets
+phishlets create <phishlet> <child_name> <key1=value
+create child phishlet from a template phishlet wit
+phishlets delete <phishlet>

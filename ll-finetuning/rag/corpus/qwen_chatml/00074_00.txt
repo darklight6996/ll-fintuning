@@ -1,0 +1,16 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+the scope being focused on achieving a specific goal, these engagements
+tend to be shorter than full-scope engagements. However, they can still vary
+from a week to several months depending on the complexity.
+Table 2-2 outlines the benefits and drawbacks of objective-based
+engagements.
+Table 2-2 Objective-Based Engagement Benefits/Drawbacks

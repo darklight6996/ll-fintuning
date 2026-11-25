@@ -1,0 +1,1 @@
+user: The “Course List” shows the current courses, as well as provides an interface to edit and delete them: “Subject

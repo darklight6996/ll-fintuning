@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Propose remediation strategies.
+
+CONTEXT:
+Follow-up on findings with actionable steps.
+
+METHOD / ANSWER:
+Command: Create a recommendations section in the report.
+Purpose: Ensure clear paths for remediation of issues.

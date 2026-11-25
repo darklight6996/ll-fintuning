@@ -1,0 +1,31 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+__author__ = "Omar Santos"
+__version__ = "0.1.0"
+__license__ = "BSD 3-Clause"
+__description__ = "AI-powered SSL/TLS analysis of hos
+__usage__ = "python3 ai_scan.py"
+import re
+import subprocess
+import json
+import os
+from openai import OpenAI
+import nmap
+from dotenv import load_dotenv
+load_dotenv()
+def extract_hostnames_and_ips(file_path):
+"""
+Extracts the hostnames and IPs from the results.md
+Args:
+file_path (str): The path to the results.md fil
+Returns:
+list: A list of tuples containing the hostname
+"""

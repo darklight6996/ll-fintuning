@@ -1,0 +1,14 @@
+TECHNIQUE / QUESTION:
+How do you check for shared resources?
+
+CONTEXT:
+Context: Network Share Discovery. You have identified SMB services or need to find file shares.
+Principle to Apply: 'Enumerate accessible network resources to find potential data repositories or upload locations.'
+
+METHOD / ANSWER:
+**Assessment Phase**: File Share Enumeration.
+**Core Principle**: Network shares often contain sensitive data (documents, backups, configurations) or may be writable, allowing for tool upload or implant placement.
+**Actionable Steps**:
+1.  **SMB Share Discovery**: `netexec smb <target_ip> --shares`
+    *   **Reasoning**: Lists all accessible SMB shares along with permissions. This identifies potential targets for data exfiltration or initial foothold establishment.
+**Guidance for Novel Context**: If unauthenticated enumeration fails, try with discovered credentials. Also check for NFS shares (`showmount -e <target>`) or WebDAV. Always examine both hidden shares (ending with `$`) and visible ones.

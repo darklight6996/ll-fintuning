@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: Writeup from Htb Aero Hacks Stuff)
+
+CONTEXT:
+Source: Htb Aero Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+Remove-Item -Force $path } $action = { $path = $Event . SourceEventArgs . FullPath New-FileCreated -path $path write-host "New theme uploaded at: $path " } $theme_watchdog = New-Object System.IO.FileSystemWatcher $theme_watchdog . Path = $directory $theme_watchdog . Filter = "*.theme" $theme_watchdog . IncludeSubdirectories = $false $theme_watchdog . EnableRaisingEvents = $true Register-ObjectEvent $theme_watchdog Created -Action $action -SourceIdentifier theme_watchdog $themepack_watchdog = New-Object System.IO.FileSystemWatcher $themepack_watchdog . Path = $directory $themepack_watchdog . Filter = "*.themepack" $themepack_watchdog . IncludeSubdirectories = $false $themepack_watchdog . EnableRaisingEvents = $true Register-ObjectEvent $themepack_watchdog Created -Action $action -SourceIdentifier themepack_watchdog

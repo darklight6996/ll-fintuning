@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+both accurate and relevant. Many individuals have used system prompts for
+applications such as chatbots, virtual assistants, and content generation.
+Best practices for crafting system prompts involve providing detailed
+context, specifying desired formats, and setting clear goals to improve the
+quality and relevance of AI responses. Effective prompt engineering can
+lead to more precise answers, reduce errors, and enhance the user
+experience by ensuring that AI outputs are aligned with user needs and
+expectations.
+Now let’s look at another example. Example 8-4 includes a script for
+performing AI-powered SSL/TLS analysis on a given host or IP address. It
+combines Nmap SSL cipher scan results and AI-powered analysis to
+provide comprehensive insights about the host's SSL/TLS configuration.
+The script reads the results.md file that was created by ai_recon_md.py and
+extracts the hostnames from the file. It performs an Nmap SSL cipher scan
+on the specified host or IP address. The scan results are then sent to an AI
+model for analysis.
+The AI-generated insights are saved to a file including the final output.
+Example 8-4 An Examp

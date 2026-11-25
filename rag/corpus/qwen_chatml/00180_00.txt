@@ -1,0 +1,19 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Satellite Images of Facility
+The purpose of having satellite images of a facility is to identify its entry
+points. The stock image in Figure 5-11 is not a real client facility. If an
+organization has a campus-style setup like this, it is important to notate the
+buildings for easy understanding when you are onsite. You’ll want to take
+note of how recent the image was taken, the number of vehicles in the lot,
+and whether the building is multi-tenant as well. Additionally,
+understanding where entry and exit points are at the facility gives you an
+idea of where to go if needed to leave at any point.

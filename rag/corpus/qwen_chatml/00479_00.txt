@@ -1,0 +1,27 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+D = Has dependencies. See info for details.
+K = Requires keys. See info for details.
+Several results matched the bing keyword. However, the one that we are
+interested in is recon/domains-hosts/bing_domain_web. You can install the
+module by using the marketplace install command, as shown in Example
+9-22.
+Example 9-22 Installing a Recon-ng Module
+[recon-ng][default] > marketplace install recon/domai
+[*] Module installed: recon/domains-hosts/bing_domain
+[*] Reloading modules...
+[recon-ng][default] >
+You can use the modules search command, as shown in Example 9-23, to
+show all the modules that have been installed in Recon-ng.
+Example 9-23 Recon-ng Installed Modules
+[recon-ng][default] > modules search
+Discovery
+---------

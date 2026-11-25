@@ -1,0 +1,10 @@
+Context:
+Context: Active Directory Privilege Escalation. You have identified a user 'Alfred' with a Service Principal Name (SPN), indicating it is a service account. You have valid domain credentials.
+Principle to Apply: 'Target service accounts, as they often have weak, crackable passwords set by humans.'
+assistant
+**Assessment Phase**: Kerberos Attack - Credential Harvesting.
+**Core Principle**: Any domain user can request the encrypted Ticket Granting Service (TGS) tickets for any service account. These tickets are encrypted with the service account's password hash. If the password is weak, it can be cracked offline, yielding the service account's plaintext password.
+**Actionable Steps**:
+1.  **Request & Extract Service Tickets**: `netexec ldap dc01.tombwatcher.htb -u henry -p 'H3nry_987TGV!' -k --kerberoasting kerberoasting.hashes`
+    *   **Reasoning**: This authenticates to the Domain Controller via LDAP (using the credentials you have), requests the TGS for all discovered SPN accounts, and extracts the crackable hash portion, saving it to a file (`kerberoasting.hashes`). The `-k` flag forces Kerberos authentication, which is required for this attack.
+**Guidance for Novel Con

@@ -1,0 +1,1 @@
+ump:/var/cache/captures$ sudo tcpdump -c10 -w /var/cache/captures/a/ -Z fritz -w /etc/update-motd.d/dddddddd-dddd-dddd-dddd-dddddddddddd -F /var/cache/captures/filter.aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa tcpdump: listening on eth0, link-type EN10MB (Ethernet), snapshot length 262144 bytes 10 packets captured 20 packets received by

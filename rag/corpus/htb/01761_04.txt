@@ -1,0 +1,1 @@
+h Rust, so I’ll use both to see what I can find. Rust seems to use a stub main function to load the actual user created main. In Ghidra, the main function looks super simple. But

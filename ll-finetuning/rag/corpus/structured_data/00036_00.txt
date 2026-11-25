@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you begin the pentest on the Fluffy box?
+
+CONTEXT:
+Context: Initial Engagement & Credential Use. You have been provided with a set of domain credentials (j.fleischman / J0elTHEM4n1990!) for the target domain `fluffy.htb`.
+Principle to Apply: 'Validate and utilize provided credentials to establish an initial authenticated foothold within the domain.'

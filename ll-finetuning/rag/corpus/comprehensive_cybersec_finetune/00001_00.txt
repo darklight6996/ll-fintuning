@@ -1,0 +1,18 @@
+TECHNIQUE / QUESTION:
+Explain the methodology for conducting a comprehensive Active Directory security assessment.
+
+CONTEXT:
+You have been granted access to a Windows domain environment with standard user credentials. Describe the systematic approach to identify privilege escalation paths and misconfigurations.
+
+METHOD / ANSWER:
+A comprehensive AD security assessment follows these phases:
+
+1. **Initial Enumeration & Situational Awareness**
+   - Validate credentials: `netexec smb <DC> -u <user> -p <pass>`
+   - Generate hosts file: `netexec smb <DC> --generate-hosts-file`
+   - Identify domain structure: `netexec ldap <DC> -u <user> -p <pass> --users --groups --computers`
+
+2. **BloodHound Data Collection**
+   - Run ingester: `rusthound-ce -d <domain> -u <user> -p <pass> --zip -c All`
+   - Import into BloodHound GUI for attack path analysis
+   - Key queries: Find shortest path to Domain Admin, identify users with GenericWrite/GenericAll, find constrained/unconstrained delegation

@@ -1,0 +1,33 @@
+**Active Testing (Controlled Environment Only)**:
+- **PLC/RTU Testing**:
+  - **Siemens S7 (S7comm)**:
+    - `s7comm` enumeration (CPU type, firmware, memory layout)
+    - `snap7` / `python-snap7` (read/write DBs, I/O, flags)
+    - `plcscan` (port 102)
+    - Function blocks (FB/OB/FC) analysis
+    - Password protection (CPU, HMI)
+    - Firmware update (TIA Portal)
+  - **Rockwell/Allen-Bradley (CIP/EtherNet/IP)**:
+    - `cipscan`, `pycomm3`
+    - Tag reading/writing (controller, program, UDT)
+    - Key switch position (Run/Prog/Remote)
+    - Safety signature
+  - **Schneider Electric (Modbus/Unity/SoMachine)**:
+    - `modbus-cli`, `pymodbus`
+    - Unity Pro / EcoStruxure
+    - Function codes (01, 02, 03, 04, 05, 06, 15, 16, 23)
+  - **Mitsubishi (MELSEC)**:
+    - `mcprotocol`, `pymelsec`
+    - GX Works2/3
+  - **Omron (FINS)**:
+    - `fins`, `pyfins`
+    - CX-Programmer
+  - **Generic Modbus TCP**:
+    - `modbus-cli`, `pymodbus`, `mbpoll`
+    - Coil/Discrete Input/Input Register/Holding Register
+    - Function codes 01-04, 05, 06, 15, 16, 23
+    - Exception responses
+- **HMI/SCADA Testing**:
+  - **Web-based HMI**:
+    - Default credentials, directory traversal, RCE
+    - `ignition`, `won

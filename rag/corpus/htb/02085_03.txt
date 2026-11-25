@@ -1,0 +1,1 @@
+“, then it sets the return value to 1. Were I better at crypto, I suspect it’d be really easy to write a brute forcer or even some kind of pbox2john like function. That’s not my best area, so I’ll leave that for now. Modifying the Code Password As Command Line Arg I need

@@ -1,0 +1,10 @@
+Context:
+Context: Azure Resource Inventory. You have identified accessible subscriptions.
+Principle to Apply: 'Catalog all deployable assets within your accessible scope to identify potential targets and misconfigurations.'
+assistant
+**Assessment Phase**: Azure Resource Enumeration.
+**Core Principle**: Every resource (VMs, storage accounts, key vaults, app services) represents a potential attack surface, data repository, or privilege escalation vector.
+**Actionable Steps**:
+1.  **Comprehensive Resource Listing**: `az resource list --output table`
+    *   **Reasoning**: Provides a consolidated view of all resources across all accessible subscriptions and resource groups. This inventory is essential for prioritizing targets (e.g., VMs for lateral movement, Key Vaults for secrets, Storage Accounts for sensitive data).
+**Guidance for Novel Context**: Use more specific queries to filter resources: `az vm list`, `az storage account list`, `az keyvault list`. Combine with `az role assignment list` to see which identities have access to these resources. Export to JSON for programmatic analysis.

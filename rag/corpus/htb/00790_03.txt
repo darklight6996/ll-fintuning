@@ -1,0 +1,1 @@
+h and add the changes into master, and that will trigger the pushing of the code to Bitlab, so it’s running live on the server. I’ll make sure to check “﻿Remove source branch when merge request is accepted.” (to clean up after myself), and hit Submit merge request. Now I’m at the page for the request: Click

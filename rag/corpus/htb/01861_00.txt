@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Define and explain the key concept presented in the following text: (Context: Writeup from Htb Driver Hacks Stuff)
+
+CONTEXT:
+Source: Htb Driver Hacks Stuff
+Section: Writeup

@@ -1,0 +1,1 @@
+- 536870912 (system ; ) dwDescriptionLen : 0000003a - 58 szDescription : Enterprise Credential Data algCrypt : 00006610 - 26128 (CALG_AES_256) dwAlgCryptLen

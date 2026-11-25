@@ -1,0 +1,29 @@
+METHOD / ANSWER:
+Sample output is presented on a screenshot below:
+| i id ew
+Eee tee
+BlindElephant
+Website: https:/community.qualys.com/community/blindelephant
+This great tool works on the principle of static file checksum based
+version difference thus providing a very high quality of fingerprinting.
+Language: Python
+Sample output of a successful fingerprint:
+pentester$ python BlindElephant.py http:/my _target drupal
+Loaded
+= /Library/Python/2.7/site-packages/blindelephant/
+dbs/drupal.pkl with 145 versions, 478 differentiating paths,
+and 434 version groups.
+Starting BlindElephant fingerprint for version of drupal at http:/
+my_target
+Hit http:/my_target/CHANGELOG.txt
+File produced no match. Error: Retrieved file doesn't match
+known fingerprint. 527b085a3717bd691d477 13dff74acf4
+Hit http:/my_target/INSTALLtxt
+File produced no match. Error: Retrieved file doesn’t match
+known fingerprint. 14dfc133e4101be6f0ef5c64566da4a4
+Hit http:/my_target/misc/drupal.js
+Possible versions based on result: 7.12, 7.13, 7.14
+Hit http:/my_target/MAINTAINERS.txt
+File produced no match. Error: Retrieved file doesn’t match
+known fingerprint. 36574094 1a1991 2f3fdbfcca7caa08ca
+Hit http:/my_target/themes/garla

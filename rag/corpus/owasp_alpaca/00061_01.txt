@@ -1,0 +1,26 @@
+METHOD / ANSWER:
+197
+Web Application Penetration Testing
+Testing for Cross site flashing
+(OTG-CLIENT-008)
+Summary
+ActionScript is the language, based on ECMAScript, used by Flash
+applications when dealing with interactive needs. There are three
+versions of the ActionScript language. ActionScript 1.0 and Action-
+Script 2.0 are very similar with ActionScript 2.0 being an extension of
+ActionScript 1.0. ActionScript 3.0, introduced with Flash Player 9, isa
+rewrite of the language to support object orientated design.
+ActionScript, like every other language, has some implementation
+patterns which could lead to security issues. In particular, since Flash
+applications are often embedded in browsers, vulnerabilities like
+DOM based Cross-Site Scripting (XSS) could be present in flawed
+Flash applications.
+How to Test
+Since the first publication of “Testing Flash Applications” [1], new
+versions of Flash player were released in order to mitigate some of
+the attacks which will be described. Nevertheless, some issues still
+remain exploitable because they are the result of insecure program-
+ming practices.
+Decompilation
+Since SWF files are interpreted by a virtual machine embedded in the
+player it

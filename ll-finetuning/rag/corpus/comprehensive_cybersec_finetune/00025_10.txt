@@ -1,0 +1,17 @@
+- **OSWE (Offensive Security Web Expert) - OffSec**
+  - **Prerequisites**: AWAE course (same as AWAE, different exam focus)
+  - **Exam**: 48-hour practical + 24-hour report (white box focus)
+  - **Focus**: Code review, white box analysis, custom exploit dev
+  - **Topics**:
+    - Advanced source code analysis (SAST techniques)
+    - Custom exploit development for discovered vulns
+    - Chaining multiple low-severity issues
+    - Bypassing WAF/filters via code analysis
+    - Framework-specific vulns (Spring, .NET Core, Django, Express)
+  - **Study Resources**:
+    - OffSec WEB-300 (same as AWAE)
+    - "Code Review Guide" by OffSec
+    - SonarQube, Semgrep, CodeQL practice
+    - Real-world CVE analysis (CVE-2021-44228, CVE-2022-22965)
+  - **Cost**: Included in AWAE course
+  - **ROI**: Senior web app pentester, application security engineer

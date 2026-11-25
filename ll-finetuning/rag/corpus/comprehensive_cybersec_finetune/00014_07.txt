@@ -1,0 +1,25 @@
+**IPC/Component Testing**:
+- **Android**:
+  - **Activities**: `adb shell am start -n com.package/.Activity -e param value`
+  - **Services**: `adb shell am startservice -n com.package/.Service`
+  - **Broadcast Receivers**: `adb shell am broadcast -a com.package.ACTION`
+  - **Content Providers**: `adb shell content query --uri content://com.package.provider/`
+  - **Deep Links**: `adb shell am start -W -a android.intent.action.VIEW -d "scheme://host/path" com.package`
+  - **Intent Fuzzing**: `drozer`, `intent-fuzzer`
+- **iOS**:
+  - **Custom URL Schemes**: `openURL:`
+  - **Universal Links**: `associated-domains`
+  - **XPC Services**: `frida` hooking
+  - **App Groups**: Shared containers
+
+**Phase 4: Platform-Specific Vulnerabilities**
+
+**Android**:
+- **Tapjacking/Overlay Attacks**: `SYSTEM_ALERT_WINDOW`
+- **StrandHogg/Task Hijacking**: `taskAffinity`, `launchMode`
+- **Janus Vulnerability**: Unsigned APKs on Android < 9
+- **Master Key Vulnerability**: ZIP verification bypass
+- **Fragment Injection**: `PreferenceActivity`
+- **WebView RCE**: `addJavascriptInterface` (API < 17)
+- **Intent Redirection**: `PendingIntent` misuse
+- **Parcelable/Serializable**: Deserialization RCE

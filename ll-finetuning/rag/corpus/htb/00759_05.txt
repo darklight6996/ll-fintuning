@@ -1,0 +1,1 @@
+lugins/buddyforms/readme.txt There are a bunch of vulnerabilities in this plugin. The top one is most interesting, as it’s a PHAR vulnerability which likely means RCE. Shell as www-data in container Preview This exploit involves

@@ -1,0 +1,15 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+is designed to address multiple use cases and can scale to support the
+essential workflows that bug bounty hunters and security teams require to
+find vulnerabilities. You can access PDCP at
+https://cloud.projectdiscovery.io.
+Figure 11-5 shows the PDCP dashboard.

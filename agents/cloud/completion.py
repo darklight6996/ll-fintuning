@@ -83,7 +83,7 @@ def verify_completion(
                 f"in the EvidenceStore, but none found."
             )
 
-    confirmed_findings = len(evidence_store.findings)
+    confirmed_findings = evidence_store.proven_finding_count  # proven only -- leads/milestones don't count
     if confirmed_findings < criteria.minimum_findings:
         return False, (
             f"Minimum {criteria.minimum_findings} confirmed Finding(s) required, "

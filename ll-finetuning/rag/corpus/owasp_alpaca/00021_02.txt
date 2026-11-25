@@ -1,0 +1,25 @@
+By collecting this information testers can enumerate the
+users.
+- Analyzing Web page Titles
+Testers can receive useful information on Title of web page,
+where they can obtain a specific error code or messages that re-
+veal if the problems are with the username or password.
+For instance, if a user cannot authenticate to an application and
+receives a web page whose title is similar to:
+Invalid user
+Invalid authentication
+- Analyzing a message received from a recovery facility
+When we use a recovery facility (i.e. a forgotten password func
+tion) a vulnerable application might return a message that re-
+veals if a username exists or not.
+For example, message similar to the following:
+Invalid username: e-mail address is not valid or the specified
+user was not found.
+Valid username: Your password has been successfully sent to
+the email address you registered with.
+- Friendly 404 Error Message
+When we request a user within the directory that does not exist,
+we don't always receive 404 error code. Instead, we may receive
+“200 ok" with an image, in this case we can assume that when
+we receive the specific image the user does not exist. This logic
+can be applied to other web server response;

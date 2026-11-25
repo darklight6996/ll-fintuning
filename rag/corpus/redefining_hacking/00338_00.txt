@@ -1,0 +1,25 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+import os
+from langchain.text_splitter import CharacterTextSpli
+from langchain_community.document_loaders import Text
+from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
+from langchain_openai import OpenAI
+current_dir = os.path.dirname(os.path.abspath(__file_
+file_path = os.path.join(current_dir, "data", "ssrf.t
+persistent_directory = os.path.join(current_dir, "db"
+if not os.path.exists(persistent_directory):
+print("Persistent directory does not exist. Initia
+if not os.path.exists(file_path):
+raise FileNotFoundError(
+f"The file {file_path} does not exist. Pleas
+)
+loader = TextLoader(file_path)

@@ -1,0 +1,1 @@
+xrwx 1 root root 1183448 Jun 29 20:16 /tmp/0xdf Running it (with -p to not drop privs) gives a shell with euid of root: will@catch:/opt/mdm$ /tmp/0xdf -p 0xdf-5.0# id uid=1000(will) gid=1000(will) euid=0(root) groups=1000(will) That’s enough to read the flag: 0xdf-5.0# cd /root 0xdf-5.0# cat root.txt ac5a5ae9************************

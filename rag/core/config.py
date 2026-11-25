@@ -87,7 +87,16 @@ CPU_MAX_NEW_TOKENS = 200
 # attaches the local lora-adapters/qwen-qlora adapter for any "qwen" model_name
 # (core/model_router.py _load_model() step 3), so no adapter_path needs passing here.
 GPU_MODEL_NAME = "Qwen/Qwen2.5-7B-Instruct"
-GPU_MAX_INPUT_TOKENS = 4096
+# BUG FIX (full-stack live run, 2026-11-16): with the expanded action catalog
+# (14 actions) + the RAG technique-knowledge section + accumulating findings, the
+# planner prompt crossed 4096 tokens around step 5 and the tokenizer (truncation
+# side = right) chopped the END of the prompt -- exactly the "Propose the next
+# action. Return ONLY the JSON object." instruction -- so the 7B just continued
+# the surviving prompt text instead of emitting JSON, causing 5 consecutive
+# planner failures and an abort. Qwen2.5-7B-Instruct natively supports a 32K
+# context; 8192 gives comfortable headroom for a full 30-step run while the KV
+# cache (~0.5GB at 8K) still fits the 8GB RTX 3060 Ti alongside the 4-bit weights.
+GPU_MAX_INPUT_TOKENS = 8192
 GPU_MAX_NEW_TOKENS = 1024
 
 # The qwen-qlora adapter was TRAINED in 4-bit NF4 (bitsandbytes QLoRA) specifically

@@ -1,0 +1,33 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+system by using the command sudo apt install steghide. Example 6-24
+shows the steghide command usage and help information.
+Example 6-24 steghide Command Usage
+|--[omar@websploit]─[~]
+|---- $steghide --help
+steghide version 0.5.1
+the first argument must be one of the following:
+embed, --embed embed data
+extract, --extract extract data
+info, --info display information about a co
+info <filename> display information about <fil
+encinfo, --encinfo display a list of supported e
+version, --version display version information
+license, --license display steghide's license
+help, --help display this usage information
+embedding options:
+-ef, --embedfile select file to be embedded
+-ef <filename> embed the file <filename>
+-cf, --coverfile select cover-file
+-cf <filename> embed into the file <filename>
+-p, --passphrase specify passphrase
+-p <passphrase> use <passphrase> to embed data
+-sf, --stegofile select stego file

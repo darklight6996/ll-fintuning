@@ -1,0 +1,23 @@
+layer/articles/secure_swf_apps.html
+= The Flash Player Development Center Security Section: http:/
+www.adobe.com/devnet/flashplayer/security.Atm!
+= The Flash Player 10.0 Security Whitepaper: http://www
+adobe.com/devnet/flashplayer/articles/flash_player10_
+security_wp.html
+Testing for Clickjacking (OTG-CLIENT-009)
+Summary
+“Clickjacking” (which is a subset of the “UI redressing”) is a ma-
+licious technique that consists of deceiving a web user into in-
+teracting (in most cases by clicking) with something different
+to what the user believes they are interacting with. This type of
+attack, that can be used alone or in combination with other at-
+tacks, could potentially send unauthorized commands or reveal
+confidential information while the victim is interacting on seem-
+ingly harmless web pages. The term “Clickjacking” was coined by
+Jeremiah Grossman and Robert Hansen in 2008.
+A Clickjacking attack uses seemingly innocuous features of HTML
+Web Application Penetration Testing
+and Javascript to force the victim to perform undesired actions,
+such as clicking on a button that appears to perform another op-
+eration. This is a “client side” security issue that affects a variety
+of browsers an

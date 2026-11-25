@@ -1,0 +1,5 @@
+r to be from a legitimate company
+such as Microsoft or other cloud providers. The traffic from major cloud
+providers is typically trusted because real companies utilize CDNs for their
+infrastructure. This technique circumvents traffic filters a company might
+have in place on the perimeter if using CDNs.

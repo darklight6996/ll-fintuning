@@ -1,0 +1,1 @@
+ext**: Other post-compromise activities include: DCSync to extract all hashes, searching for LAPS passwords, examining Group Policy for credentials, or enumerating cross-domain trusts. The principle is to **use your elevated vantage point to catalog every potential security weakness in the environment for comprehensive reporting or further attack chaining.**

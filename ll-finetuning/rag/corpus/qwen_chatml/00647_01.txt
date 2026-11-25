@@ -1,0 +1,11 @@
+Context:
+Context: Local Privilege Escalation Research. You have identified a SUID binary (`/opt/netdata/.../ndsudo`) on the host that may be vulnerable to path manipulation or other abuse.
+Principle to Apply: 'Abuse legitimate high-privilege functionality to execute arbitrary code.'
+assistant
+**Assessment Phase**: SUID Binary Exploitation.
+**Core Principle**: SUID binaries run with the file owner's privileges (often root). If such a binary executes another command without specifying its full path, you can hijack it by manipulating the `PATH` environment variable.
+**Actionable Steps**:
+1.  **Craft Malicious Binary**: `gcc -o nvme root.c` (where `root.c` is a C program that spawns a shell).
+    *   **Reasoning**: The `ndsudo` binary is designed to run a helper command like `nvme-list`. If it calls `nvme-list` without a full path (`/usr/sbin/nvme-list`), it will search the directories listed in the `PATH`. You compile a malicious program named `nvme-list`.
+2.  **Trigger Execution**: `/opt/netdata/usr/libexec/netdata/plugins.d/ndsudo nvme-list --test`
+    *   **Reasoning**: This command, executed in a context where your malicious `nvme-list` is found first in the `PATH`, will cause the

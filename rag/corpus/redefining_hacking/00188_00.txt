@@ -1,0 +1,23 @@
+TECHNIQUE / QUESTION:
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+The computer security incident response teams (CSIRTs) and chief
+information security officers (CISOs) of many organizations operate under
+the presumption that they have already been breached, rather than focusing
+solely on preventing intrusions (this is what we call the “assume
+compromise mentality”). In this way, they prioritize continuous monitoring,
+detection, and response capabilities, acknowledging that even with robust
+preventive controls, sophisticated attackers may still find ways to penetrate
+the network. By adopting this mindset, defensive security teams can better
+allocate resources toward understanding attacker behavior post-exploitation,
+improving incident response capabilities, and implementing stronger
+detection mechanisms—ultimately creating a more resilient security
+posture.
+Figure 6-1 shows how lessons learned from post-exploitation activities by
+the red team help the blue team.

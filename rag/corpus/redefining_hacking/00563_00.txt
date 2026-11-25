@@ -1,0 +1,31 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+subdomain_id = Column(Integer, ForeignKey('subdoma
+subdomain = relationship('Subdomain', back_populat
+ports = relationship('Port', back_populates='ip')
+urls = relationship('URL', back_populates='ip')
+vulnerabilities = relationship('Vulnerability', ba
+class Port(Base):
+__tablename__ = 'ports'
+id = Column(Integer, primary_key=True)
+number = Column(Integer)
+ip_id = Column(Integer, ForeignKey('ips.id'))
+ip = relationship('IP', back_populates='ports')
+class URL(Base):
+__tablename__ = 'urls'
+id = Column(Integer, primary_key=True)
+address = Column(String)
+ip_id = Column(Integer, ForeignKey('ips.id'))
+ip = relationship('IP', back_populates='urls')
+class Vulnerability(Base):
+__tablename__ = 'vulnerabilities'
+id = Column(Integer, primary_key=True)
+description = Column(Text)
+ip_id = Column(Integer, ForeignKey('ips.id'))

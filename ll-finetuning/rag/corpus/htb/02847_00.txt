@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from Htb Infiltrator Hacks Stuff)
+
+CONTEXT:
+Source: Htb Infiltrator Hacks Stuff
+Section: Writeup

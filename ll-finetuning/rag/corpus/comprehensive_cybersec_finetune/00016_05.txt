@@ -1,0 +1,28 @@
+**Vulnerability Testing**:
+- **Pairing/Bonding Attacks**:
+  - Just Works (no MITM protection)
+  - Passkey Entry (brute force 6-digit)
+  - OOB (Out of Band) verification bypass
+  - Numeric Comparison (user confirmation bypass)
+- **BLE Specific**:
+  - Unencrypted characteristics (read/write/notify)
+  - Insufficient authorization (no auth on sensitive chars)
+  - Replay attacks (no nonce/counter)
+  - Fuzzing: `bleah -b <MAC> -f`
+  - MITM: `btlejuice`, `gattacker`
+- **Classic Bluetooth**:
+  - PIN cracking (legacy)
+  - BlueBorne (CVE-2017-0781, 0782, 0783, 1000251)
+  - KNOB (Key Negotiation of Bluetooth)
+  - BIAS (Bluetooth Impersonation AttackS)
+  - BLURtooth (CTKD cross-transport key derivation)
+- **Tools**: `bluesnarfer`, `btscanner`, `btcrack`, `blueranger`
+
+**Post-Exploitation**:
+- **Data Exfiltration**: Contacts, SMS, call logs, files
+- **Audio Eavesdropping**: Headset profile (HSP/HFP)
+- **Keystroke Injection**: HID profile (keyboard/mouse)
+- **Network Pivot**: PAN/NAP profiles
+- **Tracking**: MAC address (static vs random)
+
+**Phase 3: RFID/NFC Security Testing**

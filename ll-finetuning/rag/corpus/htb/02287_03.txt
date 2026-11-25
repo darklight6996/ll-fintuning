@@ -1,0 +1,1 @@
+nd block of the cookie only depends on AAse . So I’ll test with aaaaAAe? until I get a match of the second four bytes (8 characters) of cookie. Third byte, I’ll send aaaaA and get a reference cookie.

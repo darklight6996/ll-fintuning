@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+In the context of a bug bounty program, the scope typically includes details
+such as the domains that can be tested, the types of vulnerabilities that are
+sought, and the technologies that are used in the infrastructure. Additionally,
+it clearly defines what is off-limits, preventing unintentional overreach and
+helping to maintain a respectful and lawful relationship between the
+researchers and the organization.
+Beyond just a list of targets, the scope serves as a detailed guideline,
+helping researchers to prioritize their efforts effectively. It aids them in
+focusing their expertise and time on areas that are considered to be of high
+value or potentially more vulnerable, thus optimizing the chances of
+identifying significant security flaws.
+Having a well-defined scope can be instrumental in avoiding legal
+complications because it explicitly states the boundaries within which the
+hackers are allowed to operate. It serves as a contractual agreement,
+protecting both the organization and the researchers from potential disputes.
+Table 9-4 lists the different aspects to be considered when creating a scope
+and rules of engage

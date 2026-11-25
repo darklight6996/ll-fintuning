@@ -1,0 +1,23 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+approach allows for a holistic assessment of an organization and test of its
+resilience. During a full-scope engagement, a significant investment is
+required from a time and resource perspective. Depending on the size of the
+organization, this type of engagement may be too resource intensive to
+accomplish regularly.
+Table 2-1 outlines the benefits and drawbacks of full-scope engagements.
+Table 2-1 Full-Scope Engagement Benefits/Drawbacks
+Objective-Based
+In objective-based engagements, the red team is given a clearly defined
+objective that aligns with a specific organizational goal or risk. The
+objective could be to access sensitive data (such as customer information or
+intellectual property), to manipulate and/or exfiltrate the data. These
+objective-based engagements typically have a defined start and end. Due to

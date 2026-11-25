@@ -1,0 +1,37 @@
+</user>
+<user>
+<username>Stefan0</username>
+<password>w1s3c</password>
+<userid>500</userid>
+<mail>Stefano@whysec.hmm</mail>
+</user>
+<user>
+<username>tony</username>
+<password>Un6R34kb!e</password>
+<userid>500</userid>
+<mail>s4tan@hell.com</mail><user-
+id>O0</userid><mail>s4tan@hell.com</mail>
+</user>
+</users>
+Web Application Penetration Testing
+The resulting XML file is well formed. Furthermore, it is likely that, for
+the user tony, the value associated with the userid tag is the one ap-
+pearing last, i.e.,
+0 (the admin ID). In other words, we have injected a
+user with administrative privileges.
+The only problem is that the userid tag appears twice in the last user
+node. Often, XML documents are associated with a schema or a DTD
+and will be rejected if they don’t comply with it.
+Let's suppose that the XML document is specified by the following
+DTD:
+<!DOCTYPE users [
+<!ELEMENT users (user+) >
+<!ELEMENT user (username,password,userid,-
+mail+) >
+<!ELEMENT username (#PCDATA) >
+<!ELEMENT password (#PCDATA) >
+<!ELEMENT userid (#PCDATA) >
+<!ELEMENT mail (HPCDATA) >
+|>
+Note that the userid node is defined with cardinality 1. In this case, the
+attack we have shown before (and other simple a

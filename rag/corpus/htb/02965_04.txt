@@ -1,0 +1,1 @@
+. Without a copy of Outlook handy, I’ll use msgconvert (installed with sudo apt install libemail-outlook-message-perl ) to convert it to mbox format: oxdf@hacky$ msgconvert Windows \ Event \ Logs \ for \ Analysis.msg --mbox emails.mbox This writes the message into a mailbox in the emails.mbox file. I’ll open it with mutt -f emails.mbox

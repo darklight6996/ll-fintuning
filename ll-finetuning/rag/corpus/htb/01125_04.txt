@@ -1,0 +1,1 @@
+-N -L //10.10.10.182 Anonymous login successful Sharename Type Comment --------- ---- ------- SMB1

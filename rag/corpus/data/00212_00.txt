@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify monitoring alerts.
+
+CONTEXT:
+Incident detection review.
+
+METHOD / ANSWER:
+Command: `aws cloudwatch describe-alarms`
+Explanation: Confirms alerting is configured.

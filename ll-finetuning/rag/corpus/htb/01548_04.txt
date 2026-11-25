@@ -1,0 +1,1 @@
+ciidoc git clone https://github.com/Yubico/yubico-c.git cd yubico-c autoreconf --install ./configure make check sudo make install After running those, I should be able to

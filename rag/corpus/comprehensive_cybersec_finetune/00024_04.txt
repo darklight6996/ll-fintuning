@@ -1,0 +1,28 @@
+**Phase 3: CIS Benchmarks Implementation**
+- **CIS AWS Foundations Benchmark v3.0**:
+  - **Identity & Access Management**:
+    - 1.1: MFA for root, 1.2: MFA for IAM users
+    - 1.3: No root access keys, 1.4: Rotate keys 90 days
+    - 1.5: Password policy, 1.6: No inline policies
+    - Automation: `aws iam generate-credential-report`
+  - **Storage**:
+    - 2.1: S3 bucket policies, 2.2: S3 encryption
+    - 2.3: S3 versioning, 2.4: S3 logging
+    - 2.5: EBS encryption, 2.6: RDS encryption
+    - 2.7: S3 public access blocked
+  - **Logging**:
+    - 3.1: CloudTrail enabled all regions
+    - 3.2: CloudTrail log validation
+    - 3.3: S3 bucket for CloudTrail logs
+    - 3.4: CloudWatch Logs integration
+    - 3.5: Metric filters for unauthorized API calls
+    - 3.6: Metric filters for console sign-in without MFA
+    - 3.7: Metric filters for root usage
+    - 3.8: Metric filters for IAM policy changes
+    - 3.9: Metric filters for CloudTrail config changes
+    - 3.10: Metric filters for VPC changes
+    - 3.11: Metric filters for security group changes
+    - 3.12: Metric filters for NACL changes
+    - 3.13: Metric filters for gateway changes
+  - **Monitoring**:
+    - 4.1-4.9: Alarm for each me

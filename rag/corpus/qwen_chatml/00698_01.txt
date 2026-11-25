@@ -1,0 +1,10 @@
+Context:
+Context: Azure Active Directory (AAD) Reconnaissance. You need to understand the identity landscape in Azure AD.
+Principle to Apply: 'Enumerate users, groups, and service principals to map the identity attack surface.'
+assistant
+**Assessment Phase**: Azure AD Identity Enumeration.
+**Core Principle**: Identities (users, groups, service principals) are the primary authorization mechanism in Azure. Their properties, memberships, and assigned permissions define attack paths.
+**Actionable Steps**:
+1.  **User Enumeration**: `az ad user list --output table`
+    *   **Reasoning**: Lists all Azure AD users. This reveals the organizational structure, high-value targets (admins, executives), and potential usernames for credential attacks. Note properties like `accountEnabled` and `userPrincipalName`.
+**Guidance for Novel Context**: Follow with `az ad group list` and `az ad group member list` to understand group memberships. Check `az ad sp list` for service principals (app identities). Use `--query` filters to focus on high-value targets like `--query "[?contains(userPrincipalName,'admin')]"`.

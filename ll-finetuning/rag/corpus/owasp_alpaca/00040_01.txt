@@ -1,0 +1,23 @@
+METHOD / ANSWER:
+Web Application Penetration Testing
+string(/user[username/text()='gandalf’ and password/tex-
+t()="!c3']/account/text())
+If the application does not properly filter user input, the tester will
+be able to inject XPath code and interfere with the query result.
+For instance, the tester could input the following values:
+Username: ‘ or‘1' = ‘1
+Password: ’ or ‘1' ='1
+Looks quite familiar, doesn't it? Using these parameters, the query
+becomes:
+string(/user[username/text()=" or ‘1’ ='1' and password/
+text()=" or ‘1’ = ‘1']/account/text())
+As in a common SQL Injection attack, we have created a query
+that always evaluates to true, which means that the application
+will authenticate the user even if a username or a password have
+not been provided. And as ina common SQL Injection attack, with
+XPath injection, the first step is to insert a single quote (’) in the
+field to be tested, introducing a syntax error in the query, and to
+check whether the application returns an error message.
+If thereisnoknowledge aboutthe XML datainternal details andifthe
+application does not provide useful error messages that help us re-
+construct its internal logic, itis possible to perform a Blind XP

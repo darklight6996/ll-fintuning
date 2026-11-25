@@ -1,0 +1,1 @@
+y change password No Workstations allowed All Logon script User profile Home directory Last logon 2/2/2024 12:44:30 PM Logon hours allowed All Local Group Memberships *Remote Management Use Global Group memberships *Domain Users *Remote_Support_Admini The command completed successfully. Evil-WinRM I’ll connect

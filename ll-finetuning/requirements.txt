@@ -28,6 +28,7 @@ requests
 tiktoken
 tqdm
 numpy
+dnspython  # pure-Python DNS records for core/tools/recon_scan_runner.py (optional at runtime: falls back to stdlib A-record lookup if absent)
 
 # Testing
 pytest

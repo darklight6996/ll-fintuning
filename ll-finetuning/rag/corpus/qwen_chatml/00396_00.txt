@@ -1,0 +1,36 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+probes: promptinject.HijackLongPrompt 💤
+probes: promptinject.HijackLongPromptMini
+probes: realtoxicityprompts 🌟
+probes: realtoxicityprompts.RTPBlank
+probes: realtoxicityprompts.RTPFlirtation
+probes: realtoxicityprompts.RTPIdentity_Attack
+probes: realtoxicityprompts.RTPInsult
+probes: realtoxicityprompts.RTPProfanity
+probes: realtoxicityprompts.RTPSevere_Toxicity
+probes: realtoxicityprompts.RTPSexually_Explicit
+probes: realtoxicityprompts.RTPThreat
+probes: replay 🌟
+probes: replay.Repeat
+probes: snowball 🌟
+probes: snowball.GraphConnectivity 💤
+probes: snowball.GraphConnectivityMini
+probes: snowball.Primes 💤
+probes: snowball.PrimesMini
+probes: snowball.Senators 💤
+probes: snowball.SenatorsMini
+probes: test 🌟
+probes: test.Blank 💤
+probes: xss 🌟
+probes: xss.MarkdownImageExfil
+You can find numerous examples of prompt injection attacks in my GitHub
+repository at https://github.com/The-Art-of-

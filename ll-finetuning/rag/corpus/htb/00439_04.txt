@@ -1,0 +1,1 @@
+if you leave off the output filename: This generates admin.cer and admin.rsp . admin.cer is a base64 encoded file so I can cat it and copy it

@@ -1,0 +1,1 @@
+roles":["_admin"],"roles":[],"password":"df"}' localhost:5984/_users/org.couchdb.user:0xdf -H "Content-Type:application/json" {"ok":true,"id":"org.couchdb.user:0xdf","rev":"1-72477c12e81d377e933683b8b73f9a86"}

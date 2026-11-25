@@ -1,0 +1,1 @@
+, --silent Be quiet --force Run scan even in the case of condition violations or failed module setups -y, --yes Skip scan confirmation prompt --dry-run Abort before executing scan --current-preset Show the current

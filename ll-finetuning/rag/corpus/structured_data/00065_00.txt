@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What to do if DCSync fails?
+
+CONTEXT:
+Context: Alternative Privilege Escalation. Your primary attack path (DCSync) is blocked or you lack required permissions.
+Principle to Apply: 'When one path is blocked, pivot to alternative enumeration to discover other attack vectors.'

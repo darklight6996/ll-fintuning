@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you gather group memberships?
+
+CONTEXT:
+Context: Azure AD Group Analysis. You have identified users and want to understand their security group assignments.
+Principle to Apply: 'Group memberships define privilege. Mapping these relationships reveals indirect access paths.'

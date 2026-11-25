@@ -1,0 +1,28 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+int check_password(char *password) {
+if (strcmp(password, "secret") == 0) {
+return 1;
+}
+return 0;
+}
+Example 6-12 shows the obfuscated code.
+Example 6-12 Obfuscated Code Renaming Functions and Variables
+int a1b2c3(char *x1x2x3) {
+if (strcmp(x1x2x3, "secret") == 0) {
+return 1;
+}
+return 0;
+}
+You can also use control flow obfuscation. Using this technique, the
+attacker alters the program's control flow to make it more complex and
+harder to follow. Example 6-13 shows the oversimplified original code.
+Example 6-13 Control Flow Obfuscation Oversimplified Original Code

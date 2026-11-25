@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Vulnerability Verification & Proof-of-Concept.
+**Core Principle**: A version match does not guarantee exploitability. A safe, non-destructive proof-of-concept (PoC) confirms the vulnerability without damaging the system or data.
+**Actionable Steps**:
+1.  **Execute Safe PoC**: Construct and send a specific HTTP request to the vulnerable endpoint (`/xwiki/bin/view/Main/SolrSearch?media=rss&text=...`) with a simple code execution payload (e.g., printing a calculated number).
+    *   **Reasoning**: This payload (`println(\"Hello from\" + \" search text:\" + (23 + 19))`) is designed to trigger the vulnerability (Groovy template injection) and produce a visible, harmless output (the number 42) in the response. If successful, it confirms remote code execution (RCE) capability.
+**Guidance for Novel Context**: The exact URL path and payload structure are unique to this CVE. The universal principle is: **craft a verification request that causes a measurable, benign change in the application's response**. For other vulnerabilities, this might be a time delay (`sleep(5)`), a DNS lookup, or echoing a specific string. Never run a `rm -rf` or `wget` exploit

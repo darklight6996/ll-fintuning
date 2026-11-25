@@ -1,0 +1,12 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 11-12 Tool Calling in Google Vertex AI
+Use Case: Improving Reporting and Documentation

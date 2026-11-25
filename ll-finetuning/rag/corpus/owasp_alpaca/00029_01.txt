@@ -1,0 +1,25 @@
+METHOD / ANSWER:
+¢password = 1’ or'1'='1
+The query will be:
+SELECT * FROM Users WHERE Username='1' OR ‘1’ = ‘1’ AND
+Password='1'OR‘1' = '1'
+If we suppose that the values of the parameters are sent to the
+server through the GET method, and if the domain of the vulner-
+able web site is www.example.com, the request that we'll carry
+out will be:
+After a short analysis we notice that the query returns a value (or
+http:/www.example.com/index.php?username=1'%200r%20
+'1'%20=%20'1 &password=1'%200r%20'1'%20=%20'1
+a set of values) because the condition is always true (OR 1=1). In
+this way the system has authenticated the user without knowing
+the username and password.
+In some systems the first row of a user table would be an ad-
+ministrator user. This may be the profile returned in some cases.
+Another example of query is the following:
+SELECT * FROM Users WHERE ((Username="$username’) AND
+(Password=MD5(‘$password’)))
+In this case, there are two problems, one due to the use of the
+parentheses and one due to the use of MD5 hash function. First
+of all, we resolve the problem of the parentheses. That simply
+consists of adding a number of closing parentheses until we ob-
+tain a corrected query. T

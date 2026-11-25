@@ -1,0 +1,1 @@
+────────┬────────────────────── 🎯 Target Url │ http://members.streetfighterclub.htb 🚀 Threads │ 50 📖 Wordlist │ /usr/share/seclists/Discovery/Web-Content/raft-medium-directories-lowercase.txt 👌 Status Codes │ [200, 204, 301, 302, 307, 308, 401, 403, 405, 500] 💥 Timeout (secs) │ 7 🦡 User-Agent │ feroxbuster/2.5.0 💲 Extensions │ [aspx, asp, html] 🏁 HTTP methods │ [GET] 🔃

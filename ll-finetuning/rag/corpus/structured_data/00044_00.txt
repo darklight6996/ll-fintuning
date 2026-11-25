@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you crack the captured NTLM hash?
+
+CONTEXT:
+Context: Offline Password Cracking. You have captured a NetNTLMv2 hash (e.g., `p.agila::FLUFFY:...`) and saved it to a file.
+Principle to Apply: 'Use offline brute-force or dictionary attacks against captured password hashes to recover plaintext credentials.'

@@ -1,0 +1,40 @@
+METHOD / ANSWER:
+Testing Guide Foreword - Table of contents
+3-4
+22-24
+25 - 207
+0
+Foreword by Eoin Keary
+7
+Frontispiece
+About the OWASP Testing Guide Project
+About The Open Web Application Security Project
+2
+Introduction
+The OWASP Testing Project
+Principles of Testing
+Testing Techniques Explained
+Deriving Security Test Requirements
+Security Tests Integrated in Development and Testing Workflows
+Security Test Data Analysis and Reporting
+3
+The OWASP Testing Framework
+Overview
+Phase 1: Before Development Begins
+Phase 2: During Definition and Design
+Phase 3: During Development
+Phase 4: During Deployment
+Phase 5: Maintenance and Operations
+A Typical SDLC Testing Workflow
+4
+Web Application Security Testing
+Introduction and Objectives
+Testing Checklist
+Information Gathering
+Conduct Search Engine Discovery and Reconnaissance for Information Leakage (OTG-INFO-001)
+Fingerprint Web Server (OTG-INFO-002)
+Review Webserver Metafiles for Information Leakage (OTG-INFO-003)
+Enumerate Applications on Webserver (OTG-INFO-004)
+Review Webpage Comments and Metadata for Information Leakage (OTG-INFO-005)
+Identify application entry points (OTG-INFO-006)
+Map execution paths through application (OTG-INFO-007)

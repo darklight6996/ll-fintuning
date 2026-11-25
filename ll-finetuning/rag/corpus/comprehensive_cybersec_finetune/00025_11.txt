@@ -1,0 +1,20 @@
+**Phase 4: Advanced Penetration Testing (18-36 months)**
+- **eCPPTX (eLearnSecurity Certified Penetration Tester eXtreme) - INE**
+  - **Prerequisites**: eCPPT, solid AD/web/exploit basics
+  - **Exam**: 14-day practical engagement + comprehensive report
+  - **Topics**:
+    - **Advanced Network**: IPv6, BGP, MPLS, SDN
+    - **Advanced AD**: Trust attacks, cross-forest, Azure AD hybrid
+    - **Cloud**: AWS/Azure/GCP exploitation, container escape
+    - **Advanced Web**: Deserialization, SSTI, XXE, SSRF chains
+    - **Exploit Development**: Stack/heap, ROP, JIT spraying
+    - **Malware Development**: C2 implants, loaders, evasion
+    - **OT/ICS**: Modbus, DNP3, S7, PLC exploitation
+    - **Reporting**: Executive + technical + remediation roadmap
+  - **Study Resources**:
+    - INE eCPPTX course (PTPX)
+    - Hack The Box: Pro Labs (Dante, Rasta, Cybernetics, Fortress)
+    - OffSec PG Practice (advanced boxes)
+    - "Practical Binary Analysis" book
+  - **Cost**: ~$800 (INE subscription)
+  - **ROI**: Senior pentester, team lead, consulting

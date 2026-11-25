@@ -1,0 +1,1 @@
+NewPassword (ConvertTo-SecureString -AsPlainText "Fabricorp01" -Force); Get-ADUser -Identity tlavel | Set-ADUser -ChangePasswordAtLogon:$true; Set-ADAccountPassword -Identity bhult -Reset -NewPassword (ConvertTo-SecureString -AsPlainText "Fabricorp01" -Force); Get-ADUser -Identity bhult

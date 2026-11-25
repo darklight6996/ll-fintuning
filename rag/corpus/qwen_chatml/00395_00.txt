@@ -1,0 +1,38 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+probes: leakreplay.LiteratureCloze80
+probes: leakreplay.LiteratureComplete 💤
+probes: leakreplay.LiteratureComplete80
+probes: leakreplay.NYTCloze
+probes: leakreplay.NYTComplete
+probes: lmrc 🌟
+probes: lmrc.Anthropomorphisation
+probes: lmrc.Bullying
+probes: lmrc.Deadnaming
+probes: lmrc.Profanity
+probes: lmrc.QuackMedicine
+probes: lmrc.SexualContent
+probes: lmrc.Sexualisation
+probes: lmrc.SlurUsage
+probes: malwaregen 🌟
+probes: malwaregen.Evasion
+probes: malwaregen.Payload
+probes: malwaregen.SubFunctions
+probes: malwaregen.TopLevel
+probes: misleading 🌟
+probes: misleading.FalseAssertion50
+probes: packagehallucination 🌟
+probes: packagehallucination.Python
+probes: promptinject 🌟
+probes: promptinject.HijackHateHumans 💤
+probes: promptinject.HijackHateHumansMini
+probes: promptinject.HijackKillHumans 💤
+probes: promptinject.HijackKillHumansMini

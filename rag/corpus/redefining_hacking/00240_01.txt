@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+• Kernel-Level Operation: The TDL3 loader operates at the kernel level,
+allowing it to manipulate core system functions and remain hidden from
+most user-space security tools.
+• Bootkit Capabilities: TDL3 can infect the master boot record (MBR) or
+the volume boot record (VBR), ensuring its persistence across system
+reboots.
+• Code Injection: It injects its code into legitimate system processes,
+making it difficult to detect and remove.
+• Stealth Techniques: The TDL3 loader utilizes advanced techniques to
+hide its presence, including rootkit capabilities to intercept and alter system
+calls.
+The TDL3 rootkit is typically delivered via drive-by downloads, infected
+email attachments, or malicious websites. Once it is executed, the installer
+modifies the MBR or VBR to load the TDL3 loader during the system boot
+process.
+The original MBR/VBR is modified to include a small piece of code that
+redirects the boot process to the TDL3 loader. During system startup, the
+modified MBR/VBR code executes the TDL3 loader. The TDL3 loader
+initializes and loads the main components of the rootkit into memory.

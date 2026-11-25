@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+would also highlight the challenges in communication and coordination
+between companies and researchers.
+While these early programs were groundbreaking, the bug bounty landscape
+didn’t immediately explode. These pioneering efforts set the stage for the
+next era of bug bounty. It took a number of years and key developments to
+truly establish bug bounty programs as standard practice. Yet, their legacy
+continues to inspire organizations to leverage the expertise of the security
+research community to enhance their security posture.
+Building on the groundwork laid by the early programs, Mozilla launched
+its vulnerability disclosure program in 2004. Most known for its open-
+source Firefox browser, the program established new norms within the
+community. The company offered an open-invite program for security
+researchers like earlier programs but differed with its transparency and
+recognition. Mozilla pioneered a policy of transparency and recognition by
+publicly crediting researchers who responsibly disclosed vulnerabilities.
+This approach helped establish a sense of community and encouraged
+ethical reporting practices. The public recognition helped the community
+grow by

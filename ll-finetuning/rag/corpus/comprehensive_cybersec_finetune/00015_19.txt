@@ -1,0 +1,19 @@
+**Phase 14: Impact (TA0040)**
+- **Data Encrypted for Impact (T1486)**: Ransomware simulation
+- **Data Destruction (T1485)**: `sdelete`, `shred`, `wipe`
+- **Service Stop (T1489)**: `net stop`, `systemctl stop`
+- **Resource Hijacking (T1496)**: Cryptomining
+- **Network Denial of Service (T1498)**: `LOIC`, `HOIC`, `Slowloris`
+- **Endpoint Denial of Service (T1499)**: Fork bomb, resource exhaustion
+- **System Shutdown/Reboot (T1529)**: `shutdown`, `reboot`
+- **Firmware Corruption (T1495)**: BIOS/UEFI
+- **Account Access Removal (T1531)**: Disable accounts, change passwords
+
+**Phase 15: Reporting & Debrief**
+- **Executive Summary**: Business risk, objectives achieved
+- **Technical Findings**: MITRE ATT&CK mapping, evidence
+- **Attack Path Narrative**: Step-by-step with timestamps
+- **Detection Gaps**: What wasn't caught, why
+- **Recommendations**: Strategic + tactical
+- **Purple Team Exercise**: Replay with Blue Team
+- **Lessons Learned**: For both Red and Blue

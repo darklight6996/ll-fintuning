@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+to protect this has evolved into specific roles focused on different aspects of
+security.
+An organization with a mature cybersecurity program will focus on three
+core pillars, each fulfilling a unique but interconnected function.
+Penetration testing, red teaming, and bug bounty programs form this triad of
+modern cybersecurity. While each of these programs serves a distinct
+purpose, their effectiveness is amplified when they are implemented in
+concert. Each individual program will increase the effectiveness of the
+others when they inform each other. Providing an ongoing feedback loop
+generated between them fosters continuous improvement, enabling
+organizations to stay one step ahead of evolving threats.
+What Are Penetration Testing, Red Teaming, and Bug Bounties?
+As cybersecurity has matured, specific disciplines have emerged over the
+years. These essential practices of penetration testing, red teaming, and bug
+bounties evolved to address the threat landscape and play a crucial role in
+bolstering organizational security. These different disciplines are often
+confused with each other, so it is important to understand the

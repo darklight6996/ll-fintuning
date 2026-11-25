@@ -1,0 +1,5 @@
+a holistic manner.
+TIBER-EU
+Threat Intelligence-Based Ethical Red Teaming (TIBER-EU) is a
+framework developed by the European Central Bank (ECB) for financial
+institutions in the European Union that provide core financial infrastructure.

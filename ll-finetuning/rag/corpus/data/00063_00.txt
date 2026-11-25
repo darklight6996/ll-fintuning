@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you retrieve the Administrator flag after gaining access?
+
+CONTEXT:
+You are logged in as Administrator.
+
+METHOD / ANSWER:
+Command: `type C:\Users\Administrator\Desktop\root.txt`
+Explanation: This command retrieves the root flag from the Administrator's Desktop, confirming the completion of the pentest.

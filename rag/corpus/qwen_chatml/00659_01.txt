@@ -1,0 +1,10 @@
+Context:
+Context: Post-Compromise Flag Retrieval. You have successfully authenticated and gained interactive shell access (e.g., via RDP, WinRM, or a reverse shell) as the user 'john' on a Windows host.
+Principle to Apply: 'Locate and retrieve proof-of-access artifacts from standard user directories.'
+assistant
+**Assessment Phase**: Proof Collection - User Context.
+**Core Principle**: In penetration testing exercises, a "user flag" is typically placed in a predictable location within the user's profile directory (Desktop, Documents, or user.txt in the profile root).
+**Actionable Steps**:
+1.  **Retrieve User Flag**: `cat C:\Users\john\desktop\user.txt`
+    *   **Reasoning**: This command reads the contents of the `user.txt` file from the user's Desktop, which is a common location for such flags in CTF/HTB-style machines. It confirms successful compromise of the user context.
+**Guidance for Novel Context**: The exact path may vary. Apply the principle of **searching the user's directory structure**: check `Desktop`, `Documents`, the profile root, or use `dir /s user.txt`. In a real assessment, the 'flag' might be a specific document, database entry, or credential file.

@@ -1,0 +1,15 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 3-7 Updating Certificate Files for the C2 Config
+Next, you will edit the config to ensure that it does not use the default
+options. You can customize this part as you want, as illustrated in Figure 3-
+8. For this example, you can use similar headers as Microsoft-IIS/10.0, as
+demonstrated in Example 3-10.

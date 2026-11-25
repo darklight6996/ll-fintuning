@@ -1,0 +1,46 @@
+**Compute (Compute Engine, GKE, Cloud Run, Cloud Functions)**:
+- **Compute Engine**:
+  - Public IPs (external)
+  - OS Login
+  - Shielded VM (vTPM, Integrity Monitoring)
+  - Confidential VM
+  - Service account scopes
+  - Metadata API access
+- **GKE**:
+  - Private cluster
+  - Workload Identity
+  - Network policies
+  - Pod Security Standards
+  - Binary Authorization
+  - GKE Security Posture
+  - Autopilot vs Standard
+- **Cloud Run / Functions**:
+  - Ingress settings (Internal, Internal + LB, All)
+  - VPC Connector
+  - Service account
+  - Secrets (Secret Manager)
+  - Min/Max instances
+
+**Storage (Cloud Storage, Cloud SQL, Firestore, BigQuery)**:
+- **Cloud Storage**:
+  - Public access (uniform bucket-level access)
+  - HMAC keys
+  - CORS configuration
+  - Object Versioning
+  - Retention policies (Lock)
+  - CMEK / CSEK
+  - Signed URLs expiration
+- **Cloud SQL**:
+  - Public IP
+  - Private IP (VPC)
+  - SSL/TLS enforcement
+  - Authorized networks
+  - Database flags
+  - Backup/Point-in-time recovery
+  - IAM authentication
+- **BigQuery**:
+  - Public datasets
+  - Column-level security
+  - Row-level security
+  - Data masking
+  - Customer-managed encryption keys

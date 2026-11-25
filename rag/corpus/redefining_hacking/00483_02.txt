@@ -1,0 +1,2 @@
+shows how a typical SMB
+implementation works.

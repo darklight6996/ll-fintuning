@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What additional details can be obtained from a service version scan?
+
+CONTEXT:
+Context: Service Interrogation. An initial scan has revealed a set of open ports commonly associated with a Windows Domain Controller (e.g., 53, 88, 139, 445, 5985).
+Principle to Apply: 'Deeply interrogate identified services to determine exact versions, configurations, and potential vulnerabilities.'

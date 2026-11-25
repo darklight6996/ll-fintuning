@@ -1,0 +1,26 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• sub_filters: This section leverages string substitution filters for the
+dynamic content when proxied.
+• auth_tokens: This section indicates which cookies are captured in the
+response being proxied.
+• credentials: This section identifies the data captured in the POST requests
+—that is, username and passwords.
+• login: This section indicates the domain and the path location of the
+phishing landing page that will appear to an end user.
+The following are other options to consider having in your profile:
+• auth_urls: This option, shown in Example 5-3, is used to define the path
+that can only be accessed by an end user upon capturing all the tokens
+needed for the session.
+Example 5-3 An auth_urls Section
+auth_urls:
+- '/admin'
+- '/admin/.*'

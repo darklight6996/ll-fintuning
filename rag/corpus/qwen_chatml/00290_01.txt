@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• Apple Remote Desktop
+• VNC
+• X server forwarding
+• Other remote monitoring and management (RMM) tools
+In addition to traditional remote access protocols, attackers are increasingly
+abusing RMM tools. These tools are designed for legitimate IT
+administration but have become popular among threat actors due to their
+features and ability to evade detection. Some of the most commonly used
+RMM tools include AnyDesk, Atera, Splashtop, ConnectWise
+ScreenConnect, and TeamViewer. These tools allow administrators to
+perform tasks like software deployment, system updates, and
+troubleshooting without being physically present at the machine; however,
+these same capabilities make them attractive targets for cybercriminals.
+Example 6-21 shows an example of using Metasploit to create an RDP
+connection. This Metasploit module enables RDP and provides options to
+create an account and configure it to be a member of the Local
+Administrators and Remote Desktop Users group. This module can also be
+used to forward the target's TCP port 3389.
+Example 6-21 Using the Metasploit RDP Post-Exploitation Module

@@ -1,0 +1,4 @@
+the user root, that information is displayed.
+Example 9-43 Netstat Example Without Root-Level Access
+omar@vulnhost-1 ~ % netstat -tunap
+(Not all processes could be identified, non-owned pro

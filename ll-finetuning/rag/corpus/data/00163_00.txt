@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Identify internal services accessed via SSRF.
+
+CONTEXT:
+Modify upload requests to hit localhost endpoints.
+
+METHOD / ANSWER:
+Command: Use `ffuf` to target localhost endpoints on discovered ports.
+Purpose: Discover internal API endpoints responding to SSRF.

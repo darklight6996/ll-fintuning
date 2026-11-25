@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Test for SSRF vulnerabilities.
+
+CONTEXT:
+Use the upload feature to test URLs pointing to localhost.
+
+METHOD / ANSWER:
+Command: Send a POST request to the upload endpoint with SSRF payloads.
+Purpose: Confirm if internal services can be accessed.

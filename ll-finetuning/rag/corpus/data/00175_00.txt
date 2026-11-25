@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Log into SSH with valid credentials.
+
+CONTEXT:
+Use netexec for quick verification.
+
+METHOD / ANSWER:
+Command: `netexec ssh editorial.htb -u dev -p 'dev080217_devAPI!@'`
+Purpose: Verify that the credentials work for SSH access.

@@ -1,0 +1,1 @@
+d ): 17 18 def __init__ ( self , interface = ' tun0 ' , target_ip = ' 10.10.10.106 ' ): 19 super (). __init__ () 20 self . interface = interface 21 self . target_ip = target_ip 22 23 24 def run ( self ): 25 print ( f " [*] Starting DNS Sniffer on { self . interface } for target { self . target_ip } . " )

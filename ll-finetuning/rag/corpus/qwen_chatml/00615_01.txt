@@ -1,0 +1,25 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• LoRA Alpha: Set to 32, this controls the scaling factor for LoRA, which
+influences the weight adjustment during fine-tuning.
+• LoRA Dropout: Set to 0.05, meaning 5 percent of the neurons are
+randomly dropped during training to prevent overfitting.
+There are many other fine-tuning settings, but the following are displayed
+in Figure 11-10:
+• Gradient Checkpointing: Uses Enabled (True), which helps save
+memory by recomputing some layers during the backward pass.
+• Attention Implementation: Uses flash_attention_2, a more memory-
+efficient attention mechanism that allows for faster processing of large
+sequences.
+Using RAG and AI Agents for Bug Bounty Hunting
+RAG combines the capabilities of language models with data retrieval from
+vector databases and other sources, providing contextually relevant
+information that enhances the model inference and reduces the likelihood of
+hallucinations or confabulations. For bug bounty hunters, RAG can be used
+to access up-to-date information about potential vulnerabilities or exploits
+as they emerge.
+Many different tools such as LlamaIndex, LangChain, LangGraph, and
+cloud services such a

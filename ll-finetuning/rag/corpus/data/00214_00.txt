@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify container runtime security.
+
+CONTEXT:
+Infrastructure security audit.
+
+METHOD / ANSWER:
+Command: `docker info`
+Explanation: Confirms secure runtime settings.

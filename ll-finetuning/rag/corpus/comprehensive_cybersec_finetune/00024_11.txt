@@ -1,0 +1,7 @@
+**Tools & Platforms**:
+- **GRC**: Vanta, Drata, Secureframe, Sprinto, Thoropass
+- **Cloud Security**: Prowler, ScoutSuite, Wiz, Orca, Prisma Cloud
+- **Kubernetes**: kube-bench, Kubescape, ARMO, Kyverno
+- **IaC Security**: Checkov, tfsec, Terrascan, Snyk, Bridgecrew
+- **SIEM**: Panther, Datadog, Splunk, Elastic, Chronicle
+- **Compliance Automation**: Cloud Custodian, AWS Config, Azure Policy, GCP Org Policies

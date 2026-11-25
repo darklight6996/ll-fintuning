@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+vulnerability management processes. You can access the latest CVSS
+specification at https://www.first.org/cvss.
+CVSS consists of four metric groups: Base, Threat, Environmental, and
+Supplemental. Base metrics represent the intrinsic qualities of a
+vulnerability. The Threat metric group represents the traits of a vulnerability
+connected to potential threats, which can evolve over time, though they may
+remain consistent across different user environments.
+The Environmental metric group captures the features of a vulnerability that
+are specific and relevant to an individual consumer’s environment. This
+includes factors such as the existence of security controls that could reduce
+or eliminate the impact of a successful attack, as well as the criticality of the
+affected system within the overall technology infrastructure. The
+Supplemental metric group consists of metrics that offer additional context
+and measure external attributes of a vulnerability. The answers to these
+metrics are defined by the CVSS consumer, enabling them to use a risk
+analysis system tailored to their environment to assign locally relevant
+severity to the metrics and values.
+EPSS is a data-driven

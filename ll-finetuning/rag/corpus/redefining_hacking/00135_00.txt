@@ -1,0 +1,26 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+To begin the installation of Evilginx3, you need to install Go Language on
+your server to build the package (see Example 5-1).
+Example 5-1 Pulling and Building the Package
+git clone https://github.com/kgretzky/evilginx2.git
+go build .
+You also will need to adjust the parameters of the example.yaml phishlet
+template to be tailored to your targeted site. Kgretzky provides a sample
+phishlet template for you to start with to customize for the website you’re
+targeting; it is shown in Example 5-2. The YAML file provides guidance for
+the tool on what exactly to look for in requests and which requests need to
+be filtered out to proxy the traffic. It is important to note that every phishlet
+will always be different, and you can expect phishlets to continuously
+evolve over time as applications change the authentication process.
+Example 5-2 YAML
+(https://github.com/kgretzky/evilginx2/blob/master/phishlets/example.yaml)
+min_ver: '3.0.0'
+proxy_hosts:

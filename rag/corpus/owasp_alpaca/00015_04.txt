@@ -1,0 +1,4 @@
+passed to the application, as these usually contain sensitive
+information, such as state information, quantity of items, the price of
+items, that the developer never intended for you to see or change.
+38

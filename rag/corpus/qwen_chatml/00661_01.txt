@@ -1,0 +1,10 @@
+Context:
+Context: ADCS Post-Exploitation Authentication. You have successfully obtained a `.pfx` certificate file for a privileged account (e.g., `administrator.pfx`) through an ADCS exploit.
+Principle to Apply: 'Use a certificate for PKINIT authentication to obtain a Ticket Granting Ticket (TGT) and access domain resources.'
+assistant
+**Assessment Phase**: Certificate-Based Authentication (PKINIT).
+**Core Principle**: A valid certificate with the `Client Authentication` extended key usage (EKU) can be used in place of a password for Kerberos authentication, resulting in a TGT for the associated user.
+**Actionable Steps**:
+1.  **Authenticate with PFX**: `certipy auth -pfx administrator.pfx -dc-ip 10.10.11.72`
+    *   **Reasoning**: This command performs PKINIT authentication using the provided `.pfx` file. It requests a TGT for the user principal embedded in the certificate, outputs the user's NTLM hash, and saves the TGT in a `.ccache` file for use with other tools.
+**Guidance for Novel Context**: The tool could also be `Rubeus` (`Rubeus asktgt /user:admin /certificate: /ptt`). The core principle is leveraging the certificate to establish a Kerberos identity. The resulting TGT or

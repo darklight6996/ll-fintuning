@@ -1,0 +1,17 @@
+METHOD / ANSWER:
+For RFID cards that operate on 125 kHz, the card data formats typically are
+26 bit and 35 bit but can range from 26 to 40 bits. For 26-bit cards, the
+facility code will consist of 8 bits, and the card code will consist of 16 bits,
+as illustrated in Figure 5-12. The 35-bit format, proprietary by HID, consists
+of 12 bits, and the card code consists of 20 bits. The data being exchanged
+with both is still unencrypted.
+Figure 5-12 26-Bit Format
+iClass legacy cards were intended to be more secure through authentication
+and encryption. However, the master key was leaked to the public, making
+them easily cloneable. The image in Figure 5-13 uses the Stealth Wiegand
+Data Interpreter (WDI). The access control data we want will be associated
+with block 7, which contains the encrypted facility code and access card
+number. This is the block you’d decrypt with the master key. You will also
+need to modify blocks 6, 8, and 9, which can be written with 0s. Figure 5-
+14 shows an example of the results of the credentials scanned from an
+iClass legacy card.

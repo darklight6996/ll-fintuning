@@ -1,0 +1,30 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+/recon_scripts/dns_recon or by visiting hackerrepo.org. Example 9-10
+demonstrates how to use the script.
+Example 9-10 Using the Cloud Checker Script
+┌──(root㉿
+websploit)-[~/h4cker/programming_and_scripting_for_cy
+s/dns_recon]
+└─# python3 cloud_provider.py
+Cloud Checker example by Omar Santos.
+Please enter a domain: netflix.com
+The IP address of netflix.com is 3.230.129.93
+The organization owning the IP is: Amazon.com, Inc.
+The IP address belongs to a major cloud provider.
+┌──(root㉿
+websploit)-[~/h4cker/programming_and_scripting_for_cy
+s/dns_recon]
+└─# python3 cloud_provider.py
+Cloud Checker example by Omar Santos.
+Please enter a domain: cisco.com
+The IP address of cisco.com is 72.163.4.185
+The organization owning the IP is: Cisco Technology I
+The IP address does not belong to a known major cloud

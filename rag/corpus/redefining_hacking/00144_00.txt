@@ -1,0 +1,12 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+screen -S evilginx
+./evilginx2 -p phishlets/ -debug
+config autocert off (disables auto generation of Lets

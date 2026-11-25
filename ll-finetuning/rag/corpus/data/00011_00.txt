@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What information does a detailed Nmap scan provide after discovering open ports?
+
+CONTEXT:
+The target has open ports 22, 80, and 8080.
+
+METHOD / ANSWER:
+Command: `nmap -p 22,80,8080 -sCV 10.10.11.80`
+Explanation: This scans specific open ports for service versions and potential vulnerabilities, helping to identify technologies running on them.

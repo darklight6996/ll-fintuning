@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Conduct a retrospective of the pentest.
+
+CONTEXT:
+Analyze what techniques worked and what didn't.
+
+METHOD / ANSWER:
+Command: Host a meeting with stakeholders to discuss the outcomes.
+Purpose: Foster a learning environment.

@@ -1,0 +1,34 @@
+**Secrets & Key Management**:
+- **Secrets Manager / Parameter Store**:
+  - Rotation enabled
+  - KMS encryption
+  - Access policies
+  - Automatic rotation Lambda
+- **KMS**:
+  - Key policies (not overly permissive)
+  - Key rotation
+  - Cross-account access
+  - External key store
+
+**Monitoring & Logging**:
+- **CloudTrail**:
+  - Multi-region trail
+  - Log file validation
+  - S3 bucket encryption
+  - CloudWatch Logs integration
+  - Data events (S3, Lambda, DynamoDB)
+- **Config**:
+  - Recorder enabled
+  - Rules (managed + custom)
+  - Conformance packs
+  - Remediation
+- **GuardDuty**:
+  - Enabled in all regions
+  - S3 protection, EKS protection, RDS protection
+  - Malware protection
+- **Security Hub**:
+  - Enabled
+  - Standards (CIS, PCI DSS, AWS Foundational)
+  - Custom insights
+
+**Phase 2: Azure Security Assessment**

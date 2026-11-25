@@ -1,0 +1,18 @@
+**Phase 1: Foundation (0-6 months experience)**
+- **eJPT (eLearnSecurity Junior Penetration Tester) - INE**
+  - **Prerequisites**: Basic networking, Linux, web basics
+  - **Exam**: 48-hour practical + multiple choice
+  - **Topics**:
+    - Information gathering (Nmap, Enum4linux, SMB)
+    - Vulnerability assessment (Nessus, OpenVAS)
+    - Web application testing (Burp Suite, SQLi, XSS)
+    - Network exploitation (Metasploit, manual)
+    - Post-exploitation (meterpreter, privilege escalation basics)
+    - Reporting
+  - **Study Resources**:
+    - INE eJPT course (PTS)
+    - TCM Security PNPT prep (free on YouTube)
+    - Hack The Box: Starting Point, Easy boxes
+    - TryHackMe: Complete Beginner, Pre-Security
+  - **Cost**: ~$300 (INE subscription) or $200 standalone
+  - **ROI**: Entry-level pentest roles, validates basics

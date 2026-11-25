@@ -1,0 +1,34 @@
+**Key Vault**:
+- **Purge Protection**: Enabled
+- **Soft Delete**: Enabled
+- **Access Policies / RBAC**: Least privilege
+- **Rotation**: Automatic rotation policies
+- **Network Access**: Private endpoints, firewall
+- **Logging**: Diagnostic settings
+
+**Monitoring (Microsoft Defender for Cloud, Sentinel, Monitor)**:
+- **Defender for Cloud**:
+  - Defender plans enabled (Servers, SQL, Storage, Key Vault, ARM, DNS, Cosmos DB, Container Registries, AKS)
+  - Secure score
+  - Regulatory compliance (CIS, NIST, PCI)
+  - Workload protections
+- **Sentinel**:
+  - Data connectors
+  - Analytics rules
+  - Workbooks
+  - Playbooks (Logic Apps)
+
+**Phase 3: GCP Security Assessment**
+
+**Identity (Cloud IAM, Identity Platform)**:
+- **IAM**:
+  - Primitive roles (Owner, Editor, Viewer) vs predefined
+  - Service account keys (user-managed)
+  - Service account impersonation
+  - Workload Identity Federation
+  - Organization policies (constraints)
+  - Deny policies
+- **Identity Platform**:
+  - MFA enforcement
+  - Blocking functions
+  - Tenant restrictions

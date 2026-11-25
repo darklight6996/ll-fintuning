@@ -1,0 +1,27 @@
+**Phase 7: Monitoring & Testing (Requirements 10-11)**
+- **Req 10: Logging & Monitoring**
+  - Centralized logging: SIEM (Splunk, Elastic, QRadar)
+  - Log all: user access, admin actions, system events
+  - Audit trails: immutable, 1 year retention
+  - Daily log review, alerting
+  - Time sync: NTP
+- **Req 11: Testing**
+  - Quarterly internal vuln scans
+  - Annual external penetration test
+  - After significant changes
+  - IDS/IPS: `suricata`, `snort`
+  - File integrity monitoring: `aide`, `tripwire`
+  - Wireless analyzer quarterly
+
+**Phase 8: Policy & Risk (Requirement 12)**
+- Information security policy
+- Risk assessment annually
+- Incident response plan (tested annually)
+- Service provider management
+- Security awareness training
+
+**Validation Tools**:
+- `pcidss-scanner`, `nessus` PCI policy
+- `aws config` rules for PCI
+- `azure policy` PCI initiative
+- Custom scripts for requirement-specific checks

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you start the pentest on the Administrator box?
+
+CONTEXT:
+You have the target IP address and initial credentials.
+
+METHOD / ANSWER:
+Command: `nmap -p- --min-rate 10000 10.10.11.42`
+Explanation: This command scans all TCP ports rapidly to identify which ports are open on the target machine.

@@ -1,0 +1,1 @@
+can look for what permissions exist on this OU using PowerShell: *Evil-WinRM* PS C:\> ( Get-Acl "AD:OU=BuildAgents,OU=Development,DC=coder,DC=htb" ) . access ...[snip]... There’s a lot there, but I’m particularly interested in the rights from groups I have control over. BuildAgent Mgmt has some access: *Evil-WinRM* PS

@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check access to shares with higher permissions.
+
+CONTEXT:
+Determine if you can access restricted shares.
+
+METHOD / ANSWER:
+Command: `netexec smb CICADA-DC -u <user> -p '<password>' --shares`
+Purpose: Identify any sensitive shares available to the user.

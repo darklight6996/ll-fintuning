@@ -1,0 +1,28 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 8-3 The TensorFlow Embedding Projector
+You can access the TensorFlow Embedding Projector at
+https://projector.tensorflow.org. Users can interact with the embeddings by
+zooming, rotating, and selecting specific data points. This interactivity helps
+when exploring relationships and clusters within the data. In the example
+shown in Figure 8-3, the word exploit is used to perform a similarity search.
+Let’s generate embeddings for the sentence “This is an example from
+Omar” using one of OpenAI’s embedding models (text-embedding-3-small)
+using the code in Example 8-9. This script is also available at
+https://github.com/santosomar/RAG-for-cybersecurity.
+Example 8-9 Creating Vector Embeddings Using OpenAI’s Embedding
+Models
+from openai import OpenAI
+client = OpenAI()
+response = client.embeddings.create(
+input="This is an example from Omar.",
+model="text-embedding-3-small"
+)
+print(response.data[0].embedding)

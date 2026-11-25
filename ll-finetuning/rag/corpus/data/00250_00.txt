@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify core dumps disabled.
+
+CONTEXT:
+Data leakage prevention.
+
+METHOD / ANSWER:
+Command: `ulimit -c`
+Explanation: Prevents sensitive memory dumps.

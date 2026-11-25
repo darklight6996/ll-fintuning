@@ -1,0 +1,31 @@
+**Phase 4: OAuth/OIDC/SAML Testing**
+- **OAuth 2.0**:
+  - PKCE bypass (code challenge)
+  - Redirect URI validation (open redirect)
+  - State parameter (CSRF)
+  - Scope escalation
+  - Token replay, token leakage in Referer
+- **OIDC**:
+  - ID token validation (signature, exp, aud, iss)
+  - Nonce validation
+  - Discovery document manipulation
+- **SAML**:
+  - Signature validation (XMLSig)
+  - Assertion replay
+  - XPath injection in SAML processing
+  - Certificate validation
+  - IdP/SP initiated flow confusion
+
+**Phase 5: JWT Testing**
+- **Algorithm Confusion**: `alg: none`, `RS256` → `HS256`
+- **Weak Secret**: Brute force HS256 secret
+- **Key Confusion**: Public key as HMAC secret
+- **Claim Manipulation**: `exp`, `iat`, `nbf`, `role`, `admin`
+- **Header Injection**: `jku`, `x5u`, `kid`
+- **Tools**: jwt_tool, jwt_hack, Burp JWT plugin
+
+**Phase 6: Single Sign-On (SSO) Testing**
+- **SAML**: XML signature wrapping, assertion replay
+- **OIDC**: PKCE, nonce, state, redirect URI
+- **Kerberos/NTLM**: Delegation, constrained delegation
+- **CAS**: Ticket validation, proxy tickets

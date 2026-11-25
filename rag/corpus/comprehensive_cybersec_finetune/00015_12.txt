@@ -1,0 +1,17 @@
+**Phase 9: Discovery (TA0007)**
+- **System Information (T1082)**: `systeminfo`, `uname -a`
+- **Network Service Scanning (T1046)**: `nmap`, `masscan`, `SharpScan`
+- **Remote System Discovery (T1018)**: `net view`, `BloodHound`, `SharpHound`
+- **Account Discovery (T1087)**:
+  - Local (T1087.001), Domain (T1087.002), Email (T1087.003), Cloud (T1087.004)
+- **File and Directory Discovery (T1083)**: `dir`, `ls`, `SharpDrive`
+- **Network Share Discovery (T1135)**: `net share`, `SharpShare`
+- **Process Discovery (T1057)**: `tasklist`, `ps`, `SharpProcess`
+- **Software Discovery (T1518)**: `wmic product`, `dpkg -l`
+- **Browser Bookmark Discovery (T1217)**: `SharpChrome`
+- **Cloud Service Discovery (T1526)**: `awscli`, `az`, `gcloud`, `ScoutSuite`
+- **Cloud Storage Object Discovery (T1619)**: `aws s3 ls`, `az storage blob list`
+- **Permission Groups Discovery (T1069)**: `net localgroup`, `BloodHound`
+- **System Network Configuration (T1016)**: `ipconfig`, `ifconfig`, `route`
+- **System Owner/User Discovery (T1033)**: `whoami`, `query user`
+- **Virtualization/Sandbox Evasion (T1497)**: `CheckVM`, `RedPill`

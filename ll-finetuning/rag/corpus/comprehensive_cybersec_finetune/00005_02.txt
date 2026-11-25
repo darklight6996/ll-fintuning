@@ -1,0 +1,9 @@
+**Alternative: Use Existing Computer**
+If you compromise a computer account (e.g., via Shadow Creds on machine account), you can configure RBCD directly on that computer without creating a new one.
+
+**Key Requirements**:
+- Target computer must have SPN registered (usually `HOST/`, `RestrictedKrbHost/`)
+- Fake computer needs no SPN
+- Works across trusts if trust allows delegation
+
+**Detection**: Monitor Event ID 4742 (computer account modified) with changes to `msDS-AllowedToActOnBehalfOfOtherIdentity`.

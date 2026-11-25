@@ -1,0 +1,19 @@
+**Phase 3: Initial Access (TA0001)**
+- **Phishing (T1566)**:
+  - Spearphishing Attachment (T1566.001): Maldocs, ISO, HTML
+  - Spearphishing Link (T1566.002): Credential harvesting, drive-by
+  - Spearphishing via Service (T1566.003): LinkedIn, Teams, Slack
+- **External Remote Services (T1133)**:
+  - VPN, Citrix, RDP, SSH, VNC
+  - Credential stuffing, password spray
+  - MFA bypass (fatigue, token replay)
+- **Exploit Public-Facing Application (T1190)**:
+  - CVE-2024/2025 (Citrix, Fortinet, Pulse, F5, Exchange, SharePoint)
+  - Web shells, deserialization, SSRF, RCE
+- **Supply Chain (T1195)**:
+  - Software updates, CI/CD, dependencies
+  - Vendor compromise
+- **Hardware Addition (T1200)**:
+  - Rubber Ducky, Bash Bunny, O.MG Cable (if physical in scope)
+- **Valid Accounts (T1078)**:
+  - Default credentials, leaked credentials, credential reuse

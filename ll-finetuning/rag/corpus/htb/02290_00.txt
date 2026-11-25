@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: Writeup from Htb Fingerprint Hacks Stuff)
+
+CONTEXT:
+Source: Htb Fingerprint Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+" ) ['0xdf', 'true', '', 'false'] un is the username I submit. The server saves that as server_un in the cookie. When the cookie is decrypted, it splits, and checks gets the username and admin status from the first two things in the array (it only expects two). But I’ve put my “true” in the right place and pushed the real “false” back. I’ll go into Burp Repeater and send a request to change my username: Click for full size image The sent cookie is still the logged in cookie from XSS. The new cookie should be my malicious one. I’ll add that to Firefox, and visit /admin : File Read Back in repeater, I can get root.txt : Click for full size image I can also get root’s SSH key: Click for full size image SSH I can use that key to get a shell over SSH: oxdf@hacky$ ssh -i ~/keys/fingerprint_root root@10.10.11.12 ...[snip]... root@fingerprint:~#

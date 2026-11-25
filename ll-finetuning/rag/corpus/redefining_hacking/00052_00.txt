@@ -1,0 +1,19 @@
+TECHNIQUE / QUESTION:
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Tabletop
+Tabletop exercises (TTXs) are structured, discussion-based security
+simulations designed to evaluate an organization’s readiness for handling
+various scenarios. These scenarios can take on a wide variety of types, from
+cyber attacks to natural disasters or other crises. Unlike live simulations,
+TTXs are conducted in a controlled environment where participants discuss
+actions and responses to hypothetical incidents without actively deploying
+tools or systems. These exercises are typically facilitated by a moderator
+who guides the scenario, posing challenges and prompting participants to
+consider their response strategies. TTXs focus on testing policies,

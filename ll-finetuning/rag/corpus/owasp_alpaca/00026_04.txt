@@ -1,0 +1,14 @@
+arget site implemented the
+following code to protect the input from the inclusion of external
+script:
+<?
+gre = "/<script[*>]+src/i";
+if (preg_match($re, $_GET[‘var']))
+{
+echo “Filtered”;
+return;
+}
+echo “Welcome “$_GET['var'].” |";
+?>
+In this scenario there is a regular expression checking if <script
+100

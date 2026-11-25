@@ -1,0 +1,16 @@
+**Network Traffic Interception**:
+- **Burp Suite Setup**:
+  - CA certificate install (user vs system store)
+  - Proxy configuration (WiFi, APN, `adb reverse`)
+  - TLS bypass: Frida scripts, Objection, SSL Kill Switch
+  - `objection --gadget com.package explore` → `sslpinning disable`
+- **Certificate Pinning Bypass**:
+  - Android: `TrustManagerImpl`, `OkHttpClient`, `NetworkSecurityConfig`
+  - iOS: `NSURLSession`, `Alamofire`, `TrustKit`, `AFNetworking`
+  - Universal: Frida `SSLPinningBypass.js`
+- **Traffic Analysis**:
+  - API endpoints, parameters, auth tokens
+  - Sensitive data in requests/responses
+  - Custom headers, signatures
+  - WebSocket traffic
+  - gRPC/Protobuf (Burp extension)

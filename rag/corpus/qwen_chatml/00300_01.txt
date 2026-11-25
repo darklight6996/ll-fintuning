@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• PsSuspend: Suspends processes
+PsExec is one of the most powerful Sysinternals tools. You can use it to
+remotely execute anything that can run on a Windows command prompt.
+You can also use PsExec to modify Windows registry values, execute
+scripts, and connect a compromised system to another system. For
+attackers, one advantage of PsExec is that the output of the commands you
+execute is shown on your system (the local system) instead of on the
+victim's system. Consequently, an attacker can remain undetected by remote
+users.
+Tip
+The PsExec tool can also copy programs directly to the
+victim system and remove those programs after the
+connection ceases.
+Because of the -i option, the following PsExec command interacts with the
+compromised system to launch the calculator application, and the -d option
+returns control to the attacker before the launching of calc.exe is completed:
+>PsExec \\VICTIM -d -i calc.exe
+You can also use PsExec to edit registry values, which means applications
+can run with system privileges and have access to data that is normally

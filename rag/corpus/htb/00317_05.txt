@@ -1,0 +1,1 @@
+or,Microsoft.PowerShell.Commands.ConvertToSecureStringCommand That’s because these secure password strings are encrypted with information only available on the computer it was encrypted with as the user it was

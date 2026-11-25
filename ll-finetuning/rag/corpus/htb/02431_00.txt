@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Explain the purpose and usage of the code/command in the following text: (Context: Writeup from Htb Forwardslash Hacks Stuff)
+
+CONTEXT:
+Source: Htb Forwardslash Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+into ForwardSlash twice in two tmux panes. I touched a file in /dev/shm that I would use to get message, and made sure that it was world-writable. Then I ran tail -f on it, which will hold open that process and continue to print new lines as they are written to the file. In the other pane, I opened api.php in vim , and added a file_put_contents line to write to /dev/shm/.0xdf things I wanted to see. Now I sent the POST request to profilepicture.php with data url=/var/www/backup.forwardslash.htb/index.php using Burp Repeater, resulting in the output in the bottom pane: Click for full size image In this case it’s 33, the position where “session_start();” occurs in the file I’m trying to leak (and therefore the reason it returns an error). Now I can easily change what is logged, and send via Repeater again, and see more output.

@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+• number: The port number (such as 80, 443, 22)
+• ipId: A foreign key linking the port to a specific IP
+The URLs table tracks specific web addresses within the subdomains that
+may need further inspection for vulnerabilities such as XSS, CSRF, or SQL
+injection. The following are the URLs fields:
+• id: A unique identifier for each URL
+• address: The specific URL address (such as
+https://api.websploit.org/login)
+• ipId: A foreign key linking the URL to a specific IP address
+The vulnerabilities table stores information about specific vulnerabilities
+found during the bug hunting process. This is one of the core elements of
+this automated system because it represents the outcomes of ethical hacking
+and bug hunting efforts. The following are the URL fields:
+• id: A unique identifier for each vulnerability (primary key)
+• description: A textual description of the vulnerability (such as "SQL
+Injection in the login page").
+• ipId: A foreign key linking the vulnerability to a specific IP

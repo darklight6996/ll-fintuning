@@ -1,0 +1,10 @@
+Context:
+Context: Active Directory Certificate Services (ADCS) Reconnaissance. You have obtained credentials for a user (`cert_admin`) with permissions to interact with the Certificate Authority (CA).
+Principle to Apply: 'Enumerate and request certificates from ADCS to discover misconfigurations that enable privilege escalation.'
+assistant
+**Assessment Phase**: ADCS Enumeration & Certificate Request.
+**Core Principle**: Misconfigured certificate templates (e.g., allowing low-privilege users to enroll, enabling client authentication) can be abused to obtain certificates that grant unauthorized access or privileges.
+**Actionable Steps**:
+1.  **Request a Certificate**: `certipy req -u cert_admin -p '0xdf0xdf!' -dc-ip 10.10.11.72 -target dc01.tombwatcher.htb -ca tombwatcher-CA-1 -template WebServer -application-policies 'Client Authentication'`
+    *   **Reasoning**: This attempts to enroll for a `WebServer` template certificate. Specifying `-application-policies 'Client Authentication'` is key, as a certificate with this EKU can be used to authenticate to the domain, potentially as the template's configured subject or via SAN spoofing.
+**Guidance for Novel Context**: The specific temp

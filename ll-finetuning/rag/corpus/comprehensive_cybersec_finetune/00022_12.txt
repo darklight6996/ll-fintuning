@@ -1,0 +1,38 @@
+dr = requests.get(f'https://{target}{ep}', timeout=3, verify=False)
+                if dr.status_code == 200:
+                    score['development'] += 2
+                    score['staging'] += 1
+            except:
+                pass
+    except:
+        pass
+    
+    # SSL Certificate
+    try:
+        cert = ssl.get_server_certificate((target, 443))
+        x509 = ssl._ssl._test_decode_cert(cert)
+        issuer = x509.get('issuer', [[]])[0]
+        if 'Let\'s Encrypt' in str(issuer):
+            score['production'] += 1
+            score['staging'] += 1
+        if 'Self-Signed' in str(issuer) or 'Internal CA' in str(issuer):
+            score['development'] += 2
+            score['staging'] += 1
+    except:
+        pass
+    
+    # Sandbox checks
+    try:
+        # Check for VM artifacts via timing
+        import time
+        start = time.perf_counter()
+        time.sleep(0.001)
+        elapsed = time.perf_counter() - start
+        if elapsed > 0.01:  # Sleep acceleration
+            score['sandbox'] += 3
+    except:
+        pass
+    
+    # Determine primary classification
+    primary = max(score, key=score.get)
+    confidence = score[primary] / sum(score.values()) if sum(

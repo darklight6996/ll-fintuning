@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check permissions on /etc/shadow.
+
+CONTEXT:
+Sensitive file access review.
+
+METHOD / ANSWER:
+Command: `ls -l /etc/shadow`
+Explanation: Confirms restricted access to credential data.

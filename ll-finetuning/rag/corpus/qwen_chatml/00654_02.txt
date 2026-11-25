@@ -1,0 +1,1 @@
+dump AD's object database.** If the provided credentials lack sufficient permissions, some data will be missing. You may need to first find a way to escalate privileges within AD (e.g., Kerberoasting) to get better credentials for a full collection.

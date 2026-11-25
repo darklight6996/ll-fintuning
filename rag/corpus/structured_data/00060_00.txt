@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you use privilege escalation scripts?
+
+CONTEXT:
+Context: Local Privilege Escalation Research. You have user-level access to a system.
+Principle to Apply: 'Use automated enumeration to efficiently identify common privilege escalation vectors.'

@@ -1,0 +1,1 @@
+Monitor for potential data leakage or exposure during the exploitation process.

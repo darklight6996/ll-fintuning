@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What steps should you take to Kerberoast a service account?
+
+CONTEXT:
+Context: Active Directory Privilege Escalation. You have identified a user 'Alfred' with a Service Principal Name (SPN), indicating it is a service account. You have valid domain credentials.
+Principle to Apply: 'Target service accounts, as they often have weak, crackable passwords set by humans.'

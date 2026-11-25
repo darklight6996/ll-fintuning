@@ -1,0 +1,1 @@
+: nmap gobuster php upload webshell ssh credentials pivot qemu spice openvpn tunnel rbash gpg remmina ubuntu linux iptables sudo filter oswe-like Curling Complete Release: 27 Oct 2018 Retire: 23 Mar 2019 OS: nmap joomla searchsploit webshell cron pspy

@@ -1,0 +1,1 @@
+x64 (name:DC01) (domain:haze.htb) ( signing:True ) ( SMBv1:False ) SMB 10.10.11.61 445 DC01 [+] haze.htb\paul.taylor:Ld@p_Auth_Sp1unk@2k24 SMB 10.10.11.61 445 DC01 -Username- -Last PW Set- -BadPW- -Description- SMB 10.10.11.61 445 DC01 paul.taylor 2025-06-24 04:42:30 0 SMB 10.10.11.61 445 DC01 [*] Enumerated 1

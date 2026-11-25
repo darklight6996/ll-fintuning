@@ -1,0 +1,1 @@
+assword":"0xdf0xdf","password_confirmation":"0xdf0xdf"}' {"component":"Auth\/ResetPassword","props":{"errors":{},"auth":{"user":null},"flash":{"message":null},"status":"This password reset token is invalid."},"url":"\/reset-password","version":"207fd484b7c2ceeff7800b8c8a11b3b6"} I don’t really know what X-Inertia is, but it’s in the request when I do the

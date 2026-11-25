@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How can you further exploit the privileges of the p.agila user?
+
+CONTEXT:
+Context: Active Directory Object Manipulation. You have authenticated as `p.agila` and discovered this account has permissions to modify group memberships (e.g., `GenericWrite` on a group like 'Service Accounts').
+Principle to Apply: 'Abuse write permissions on security groups to add yourself to privileged groups, granting additional rights.'

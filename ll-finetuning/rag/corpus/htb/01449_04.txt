@@ -1,0 +1,1 @@
+────────────── 404 GET 1l 2w -c Auto-filtering found 404 -like response and created new filter; toggle off with --dont-filter 404 GET

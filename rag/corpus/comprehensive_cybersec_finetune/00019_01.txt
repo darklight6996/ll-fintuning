@@ -1,0 +1,14 @@
+**Phase 2: Asset Identification & Valuation**
+- **Asset Inventory**:
+  - Automated: `aws resourcegroupstaggingapi`, `az resource list`, `gcloud asset search-all-resources`
+  - CMDB: ServiceNow, Jira Assets, Device42
+  - Network scans: `nmap`, `masscan`
+  - Cloud asset inventory: `cloudquery`, `steampipe`
+- **Asset Classification**:
+  - Confidentiality: Public, Internal, Confidential, Restricted
+  - Integrity: Low, Medium, High, Critical
+  - Availability: Tier 1-4 (RTO/RPO)
+  - Business value: Revenue impact, regulatory, reputational
+- **Asset Valuation**:
+  - Quantitative: replacement cost, revenue loss/hour
+  - Qualitative: High/Medium/Low with definitions

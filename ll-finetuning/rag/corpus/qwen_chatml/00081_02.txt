@@ -1,0 +1,5 @@
+e should the need arise. An example would be the
+identification of inconsistent user input sanitization in various portions of
+products. The red team can collaborate with engineers to identify the best
+practices that are relevant to the organization and then work to disseminate
+that information in the appropriate manner with the relevant engineers.

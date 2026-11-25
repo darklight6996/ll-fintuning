@@ -1,0 +1,1 @@
+ssor ( singleTarget = ' SMB://%s:445/ ' % self . client_address [ 0 ]) self . target = self . server . config . target

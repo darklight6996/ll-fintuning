@@ -1,0 +1,1 @@
+me } : { password } to login. ' ) print () break When I run it, it will show whatever password is being attempted at the moment, eventually finding one and printing that and exiting. It takes about 16 seconds: root@kali# time ./bludit_brute.py wordlist SUCCESS:

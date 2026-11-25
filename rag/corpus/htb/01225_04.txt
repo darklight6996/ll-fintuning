@@ -1,0 +1,1 @@
+re I can grab root.txt : root@chaos:/dev/shm# cd /root/ root@chaos:~# ls root.txt root@chaos:~# cat root.txt

@@ -1,0 +1,1 @@
+2bdc68c06117 -H "x-access-token: $ADMIN " -d '{}' -H "Content-type: application/json" {"status":"error","message":"\"log_name\" not defined"} It wants a log_name . That’s

@@ -1,0 +1,1 @@
+i , some json that reflects the interfaces for the contract. You’ll notice

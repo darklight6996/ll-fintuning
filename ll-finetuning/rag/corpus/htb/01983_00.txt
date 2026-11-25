@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Explain the purpose and usage of the code/command in the following text: (Context: Writeup from Htb Encoding Hacks Stuff)
+
+CONTEXT:
+Source: Htb Encoding Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+his didn’t! Analysis I’ll play around with this in this video ): The summary is that PHP’s parse_url function, despite it’s claim that “Partial and invalid URLs are also accepted, parse_url() tries its best to parse them correctly”, fails when the scheme is missing entirely, and returns nothing: php > echo parse_url ( 'http://image.haxtables.htb' , PHP_URL_HOST ); image.haxtables.htb php > echo parse_url ( 'image.haxtables.htb' , PHP_URL_HOST ); php > That means that this check works as expected with http://image.haxtables.htb , but is bypassed when given image.haxtables.htb : $domain = parse_url ( $url , PHP_URL_HOST ); if ( gethostbyname ( $domain ) === "127.0.0.1" ) { jsonify ([ "message" => "Unacceptable URL" ]); }

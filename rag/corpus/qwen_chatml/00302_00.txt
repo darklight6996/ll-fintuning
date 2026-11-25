@@ -1,0 +1,27 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+You can find it at https://gtfobins.github.io.
+The project gathers legitimate Linux/UNIX binaries that can be exploited to
+escape restricted shells, escalate or maintain elevated privileges, transfer
+files, spawn bind and reverse shells, and perform other post-exploitation
+tasks.
+Note
+GTFOBins isn't a collection of exploits, and the listed
+programs themselves aren't inherently vulnerable. Instead,
+GTFOBins serves as a resource on how to use available
+binaries to achieve various objectives when only certain
+tools are accessible.
+Let’s look at a few examples. For instance, Tar is a utility for archiving
+files. However, it can be used to read or write arbitrary files and gain shell
+access:
+tar -cf /dev/null /dev/null --checkpoint=1
+--checkpoint-action=exec=/bin/sh
+This command executes /bin/sh during the archiving process.

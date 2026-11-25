@@ -1,0 +1,27 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+• id: A unique identifier for each subdomain (primary key)
+• name: The name of the subdomain
+• rootDomainId: A foreign key linking the subdomain to a specific root
+domain
+The IPs table stores IP addresses associated with subdomains. These IP
+addresses are the targets that may be probed for vulnerabilities such as open
+ports, services, and misconfigurations. The following are the fields in the
+IPs table:
+• id: A unique identifier for each IP address of the corresponding subdomain
+• address: The IP address of the subdomain
+• subdomainId: A foreign key linking the IP address to a specific
+subdomain
+The ports table contains information about open ports on specific IP
+addresses. Identifying open ports is critical for understanding the services
+running on the target, which can reveal vulnerabilities such as
+misconfigurations or exposure of sensitive services. The following are the
+fields for ports:
+• id: A unique identifier for each port

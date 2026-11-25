@@ -1,0 +1,20 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+For details on how to enable PowerShell remoting, see
+https://docs.microsoft.com/en-
+us/powershell/module/microsoft.powershell.core/enable-
+psremoting.
+PowerSploit and Empire
+PowerSploit is a collection of PowerShell modules that can be used for
+post-exploitation and other phases of an assessment. Table 6-5 lists the most
+popular PowerSploit modules and scripts. Refer to
+https://github.com/PowerShellMafia/PowerSploit for a complete and up-to-
+date list of scripts.
+Table 6-5 PowerSploit Modules and Scripts

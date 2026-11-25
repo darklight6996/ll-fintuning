@@ -1,0 +1,1 @@
+g comes out. The CVEDetails page shows nothing in 2024, but a few in 2023: Of the 2023 vulns, XSS is not interesting at this point as I have no indication of a way to interact with the target. SQL injection is the most interesting. The NVD description of CVE-2023-1545 is not very descriptive, but it does match the version analysis from above:

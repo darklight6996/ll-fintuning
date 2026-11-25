@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+target might send back an ICMP "port unreachable" message. If no response
+is received, the port could be either open or filtered (blocked by a firewall),
+making it difficult to distinguish between the two states. This lack of
+feedback causes scanners to rely on timeouts and retransmissions, which
+significantly slows down the scanning process.
+Many systems implement rate limiting on ICMP error messages (such as
+"port unreachable"). For example, Linux systems often limit these messages
+to one per second. If you're scanning thousands of ports, this rate limiting
+can cause the scan to take hours or even days. Additionally, since UDP
+scans often receive no response from open ports, scanners must wait for
+long timeouts before concluding that a port is either open or filtered. This
+further extends the duration of the scan compared to TCP, where closed
+ports quickly respond with a TCP RST (reset) packet.
+Network Topology
+As mentioned previously, the network topology should always be taken into
+consideration when it comes to vulnerability scanning. Of course, scanning
+across a WAN connection is never recommended because it would
+significantly impact any of the devices along

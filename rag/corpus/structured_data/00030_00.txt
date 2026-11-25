@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What should you do to take advantage of the ADCS configurations for further exploitation?
+
+CONTEXT:
+Context: Active Directory Certificate Services (ADCS) Reconnaissance. You have obtained credentials for a user (`cert_admin`) with permissions to interact with the Certificate Authority (CA).
+Principle to Apply: 'Enumerate and request certificates from ADCS to discover misconfigurations that enable privilege escalation.'

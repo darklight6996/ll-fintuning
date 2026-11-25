@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify group memberships.
+
+CONTEXT:
+Access control audit.
+
+METHOD / ANSWER:
+Command: `getent group`
+Explanation: Reviews group-based access.

@@ -1,0 +1,1 @@
+ame = self . hostname , ip = ip , baseDN = self . ad . baseDN , protocol = protocol ) self.ad.dnsresolver

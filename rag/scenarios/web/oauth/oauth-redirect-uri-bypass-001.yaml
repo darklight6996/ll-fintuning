@@ -1,0 +1,113 @@
+# Category: OAuth / OIDC
+# Source: re-implemented (2026-11-25 harvest round) from the general OAuth hunting
+# methodology in Claude-BugHunter (github.com/elementalsouls/Claude-BugHunter)
+# hunt-oauth skill, content licensed CC BY 4.0 International; adapted into this
+# framework's own scenario schema, not copied verbatim. See work.md.
+name: "OAuth redirect_uri validation bypass leading to authorization-code theft"
+id: "oauth-redirect-uri-bypass-001"
+category: "oauth"
+subcategory: "redirect_uri_bypass"
+difficulty: "practitioner"
+estimated_time: "50 minutes"
+
+description: |
+  The redirect_uri parameter in an OAuth authorization request tells the
+  provider where to send the authorization code/token after login. If the
+  provider's redirect_uri validation is loose (substring match, missing
+  scheme/path check, parameter-pollution-tolerant parsing), an attacker can
+  redirect that code/token to a host they control, then exchange it for a
+  victim's access token themselves -- a direct account-takeover path.
+
+learning_objectives:
+  - Map the full OAuth authorization + callback flow for the target
+  - Enumerate redirect_uri validation bypass techniques (host suffix, path traversal, parameter pollution, encoding)
+  - Test the state parameter for CSRF-style flow-completion without it
+  - Confirm the bypass by actually completing the flow with an attacker-controlled redirect destination, not just observing a permissive-looking response
+
+tools:
+  - Burp Suite (or any intercepting proxy)
+  - A host/domain the tester controls for receiving a redirected authorization code (test infrastructure, not the target)
+
+prerequisites:
+  - An OAuth/OIDC authorization endpoint (/oauth/authorize, /connect/authorize) reachable for this engagement
+  - An attacker-controlled callback destination to confirm code/token delivery
+
+steps:
+  - id: "step1"
+    phase: "reconnaissance"
+    action: "Capture the full authorization request and identify the redirect_uri validation surface"
+    commands:
+      - "# Capture the authorization request: note client_id, redirect_uri, state, nonce, response_type"
+      - "curl -s https://<target>/.well-known/openid-configuration"
+      - "# Note the registered/expected redirect_uri for this client_id, if discoverable"
+    expected_output: "The exact legitimate redirect_uri and the OAuth flow parameters in use"
+    detection: "None -- this only observes the normal flow"
+
+  - id: "step2"
+    phase: "exploitation"
+    action: "Test redirect_uri validation bypass techniques, one at a time"
+    commands:
+      - "# Host-suffix bypass: redirect_uri=https://legit.example.com.attacker.com"
+      - "# Path-traversal bypass: redirect_uri=https://legit.example.com/callback/../../attacker"
+      - "# Parameter pollution: redirect_uri=https://legit.example.com&redirect_uri=https://attacker.com"
+      - "# Encoding tricks: percent-encode characters the parser may mis-handle (%2F, %40, %23)"
+      - "# For each variant, submit the authorization request and observe whether the provider redirects to the attacker-controlled destination"
+    expected_output: "At least one variant causes the provider to redirect the authorization code/token to the attacker-controlled host"
+    detection: "An authorization redirect whose destination host does not match the client's registered redirect_uri"
+
+  - id: "step3"
+    phase: "exploitation"
+    action: "Test whether the state parameter is actually validated"
+    commands:
+      - "# Remove the state parameter entirely from the authorization request -- does the flow still complete?"
+      - "# Reuse a fixed/previously-seen state value across a new session"
+    expected_output: "The flow completes successfully even with a missing or reused state value, indicating no CSRF protection on the flow"
+    detection: "A completed OAuth flow with no state parameter, or a reused state value accepted"
+
+  - id: "step4"
+    phase: "validation"
+    action: "Confirm the attacker-controlled destination actually received a usable authorization code or token"
+    commands:
+      - "# Check the attacker-controlled endpoint's logs for the received code/token"
+      - "# Attempt the token exchange using the received code, confirming it yields a valid access token for the victim's account"
+    expected_output: "A valid access token obtained for an account the tester does not legitimately control, via the redirected code"
+    detection: "None beyond steps 2-3 -- this is the final confirming evidence"
+
+compliance_controls:
+  - standard: "OWASP"
+    control: "A07:2021"
+    description: "Identification and Authentication Failures"
+  - standard: "MITRE ATT&CK"
+    control: "T1528"
+    description: "Steal Application Access Token"
+
+detection:
+  network_indicators:
+    - "Authorization redirects to a host outside the client's registered redirect_uri set"
+  log_indicators:
+    - "OAuth flows completing with a missing or non-unique state parameter"
+  endpoint_indicators:
+    - "A redirect_uri validator using substring/suffix matching instead of an exact allowlist"
+
+remediation:
+  immediate:
+    - "Validate redirect_uri against an EXACT allowlist of registered URIs -- never a substring/suffix/prefix match"
+    - "Require and validate a unique, unpredictable state parameter on every authorization flow"
+  long_term:
+    - "Adopt PKCE for all OAuth clients (especially public/mobile clients) to bind the authorization code to the original request"
+    - "Add automated tests asserting redirect_uri variants (host-suffix, path-traversal, parameter-pollution) are all rejected"
+
+variables:
+  target_url: "https://target.example/oauth/authorize"
+  attacker_redirect_host: "https://attacker-controlled.example"
+
+assessment_questions:
+  - "Why is a substring/suffix match on redirect_uri insufficient validation?"
+  - "What does the state parameter actually protect against?"
+  - "Why must the exploit be confirmed by actually exchanging the stolen code for a token, not just by observing a redirect?"
+
+references:
+  - url: "https://portswigger.net/web-security/oauth"
+    title: "PortSwigger OAuth 2.0 authentication vulnerabilities"
+  - url: "https://datatracker.ietf.org/doc/html/rfc6819"
+    title: "OAuth 2.0 Threat Model and Security Considerations (RFC 6819)"

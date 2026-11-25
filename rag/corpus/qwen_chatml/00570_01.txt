@@ -1,0 +1,25 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+You can find information about WSDL in the W3C documentation at
+https://www.w3.org/TR/wsdl/.
+6. Postman Collections: Postman allows developers to create collections of
+API requests and responses. These collections can be exported in JSON
+format and shared as documentation. Postman also offers a feature called
+Postman Docs for generating documentation directly from collections. You
+can explore Postman collections and documentation features on the
+Postman website at https://www.postman.com.
+EXERCISE 9.4: API Enumeration
+Task: Your job is to enumerate the available endpoints without making any
+requests yet. List all the endpoints you can find based on the provided
+documentation. After you've listed the endpoints, cross-reference your
+findings with the actual API documentation to check whether you've
+correctly enumerated all endpoints.
+Steps:
+1. Select a public API with multiple endpoints and HTTP methods (GET,
+POST, PUT, DELETE, and so on).
+2. Use the same method to enumerate endpoints in crAPI.
+You will learn additional tips and tricks on how to find vulnerabilities in
+web applications and APIs in the next chapter.

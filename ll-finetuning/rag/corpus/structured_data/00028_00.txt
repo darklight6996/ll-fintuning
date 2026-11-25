@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you authenticate as the 'Administrator' account after performing the shadow credential attack?
+
+CONTEXT:
+Context: Post-Exploitation Authentication. You have obtained the NTLM hash for the 'Administrator' account (e.g., via DCSync, LSASS dump, or cracking a Kerberoasted hash).
+Principle to Apply: 'Use credential material (hash) for pass-the-hash authentication when plaintext passwords are unavailable.'

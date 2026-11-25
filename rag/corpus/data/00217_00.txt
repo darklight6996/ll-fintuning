@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Check TLS certificates.
+
+CONTEXT:
+Encryption in transit review.
+
+METHOD / ANSWER:
+Command: `openssl x509 -in cert.pem -noout -dates`
+Explanation: Verifies certificate validity.

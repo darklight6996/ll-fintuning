@@ -1,0 +1,36 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+def get_whois_info(ip_address):
+'''
+get whois information
+:param ip_address: ip_address
+:return: whois information
+'''
+try:
+w = whois.whois(ip_address)
+return w
+except whois.WhoisException:
+return None
+def is_major_cloud_provider(whois_info):
+'''
+check if the IP address belongs to a major cloud p
+:param whois_info: whois_info
+:return: True or False
+'''
+cloud_providers = ["Amazon", "Azure", "Microsoft",
+"Alibaba", "Oracle"]
+for provider in cloud_providers:
+if provider.lower() in whois_info.lower():
+return True
+return False
+def main(domain):
+'''
+main function

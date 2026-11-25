@@ -1,0 +1,29 @@
+TECHNIQUE / QUESTION:
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+┌─[omar@websploit]─[~]
+└──╼ $
+The highlighted lines show the IP addresses associated with h4cker.org.
+Now, let’s approach this scenario in a more programmatic way and see the
+email servers used by websploit.org (mail exchanger [MX] record). To do
+so, let’s look at the Python script demonstrated in Example 9-4.
+Example 9-4 Obtaining the MX Record of websploit.org Using Python
+import dns.resolver
+def get_mx_record(domain):
+try:
+result = dns.resolver.resolve(domain, 'MX')
+for rdata in result:
+print(f'MX Record: {rdata.exchange.to_text()
+{rdata.preference}')
+except dns.resolver.NoAnswer:
+print(f"No MX records found for domain {domain}
+except dns.resolver.NXDOMAIN:
+print(f"The domain {domain} does not exist")
+except Exception as e:
+print(f"An error occurred: {e}")

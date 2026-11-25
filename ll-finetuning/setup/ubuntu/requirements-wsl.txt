@@ -1,0 +1,69 @@
+# Ubuntu / Linux (GPU) - pinned to match the exact versions proven working on
+# the Windows .venv (via `uv pip freeze`) throughout live GPU smoke testing with
+# Qwen2.5-7B-Instruct + the qwen-qlora LoRA adapter, 2026-11-11/12.
+#
+# NOTE: System CLI assessment tools (nmap, ffuf, subfinder, etc.) are NOT
+# downloaded via pip. Run `./setup.sh` or `python3 ../check_tools.py` after
+# installing these Python packages to check your system dependencies.
+
+# torch==2.5.1+cu121 works fine against a newer driver (NVIDIA drivers are
+# backward-compatible with older CUDA runtimes) -- do NOT "upgrade" this to a
+# cu130 index just because `nvidia-smi` reports a newer CUDA UMD version. Match
+# the proven-working build exactly; a different torch build here is a different,
+# unverified configuration.
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+torch==2.5.1
+transformers==5.17.0
+peft==0.21.0
+bitsandbytes==0.50.2
+accelerate==1.15.0
+datasets==5.0.1
+sentencepiece==0.2.2
+scipy==1.17.1
+huggingface_hub==1.32.0
+numpy==2.4.6
+pydantic==2.14.2
+
+# RAG & Vector Search
+sentence-transformers==6.1.0
+faiss-cpu==1.15.1
+# faiss-gpu is a legacy/unmaintained package name. If you actually need
+# GPU-accelerated FAISS, install `faiss-gpu-cu12` instead (matches CUDA 12.x,
+# same compatibility story as the torch pin above) -- but faiss-cpu is what
+# your Windows .venv actually runs, so leave this as-is unless you've
+# confirmed you need it.
+
+# Data Extraction, Parsing & Utilities
+PyYAML==6.0.3
+PyMuPDF
+beautifulsoup4
+lxml
+requests==2.34.2
+tiktoken
+tqdm==4.70.1
+# ^ PyMuPDF/beautifulsoup4/lxml/tiktoken are unpinned because they were NOT
+# present in the Windows `pip freeze` output -- meaning they were never
+# actually installed/exercised there, so there's no proven-working version to
+# match. Left unpinned (latest) since that's no worse than the status quo; if
+# any of these are load-bearing for a code path, pin them once confirmed working.
+
+# -----------------------------------------------------------------------------
+# Present in your working Windows .venv but NOT previously listed in this file
+# at all -- almost certainly pulled in for OCR / document-parsing / remote-exec
+# features in one or more agents. Installing them keeps WSL behaviorally
+# identical to Windows; if you don't need the specific features that use them,
+# you can safely drop whichever ones you don't need, but leaving them in costs
+# nothing except install time/disk.
+# -----------------------------------------------------------------------------
+onnxruntime==1.31.0
+opencv-python==5.0.0.93
+pytesseract==0.3.13
+rapidocr-onnxruntime==1.4.4
+pyclipper==1.4.0
+shapely==2.2.0
+paramiko==5.0.0
+cryptography==50.0.2
+pandas==3.0.6
+scikit-learn==1.9.1
+trl==1.13.0

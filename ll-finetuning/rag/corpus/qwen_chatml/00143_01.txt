@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+impersonated Uber’s security team and sent communications to the
+employee whose credentials were compromised over WhatsApp, indicating
+that the employee needed to approve the MFA push request. The hacker
+proceeded to send tons of MFA requests to the employee’s phone until the
+employee eventually approved the request, providing access to the Uber
+network.
+Organizations can have the strongest technical controls, but people will
+always be the weakest link. Mature technical controls can only do so much,
+and threat actors will always continue to prey on human emotions. With that
+being said, technical controls, from a perimeter perspective, have
+significantly advanced over the past few years, making red teamers more
+creative each day with campaigns.
+In addition to social engineering, as COVID-19 came into the picture in
+2020, the focus seemed to turn away from physical security with fewer
+employees in the office. However, sensitive information and internal
+network access are still present in businesses with a physical location. Some
+organizations may have formed and flourished during COVID but don’t
+necessarily have the prope

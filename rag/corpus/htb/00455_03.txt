@@ -1,0 +1,1 @@
+of those headers. Content-Type is a good one to notice - without that the request fails. I’ll need that when I craft a ffuf command. In Repeater, I’ll look at what happens with it requests a link on a listening port on my host: It’s a 200 response, with the actual HTML from my host in the body. It’s also a very fast response, about 3.5 seconds. If I change that to a port

@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+platforms if necessary.
+B. Respect the organization's disclosure policies and adhere to any
+nondisclosure agreements (NDAs) you've entered into.
+7. Establish a Channel for Follow-Up
+A. Provide contact information and a designated channel for the
+organization to reach out to you with questions or updates on remediation
+progress.
+B. Be available for discussions and clarifications to facilitate a collaborative
+approach.
+8. Stay Engaged and Supportive
+Continue to engage with the organization throughout the remediation
+process. Offer assistance if needed, and remain committed to helping them
+enhance their security measures.
+Once the organization has remediated the vulnerabilities, request
+confirmation and evidence of the fixes. Acknowledge and confirm closure
+of the issues in your report.
+In this chapter, you learned details about bug bounty programs. You've
+gained insights into the fundamental concepts underpinning bug bounty
+programs and their role in today’s environment. You now know the different

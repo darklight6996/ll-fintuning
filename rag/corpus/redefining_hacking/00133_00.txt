@@ -1,0 +1,15 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Azure CDN
+Next, we will use an Azure content delivery network (CDN) to put in front
+of the phishing domain. You will need to create a Microsoft account for this
+step as well. Figure 5-6 shows how to select the Azure CDN Standard from
+Microsoft (classic), and Figure 5-7 shows how to configure the CDN
+endpoint with your domain.

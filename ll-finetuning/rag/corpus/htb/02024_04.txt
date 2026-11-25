@@ -1,0 +1,1 @@
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB I’ll do the same thing in gdb , and at the crash: Return to Libc Theory I’ve shown return to libc attacks before, and gave a detailed explanation in Frolic . The idea is that I’m going to overwrite the return

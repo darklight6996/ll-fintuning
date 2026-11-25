@@ -1,0 +1,5 @@
+TECHNIQUE / QUESTION:
+Explain the objectives and methodology for the PortSwigger lab: Lab: Modifying serialized objects
+
+CONTEXT:
+Context: Lab: Modifying serialized objects (Learning Module)

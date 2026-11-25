@@ -1,0 +1,1 @@
+ail/crimestoppers.htb$ cat Drafts-1 From FCC: imap://dom%40crimestoppers.htb@crimestoppers.htb/Sent X-Identity-Key: id1 X-Account-Key: account1 To: elliot@ecorp.htb From: dom <dom@crimestoppers.htb> Subject: Potential Rootkit Message-ID: <1f42c857-08fd-1957-8a2d-fa9a4697ffa5@crimestoppers.htb>

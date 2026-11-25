@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify firewall status.
+
+CONTEXT:
+Network security control.
+
+METHOD / ANSWER:
+Command: `ufw status verbose`
+Explanation: Confirms firewall is active and configured.

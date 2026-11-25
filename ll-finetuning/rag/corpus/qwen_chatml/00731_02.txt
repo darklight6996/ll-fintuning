@@ -1,0 +1,55 @@
+ls/dad/%5CSYS.PACKAGE.PROC
+Bypassing the Exclusion List - Method 6
+This is the most complex method of bypassing the exclusion list
+and is the most recently patched method. If we were to request
+the following
+http:/www.example.com/pls/dad/foo.bar?xyz=123
+the application server would execute the following at the data-
+base server:
+1 declare
+2 rc__ number;
+3 start_time__ binary_integer;
+4 simple_list__ owa_util.vc_arr;
+5 complex_list__ owa_util.vc_arr;
+6 begin
+7 start_time__ := dbms_utility.get_time;
+8 owa.init_cgi_env(:n__,:nm__,:v__);
+9 htp.HTBUF_LEN := 255;
+10 null;
+11 null;
+12 simple_list__(1) := ‘sys.%’;
+13 simple_list__(2) :=‘dbms\_%’;
+14 simple_list__(3) := ‘uth\_%;
+15 simple_list__(4) := ‘owa\_%’;
+16 simple_list__(5) := ‘owa.%’;
+17 simple_list__(6) := ‘htp.%’;
+18 simple_list__(7) := ‘htf.%’;
+19 if ((owa_match.match_pattern(‘foo.bar’ simple_list__,
+complex_list__, true))) then
+20 rc__:=2;
+21 else
+22 null;
+23 orasso.wpg_session.init();
+24 foo.bar(XYZ=>:XYZ);
+25 if (wpg_docload.is_file_download)
+then
+26
+rc__:=1;
+27
+wpg_docload.get_download _file(:doc_info);
+28
+orasso.wpg_session.deinit();
+29
+null:
+30
+null;
+31
+commit;
+32 else
+33
+rc__:=0;
+34
+orasso.wpg_session.deinit();
+35,
+null;
+3

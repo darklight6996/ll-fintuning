@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+ZAP is a dynamic application security testing (DAST) tool, meaning it tests
+running applications by simulating attacks and analyzing their responses.
+ZAP can act as a web application proxy and "man-in-the-middle" between
+the user's browser and the web application, intercepting and analyzing
+HTTP/HTTPS traffic. This tool allows users to inspect, modify, and forward
+requests/responses in real time.
+ZAP also supports automated scanning and spidering (crawling) the web
+application. ZAP supports various authentication methods (form-based,
+HTTP-based) and can test different user roles within an application to
+ensure proper access control. ZAP also includes a fuzzer that sends
+unexpected or incorrect data to the application to test its resilience against
+malformed inputs.
+ZAP can be integrated into CI/CD pipelines using its API or plug-ins for
+tools like Jenkins, allowing automated security testing during development.
+ZAP has a marketplace with numerous add-ons that extend its functionality,
+such as additional scanning rules or support for new technologies.
+API Recon
+Interactive API analysis involves actively navigating throug

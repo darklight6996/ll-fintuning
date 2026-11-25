@@ -1,0 +1,14 @@
+TECHNIQUE / QUESTION:
+How do you test credentials?
+
+CONTEXT:
+Context: Credential Validation. You have obtained potential username/password combinations.
+Principle to Apply: 'Systematically validate credentials against available services to discover access points.'
+
+METHOD / ANSWER:
+**Assessment Phase**: Credential Testing & Validation.
+**Core Principle**: A credential is only useful if it grants access to a service. Test each credential against multiple services to maximize discovery of entry points.
+**Actionable Steps**:
+1.  **Multi-Service Authentication Test**: `netexec smb <target_ip> -u <username> -p <password>`
+    *   **Reasoning**: Tests credentials against SMB, which is common in Windows environments. Success provides immediate file share access and confirms the credential is valid.
+**Guidance for Novel Context**: Don't stop at SMB. Test credentials against SSH, WinRM, web portals, databases (MySQL, PostgreSQL), and API endpoints. Use tools that support credential spraying across multiple services. Always be mindful of account lockout policies.

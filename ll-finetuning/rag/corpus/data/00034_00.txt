@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How can you explore additional opportunities for exploitation as Administrator?
+
+CONTEXT:
+You have administrative privileges on the system.
+
+METHOD / ANSWER:
+Command: `certipy find -target dc01.tombwatcher.htb -u administrator -p '<plaintext_password>' -vulnerable`
+Explanation: Use Certipy to search for vulnerable certificate templates or services that can be exploited for further privilege escalation or lateral movement within the network.

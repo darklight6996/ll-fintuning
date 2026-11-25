@@ -1,0 +1,30 @@
+**iOS (IPA)**:
+- **Decrypt/Extract**:
+  - `frida-ios-dump -U com.package` (decrypted IPA)
+  - `unzip app.ipa -d output/`
+  - `class-dump-dyld output/Payload/App.app/App`
+- **Binary Analysis**:
+  - `otool -l App` (load commands, encryption)
+  - `codesign -d --entitlements :- App`
+  - `plutil -p Info.plist`
+- **Info.plist Analysis**:
+  - `NSAppTransportSecurity` (ATS exceptions)
+  - `UIFileSharingEnabled`, `LSSupportsOpeningDocumentsInPlace`
+  - `CFBundleURLSchemes` (custom URL schemes)
+  - `NSLocationUsageDescription` etc. (privacy)
+  - `ITSAppUsesNonExemptEncryption`
+- **Code Analysis** (Objective-C/Swift):
+  - Hardcoded secrets (Keychain vs UserDefaults vs plist)
+  - Crypto: CommonCrypto vs CryptoKit, key management
+  - WebView: `WKWebView` vs `UIWebView` (deprecated), `allowFileAccessFromFileURLs`
+  - SQL: FMDB, Realm, CoreData - parameterized queries
+  - Jailbreak detection bypass
+  - Anti-debugging (`ptrace`, `sysctl`)
+  - Keychain: `kSecAttrAccessible` values
+  - Pasteboard security
+  - Screenshot caching
+  - Background snapshots
+  - Network: ATS, certificate pinning (TrustKit, Alamofire)
+  - IPC: XPC, custom URL schemes, Universal Links
+
+**Phase 3: Dynamic Analysis (DAST)**

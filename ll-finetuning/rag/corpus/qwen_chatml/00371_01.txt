@@ -1,0 +1,23 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+https://www.llamaindex.ai/blog/llamaindex-enhancing-retrieval-
+performance-with-alpha-tuning-in-hybrid-search-in-rag-135d0c9b8a00.
+To learn how to perform hybrid search using LangChain, visit
+https://python.langchain.com/v0.2/docs/how_to/hybrid.
+Document Ranking
+Document ranking is an important step in RAG systems that determines the
+order and relevance of retrieved documents. This process ensures that the
+most pertinent information is prioritized for use in generating responses. A
+key piece of document ranking is relevance scoring measuring the closeness
+between query and document embeddings.
+You can use traditional BM25 (a probabilistic ranking function that
+balances term frequency and document length) or other popular gradient
+boosting methods such as Multiple Additive Regression Trees (MART) and
+LambdaRank. LambdaRank is an algorithm that optimizes ranking metrics
+by computing gradients (called lambdas) that are used to adjust the rank of
+items based on their relative position.
+You can also use the conversation history or user context in ranking
+decisions. This can be done by adapting rankings based on user preferen

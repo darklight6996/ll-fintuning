@@ -1,0 +1,1 @@
+to disable) [+] The target appears to be vulnerable. Ricoh driver directory has full permissions [*] Adding printer FFWSpC... Migration This confused me for a while. Windows has a concept of sessions, and each process will be in one. Running ps in meterpreter will show which session each process is in: meterpreter > ps Process List ============ PID PPID

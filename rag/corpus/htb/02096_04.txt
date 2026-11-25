@@ -1,0 +1,1 @@
+key.pem -cert cert.pem -port 73 "test" Shell To make a shell, I’m going to use two openssl calls, with one piping output into cmd , and the output of that piped into the other. I can type commands into one connection and get results back on the other. For more details, check out this post, OpenSSL == NC . I’ll start

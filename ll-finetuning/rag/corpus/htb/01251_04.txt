@@ -1,0 +1,1 @@
+lient : oxdf@hacky$ smbclient -N //10.10.11.35/HR Try "help"

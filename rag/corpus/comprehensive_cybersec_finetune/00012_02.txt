@@ -1,0 +1,31 @@
+**Rate Limiting & DoS**:
+- **Missing Rate Limits**:
+  - Brute force login, OTP, password reset
+  - Resource exhaustion (large payloads, deep pagination)
+  - `GET /api/export?limit=1000000`
+- **API DoS**:
+  - Batch requests: `POST /api/batch { "requests": [...] }`
+  - GraphQL query depth/cost attacks
+  - Recursive fragments
+
+**Mass Assignment**:
+- `PATCH /api/users/123 { "email": "attacker@evil.com", "role": "admin", "isActive": true }`
+- Test create/update endpoints with extra fields
+- Check for `readOnly`/`writeOnly` schema enforcement
+
+**Security Misconfiguration**:
+- Debug endpoints exposed: `/actuator`, `/debug`, `/metrics`
+- CORS: `Access-Control-Allow-Origin: *` with credentials
+- HTTP methods: `OPTIONS`, `TRACE`, `PUT`, `DELETE` enabled
+- Error handling: Stack traces in responses
+- Versioning: `v1` deprecated but accessible
+
+**Phase 3: GraphQL Testing**
+
+**Introspection & Schema Analysis**:
+- Enable introspection check:
+  ```graphql
+  query { __schema { types { name fields { name type { name kind ofType { name } } } } } }
+  ```
+- Download full schema: `graphql-codegen`, `graphql-voyager`
+- Identify sensitive types/fields

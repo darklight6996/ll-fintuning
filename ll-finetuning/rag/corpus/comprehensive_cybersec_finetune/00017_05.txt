@@ -1,0 +1,26 @@
+**Network Service Testing**:
+- **Web Interface**:
+  - Default credentials, auth bypass, SQLi, XSS, CSRF, RCE
+  - Firmware upload (path traversal, signature bypass)
+  - Configuration backup/restore (XML/JSON injection)
+  - API endpoints (REST, SOAP, JSON-RPC, gRPC)
+- **Proprietary Protocols**:
+  - Custom binary protocols (reverse engineer)
+  - TR-069 / CWMP (ACS communication)
+  - UPnP / SSDP (device discovery)
+  - mDNS / Bonjour (local discovery)
+  - CoAP (Constrained Application Protocol)
+  - MQTT (Message Queuing Telemetry Transport)
+  - Modbus TCP (port 502)
+  - BACnet/IP (port 47808)
+  - OPC UA (port 4840)
+  - DNP3 (port 20000)
+  - IEC 60870-5-104 (port 2404)
+  - IEC 61850 (MMS, GOOSE, SV)
+  - PROFINET, EtherCAT, EtherNet/IP, CC-Link IE
+- **Debug Interfaces**:
+  - UART console (root shell, U-Boot)
+  - JTAG/SWD (memory read/write, register manipulation)
+  - SWO (Serial Wire Output)
+  - Semihosting
+  - GDB stub

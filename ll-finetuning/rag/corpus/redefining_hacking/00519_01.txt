@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+Directory and File Brute-Forcing
+A step to expand your insight into the website or web app potential
+vulnerabilities is to force-test the directories of the identified web servers.
+Uncovering directories in servers is a crucial endeavor because it may lead
+you to concealed admin interfaces, setup files, credential files, deprecated
+features, database backups, and repository files. The act of directory force-
+testing can, on occasion, grant you complete control over a server.
+Although you might not pinpoint immediate exploitable weaknesses, the
+data derived from directories often sheds light on the application's
+architecture and underlying technology. For instance, spotting a pathway
+that signifies "phpmyadmin" generally indicates that the application is PHP-
+based.
+For the purpose of directory force-testing, tools like Dirsearch or gobuster
+can be employed. These applications generate URLs using wordlists and
+subsequently send requests to a web server. When the server returns a
+response code within the 200 range, it confirms the existence of the
+directory or file. Consequently, you can navigate to the page to explore the
+contents hosted by the application. A 404 re

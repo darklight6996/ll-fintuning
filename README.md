@@ -4,7 +4,7 @@
 [![Architecture](https://img.shields.io/badge/Architecture-Autonomous%20AI%20Security%20Researcher-orange.svg)]()
 [![PyTorch](https://img.shields.io/badge/PyTorch-CUDA%2012.1-red.svg)](https://pytorch.org/)
 [![PEFT LoRA](https://img.shields.io/badge/PEFT-LoRA%20%2F%20QLoRA-green.svg)](https://github.com/huggingface/peft)
-[![Tests](https://img.shields.io/badge/Tests-39%2F39%20Passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-110%2F118%20Passing%20(8%20skipped)-brightgreen.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-purple.svg)](LICENSE)
 
 An enterprise-grade **Autonomous AI Security Assessment Framework**. Evolved from a workflow runner into a security reasoning system that discovers vulnerabilities through **observation → hypothesis → validation → finding** — with a 10-gate safety pipeline enforced on every action.
@@ -98,17 +98,20 @@ Each agent exposes a typed action registry. The AI proposes action names + param
 from core.action_contract import ActionDefinition, ActionRegistry
 
 SCAN_PORTS = ActionDefinition(
-    name="scan_ports",
+    action_id="scan_ports",
+    phase="recon",
     description="TCP SYN scan target for open ports",
-    params_model=ScanPortsParams,       # Pydantic model, extra="forbid"
-    network_effect=True,
-    state_change=False,
-    requires_active_testing=False,
+    params_model=ScanPortsParams,        # Pydantic model, extra="forbid"
+    network_effect="active",             # "none" | "read_only" | "active"
+    state_change="none",                 # "none" | "target_modify" | "credential_access"
+    risk_level="medium",                 # "low" | "medium" | "high"
+    requires_active_testing=True,
+    command_builder="build_scan_ports_argv",
 )
 
 def build_ctf_registry() -> ActionRegistry:
-    registry = ActionRegistry()
-    registry.register(SCAN_PORTS)
+    registry = ActionRegistry(agent_name="ctf")
+    registry.register(SCAN_PORTS, builder=build_scan_ports_argv)
     ...
     return registry
 ```
@@ -157,10 +160,27 @@ pip install -r ll-finetuning/setup/ubuntu/requirements.txt
 pip install pydantic>=2.0
 ```
 
+> **Windows symlink note:** `rag` at the repo root is a real directory symlink to
+> `ll-finetuning/rag`, which several modules (`core/scope.py`, `core/os_detector.py`,
+> `core/tool_manager.py`, `core/agent_router.py`, `core/constrained_decoding.py`, ...)
+> import through. Git on Windows only creates a *real* symlink when
+> `git config core.symlinks true` is set **before** cloning *and* the cloning user
+> has the "Create symbolic links" privilege (Developer Mode, or an elevated/admin
+> shell) -- otherwise `git clone` silently writes `rag` as a plain text file
+> containing the link target path, and every `from rag.core... import ...` (and the
+> `core/__init__.py::__path__.append()` merge it depends on) will fail immediately.
+> If imports fail right after a fresh clone, check `git config core.symlinks` and
+> whether `rag` is actually a directory (`Get-Item rag | Select LinkType`) rather
+> than a text file, and re-clone with symlinks enabled if not.
+
 ### 2. Run the Full Test Suite
 
 ```bash
-# All 39 tests (24 autonomous framework + 15 regression)
+# Run the full suite (122 test functions across 16 files; a handful are skipped
+# automatically where they need a loaded LLM)
+pytest tests/ -v
+
+# Just the two original acceptance-criteria files (24 + 15 = 39 tests)
 pytest tests/test_autonomous_framework.py tests/test_multi_agent_framework.py -v
 
 # Fast unit tests only (no GPU/LLM load)
@@ -172,7 +192,7 @@ pytest tests/test_multi_agent_framework.py -v
 
 ### 3. Run the Evaluation Benchmark
 
-`ash
+```bash
 # Run benchmark (13 scenarios across all 9 agents, no LLM load required)
 python eval/run_benchmark.py
 
@@ -184,12 +204,12 @@ python eval/compare_commits.py --baseline eval/results/benchmark_A.json --curren
 
 # Generate markdown report from latest results
 python eval/report_benchmark.py
-`
+```
 
 Expected output:
-`	ext
+```text
 Scenarios: 13/13   Discovery: 100%   Chain Integrity: 100%   Safety Violations: 0
-`
+```
 
 ### 4. Command-Line Options
 
@@ -297,9 +317,23 @@ ll-fintuning/
 
 | Test Suite | Count | Covers |
 |------------|-------|--------|
-| `test_autonomous_framework.py` | 12 | Scope gates, policy gates, retry budget, evidence chain, completion criteria, injection safety, mode isolation |
-| `test_multi_agent_framework.py` | 15 | OS detection, agent instantiation, scope validation, command executor safety, AI reasoning points, audit trail |
-| **Total** | **39** | **All acceptance criteria** |
+| `test_autonomous_framework.py` | 24 | Scope gates, policy gates, retry budget, evidence chain, completion criteria, injection safety, mode isolation |
+| `test_multi_agent_framework.py` | 15 | OS detection, agent instantiation, scope validation, command executor safety, AI reasoning points, audit trail (8 of these are skipped without a loaded LLM) |
+| `test_med3_json_extraction.py` | 12 | Planner JSON extraction: nested objects, markdown fences, annotation-stripping repairs |
+| `test_remediation_c1_decision_verbs.py` | 11 | `form_hypothesis` / `record_validation` / `record_finding` decision verbs, fabricated-id rejection |
+| `test_med4_target_kind.py` | 8 | Target-kind classification and `allowed_target_kinds` enforcement (Gate 2) |
+| `test_remediation_c1_c2_h1.py` | 7 | Retry-budget wiring, evidence promotion, per-agent completion verifier resolution |
+| `test_m1_constrained_decoding.py` | 7 | action_id-constrained decoding, including the post-closing-quote delimiter guard |
+| `test_resume_scope_persistence.py` | 5 | `--resume` round-trips the full `Scope`, not just the target |
+| `test_qwen_everywhere.py` | 5 | Qwen2.5-7B-Instruct + local LoRA adapter auto-discovery, 4-bit NF4 path |
+| `test_model_router_system_prompt.py` | 5 | System prompt threaded as the real chat-template system role, per model family |
+| `test_med5_path_hijack.py` | 5 | `path_hijack_validation` argv safety (no shell strings, no path/command injection) |
+| `test_min_new_tokens_floor.py` | 4 | `min_new_tokens` floor prevents premature EOS truncation of planner JSON |
+| `test_m2_planner_model_override.py` | 4 | Planner-role model override / fallback-to-default caching |
+| `test_exhausted_action_filtering.py` | 4 | Exhausted actions excluded from the planner's REGISTERED ACTIONS catalog |
+| `test_dynamic_output_example.py` | 4 | OUTPUT FORMAT example rebuilt from a real, non-exhausted action each call |
+| `test_med1_med2.py` | 2 | Consecutive-planner-failure abort, no-progress stall detector |
+| **Total** | **122 test functions across 16 files** | **Run with `pytest tests/ -v`; a handful are skipped automatically where they need a loaded LLM** |
 
 ---
 
@@ -313,9 +347,14 @@ This framework and its underlying fine-tuned models are designed strictly for **
 
 | Setting | Value |
 |---------|-------|
-| GPU Model | `TinyLlama/TinyLlama-1.1B-Chat-v1.0` (8GB VRAM safe) |
-| LoRA Adapter | `DarkLight6996/CyberSec-Model-V2` |
+| GPU Model | `Qwen/Qwen2.5-7B-Instruct`, loaded in 4-bit NF4 (bitsandbytes QLoRA) |
+| LoRA Adapter | Local fine-tune: `lora-adapters/qwen-qlora/` (falls back to the HF repo `DarkLight6996/CyberSec-Qwen-V1` if not present locally), auto-discovered and attached via PEFT |
 | CPU Model | `google/flan-t5-large` |
-| VRAM Required | ~3GB (TinyLlama + adapter) |
+| VRAM Required | ~5-6GB in 4-bit NF4 (fits an 8GB RTX 3060 Ti) |
 
-> **Note:** The GPU model is set to TinyLlama for compatibility with 8GB VRAM cards (RTX 3060 Ti). Qwen 7B requires ~14GB and will cause OOM errors or test timeouts on this hardware.
+> **Note:** Qwen2.5-7B-Instruct does **not** OOM on an 8GB card -- the earlier
+> assumption in this section was wrong. Loading full-precision/fp16 would (~14GB),
+> but `GPU_FORCE_4BIT=True` in `core/config.py` skips the fp16 attempt entirely and
+> loads straight into 4-bit NF4, matching the quantization the LoRA adapter was
+> trained with. Confirmed working end-to-end via live GPU smoke testing
+> (`verify_autohunt_smoke_test.py`) on this exact hardware.

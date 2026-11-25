@@ -1,0 +1,4 @@
+hnique helps map out the IP
+addresses associated with different domains, which can be useful for
+identifying the infrastructure of a target organization or finding related
+services.

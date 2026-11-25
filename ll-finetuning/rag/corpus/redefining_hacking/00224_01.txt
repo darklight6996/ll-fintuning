@@ -1,0 +1,19 @@
+METHOD / ANSWER:
+accounts (stealing credentials) or exploiting vulnerabilities in the accounts
+of trusted developers or maintainers, or taking advantage of security flaws
+in the version control systems or repository hosting services.
+The attacker subtly adds malicious code to the project. This code is
+designed to avoid detection during code reviews and automated security
+checks. The backdoor code often includes conditions or inputs that activate
+the malicious functionality only when certain criteria are met, reducing the
+chance of detection. The attacker can also use code obfuscation or
+encryption to hide the true purpose of the backdoor.
+Avoiding Detection Using Code Obfuscation
+Code obfuscation is a technique used to make source code or machine code
+difficult to understand. Attackers commonly employ this practice to hide
+malicious code, such as backdoors, from security analysts, automated
+analysis tools, and other detection mechanisms. The primary goal is to
+prevent the code from being easily read, analyzed, or reverse-engineered,
+thus reducing the likelihood of detection.
+Let’s go over some of the most common code obfuscation techniques. Some
+attackers change the names of variab

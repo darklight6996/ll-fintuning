@@ -1,0 +1,26 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Name Server: edns69.ultradns.com
+<output omitted for brevity>
+MarkMonitor reserves the right to modify these terms
+By submitting this query, you agree to abide by this
+MarkMonitor Domain Management(TM)
+Protecting companies and consumers in a digital world
+Visit MarkMonitor at https://www.markmonitor.com
+Contact us at +1.8007459229
+In Europe, at +44.02032062220
+The highlighted lines in Example 9-5 show the technical and administrative
+contacts for the domain (which are also the ones for the domain registrar
+[MarkMonitor]).
+Note
+The introduction of the General Data Protection Regulation
+(GDPR) in Europe has significantly impacted the availability
+and accessibility of WHOIS data, which provides public
+information about domain registrations. WHOIS data
+traditionally includes details such as the registrant's name,
+address, phone number, and email, which were valuable for
+cybersecurity research, intellectual property enforcement,
+and business purposes. However, GDPR's focus on

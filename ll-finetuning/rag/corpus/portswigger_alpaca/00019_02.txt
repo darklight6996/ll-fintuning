@@ -1,0 +1,1 @@
+his should return JSON containing the SecretAccessKey. Community solutions Garr_7 Intigriti Find XSS vulnerabilities using Burp Suite Try for free

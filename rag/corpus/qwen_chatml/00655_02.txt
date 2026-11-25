@@ -1,0 +1,1 @@
+text**: The tool can be `GetUserSPNs.py` (Impacket) or Rubeus. The core principle remains: **request service tickets as a domain user and extract the crackable hashes.** The resulting hash file is fed to a password cracker like `hashcat` (mode `13100`) or `john`. Success gives you the service account's password, which often has higher privileges than a standard user.

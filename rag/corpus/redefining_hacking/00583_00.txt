@@ -1,0 +1,22 @@
+TECHNIQUE / QUESTION:
+Define and explain the key concept presented in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+- type: word
+words:
+- "Welcome, otheruser"
+- type: status
+status:
+- 200
+The AI model used in Example 11-3 generated a proof-of-concept (PoC)
+template that provides both an HTTP request to potentially find IDORs. The
+generated request targets a profile page (/profile?id=2), indicating that by
+manipulating the id parameter in the URL, a user could access another
+user’s profile.
+After the template is generated, you can use it to scan a target application
+(websploit.org in the example shown in Figure 11-8).

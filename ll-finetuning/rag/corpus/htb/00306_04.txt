@@ -1,0 +1,1 @@
+dows RPC Service Info: Host: DC; OS: Windows; CPE: cpe:/o:microsoft:windows_server_2008:r2, cpe:/o:microsoft:windows Host script results: |_clock-skew: mean: -35s, deviation: 0s, median: -35s |_nbstat: NetBIOS name: DC, NetBIOS user: <unknown>, NetBIOS MAC: 00:50:56:a2:16:8b (VMware) | smb2-security-mode: | 2.02: |_ Message signing

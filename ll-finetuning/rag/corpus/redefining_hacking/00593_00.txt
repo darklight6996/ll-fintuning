@@ -1,0 +1,11 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Figure 11-12 Tool Calling in Google Vertex AI
+Use Case: Improving Reporting and Documentation

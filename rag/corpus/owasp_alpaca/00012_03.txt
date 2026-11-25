@@ -1,0 +1,15 @@
+, 01 Jan 1999 20:13:52 GMT
+ETag: W/e0d362a4c335be1: ae1
+Content-Length: 133
+Response from Netscape Enterprise 4.1
+$ nc netscape.example.com 80
+HEAD / HTTP/1.0
+HTTP/1.1 200 OK
+Server: Netscape-Enterprise/4.1
+Date: Mon, 16 Jun 2003 06:01: 40 GMT
+Content-type: text/HTML
+Last-modified: Wed, 31 Jul 2002 15:37:56 GMT
+Content-length: 57
+Accept-ranges: bytes
+Connection: close
+30

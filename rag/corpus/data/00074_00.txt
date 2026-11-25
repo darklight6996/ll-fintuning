@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How can you crack the retrieved password hash?
+
+CONTEXT:
+You have a password hash from the database.
+
+METHOD / ANSWER:
+Command: `hashcat <hash_file> /opt/SecLists/Passwords/Leaked-Databases/rockyou.txt`
+Explanation: Use Hashcat to crack the password hash recovered from the Gitea database.

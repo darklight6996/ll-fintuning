@@ -1,0 +1,4 @@
+effort for estimating the probability that a software
+vulnerability will be exploited in the wild. Unlike CVSS, which focuses on
+the technical severity of a vulnerability, EPSS aims to predict the likelihood
+of a vulnerability being exploited based on real-world data and machine

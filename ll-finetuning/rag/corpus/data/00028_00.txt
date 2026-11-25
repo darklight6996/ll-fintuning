@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you retrieve the user flag for the 'john' user account?
+
+CONTEXT:
+You have successfully gained access as john.
+
+METHOD / ANSWER:
+Command: `cat C:\Users\john\desktop\user.txt`
+Explanation: This command retrieves the user flag from the specified directory, confirming your successful access to the user account.

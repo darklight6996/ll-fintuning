@@ -1,0 +1,1 @@
+uses the path library to join the uploads directory with the passed in file id, and returns the raw version of that (with res.download ). Because fileEntry?.name is False, it returns “Unknown” as the filename:

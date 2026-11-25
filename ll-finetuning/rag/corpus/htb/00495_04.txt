@@ -1,0 +1,1 @@
+AGE_ADMIN=%2FCFIDE%2Fadministrator%2Fhomepage%2Ecfm Upgrade-Insecure-Requests : 1 cfadminPassword=C1F159600F4058D19D25DACA563D723273798E8C&requestedURL=%2FCFIDE%2Fadministrator%2Findex.cfm%3F&salt=1589487103545&submit=Login It logs in! One thing that is tricky though. If I watch Burp, I’ll see that just sitting on the login screen, the form refreshed every 30 seconds or so,

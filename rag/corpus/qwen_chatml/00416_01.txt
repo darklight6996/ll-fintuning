@@ -1,0 +1,22 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+services. ASM is an ongoing process, undertaken by internal security teams
+and possibly supplemented by bug bounties and external consultants; it
+comprehensively includes the analysis of web domains, applications,
+databases, networks, and other critical infrastructures.
+Attack surface management and bug bounties are two strategies that can
+work together to enhance the security posture of an organization. However,
+they have different focuses and approaches. Table 9-3 provides a high-level
+comparison between attack surface management and bug bounty programs,
+highlighting their distinct approaches, objectives, and processes.
+ASM tools automatically scan the Internet-facing assets of an organization,
+including domains, subdomains, IP addresses, APIs, and cloud services.
+They help organizations build a comprehensive inventory of all assets that
+could be potential entry points for attackers. Many ASM tools incorporate
+automated threat detection mechanisms that simulate attacker behavior to
+identify potential weaknesses before they can be exploited.
+ASM solutions often integrate with other security platforms (such as
+SIEMs, XD

@@ -1,0 +1,1 @@
+ce I’ve updated the hosts file, vol2 mounts without issue: oxdf@hacky$ sudo mount -t glusterfs 10.10.11.131:/vol2 /mnt

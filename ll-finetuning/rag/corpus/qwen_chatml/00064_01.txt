@@ -1,0 +1,21 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+otherwise remain hidden. For example, an organization may assume that
+multifactor authentication (MFA) is sufficient to secure sensitive accounts.
+A red team, however, might exploit social engineering tactics to bypass
+MFA, such as phishing for authentication tokens or intercepting SMS-based
+codes. These exercises highlight potential flaws in processes that, while
+theoretically robust, may fail under real-world conditions.
+This validation is critical for ensuring that security controls perform as
+expected, not only in controlled environments but also under the stress of
+actual attacks. It shifts the focus from the dreaded "checkbox security" of
+meeting regulatory or compliance requirements to actually building security
+systems that are truly resilient against modern threats.
+Another crucial aspect in challenging the assumption after validating the
+security control is understanding the impact. Whereas most traditional
+pentests would stop at phishing or acquiring the codes, a red team
+engagement shows the impact of those actions. What could an adversary
+accomplish with those MFA tokens? Does this role provide access to so

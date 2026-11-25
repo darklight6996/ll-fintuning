@@ -1,0 +1,25 @@
+ltiple scans after changes
+have been made to hide framework tracks, it’s possible to achieve a
+better level of security and to make sure of the framework can not be
+detected by automatic scans. Below are some specific recommenda-
+tions by framework marker location and some additional interesting
+approaches.
+HTTP headers
+Check the configuration and disable or obfuscate all HTTP-headers
+that disclose information the technologies used. Here is an interest-
+ing article about HTTP-headers obfuscation using Netscaler: http:/
+grahamhosking.blogspot.ru/2013/07/obfuscating-http-header-us-
+ing-netscaler.html
+Cookies
+It is recommended to change cookie names by making changes in the
+corresponding configuration files.
+HTML source code
+Manually check the contents of the HTML code and remove every-
+thing that explicitly points to the framework.
+General guidelines:
+« Make sure there are no visual markers disclosing the framework
+» Remove any unnecessary comments (copyrights, bug information,
+specific framework comments)
+» Remove META and generator tags
+» Use the companies own css or js files and do not store those in a
+46

@@ -1,0 +1,1 @@
+ord found Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2025-07-28 21:55:27 I’m only giving it a small password list, and it’s very slow, but it finds yuri’s access. FTP Enumeration There are two directories: ftp> ls 229 Entering Extended Passive Mode (|||24421|) 150 Here comes the directory listing. drwxr-xr-x 2

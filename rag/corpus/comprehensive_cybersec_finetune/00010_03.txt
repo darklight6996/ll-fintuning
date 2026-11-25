@@ -1,0 +1,34 @@
+**OTG-SESS-003: Session Fixation**
+- Pre-login: Set session cookie → login → check if same
+- Post-login: New session ID generated? (should be)
+- Test with `Session-ID` in URL, hidden form field
+
+**OTG-SESS-004: Exposed Session Variables**
+- Session data in URL, hidden fields, localStorage
+- JWT in localStorage (XSS risk)
+- Session ID in logs, Referer header
+
+**OTG-SESS-005: CSRF Testing**
+- **Token Validation**:
+  - Missing token → request accepted?
+  - Invalid token → request accepted?
+  - Token not tied to session?
+  - Token reusable?
+  - Token in GET request?
+- **SameSite Bypass**:
+  - Top-level navigation (GET)
+  - `SameSite: Lax` allows 2-min window
+- **CORS/Flash/JSONP** for token theft
+
+**OTG-SESS-006: Logout Functionality**
+- Server-side session destruction
+- Client-side cookie deletion
+- Redirect after logout
+- Single logout (SSO)
+- Concurrent session termination
+
+**OTG-SESS-007: Session Timeout**
+- Idle timeout (15-30 min for sensitive apps)
+- Absolute timeout (4-8 hours)
+- Test: Wait, then request → should redirect to login
+- Sliding vs fixed expiration

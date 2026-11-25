@@ -1,0 +1,7 @@
+The NSA transitioned from its traditional signals and
+cryptographic focus to a cybersecurity focus.
+Red team engagements have evolved significantly over the last 30 or so
+years. In the earliest of red team engagements, that target was typically
+military or government computer systems. These early engagements lasted
+only a few days or weeks. Within the military, red teaming has become a
+specialized position requiring specific training. These dedicated teams of

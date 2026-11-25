@@ -1,0 +1,1 @@
+5519 AAAAC3NzaC1lZDI1NTE5AAAAIDIK/xSi58QvP1UqH+nBwpD1WQ7IaxiVdTpsg5U19G3d nobody@nothing You may now authenticate as root! On entering it, the program says I’m authenticated. And my key works: oxdf@parrot$ ssh -i ~/keys/ed25519_gen root@10.10.11.103 ...[snip]... root@developer:~# And I can grab the flag: root@developer:~# cat root.txt 999061a9************************

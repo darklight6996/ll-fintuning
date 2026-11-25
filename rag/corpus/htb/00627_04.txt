@@ -1,0 +1,1 @@
+bject: CN=Allowed RODC Password Replication Group,CN=Users,DC=baby,DC=vl LDAP 10.129.20.55 389 BABYDC [+] Response for object: CN=Denied RODC Password Replication Group,CN=Users,DC=baby,DC=vl LDAP 10.129.20.55

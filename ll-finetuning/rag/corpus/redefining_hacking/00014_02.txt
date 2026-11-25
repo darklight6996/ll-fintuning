@@ -1,0 +1,4 @@
+deeper into these in the following sections,
+but for now, we will define them. Penetration testing, often referred to as
+pen testing, is a security assessment designed to identify vulnerabilities and
+verify them through exploitation.

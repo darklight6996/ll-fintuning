@@ -1,0 +1,1 @@
+om hashes, if `debug` is set 50 if ( $_REQUEST [ 'hash_function' ] !== "md5" && $_REQUEST [ 'hash_function' ] !== "sha1" && ! isset ( $_REQUEST [ 'debug' ])) 51 throw new Exception ( "Only MD5 and SHA1 are currently supported!" ); 52 53 $hash = hash_pw ( $_REQUEST [ 'hash_function' ],

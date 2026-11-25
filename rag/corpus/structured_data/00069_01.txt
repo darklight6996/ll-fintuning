@@ -1,0 +1,7 @@
+METHOD / ANSWER:
+**Assessment Phase**: Group Membership Analysis.
+**Core Principle**: Users inherit permissions through group memberships. Understanding these nested relationships is key to identifying privilege escalation paths (e.g., a low-privilege user in a group that has rights on a high-value resource).
+**Actionable Steps**:
+1.  **Detailed User Group Analysis**: `az ad user show --id <user_id>` with appropriate query or use `az ad user get-member-groups`
+    *   **Reasoning**: Shows all groups a user belongs to, including transitive memberships. This helps answer: "What can this user access through group permissions?" and "If I compromise this user, what group-based privileges do I gain?"
+**Guidance for Novel Context**: Also check `az ad group member list` to see who's in privileged groups like "Global Administrators," "Privileged Role Administrators," or custom roles. Graph API queries can provide more detailed transitive membership analysis than CLI alone.

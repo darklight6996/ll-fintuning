@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What is a method to gather detailed information about the application framework?
+
+CONTEXT:
+Context: Web Service Enumeration. You have a target URL but no knowledge of its underlying technologies.
+Principle to Apply: 'Identify the technology to tailor your attack.'

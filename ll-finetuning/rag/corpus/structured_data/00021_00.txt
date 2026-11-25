@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+What additional details can be obtained from a service-specific Nmap scan?
+
+CONTEXT:
+Context: Targeted Reconnaissance. A prior full-port scan revealed a set of open ports commonly associated with a Windows Domain Controller (e.g., 53, 88, 135, 389, 445, 5985).
+Principle to Apply: 'Use service-specific scripts to extract maximum intelligence.'

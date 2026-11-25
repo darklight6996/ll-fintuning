@@ -1,0 +1,5 @@
+The format of an entity is ‘&symbol;. An entity
+is mapped to a character in the Unicode character set.
+For example:
+<tagnode>&lt;</tagnode>
+134

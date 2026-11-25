@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you utilize credential dumps?
+
+CONTEXT:
+Extract hashes or sensitive data from a compromised system.
+
+METHOD / ANSWER:
+Command: `secretsdump.py <credentials>`
+Purpose: Dump credential information.

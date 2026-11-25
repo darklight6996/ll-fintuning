@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you identify local users and groups?
+
+CONTEXT:
+Understand the current user's permissions.
+
+METHOD / ANSWER:
+Command: `whoami /all`
+Purpose: Show user details.

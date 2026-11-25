@@ -1,0 +1,1 @@
+ey value, I’ll need to wrap it in double quotes: oxdf@hacky$ curl data.analytical.htb/api/session/properties -s | jq

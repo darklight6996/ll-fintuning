@@ -1,0 +1,32 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Recon-ng command-line tool, you can simply type help and press Enter.
+Example 9-19 shows the output of the help command.
+Example 9-19 Starting Recon-ng
+[recon-ng][default] > help
+Commands (type [help|?] <topic>):
+---------------------------------
+back Exits the current context
+dashboard Displays a summary of activity
+db Interfaces with the workspace's databas
+exit Exits the framework
+help Displays this menu
+index Creates a module index (dev only)
+keys Manages third party resource credential
+marketplace Interfaces with the module marketplace
+modules Interfaces with installed modules
+options Manages the current context options
+pdb Starts a Python Debugger session (dev on
+script Records and executes command scripts
+shell Executes shell commands
+show Shows different framework items
+snapshots Manages workspace snapshots
+spool Spools output to a file

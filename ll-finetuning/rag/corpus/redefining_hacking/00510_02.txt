@@ -1,0 +1,4 @@
+scanner attempts to enumerate the
+ports open on the target host. If the service is not listening on the network
+segment that the scanner is connected to, or if it is firewalled, the scanner
+will report the port as closed and move on. However, this does not mean

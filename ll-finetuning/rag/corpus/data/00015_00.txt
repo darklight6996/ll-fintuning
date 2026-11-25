@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What is a method to find sensitive database credentials in XWiki configuration files?
+
+CONTEXT:
+You gained access to the XWiki instance.
+
+METHOD / ANSWER:
+Command: `cat /etc/xwiki/hibernate.cfg.xml`
+Explanation: This file contains the database connection details, including the username and password needed for further exploitation.

@@ -1,0 +1,1 @@
+] Number of credentials in cache: 1 [*] Parsing credential[0]: [*] Ticket Session Key : 3b0c5223261346a1cef58d3f12858a9019befe03446f6b7d2da8ffc202a589b9 [*] User Name : 0xdf$ [*] User Realm : eighteen.htb [*] Service Name : krbtgt/EIGHTEEN.HTB [*] Service Realm : EIGHTEEN.HTB [*] Start Time : 10/04/2026

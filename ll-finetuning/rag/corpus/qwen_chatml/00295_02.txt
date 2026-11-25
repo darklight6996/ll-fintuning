@@ -1,0 +1,3 @@
+e shells,
+Mimikatz, and adaptable communications to evade detection. You can
+download Empire from https://github.com/BC-SECURITY/Empire.

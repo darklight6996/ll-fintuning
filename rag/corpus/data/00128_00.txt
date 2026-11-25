@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Leverage Azure Logic Apps.
+
+CONTEXT:
+Find logic apps that can execute commands.
+
+METHOD / ANSWER:
+Command: Review Azure Logic Apps setups for improperly secured APIs.
+Purpose: Elevate permissions through orchestrated automation.

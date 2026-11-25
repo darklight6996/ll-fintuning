@@ -1,0 +1,1 @@
+nc_once ); enc_twice = ( byte *) _encrypt2 ( enc_once , len_enc_once ); local_20 = enc_twice ; len_enc_twice = _strlen (( char *) enc_twice ); enc_twice_b64 = ( char *) _b64_encode ( enc_twice , len_enc_twice ); match = _strcmp ( username , user_username ); if (( match == 0 ) && ( match = _strcmp ( enc_pass , enc_twice_b64 ), match ==

@@ -1,0 +1,36 @@
+METHOD / ANSWER:
+Result Expected:
+If MySQL is present, the clause inside the comment block will be
+interpreted.
+Version
+There are three ways to gain this information:
+[1] By using the global variable @@version
+[2] By using the function [VERSION()]
+[3] By using comment fingerprinting with a version number
+/*140110 and 1=0*/
+which means
+if(version >= 4.1.10)
+add ‘and 1=0' to the query.
+These are equivalent as the result is the same.
+In band injection:
+1 AND 1=0 UNION SELECT @@version /*
+Inferential injection:
+1 AND @@version like ‘4.0%’
+Result Expected:
+A string like this:
+5.0.22-log
+Login User
+There are two kinds of users MySQL Server relies upon.
+[1] [USER()]: the user connected to the MySQL Server.
+[2] [CURRENT_USER()]: the internal user who is executing the
+query.
+There is some difference between 1 and 2. The main one is that
+an anonymous user could connect (if allowed) with any name, but
+the MySQL internal user is an empty name (”), Another difference
+is that a stored procedure or a stored function are executed as
+the creator user, if not declared elsewhere. This can be known by
+using CURRENT_USER.
+In band injection:
+1 AND 1=0 UNION SELECT USER()
+Inferential injection:
+1 AND USE

@@ -1,0 +1,37 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+$ garak --list_probes
+garak LLM security probe v0.9.0.11.post1 ( https://gi
+probes: atkgen 🌟
+probes: atkgen.Tox
+probes: continuation 🌟
+probes: continuation.ContinueSlursReclaimedSlurs80
+probes: dan 🌟
+probes: dan.Ablation_Dan_11_0 💤
+probes: dan.AntiDAN
+probes: dan.AutoDANProbe
+probes: dan.ChatGPT_Developer_Mode_RANTI
+probes: dan.ChatGPT_Developer_Mode_v2
+probes: dan.ChatGPT_Image_Markdown
+probes: dan.DAN_Jailbreak
+probes: dan.DUDE
+probes: dan.DanInTheWild 💤
+probes: dan.Dan_10_0
+probes: dan.Dan_11_0
+probes: dan.Dan_6_0
+probes: dan.Dan_6_2
+probes: dan.Dan_7_0
+probes: dan.Dan_8_0
+probes: dan.Dan_9_0
+probes: dan.STAN
+probes: encoding 🌟
+probes: encoding.InjectAscii85
+probes: encoding.InjectBase16

@@ -1,0 +1,22 @@
+METHOD / ANSWER:
+Initiate a search for lines of JavaScript that might contain
+intriguing information. Focus your search on key phrases
+such as “API,” “APIkey,” “secret,” and “password.” This
+method might help you unearth an API buried nearly 4,200
+lines deep within a script.
+Additionally, the Memory tab in DevTools can be an
+invaluable resource, permitting you to capture an image of
+the memory heap distribution. It's not uncommon to find
+static JavaScript files containing vast amounts of information
+and extensive lines of code. This can sometimes make it
+challenging to ascertain the exact manner in which a web
+app interacts with an API. In such cases, you can employ the
+Memory panel to monitor the resource utilization patterns of
+the web application during its interaction with the API.
+To use this feature, select the Memory tab. Within the Select
+Profiling Type section, opt for Heap Snapshot. Following
+this, in the Select JavaScript VM Instance section, pinpoint
+the target for evaluation. Then finally, initiate the process by
+clicking the Take Snapshot button.
+If you are familiar with targeting web applications, searching for
+vulnerabilities in APIs should feel somewhat familiar. T

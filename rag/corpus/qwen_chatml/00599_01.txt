@@ -1,0 +1,21 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+learning techniques. You can access the latest EPSS specification at
+https://www.first.org/epss.
+The following are a few key features of EPSS:
+• Provides a probability score between 0 and 1 (0% to 100%)
+• Uses current threat information and real-world exploit data
+• Updates scores daily based on new information
+• Helps prioritize vulnerabilities based on exploitation likelihood rather than
+just technical severity
+The KEV Catalog is maintained by the Cybersecurity and Infrastructure
+Security Agency (CISA) and serves as an authoritative source of
+vulnerabilities that have been exploited in the wild. It is designed to help
+organizations prioritize remediation efforts for vulnerabilities that pose
+significant risks. You can access CISA’s KEV at https://www.cisa.gov/kev.
+KEV focuses on vulnerabilities with known exploit code or active
+exploitation and provides remediation due dates for each vulnerability. This
+list is updated regularly as new exploited vulnerabilities are identified.

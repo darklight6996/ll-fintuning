@@ -1,0 +1,1 @@
+ole builds a string in the format "%s install %s"

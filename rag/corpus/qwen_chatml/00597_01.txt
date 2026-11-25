@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+meaningful insights, which you can use to formulate your attack plan. You
+could integrate this process with red teaming, penetration testing, and
+crowdsourced bug bounties.
+Vulnerability Prioritization Using AI
+AI can assist in prioritizing vulnerabilities based on potential exploitability
+and risk. By analyzing factors such as Common Vulnerability Scoring
+System (CVSS) scores, the affected services, historical exploit data, and
+business impact, AI can help security teams focus on the most critical
+vulnerabilities first.
+Let’s start by defining CVSS, the Exploit Prediction Scoring System
+(EPSS), and CISA's Known Exploited Vulnerabilities (KEV) Catalog, and
+then examine how AI can assist in vulnerability prioritization using these
+systems.
+A Quick Refresher About CVSS, EPSS, and CISA’s KEV
+CVSS is an open framework for communicating the characteristics and
+severity of software vulnerabilities. It provides a way to capture the
+principal technical characteristics of a vulnerability and produce a
+numerical score reflecting its severity (0–10). The CVSS score can then be
+translated into a qualitative representation (such as

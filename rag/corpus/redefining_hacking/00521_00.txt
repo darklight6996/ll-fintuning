@@ -1,0 +1,31 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+[+] Timeout: 10s
+=====================================================
+Starting gobuster in directory enumeration mode
+=====================================================
+/s (Status: 301) [Size: 185] [--> htt
+/admin (Status: 301) [Size: 185] [--> ht
+/assets (Status: 301) [Size: 185] [--> ht
+/wp-login (Status: 301) [Size: 185] [--> h
+/secret (Status: 301) [Size: 185] [--> ht
+/wp-admin (Status: 301) [Size: 185] [--> h
+<output omitted for brevity>
+Finished
+=====================================================
+In Example 9-42 different directories were enumerated by gobuster in a
+host configured with IP address 10.6.6.23. A wordlist called words.txt is
+used to perform the directory enumeration.
+Tip
+You can obtain numerous wordlists from the SecLists
+GitHub repository at
+https://github.com/danielmiessler/SecLists. This repository is
+also cloned/available in WebSploit Labs under the
+/root/SecLists directory.

@@ -1,0 +1,1 @@
+egaCli Parameters : -AdpBbuCmd -aAll -NoLog - Command : arcconf-ld-info Executables: arcconf Parameters : GETCONFIG 1 LD - Command : arcconf-pd-info Executables: arcconf Parameters : GETCONFIG 1 PD The program searches for executables in the system path. Variables given as {{variable}} are expected on the command line as: --variable VALUE VALUE can

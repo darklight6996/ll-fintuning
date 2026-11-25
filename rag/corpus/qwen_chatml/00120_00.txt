@@ -1,0 +1,15 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 3-13 Modifying C2 Profile Options
+The Payload Review section allows an operator to customize the final
+payload name and add a description for the payload, as illustrated in Figure
+3-14. The Description option is useful for making specific payloads for
+specific targets during an operation.

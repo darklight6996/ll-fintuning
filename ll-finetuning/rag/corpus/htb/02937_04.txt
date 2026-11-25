@@ -1,0 +1,1 @@
+/fonts$ And I can read user.txt from dev’s home directory: www-data@interface:/home/dev$ cat user.txt 536a3f62************************ Shell as root Enumeration File System There’s not much else of interest in dev’s home directory. www-data’s home directory ( /var/www ) has directories for the two virtual hosts (and an empty html folder):

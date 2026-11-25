@@ -1,0 +1,25 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+For this walkthrough, you can install the http C2 profile and the Apollo
+agent, as shown in Example 3-7. We will leverage the HTTP profile because
+it operates on the same protocol as the Mythic server rather than the other
+profiles for the purpose of this walkthrough.
+The HTTP profile includes the ability to set kill dates and sleep intervals, as
+well as customize the headers, proxy information, and SSL support. The
+Apollo agent is .NET based with features for dynamic command loading,
+SOCKS5 support, peer-to-peer communication, unmanaged code execution,
+and tons of other useful features for an operator. The Apollo agent is also
+used in SpecterOps (https://specterops.io/) annual trainings. Example 3-7
+and Example 3-8 demonstrate how to install your profile and agent and then
+start the Mythic server.
+Example 3-7 Installing the C2 Profile and Agent
+sudo ./mythic-cli install github https://github.com/M
+sudo ./mythic-cli install github https://github.com/M
+Example 3-8 Starting Mythic

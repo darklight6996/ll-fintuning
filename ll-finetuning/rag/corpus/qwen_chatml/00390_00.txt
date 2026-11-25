@@ -1,0 +1,32 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Analyze the security context, risks, and mitigations described in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+$ prompt-security-fuzzer --list-attacks
+Available attacks:
+affirmative_suffix:
+Exploit a vulnerability in LLMs that can cause them t
+affirmative responses to requests for prohibited cont
+a simple suffix to the query.
+aim_jailbreak:
+Probes an LLM's ethical compliance by eliciting detai
+on illegal activities, using the Niccolò Machiavelli
+amnesia:
+Attempt to cause LLM to forget or disregard its syste
+instructions to cause it to report something unrelate
+authoritative_role_impersonation:
+Attempt to impersonate as an authoritative role to ca
+something unrelated to its purpose
+base64_injection:
+Challenges the LLM with a dataset of prompt injection
+base64
+complimentary_transition:
+This test evaluates the LLM's ability to maintain con
+standards when transitioning from a compliment to a n
+assesses the LLM's ability to maintain defined bounda

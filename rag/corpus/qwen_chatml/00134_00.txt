@@ -1,0 +1,21 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Figure 3-24 Possible Commands from Apollo Agent Mapped to MITRE
+In Figure 3-25, the Apollo agent has an ifconfig command option, which
+maps back to T1590.005–Gather Victim Network Information: IP
+Addresses.
+Figure 3-25 Command Mapped to T1590.005
+To generate a report, navigate to the flag or manually browse to the
+following URL: https://127.0.0.1:7443/new/reporting. You can specify the
+output to be HTML or JSON. For this example (see Figure 3-26 and Figure
+3-27), we will generate an HTML report. It is best to also include the
+MITRE coverage options as well. If needed, you can opt to exclude specific
+hostnames or users.

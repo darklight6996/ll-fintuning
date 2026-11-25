@@ -1,0 +1,32 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+65
+Web Application Penetration Testing
+- Analyzing URLs and URLs re-directions
+For example:
+http:/www.foo.com/err.jsp?User=baduser&Error=0
+http:/www.foo.com/err.jsp?User=gooduser&Error=2
+As is seen above, when a tester provides a user ID and password
+to the web application, they see a message indication that an er-
+ror has occurred in the URL. In the first case they have provided a
+bad user ID and bad password. In the second, a good user ID and
+a bad password, so they can identify a valid user ID.
+- URI Probing
+Sometimes a web server responds differently if it receives a re-
+quest for an existing directory or not. For instance in some por-
+tals every user is associated with a directory. If testers try to ac-
+cess an existing directory they could receive a web server error.
+Avery common error that is received from web server is:
+403 Forbidden error code
+and
+404 Not found error code
+Example
+http:/www.foo.com/account1 - we receive from web server:
+403 Forbidden
+http:/www.foo.com/account2 - we receive from web server:
+404 file Not Found
+In the first case the user exists, but the tester cannot view the
+web page, in second ca

@@ -1,0 +1,1 @@
+irst (and only) message in the current folder: a FETCH 1 BODY.PEEK[] * 1 FETCH (BODY[] {2532} MIME-Version: 1.0 Content-Type:

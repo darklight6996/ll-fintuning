@@ -1,0 +1,1 @@
+er to forward requests to/from proxy_pass http://127.0.0.1:5080; proxy_cache_key $scheme$proxy_host$request_uri$request_method; proxy_http_version 1.1; # adds

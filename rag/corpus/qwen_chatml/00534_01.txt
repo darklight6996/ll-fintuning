@@ -1,0 +1,24 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+eavesdropping (such as intercepting data in transit) is
+generally not viable in these scenarios because ethical
+hackers are crossing the public Internet to reach the target.
+The use of encryption protocols like HTTPS ensures that
+sensitive data is protected during transmission, making
+eavesdropping difficult without directly compromising the
+target system.
+Understanding the Art of Performing Vulnerability Scans
+Once you have identified the target hosts that are available and the services
+that are listening on those hosts, you can then begin to probe those services
+to determine if there are any weaknesses; this is what vulnerability scanners
+do. Vulnerability scanners use a number of different methods to determine
+whether a service is vulnerable. The primary method is to identify the
+version of the software that is running on the open service and try to match
+it with an already-known vulnerability. For instance, if a vulnerability
+scanner determines that a Linux server is running an outdated version of the
+Apache web server that is vulnerable to remote exploitation, it reports that
+vulnerability as a finding.
+Of course,

@@ -1,0 +1,16 @@
+**Phase 4: Execution (TA0002)**
+- **Command & Scripting Interpreter (T1059)**:
+  - PowerShell (T1059.001): `IEX`, `Invoke-Expression`, encoded commands
+  - Windows Command Shell (T1059.003): `cmd.exe`, batch
+  - Unix Shell (T1059.004): `bash`, `sh`, `zsh`
+  - Python (T1059.006), JavaScript (T1059.007)
+- **Native API (T1106)**:
+  - `CreateRemoteThread`, `QueueUserAPC`, `NtCreateThreadEx`
+- **Scheduled Task/Job (T1053)**:
+  - `schtasks`, `at`, `cron`, `systemd` timers
+- **Inter-Process Communication (T1559)**:
+  - DCOM (T1559.001), Dynamic Data Exchange (T1559.002)
+- **Software Deployment Tools (T1072)**:
+  - SCCM, PDQ, Ansible, SaltStack
+- **Container Administration Command (T1609)**:
+  - `docker exec`, `kubectl exec`

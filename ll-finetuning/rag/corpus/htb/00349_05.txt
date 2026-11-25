@@ -1,0 +1,1 @@
+( buf ), fp ) != NULL ) { char * p ; const char * pattern , * server ; #ifdef HAVE_REGEXEC int i ; regex_t re ; #endif It then finds \r\n (newline) and replaces that with null, terminating the string: if (( p = strpbrk ( buf , " \r\n " ))) * p = '\0' ; After checks for commented lines and empty lines, it uses strtok to get the

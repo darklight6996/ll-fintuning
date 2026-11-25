@@ -1,0 +1,26 @@
+METHOD / ANSWER:
+ns-cloud-b4.googledomains.com (FQDN) --> aaaa_record
+(IPAddress)
+internal.secretcorp.org (FQDN) --> cname_record --> s
+216.239.32.0/20 (Netblock) --> contains --> 216.239.3
+216.239.32.0/20 (Netblock) --> contains --> 216.239.3
+15169 (ASN) --> managed_by --> GOOGLE - Google LLC (R
+15169 (ASN) --> announces --> 216.239.32.0/20 (Netblo
+ns-cloud-b3.googledomains.com (FQDN) --> a_record -->
+ns-cloud-b3.googledomains.com (FQDN) --> aaaa_record
+(IPAddress)
+ns-cloud-b1.googledomains.com (FQDN) --> a_record -->
+ns-cloud-b1.googledomains.com (FQDN) --> aaaa_record
+(IPAddress)
+216.239.32.0/20 (Netblock) --> contains --> 216.239.3
+216.239.32.0/20 (Netblock) --> contains --> 216.239.3
+secretcorp.org (FQDN) --> a_record --> 185.199.111.15
+secretcorp.org (FQDN) --> a_record --> 185.199.110.15
+secretcorp.org (FQDN) --> a_record --> 185.199.108.15
+secretcorp.org (FQDN) --> a_record --> 185.199.109.15
+secretcorp.org (FQDN) --> node --> mail.secretcorp.or
+mail.secretcorp.org (FQDN) --> cname_record --> santo
+2001:4860::/32 (Netblock) --> contains --> 2001:4860:
+2001:4860::/32 (Netblock) --> contains --> 2001:4860:
+2001:4860::/32 (Netblock) --> contains --> 2001:4860:
+2001:4860::/32 (

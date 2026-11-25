@@ -1,0 +1,28 @@
+**gRPC-Specific Attacks**:
+- **Protobuf Deserialization**:
+  - Malformed messages, field injection
+  - Unknown fields handling
+- **Metadata/Header Injection**:
+  - `grpc-metadata-*` headers
+  - Authentication bypass via metadata
+- **Stream Manipulation**:
+  - Client/server/bidirectional stream abuse
+  - Stream cancellation, flooding
+- **Deadline/Timeout Bypass**:
+  - Long-running streams
+  - Resource exhaustion
+- **TLS/ALPN Issues**:
+  - Plaintext gRPC (h2c)
+  - Certificate validation
+
+**Tools**: grpcurl, grpcui, Protobuf decoder, Burp gRPC plugin
+
+**Phase 5: WebSocket API Testing**
+- **Handshake**: Origin validation, upgrade headers
+- **Message Validation**:
+  - JSON/schema validation
+  - Message size limits
+  - Replay attacks
+- **Authentication**: Token in connection params
+- **Authorization**: Per-message authz
+- **DoS**: Connection flooding, large messages

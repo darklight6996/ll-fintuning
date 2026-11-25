@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+Once you’re close enough, the credentials will transmit from a user’s badge
+back to your reader for you to clone to your own badge. You will always
+want to act as if you are unintentionally bumping into someone or grabbing
+something nearby the person you are targeting to ensure you get an accurate
+read.
+Once you’ve obtained the credentials from badge cloning, you will want to
+write the credentials to a blank card. Depending on the frequency of the
+badge reader and technology in use, this could vary from the following
+cards, but the two most popular types of cards are
+• T5577 (used for Prox and Indala): 125 kHz
+• HID 2K iClass (used for cloning legacy iClass readers and performing
+downgrade attacks): 13.56 MHz
+To write your credentials to a blank card, you can choose from tons of tools
+on the market, but the two most popular options are the Proxmark 3 RDV4
+and the iCopy-X. The Proxmark is an RFID tool used for sniffing, cloning,
+and reading RF tags. To use the Proxmark 3 RDV4, you will need a laptop
+to clone the credentials. However, the iCopy-X takes away the need for a
+laptop component because everything can be done on the iCopy-X when
+rewriting credentials becaus

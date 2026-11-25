@@ -1,0 +1,28 @@
+TECHNIQUE / QUESTION:
+Describe the steps or process outlined in the following text: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+Tip
+For a real operation, use an operator box that is separate
+from the C2 server and set up proxychains4 on that host. In
+the /etc/proxychains4.conf file, you add the socks5 line to
+the file similarly to what is shown in Example 3-12, but
+replace 127.0.0.1 with the public or private IP of the C2
+server, depending on where your operator box is hosted.
+Then you would need to open that specific port to your
+operator box from your C2 box through firewall rules. This
+way, you will avoid any attribution to your C2 server if the
+IP is leaked.
+Using a SOCKS proxy is extremely useful for operations; the reason is that
+you can shy away from executing anything directly on the agent from an
+OPSEC perspective. Multiple tools can be proxied through a SOCKS proxy,
+including
+• Certipy (https://github.com/ly4k/Certipy)
+• SCCMHunter (https://github.com/garrettfoster13/sccmhunter)
+• Impacket (https://github.com/fortra/impacket)
+• ldapper (https://github.com/Synzack/ldapper)

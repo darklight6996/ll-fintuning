@@ -1,0 +1,43 @@
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Integer Overflows (INT)
+Integer overflow errors occur when a program fails to account for the
+fact that an arithmetic operation can result in a quantity either greater
+than a data type’s maximum value or less than its minimum value. If
+a tester can cause the program to perform such a memory allocation,
+the program can be potentially vulnerable to a buffer overflow attack.
+-1
+e)
+0x100
+0x1000
+Ox3
+ff tttfFf
+Ox7ffffffe
+Ox7 FffT FFF
+Ox80000000
+Oxfffffffe
+Oxf
+ff fTTTT
+0x10000
+0x100000
+SQL Injection
+This attack can affect the database layer of an application and is typi-
+cally present when user input is not filtered for SQL statements.
+For details on Testing SQL Injection: Testing for SQL Injection
+SQL Injection is classified in the following two categories, depending
+on the exposure of database information (passive) or the alteration of
+database information (active).
+» Passive SQL Injection
+« Active SQL Injection
+Active SQL Injection statements can have a detrimental effect on the
+underlying database if successfully executed.
+Passive SQL Injection (SQP)
+‘|(elt(-3+5,bin(15),ord(10),hex(char(45))))
+\|6
+6
+(|I6)
+‘OR 1=1--
+OR 1=1

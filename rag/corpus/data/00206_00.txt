@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+List IAM users.
+
+CONTEXT:
+Access inventory.
+
+METHOD / ANSWER:
+Command: `aws iam list-users`
+Explanation: Enumerates active IAM users.

@@ -1,0 +1,1 @@
+-4be7-4695-b0d5-560f25072d4a </uuid> <name> test </name> <email></email> <disallowusermod> 0 </disallowusermod> <sshpubkeys></sshpubkeys> </user> </users> It has a commented out example, as well as two users, rails and test. The example shows where an SSH public key could be stored. This page has information about the format of the SSH

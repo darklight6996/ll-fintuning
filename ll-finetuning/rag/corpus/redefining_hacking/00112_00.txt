@@ -1,0 +1,23 @@
+TECHNIQUE / QUESTION:
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+CONTEXT:
+Source: Unknown
+Section: General
+Pages: N/A
+
+METHOD / ANSWER:
+B. socat
+C. Reverse Proxy
+D. CDN with Reverse Proxy using Rewrites
+2. What is the name of the Azure service tag used to allow only Azure’s
+source IPs to access your CDN?
+A. AzureFrontDoor.Backend
+B. AzureBackEnd.FrontDoor
+C. AzureSourceIPs
+D. AzureFrontDoor
+3. What is the overall purpose of a C2 channel?
+A. To send data, receive data, and maintain persistent access to an agent
+B. To send phishing emails
+C. To provide persistent access
+D. To receive data

@@ -1,0 +1,1 @@
+Check for excessive permissions granted to applications or users.

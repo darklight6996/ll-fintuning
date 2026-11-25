@@ -1,0 +1,6 @@
+TECHNIQUE / QUESTION:
+How do you create a SetUID binary to gain root access on the system?
+
+CONTEXT:
+Context: Exploit Execution. You have uploaded your malicious binary to a writable directory (`/dev/shm`) on the target.
+Principle to Apply: 'Control the execution environment to subvert security checks.'

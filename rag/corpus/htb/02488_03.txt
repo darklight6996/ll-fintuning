@@ -1,0 +1,1 @@
+it diff shows what happened with each commit: oxdf@hacky$ git diff 2bd167f ff27a16 diff --git a/rules/default.yaml b/rules/default.yaml index 5eedec9..a5bef05 100755 --- a/rules/default.yaml +++ b/rules/default.yaml @@ -12,4 +12,4 @@ rules: message: "Bidding is restricted to

@@ -1,0 +1,1 @@
+mp with WindDbg and Mimikatz (which I’ll show below), but wasn’t able to find a use for the password. It was ryuki on the HTB discord who tipped me off to using variations of the password to find the password for many users on the domain. Thanks to ryuki and to

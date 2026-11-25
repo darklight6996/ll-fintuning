@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What steps should you take after obtaining a reverse shell?
+
+CONTEXT:
+You now have a low-privileged user shell.
+
+METHOD / ANSWER:
+Command: `whoami`
+Explanation: This command determines the current user context of the shell, confirming the level of access.

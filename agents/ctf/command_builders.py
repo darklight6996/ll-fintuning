@@ -33,17 +33,43 @@ def build_environment_recon_argv(params) -> List[List[str]]:
     ]
 
 
+# FIX (live WSL smoke test, 2026-11-13): a default search_path of "/" on an
+# unscoped `find` traverses pseudo-filesystems (/proc, /sys) and, on WSL
+# specifically, the slow DrvFs/9p Windows drive mounts under /mnt/* -- those
+# aren't part of the actual local target's filesystem anyway, and sweeping
+# them is what pushed suid_audit, find_writable, and flag_search all past
+# their timeout_seconds on live runs. Shared by every full-filesystem `find`
+# builder below.
+_PRUNE_DIRS = ["/proc", "/sys", "/mnt"]
+
+
+def _find_prefix_with_mount_pruning(search_path: str) -> List[str]:
+    """
+    Build the common `find <path> -xdev [(prune clauses) -prune -o]` prefix.
+    -xdev keeps the search on the starting path's own filesystem (so it won't
+    cross into /proc, /sys, or any separately-mounted /mnt/* drive), and the
+    explicit prunes are a belt-and-suspenders guard for the case where
+    search_path is itself something other than "/" but still happens to
+    contain one of these mounts. Pruning is only added for the default "/"
+    sweep -- a caller-scoped search_path is left alone.
+    """
+    argv = ["find", search_path, "-xdev"]
+    if search_path == "/":
+        prune_expr: List[str] = []
+        for i, d in enumerate(_PRUNE_DIRS):
+            if i > 0:
+                prune_expr.append("-o")
+            prune_expr += ["-path", d]
+        argv += ["(", *prune_expr, ")", "-prune", "-o"]
+    return argv
+
+
 def build_suid_audit_argv(params) -> List[List[str]]:
     """Find SUID-set binaries under the given search path."""
     search_path = getattr(params, "search_path", "/")
-    return [
-        [
-            "find", search_path,
-            "-perm", "-4000",
-            "-type", "f",
-            "-ls",
-        ]
-    ]
+    argv = _find_prefix_with_mount_pruning(search_path)
+    argv += ["-perm", "-4000", "-type", "f", "-ls"]
+    return [argv]
 
 
 def build_strings_analysis_argv(params) -> List[List[str]]:
@@ -131,13 +157,9 @@ def build_find_writable_argv(params) -> List[List[str]]:
     """Find world-writable paths of the specified type."""
     search_path = getattr(params, "search_path", "/")
     find_type = getattr(params, "find_type", "d")
-    return [
-        [
-            "find", search_path,
-            "-type", find_type,
-            "-perm", "-0002",
-        ]
-    ]
+    argv = _find_prefix_with_mount_pruning(search_path)
+    argv += ["-type", find_type, "-perm", "-0002"]
+    return [argv]
 
 
 def build_kernel_exploit_check_argv(params) -> List[List[str]]:
@@ -172,7 +194,8 @@ def build_flag_search_argv(params) -> List[List[str]]:
     """Search for flag files matching common CTF patterns."""
     pattern = getattr(params, "pattern", "flag*")
     search_path = getattr(params, "search_path", "/")
-    return [
-        ["find", search_path, "-name", pattern, "-type", "f"],
-        ["find", search_path, "-name", "*.txt"],
-    ]
+    argv1 = _find_prefix_with_mount_pruning(search_path)
+    argv1 += ["-name", pattern, "-type", "f"]
+    argv2 = _find_prefix_with_mount_pruning(search_path)
+    argv2 += ["-name", "*.txt", "-type", "f"]
+    return [argv1, argv2]

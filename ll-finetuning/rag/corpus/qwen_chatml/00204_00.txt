@@ -1,0 +1,26 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Provide a clear, comprehensive explanation of the following content: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Test Your Skills
+MULTIPLE-CHOICE QUESTIONS
+1. Which method of social engineering involves targeting users via phone
+call?
+A. Spear phishing
+B. Phone pretexting
+C. Tailgating
+D. None of these answers are correct.
+Answer – B. Phone pretexting leverages the use of a phone to target an end
+user.
+2. Which badge technology leverages magnetic stripes on the back of a
+PVC card?
+A. Magstripe
+B. HID Crescendo
+C. HID iClass SE
+D. HID SEOS

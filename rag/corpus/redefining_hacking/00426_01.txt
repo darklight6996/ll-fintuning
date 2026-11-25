@@ -1,0 +1,20 @@
+METHOD / ANSWER:
+02:3e:02:cb:c1:1e:ea:9b:33:01:c0:5c:05:36:8d:77:
+a4:21:f6:ac:ea:07:7f:76:dc:10:de:c2:da:ff:6f:6d:
+63:61:f6:6a:8d:ea:3e:38:90:2b:56:e9:12:3a:06:43:
+In Example 9-11, the openssl s_client -connect websploit.org:443 -
+servername websploit.org part of the command connects to the server and
+retrieves the certificate. The 2>/dev/null part discards error messages, if
+any, and openssl x509 -text -noout pipes the certificate output from the
+previous command to another openssl command that prints the certificate
+details in a readable format. You can replace websploit.org with the actual
+domain from which you want to retrieve the certificate information.
+Several tools can be used to reveal weak crypto implementations in
+websites. One of the most popular is testssl.sh, which can be installed by
+using the apt install testssl.sh command in WebSploit Labs (running Kali
+or Parrot) or by following the instructions at https://testssl.sh. Example 9-12
+shows how to run this tool against the websploit.org domain.
+Example 9-12 Detecting Weak Crypto Implementations
+┌──(root㉿websploit)-[~]
+└─# testssl websploit.org
+<output omitted for brevity>

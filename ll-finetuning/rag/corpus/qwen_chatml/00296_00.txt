@@ -1,0 +1,30 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the purpose, syntax, and usage of the code/command in the following text: (Context: from Document)
+
+Context:
+Source: Unknown
+Section: General
+Pages: N/A
+assistant
+Example 6-23 shows one of the Empire modules (a macOS X webcam
+snapshot). This module takes a picture by using the webcam of a
+compromised macOS X system.
+Example 6-23 The Empire Post-Exploitation Tool
+(Empire) > usemodule python/collection/osx/webcam
+(Empire: python/collection/osx/webcam) > info
+Name: Webcam
+Module: python/collection/osx/webcam
+NeedsAdmin: False
+OpsecSafe: False
+Language: python
+MinLanguageVersion: 2.6
+Background: False
+OutputExtension: png
+Authors:
+@harmj0y
+Description:
+Takes a picture of a person through OSX's webcam wi
+ImageSnap binary.
+Comments:

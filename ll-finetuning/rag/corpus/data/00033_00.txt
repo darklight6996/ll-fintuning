@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+What can you do after accessing the system as Administrator?
+
+CONTEXT:
+You have a command shell as the Administrator.
+
+METHOD / ANSWER:
+Command: `cat C:\Users\Administrator\Desktop\root.txt`
+Explanation: This command retrieves the root flag from the Administrator's Desktop, confirming your successful access and completing the penetration test.

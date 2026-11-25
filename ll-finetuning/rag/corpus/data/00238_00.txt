@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Verify reboot history.
+
+CONTEXT:
+Change management audit.
+
+METHOD / ANSWER:
+Command: `last reboot`
+Explanation: Tracks system changes.

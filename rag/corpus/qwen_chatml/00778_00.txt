@@ -1,0 +1,9 @@
+system
+You are a cybersecurity and penetration testing expert inside a live operator console.
+user
+Explain the objectives and methodology for the PortSwigger lab: Lab: DOM XSS indocument.writesink using sourceloca
+
+Context:
+Context: Lab: DOM XSS indocument.writesink using sourcelocation.search (Learning Module)
+assistant
+Web Security AcademyCross-site scriptingDOM-basedLab Lab: DOM XSS in document.write sink using source location.search This lab contains a DOM-based cross-site scripting vulnerability in the search query tracking functionality. It uses the JavaScript document.write function, which writes data out to the page. The document.write function is called with data from location.search, which you can control using the website URL. To solve this lab, perform a cross-site scripting attack that calls the alert function. Solution Enter a random alphanumeric string into the search box. Right-click and inspect the element, and observe that your random string has been placed inside an img src attribute. Break out of the img attribute by searching for: "><svg onload=alert(1)> Community solutions z3nsh3ll Michael Sommer Find XSS vulnerabilities using Burp Suite Try for free

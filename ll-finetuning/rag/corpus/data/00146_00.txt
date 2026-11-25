@@ -1,0 +1,9 @@
+TECHNIQUE / QUESTION:
+Stay informed on new vulnerabilities.
+
+CONTEXT:
+Regularly check for updates in Azure security.
+
+METHOD / ANSWER:
+Command: Subscribe to security feeds and follow Azure security blogs.
+Purpose: Ensure the team remains ahead of potential threats.
