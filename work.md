@@ -2024,3 +2024,83 @@ rounds) -- a consistent, repeatedly-applied exclusion principle, not a one-off j
   a payload themselves or ask for more guidance. The http_probe SSRF-oracle gap noted above (no
   dedicated SSRF confirmation signature, only the four already-covered classes) is flagged as
   follow-on work, not addressed in this pass.
+
+### [2026-11-25 21:30 +05:00] claude-sonnet -- implemented REASON-THEN-FORMAT planner path, handed off BLIND A/B (not run by me)
+
+- Task: test the hypothesis that the in-tool model underperforms partly because its only LLM call is
+  constrained to "return exactly one compact JSON object, no text around it" from the first token --
+  exactly where a reasoning model is weakest, vs. raw Ollama chat (free prose, thinking allowed) where
+  it's strongest. BLIND constraint: I (CC) must not be told the lab's vuln class, must not assume one,
+  and must not seed any class name into prompts/code/tests for this specific A/B -- satisfied by
+  letting the operator pick and run the lab(s) themselves and never looking at PortSwigger's own
+  answer-key content (`--blind` already strips that from what the AGENT sees; separately, I never
+  requested or viewed the lab's solution myself).
+- Implemented `core/ai_planner.py`'s REASON-THEN-FORMAT path, gated by `PLANNER_REASON_THEN_FORMAT=1`
+  (new `reason_then_format_enabled()`), as the primary requested design (not the OLLAMA_THINK=1
+  alternative, which risks exactly the truncation regression the task warned about and the
+  `<think>` tag already gets stripped from Ollama responses before the planner ever sees it -- see
+  `llm_service.py`'s existing `_ollama_generate()`):
+  - **Call 1 (reasoning)**: the SAME assessment-state prompt (`_build_prompt()`, unchanged), but with
+    the strict `_FINAL_DECISION_INSTRUCTION` swapped for a new free-prose `_REASONING_ONLY_INSTRUCTION`,
+    and a new standalone `_REASONING_SYSTEM_PROMPT` (the same mission/6-step-scaffold/confirmation-
+    standard guidance as the strict system prompt, with the DECISIONS JSON-shape listing, RULES
+    (NON-NEGOTIABLE) JSON-format rules, and OUTPUT FORMAT example all dropped -- those are exactly the
+    "return exactly one JSON object" constraints this pass lifts). No JSON parsing attempted on this
+    call's output at all.
+  - **Call 2 (format)**: the UNCHANGED strict prompt/schema, with Call 1's own reasoning text threaded
+    through as a new "=== YOUR OWN REASONING ===" section -- added via a new `prior_reasoning: str = ""`
+    parameter on `_build_prompt()` (inserted through the template's own `.format()` call via a new
+    `{prior_reasoning}` placeholder, not string surgery on the rendered text), asked to CONVERT that
+    conclusion into the required JSON, not re-derive it from scratch.
+  - **Byte-identical default path**: `_build_prompt(prior_reasoning="")` (every existing caller) renders
+    IDENTICALLY to before this change -- verified directly (`p1 == p2` for `prior_reasoning` omitted vs.
+    `=""`). The whole reasoning-call block is skipped entirely when the env var is unset.
+  - **Fail-safe**: a Call 1 exception (timeout, connection error, anything) is caught and logged, and
+    `decide_next()` falls back to the ORIGINAL single-call strict prompt for that step -- this
+    experiment can never become a NEW way for the planner to fail; worst case it silently behaves like
+    the feature was off for that one step.
+  - All 10 gates, the suspicion gate, scope checks, and `_confirmation_strength()`'s rigor are
+    completely untouched -- this only changes HOW a proposal is produced, never how it's validated or
+    executed.
+- Tests: new `tests/test_reason_then_format.py` (8 tests) -- the env-var toggle requires the exact
+  string `"1"`; disabled mode makes exactly one `generate_raw()` call with the strict instruction
+  present; enabled mode makes exactly two calls (Call 1's system prompt is `_REASONING_SYSTEM_PROMPT`
+  with the reasoning-only instruction and NO strict instruction; Call 2's system prompt is the strict
+  one, contains the strict instruction, AND Call 1's own reasoning text verbatim); a Call 1 exception
+  degrades to a successful Call 2 using the plain strict prompt (confirmed via the printed fallback
+  message); an empty/whitespace-only Call 1 response also degrades cleanly (no reasoning section
+  injected); and `_build_prompt`'s `prior_reasoning` parameter is confirmed byte-identical when empty
+  and correctly ordered (reasoning text appears BEFORE the final instruction) when populated.
+- Live smoke test against the REAL Ollama/Qwen3.6-35B-A3B backend (this machine, `OLLAMA_BASE_URL=
+  http://localhost:11434`) with a synthetic one-observation evidence store (`https://example.com/
+  product?productId=1`, an `endpoint_discovery` observation) -- confirmed BOTH modes produce valid,
+  structurally sound `AIActionProposal`s against the real model, not just mocked tests:
+  - Terse (existing single-call path): 40.0s, proposed `http_probe` ("Probe productId for SQL
+    injection or logic flaws using a benign boolean probe").
+  - Reason-then-format: 99.8s (~2.5x, consistent with two LLM calls + a larger reasoning token
+    budget -- exactly the latency tradeoff the task asked me to report), proposed `endpoint_discovery`
+    ("Required phase to map application structure... for further testing").
+  (These two single-step smoke outputs are NOT the blind A/B itself -- just a wiring-correctness
+  check with a synthetic, non-blind evidence store I constructed myself, before handing real lab
+  runs to the operator. The actual blind comparison needs full real runs against an actual lab, which
+  only the operator can run interactively.)
+- `python -m pytest`: 485 passed, 8 skipped, 0 failed (still green; 8 new tests, up from 477).
+- Committed as `20f8ad22`. `git status` clean except the operator's own appended
+  `data/portswigger_trajectories_{raw,chatml}.jsonl` from the prior live run (left untouched).
+- **BLIND A/B handoff (not run by me, per the task's own instruction -- HIGH-RISK self_script probes
+  need a human at the TTY to approve them live)**: handed the operator two WSL commands, identical
+  except for `PLANNER_REASON_THEN_FORMAT`, both using `--blind` (strips the lab title/banner/solution
+  link from what the AGENT sees -- I never requested or viewed the actual vuln class/solution for
+  whichever lab the operator picks either). Both commands point at the SAME lab URL placeholder so the
+  operator can run them against one lab for a controlled comparison, or two different ones if they
+  prefer (their call). After the operator pastes back both runs' terminal output, I will analyze
+  `state.json`'s `autonomous_execution_history` + `investigation.json` for each mode (same method
+  already used for the earlier live-run diagnoses in this log) and report, PER MODE, WITHOUT ever being
+  told the ground truth: (1) what vuln_class(es) each mode hypothesized and the evidence cited, (2)
+  whether each mode actually characterized the attack surface (endpoints/methods/content-types
+  observed) or just pattern-matched a parameter name, (3) whether each reached `proven_findings >= 1`,
+  and (4) JSON validity (retry counts from the `MAX_JSON_RETRIES` loop, visible in any `[RETRY]`
+  history entries) and latency per step for each mode.
+- next: wait for the operator's two run transcripts, then write the blind-comparison report to
+  work.md exactly as specified above, still never having been told or having looked up the lab's
+  actual answer.
