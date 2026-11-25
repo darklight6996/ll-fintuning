@@ -317,19 +317,69 @@ def mode_auto(url, timeout, max_requests):
 
 
 def mode_targeted(url, param, payload, timeout):
+    """
+    Test ONE human- or model-chosen payload against ONE named parameter with
+    the SAME typed oracles the auto battery uses (2026-11-25: extended beyond
+    the original SQL-error-only check so --manual-payload's PAYLOAD: mode --
+    which always dispatches here -- grades whichever vuln class the human is
+    actually testing, not just SQLi).
+    """
     base_status, base_body, base_t = _fetch(url, timeout)
     mut_url = _set_param(url, param, payload)
     s, b, t = _fetch(mut_url, timeout)
+
+    # 1) SQL-error oracle.
     err = _has_sql_error(b)
-    sim = _similar(b, base_body)
     if err and not _has_sql_error(base_body):
         _signal(confirmed=True, severity="high", vuln_class="sqli", parameter=param,
                 summary=f"Targeted tamper on '{param}' triggered SQL error '{err}'.")
         return
+
+    # 2) LFI oracle: an /etc/passwd signature appearing only in the mutated response.
+    if _LFI_RE.search(b or "") and not _LFI_RE.search(base_body or ""):
+        excerpt = b[max(0, _LFI_RE.search(b).start() - 20):_LFI_RE.search(b).end() + 60]
+        _signal(confirmed=True, severity="high", vuln_class="lfi", parameter=param,
+                summary=f"Targeted tamper on '{param}' returned an /etc/passwd signature "
+                        f"not present in the baseline response.",
+                evidence=_redact(excerpt))
+        return
+
+    # 3) Open-redirect oracle: if the payload itself looks like an absolute or
+    # protocol-relative URL, check whether the mutated request's UN-FOLLOWED
+    # Location header host matches the payload's OWN host (not a fixed canary
+    # -- the human/model already chose the external host via the payload).
+    if "://" in payload or payload.startswith("//"):
+        payload_host = (urllib.parse.urlsplit(
+            payload if "://" in payload else "//" + payload.lstrip("/")
+        ).hostname or "").lower()
+        if payload_host:
+            status_nr, location = _fetch_no_redirect(mut_url, timeout)
+            if status_nr in (301, 302, 303, 307, 308) and location:
+                loc_host = (urllib.parse.urlsplit(
+                    location if "://" in location or location.startswith("//") else "//" + location
+                ).hostname or "").lower()
+                if loc_host == payload_host:
+                    _signal(confirmed=True, severity="medium", vuln_class="open-redirect", parameter=param,
+                            summary=f"Targeted tamper on '{param}' with an externally-controlled URL "
+                                    f"produced a redirect whose Location host matches the payload's own host.",
+                            evidence=_redact(location))
+                    return
+
+    # 4) Reflection LEAD: the payload (or a distinctive quote/tag fragment of it)
+    # echoed verbatim and unencoded in the mutated response but not the baseline.
+    canary_frag = payload if len(payload) <= 40 else payload[:40]
+    if canary_frag and ("<" in canary_frag or '"' in canary_frag or "'" in canary_frag) \
+            and canary_frag in (b or "") and canary_frag not in (base_body or ""):
+        _signal(confirmed=False, lead=True, severity="low", vuln_class="xss", parameter=param,
+                summary=f"Lead: parameter '{param}' reflects the payload unencoded "
+                        f"(not present in the baseline response) -- possible XSS surface.")
+        return
+
+    sim = _similar(b, base_body)
     _signal(confirmed=False, vuln_class="http", parameter=param,
             summary=f"Targeted tamper on '{param}' (payload len {len(payload)}): status "
                     f"{base_status}->{s}, body-sim {sim:.2f}, timing {base_t:.2f}s->{t:.2f}s. "
-                    f"No SQL-error signature.")
+                    f"No SQL-error, LFI, open-redirect, or reflection signature.")
 
 
 def mode_raw(raw_file, host, port, timeout):

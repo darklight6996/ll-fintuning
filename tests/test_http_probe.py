@@ -166,6 +166,84 @@ def test_fetch_no_redirect_network_failure_returns_none_none(monkeypatch):
     assert location is None
 
 
+# --- mode_targeted (2026-11-25, extended for --manual-payload's PAYLOAD: path) --
+# mode_targeted used to check ONLY the SQL-error oracle; --manual-payload mode
+# always dispatches a human-chosen payload here regardless of vuln class, so
+# it now runs the same LFI/open-redirect/reflection oracles _probe_param uses.
+
+def test_mode_targeted_confirms_sqli(monkeypatch, capsys):
+    def fake_fetch(url, timeout):
+        # _set_param URL-encodes the payload, so a literal "'" never survives
+        # into the mutated URL -- match its percent-encoded form instead.
+        if "%27" in url:
+            return 500, "you have an error in your sql syntax", 0.1
+        return 200, "<html>benign</html>", 0.1
+    monkeypatch.setattr(hp, "_fetch", fake_fetch)
+    monkeypatch.setattr(hp, "_fetch_no_redirect", lambda *a, **k: (None, None))
+    hp.mode_targeted("https://example.com/item?id=1", "id", "1'", timeout=1)
+    out = json.loads(capsys.readouterr().out.strip())
+    assert out["vuln_signal"]["confirmed"] is True
+    assert out["vuln_signal"]["vuln_class"] == "sqli"
+
+
+def test_mode_targeted_confirms_lfi(monkeypatch, capsys):
+    def fake_fetch(url, timeout):
+        if "etc" in url:
+            return 200, "root:x:0:0:root:/root:/bin/sh", 0.1
+        return 200, "<html>benign</html>", 0.1
+    monkeypatch.setattr(hp, "_fetch", fake_fetch)
+    monkeypatch.setattr(hp, "_fetch_no_redirect", lambda *a, **k: (None, None))
+    hp.mode_targeted("https://example.com/view?file=a.txt", "file",
+                      "../../../../etc/passwd", timeout=1)
+    out = json.loads(capsys.readouterr().out.strip())
+    assert out["vuln_signal"]["confirmed"] is True
+    assert out["vuln_signal"]["vuln_class"] == "lfi"
+
+
+def test_mode_targeted_confirms_open_redirect_to_payloads_own_host(monkeypatch, capsys):
+    monkeypatch.setattr(hp, "_fetch", lambda url, timeout: (200, "<html>benign</html>", 0.1))
+    monkeypatch.setattr(hp, "_fetch_no_redirect",
+                         lambda url, timeout: (302, "https://attacker-controlled.example/"))
+    hp.mode_targeted("https://example.com/go?next=/home", "next",
+                      "https://attacker-controlled.example/", timeout=1)
+    out = json.loads(capsys.readouterr().out.strip())
+    assert out["vuln_signal"]["confirmed"] is True
+    assert out["vuln_signal"]["vuln_class"] == "open-redirect"
+
+
+def test_mode_targeted_open_redirect_not_flagged_when_host_differs(monkeypatch, capsys):
+    monkeypatch.setattr(hp, "_fetch", lambda url, timeout: (200, "<html>benign</html>", 0.1))
+    # App normalizes the redirect back to its own domain -- not vulnerable.
+    monkeypatch.setattr(hp, "_fetch_no_redirect", lambda url, timeout: (302, "https://example.com/home"))
+    hp.mode_targeted("https://example.com/go?next=/home", "next",
+                      "https://attacker-controlled.example/", timeout=1)
+    out = json.loads(capsys.readouterr().out.strip())
+    assert out["vuln_signal"]["confirmed"] is False
+
+
+def test_mode_targeted_reflection_lead_not_confirmed(monkeypatch, capsys):
+    def fake_fetch(url, timeout):
+        if "svg" in url:
+            return 200, '<html>"><svg onload=alert(1)></html>', 0.1
+        return 200, "<html>benign</html>", 0.1
+    monkeypatch.setattr(hp, "_fetch", fake_fetch)
+    monkeypatch.setattr(hp, "_fetch_no_redirect", lambda *a, **k: (None, None))
+    hp.mode_targeted("https://example.com/?q=x", "q", '"><svg onload=alert(1)>', timeout=1)
+    out = json.loads(capsys.readouterr().out.strip())
+    assert out["vuln_signal"]["confirmed"] is False
+    assert out["vuln_signal"].get("lead") is True
+    assert out["vuln_signal"]["vuln_class"] == "xss"
+
+
+def test_mode_targeted_clean_target_no_signature(monkeypatch, capsys):
+    monkeypatch.setattr(hp, "_fetch", lambda url, timeout: (200, "<html>nothing here</html>", 0.1))
+    monkeypatch.setattr(hp, "_fetch_no_redirect", lambda *a, **k: (None, None))
+    hp.mode_targeted("https://example.com/?q=x", "q", "benign-value", timeout=1)
+    out = json.loads(capsys.readouterr().out.strip())
+    assert out["vuln_signal"]["confirmed"] is False
+    assert out["vuln_signal"]["vuln_class"] == "http"
+
+
 if __name__ == "__main__":
     import sys
     sys.exit(pytest.main([__file__, "-v"]))
