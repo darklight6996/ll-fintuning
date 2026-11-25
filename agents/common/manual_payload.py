@@ -22,16 +22,179 @@ by the EXISTING _confirmation_strength() self_script path exactly like a
 model-authored probe -- "human payload = untrusted candidate, graded lead
 until the oracle proves it" is enforced by infrastructure that already
 exists, not duplicated here.
+
+REBUILT 2026-11-25 after operator feedback on the first version: that version
+asked the human to blindly invent a test value against a bare parameter name,
+with no explanation of WHY it's exploitable or HOW to actually craft a
+payload for it -- backwards from what was asked. build_payload_brief() now
+leads with the CONFIRMED exploitation technique (plain-language, from
+TECHNIQUE_DESCRIPTIONS, keyed on the matching open Hypothesis's vuln_class),
+the exact request to send with the tamper point marked, and payload-crafting
+guidance (reusing core/payload_pack.py's existing per-class checklist/seed
+payloads) -- all BEFORE asking the operator for anything.
 """
 
 import re
 import shlex
 from typing import Dict, Optional, Tuple
+from urllib.parse import urlsplit
 
 _PARAM_IN_URL_RE = re.compile(r"[?&]([A-Za-z0-9_\-]+)=")
 # Quotes required (not optional) -- without them "parameter named here" would
 # falsely capture "named" as the parameter name.
 _PARAM_IN_TEXT_RE = re.compile(r"parameter\s+['\"]([A-Za-z0-9_\-]+)['\"]", re.I)
+
+# Plain-language exploitation-technique explanations per canonical vuln_class
+# (2026-11-25, rebuilt after operator feedback: the first version of manual-
+# payload mode asked the human to blindly invent test values with no guidance
+# on WHY a parameter is exploitable or HOW to actually weaponize it -- this is
+# the "confirm the technique, then guide the human" half the operator asked
+# for). Deliberately plain-language, not a payload itself -- the point is to
+# teach the mechanism so the human can craft (or recognize when to ask for) a
+# real payload, not to hand them one blind either.
+TECHNIQUE_DESCRIPTIONS: Dict[str, str] = {
+    "ssrf": (
+        "SSRF: the SERVER itself makes an outbound request using (all or part of) this "
+        "parameter's value. Substituting an internal-network address, a cloud metadata "
+        "IP, or another protocol/port makes the server fetch something on your behalf "
+        "that you could never reach directly. If the request body this parameter lives "
+        "in is XML, also consider SSRF-VIA-XXE: define an external entity in a DOCTYPE "
+        "and reference it from a field, so the XML PARSER (not your own injected value) "
+        "makes the outbound fetch -- this bypasses URL-shaped-value filters that only "
+        "look at an obviously-a-URL field."
+    ),
+    "xxe": (
+        "XXE: the request body is XML and the parser resolves external entities. "
+        "Define `<!DOCTYPE x [<!ENTITY e SYSTEM \"...\">]>` and reference `&e;` inside a "
+        "field value -- the parser fetches/reads whatever the entity's SYSTEM URI points "
+        "to (a local file via file://, or an internal/external URL via http://, "
+        "which is itself an SSRF primitive mediated through the parser)."
+    ),
+    "sqli": (
+        "SQL injection: this parameter's value reaches a SQL query without being "
+        "properly parameterized. A single quote that breaks the query syntax (causing a "
+        "DB error) confirms the primitive; from there, boolean/time-based blind "
+        "techniques or a UNION-based extraction are both viable depending on whether "
+        "the response reflects query output."
+    ),
+    "idor": (
+        "IDOR / broken access control: this parameter is a raw object reference (an id, "
+        "a UUID, a filename) with no server-side ownership check. Swapping it for "
+        "another user's/tenant's identifier should return data that does not belong to "
+        "the current session -- the server trusts the CLIENT-supplied id instead of "
+        "re-deriving it from the authenticated session."
+    ),
+    "ssti": (
+        "Server-side template injection: this value is rendered through a template "
+        "engine rather than inserted as plain text. A non-destructive arithmetic probe "
+        "(e.g. a multiplication the template engine itself would evaluate) confirms the "
+        "primitive before escalating toward the engine's known RCE gadget chain."
+    ),
+    "rce": (
+        "Command/code injection: this value reaches a shell command or a deserialization "
+        "sink. A benign, observable side effect (a distinctive timing delay, an "
+        "out-of-band callback) confirms execution without needing a destructive payload."
+    ),
+    "redirect": (
+        "Open redirect: this parameter controls a Location-header or client-side "
+        "redirect target with no allowlist check. Pointing it at an external host and "
+        "confirming the server/page actually redirects THERE (not back to its own "
+        "domain) is the whole primitive -- useful chained into an OAuth/SSO flow."
+    ),
+    "lfi": (
+        "Local file inclusion / path traversal: this value is used to build a filesystem "
+        "path server-side with insufficient sanitization. Traversal sequences "
+        "(`../`) walking up to a well-known file (e.g. /etc/passwd) confirm the "
+        "primitive via a recognizable signature in the response."
+    ),
+    "auth": (
+        "Authentication/authorization bypass: a check that should gate this "
+        "request is missing, trusting a client-controlled value (a header, a cookie "
+        "flag, a role field) instead of independently verifying the session server-side."
+    ),
+    "oauth": (
+        "OAuth/OIDC flow flaw: a redirect_uri, state, or token-type check is "
+        "missing or too permissive -- controlling the redirect target or forging/"
+        "reusing a token across its intended scope is the usual confirming step."
+    ),
+}
+
+_DEFAULT_TECHNIQUE = (
+    "No specific technique template for this vuln_class yet -- reason from the "
+    "hypothesis text itself: what does the server DO with this parameter's value, "
+    "and what would a value need to achieve to prove that assumption is fragile?"
+)
+
+
+def describe_technique(vuln_class: Optional[str]) -> str:
+    """Plain-language exploitation-technique explanation for a vuln_class, or
+    a generic reasoning prompt if there's no template for it yet."""
+    if not vuln_class:
+        return _DEFAULT_TECHNIQUE
+    return TECHNIQUE_DESCRIPTIONS.get(vuln_class.strip().lower(), _DEFAULT_TECHNIQUE)
+
+
+def render_request_template(target: str, param: Optional[str]) -> str:
+    """A minimal, honest reconstruction of the confirming request: method/URL
+    with the exploitable parameter marked. GET-only (this framework's own
+    request-shape facts -- forms/content-type -- aren't threaded through to
+    this helper yet; if the real request is POST/body-based, say so and let
+    the human correct it via CURL:/SCRIPT: instead)."""
+    parts = urlsplit(target)
+    path = parts.path or "/"
+    query = f"?{parts.query}" if parts.query else ""
+    lines = [f"GET {path}{query} HTTP/1.1", f"Host: {parts.netloc}"]
+    if param:
+        lines.append(f"Tamper point: the '{param}' value above -- replace it with your crafted payload.")
+    else:
+        lines.append("Tamper point: (parameter not yet identified -- name it explicitly in your PAYLOAD:)")
+    lines.append(
+        "If the real request is actually POST / a different content-type (form, JSON, XML) -- "
+        "check the most recent observation above for the real shape, then use CURL: or SCRIPT: "
+        "instead of PAYLOAD: to get the method/body/headers right."
+    )
+    return "\n".join(lines)
+
+
+def build_payload_brief(target: str, param: Optional[str], vuln_class: Optional[str],
+                         hypothesis_text: str, recent_excerpt: str) -> str:
+    """
+    Assemble the full manual-payload brief: confirmed technique, the exact
+    request to send with the tamper point marked, and payload-crafting
+    guidance (reusing core/payload_pack.py's existing per-class checklist +
+    seed payloads -- same methodology a model-authored self_script would be
+    steered toward, not duplicated here). This is what BaseAgent.
+    _handle_manual_payload() prints before reading the operator's input.
+    """
+    from core.payload_pack import build_attack_checklist, normalize_vuln_class, SEED_PAYLOADS
+
+    canonical = normalize_vuln_class(vuln_class) if vuln_class else None
+    lines = [
+        f"Vulnerability class:   {canonical or '(not yet classified -- see hypothesis below)'}",
+        f"Exploitable parameter:  {param or '(could not infer -- name it explicitly in your PAYLOAD:)'}",
+        f"Hypothesis:             {hypothesis_text or '(none given)'}",
+        "",
+        "Exploitation technique:",
+        f"  {describe_technique(canonical)}",
+        "",
+        "Request to send (the confirming probe):",
+    ]
+    lines.extend(f"  {line}" for line in render_request_template(target, param).splitlines())
+    lines.append("")
+    lines.append("Payload-crafting guidance:")
+    if canonical:
+        for item in build_attack_checklist(canonical)[:5]:
+            lines.append(f"  - {item}")
+        seeds = SEED_PAYLOADS.get(canonical, [])
+        if seeds:
+            lines.append(f"  Example seed payloads for this class (starting points, not a final answer): "
+                          f"{', '.join(seeds[:4])}")
+    else:
+        lines.append("  (no vuln_class yet -- craft a payload that would distinguish your hypothesis "
+                      "being TRUE from it being FALSE, same as the checklist above.)")
+    lines.append("")
+    lines.append(f"Observed response (most recent observation, truncated):\n  {recent_excerpt}")
+    return "\n".join(lines)
 
 
 def infer_param_name(target: str, hypothesis_text: str) -> Optional[str]:

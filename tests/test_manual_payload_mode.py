@@ -15,13 +15,16 @@ import ast
 import pytest
 
 from core.scope import Scope
-from core.investigation import EvidenceStore, Observation
+from core.investigation import EvidenceStore, Hypothesis, Observation
 from core.tools.script_runner import screen
 from agents.common.manual_payload import (
     build_curl_replay_script,
+    build_payload_brief,
     build_solving_curl,
+    describe_technique,
     infer_param_name,
     parse_curl,
+    render_request_template,
 )
 
 
@@ -137,6 +140,111 @@ def test_build_solving_curl_post_with_headers_and_body():
     assert "-H 'X-Test: 1'" in out
     assert "-d 'a=1'" in out
     assert out.endswith("'https://x.example/api'")
+
+
+# --- describe_technique / render_request_template / build_payload_brief ----------
+# (2026-11-25 rebuild after operator feedback: the brief must confirm the
+# exploitation TECHNIQUE and show the request/tamper point BEFORE asking the
+# operator for anything -- not just hand them a bare parameter name.)
+
+def test_describe_technique_known_class():
+    text = describe_technique("ssrf")
+    assert "SERVER itself makes an outbound request" in text
+    assert "XXE" in text  # SSRF's description explicitly calls out the XXE variant
+
+
+def test_describe_technique_unknown_class_falls_back_to_generic_reasoning_prompt():
+    text = describe_technique("some-made-up-class")
+    assert "No specific technique template" in text
+
+
+def test_describe_technique_none_falls_back_to_generic_reasoning_prompt():
+    assert "No specific technique template" in describe_technique(None)
+
+
+def test_render_request_template_marks_tamper_point():
+    out = render_request_template("https://x.example/product?shopId=1", "shopId")
+    assert "GET /product?shopId=1 HTTP/1.1" in out
+    assert "Host: x.example" in out
+    assert "Tamper point: the 'shopId' value" in out
+
+
+def test_render_request_template_no_param_says_so():
+    out = render_request_template("https://x.example/product", None)
+    assert "parameter not yet identified" in out
+
+
+def test_build_payload_brief_leads_with_technique_before_asking_for_anything():
+    brief = build_payload_brief(
+        "https://x.example/product?shopId=1", "shopId", "ssrf",
+        "shopId triggers a server-side lookup against an internal admin panel.",
+        "(no prior observation)",
+    )
+    # Technique must appear BEFORE any payload-crafting-guidance section --
+    # confirm-then-guide, not guide-then-confirm.
+    assert brief.index("Exploitation technique:") < brief.index("Payload-crafting guidance:")
+    assert "SERVER itself makes an outbound request" in brief
+    assert "Tamper point: the 'shopId' value" in brief
+
+
+def test_build_payload_brief_includes_seed_payloads_for_known_class():
+    brief = build_payload_brief("https://x.example/product?shopId=1", "shopId", "ssrf",
+                                 "ssrf hypothesis", "")
+    assert "169.254.169.254" in brief  # core.payload_pack's SSRF seed payload
+
+
+def test_build_payload_brief_unknown_class_has_no_fabricated_guidance():
+    brief = build_payload_brief("https://x.example/product?x=1", "x", None, "unclassified", "")
+    assert "no vuln_class yet" in brief
+
+
+# --- BaseAgent._find_hypothesis_for_manual_payload ---------------------------------
+
+def test_find_hypothesis_for_manual_payload_picks_strongest_open_hypothesis(monkeypatch):
+    agent = _make_agent(monkeypatch)
+    store = EvidenceStore()
+    weak = Hypothesis(observation_ids=["obs_1"], description="weak", validation_test="self_script",
+                       vuln_class="idor", confidence="speculative")
+    strong = Hypothesis(observation_ids=["obs_1"], description="strong", validation_test="self_script",
+                         vuln_class="ssrf", confidence="likely")
+    store.hypotheses[weak.hyp_id] = weak
+    store.hypotheses[strong.hyp_id] = strong
+    found = agent._find_hypothesis_for_manual_payload(store)
+    assert found is strong
+
+
+def test_find_hypothesis_for_manual_payload_ignores_milestones_and_confirmed(monkeypatch):
+    agent = _make_agent(monkeypatch)
+    store = EvidenceStore()
+    milestone = Hypothesis(observation_ids=["obs_1"], description="m", validation_test="recon_scan",
+                            confidence="likely", milestone=True)
+    confirmed = Hypothesis(observation_ids=["obs_1"], description="c", validation_test="self_script",
+                            vuln_class="sqli", confidence="likely", status="confirmed")
+    store.hypotheses[milestone.hyp_id] = milestone
+    store.hypotheses[confirmed.hyp_id] = confirmed
+    assert agent._find_hypothesis_for_manual_payload(store) is None
+
+
+def test_find_hypothesis_for_manual_payload_empty_store_returns_none(monkeypatch):
+    agent = _make_agent(monkeypatch)
+    assert agent._find_hypothesis_for_manual_payload(EvidenceStore()) is None
+
+
+def test_handle_manual_payload_brief_surfaces_vuln_class_from_matching_hypothesis(monkeypatch, capsys):
+    agent = _make_agent(monkeypatch)
+    store = EvidenceStore()
+    hyp = Hypothesis(observation_ids=["obs_1"], description="shopId is an SSRF vector",
+                      validation_test="self_script", vuln_class="ssrf", confidence="likely")
+    store.hypotheses[hyp.hyp_id] = hyp
+    _feed_lines(monkeypatch, [""])  # skip -- just inspect the printed brief
+    proposal = _FakeProposal(
+        target="https://x.example/product?shopId=1",
+        parameters={"target": "https://x.example/product?shopId=1", "hypothesis": "thin hint"},
+    )
+    agent._handle_manual_payload(proposal, store)
+    out = capsys.readouterr().out
+    assert "Vulnerability class:   ssrf" in out
+    assert "shopId is an SSRF vector" in out  # the Hypothesis's own (richer) description won out
 
 
 # --- BaseAgent._handle_manual_payload ---------------------------------------------

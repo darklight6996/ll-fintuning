@@ -1112,6 +1112,26 @@ class BaseAgent:
             }
 
 
+    def _find_hypothesis_for_manual_payload(self, evidence_store) -> Optional[Any]:
+        """
+        The hypothesis the self_script proposal we're intercepting is almost
+        certainly testing: the strongest OPEN/VALIDATING non-milestone
+        hypothesis, same "which hypothesis is the model actually acting on"
+        logic core/ai_planner.py's own steering ladder already uses (there is
+        normally exactly one active line of investigation at a time). Used to
+        surface vuln_class in the manual-payload brief -- the self_script
+        proposal's own parameters carry only a one-line hypothesis string,
+        not the structured vuln_class the Hypothesis object itself has.
+        """
+        conf_rank = {"likely": 3, "plausible": 2, "speculative": 1}
+        open_hyps = [
+            h for h in evidence_store.hypotheses.values()
+            if not getattr(h, "milestone", False) and h.status in ("open", "validating")
+        ]
+        if not open_hyps:
+            return None
+        return sorted(open_hyps, key=lambda h: (conf_rank.get(h.confidence, 0), h.created_at), reverse=True)[0]
+
     def _handle_manual_payload(self, proposal, evidence_store) -> Optional[Any]:
         """
         MANUAL PAYLOAD MODE (--manual-payload): pause right before the
@@ -1127,7 +1147,7 @@ class BaseAgent:
         """
         from core.action_contract import AIActionProposal
         from agents.common.manual_payload import (
-            infer_param_name, parse_curl, build_curl_replay_script, build_solving_curl,
+            infer_param_name, parse_curl, build_curl_replay_script, build_payload_brief,
         )
 
         params = proposal.parameters or {}
@@ -1137,17 +1157,22 @@ class BaseAgent:
         recent_obs = list(evidence_store.observations.values())[-1] if evidence_store.observations else None
         recent_excerpt = (recent_obs.raw_stdout or "")[:400] if recent_obs else "(no prior observation)"
         inferred_param = infer_param_name(target, hypothesis_text)
+        matching_hyp = self._find_hypothesis_for_manual_payload(evidence_store)
+        vuln_class = getattr(matching_hyp, "vuln_class", None)
+        # The matching hypothesis's own description is usually more specific
+        # than the self_script proposal's one-line "hypothesis" param (which
+        # the model sometimes leaves thin) -- prefer it when available.
+        if matching_hyp is not None and getattr(matching_hyp, "description", None):
+            hypothesis_text = matching_hyp.description
 
         print("\n" + "-" * 70)
-        print("  [MANUAL PAYLOAD] The planner wants to test this itself. Supply the probe yourself:")
-        print(f"    Target:              {target}")
-        print(f"    Hypothesis:          {hypothesis_text or '(none given)'}")
-        print(f"    Inferred parameter:  {inferred_param or '(could not infer -- name it explicitly below)'}")
-        print(f"    Observed response (most recent observation, truncated):")
-        print(f"      {recent_excerpt}")
+        print("  [MANUAL PAYLOAD] The planner wants to test this itself:")
+        print()
+        print(build_payload_brief(target, inferred_param, vuln_class, hypothesis_text, recent_excerpt))
+        print()
         print("  Paste exactly ONE of the following, then finish with a blank line or EOF:")
-        print("    PAYLOAD:<value>            -- test this value against the parameter above")
-        print("    PAYLOAD:<param>=<value>    -- or name the parameter explicitly")
+        print("    PAYLOAD:<value>            -- your crafted payload for the parameter above")
+        print("    PAYLOAD:<param>=<value>    -- or name a different parameter explicitly")
         print("    CURL:<curl command>        -- replay this exact request (single line)")
         print("    SCRIPT:                    -- a Python self_script probe follows (same contract the AI uses)")
         print("  Leave blank to skip this step.")
