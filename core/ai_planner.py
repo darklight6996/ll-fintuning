@@ -42,12 +42,35 @@ correctly.
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
 from core.action_contract import ActionRegistry, AIActionProposal, action_is_unlocked
 from core.campaign_judgment import render_campaign_judgment
+
+# REASON-THEN-FORMAT planner path (2026-11-25). Hypothesis under test: the
+# in-tool model underperforms partly because its ONLY call is constrained to
+# "return exactly one compact JSON object, no text around it" -- exactly the
+# output shape a reasoning model is weakest at, and exactly where raw Ollama
+# chat (free prose, thinking allowed) is strongest. This splits decide_next()
+# into two LLM calls when enabled:
+#   Call 1 (reasoning): the SAME state/context, but asked to think freely in
+#     plain prose -- no JSON constraint at all.
+#   Call 2 (format): the STRICT prompt/schema as before, with Call 1's own
+#     reasoning text inserted as additional context, asked to return ONLY the
+#     JSON action implied by that reasoning.
+# All gates and confirmation rigor are UNCHANGED -- this only affects how a
+# proposal is PRODUCED, never how it is validated or executed. Off by default
+# (PLANNER_REASON_THEN_FORMAT unset): decide_next() is byte-identical to the
+# single-call path that existed before this toggle.
+_REASON_THEN_FORMAT_ENV = "PLANNER_REASON_THEN_FORMAT"
+
+
+def reason_then_format_enabled() -> bool:
+    """True only when the operator has explicitly opted in via env var."""
+    return os.environ.get(_REASON_THEN_FORMAT_ENV) == "1"
 
 
 # ---------------------------------------------------------------------------
@@ -229,6 +252,53 @@ def _render_system_prompt(example_action_id, example_rationale: str, example_pro
     )
 
 
+# REASON-THEN-FORMAT's Call 1 system prompt: the SAME mission/scaffold/
+# confirmation-standard guidance as the strict system prompt above, but with
+# the DECISIONS JSON-shape listing, the RULES (NON-NEGOTIABLE) JSON-format
+# rules, and the OUTPUT FORMAT example all dropped -- those are exactly the
+# "return exactly one JSON object" constraints this pass deliberately lifts.
+# Written standalone rather than derived from _PLANNER_SYSTEM_PROMPT_TEMPLATE
+# via string surgery, so it stays correct even if that template's structure
+# changes later.
+_REASONING_SYSTEM_PROMPT = """\
+You are an expert security investigator operating inside a safety-gated assessment framework.
+
+YOUR MISSION:
+Reason like a human security researcher — do NOT pattern-match to a fixed catalog of vulnerability classes.
+You discover vulnerabilities (injection, business logic, race conditions, auth flaws, access control, state bugs, request smuggling, and novel logic flaws) by modeling the target, finding fragile developer assumptions, forming specific falsifiable hypotheses, designing discriminating tests, and confirming through concrete proof.
+
+THE 6-STEP INVESTIGATOR SCAFFOLD (Reason, do not blindly scan):
+1. MODEL IT. From observations, state what this app/endpoint is FOR, its moving parts, the actors/roles, what state or limited resources exist (e.g. coupons, discounts, inventory, balances, tokens, permissions), and for each — what must the developer be ASSUMING?
+2. FIND THE FRAGILE ASSUMPTION. Which assumption, if false, causes harm? Where does attacker-controlled data reach something powerful (fetcher, query, parser, auth decision, shared/limited resource)? What invariant must hold, and what enforces it (e.g. is coupon redemption atomic, or can parallel requests redeem twice)?
+3. HYPOTHESIZE SPECIFICALLY. Form a clear hypothesis: "I suspect ___ because ___. The minimal test that would PROVE OR KILL it is ___. Only this flaw would explain ___." Hypotheses are free-form text — no fixed class name required!
+4. DESIGN A DISCRIMINATING TEST — control vs attack, so the result cannot be coincidence. Author your own test via `self_script` (which supports requests, threading, asyncio, and raw sockets for parallel bursts and timing tests) if no specialized tool fits; a scanner is optional.
+5. JUDGE THE EVIDENCE — does ONLY the vulnerability/violation explain the result? (e.g. single-use resource consumed twice, limit exceeded, negative total vs control). If not, refute and update your model.
+6. CHAIN & FOLLOW SMELLS — a confirmed primitive opens new assumptions; an anomaly that fits no class is still a lead.
+
+The decision you will eventually act on is one of: update_app_model, propose_action (run a registered
+tool, or self_script to test a fragile assumption), form_hypothesis (a falsifiable candidate explanation
+citing real obs_ids), record_validation (judge a real observation against an open hypothesis),
+record_finding (promote an already-validated hypothesis), or propose_completion.
+
+CONFIRMATION STANDARD (every vulnerability & invariant violation):
+A vulnerability is PROVEN only by a DISTINCTIVE POSITIVE or an OBSERVABLE INVARIANT VIOLATION versus a control:
+- Invariant / Logic / Race condition: an invariant is observably violated vs control (e.g. single-use resource consumed twice, limit/quota exceeded, balance became negative, state reached unauthorized value in parallel requests).
+- SSRF: the fetched internal page body quoted as evidence.
+- SQLi: flipped result set or DB error quoted.
+- XSS: unencoded reflected bytes in execution context.
+- IDOR: another principal's private data quoted.
+- LFI: file contents (/etc/passwd) quoted.
+- RCE: command execution output quoted.
+Always send a CONTROL that SHOULD fail, and treat it as proof only if the control fails AND the attack succeeds. NEVER call something confirmed because "responses differ", a status code changed, or generic text like "login"/"admin" appears -- those are LEADS, not proof.
+
+This is a FREE-FORM REASONING pass -- think out loud in plain prose. Do NOT output JSON, markdown, or
+any structured format of any kind. A second call will convert your conclusion into the required strict
+JSON format, so end with one concrete, specific paragraph naming your intended decision and exactly
+what you would do (the action/parameters, or the hypothesis/obs_id/hyp_id involved) -- specific enough
+that converting it to JSON is mechanical, not another judgment call.
+"""
+
+
 _PLANNER_USER_TEMPLATE = """\
 === ASSESSMENT STATE ===
 Target: {target}
@@ -286,9 +356,35 @@ back to your own judgement.
 
 === CAMPAIGN JUDGMENT (standing discipline -- applies every turn) ===
 {campaign_judgment}
-
-Propose the next action, evidence-chain step, or completion. Return ONLY one compact JSON object -- no text around it. Keep "description" and "rationale" to ONE short sentence each (<=200 chars); put NO multi-paragraph reasoning, essays, or comment-blocks inside any JSON field -- an over-long field overruns the token budget, truncates the JSON, and is rejected.
+{prior_reasoning}
+{final_instruction}
 """
+
+# The strict-format final instruction, factored into its own constant so the
+# REASON-THEN-FORMAT path (below) can swap it out for a free-prose variant on
+# Call 1 while reusing the identical rendered prompt otherwise.
+_FINAL_DECISION_INSTRUCTION = (
+    'Propose the next action, evidence-chain step, or completion. Return ONLY one compact JSON object '
+    '-- no text around it. Keep "description" and "rationale" to ONE short sentence each (<=200 chars); '
+    'put NO multi-paragraph reasoning, essays, or comment-blocks inside any JSON field -- an over-long '
+    'field overruns the token budget, truncates the JSON, and is rejected.'
+)
+
+# Call 1's instruction (REASON-THEN-FORMAT, free-prose pass): deliberately the
+# OPPOSITE of the strict instruction above -- no JSON, no length cap, think
+# out loud. Call 2 then gets this reasoning back as {prior_reasoning} context
+# alongside the unchanged strict instruction.
+_REASONING_ONLY_INSTRUCTION = (
+    "This is a free-form REASONING pass, not your final answer. Do NOT output JSON, markdown, or any "
+    "structured format -- think out loud in plain prose. Walk through the 6-step investigator scaffold "
+    "above against the CURRENT state shown: what do you conclude about the target, which ONE decision "
+    "(update_app_model / propose_action / form_hypothesis / record_validation / record_finding / "
+    "propose_completion) is the right next move, and exactly why. End with one concrete paragraph "
+    "naming your intended action/parameters/obs_id/hyp_id in plain English (e.g. \"I will propose "
+    "self_script against the shopId parameter, injecting an internal IP, because...\") -- a second pass "
+    "will convert this into the required strict JSON format, so be specific enough for that conversion "
+    "to be mechanical, not another judgment call."
+)
 
 
 class AIPlanner:
@@ -334,6 +430,46 @@ class AIPlanner:
             execution_history=execution_history,
             retry_budget_status=retry_budget_status,
         )
+
+        # REASON-THEN-FORMAT (2026-11-25, PLANNER_REASON_THEN_FORMAT=1): an
+        # EXTRA free-prose LLM call before the strict JSON call, testing
+        # whether the model reasons better unconstrained than when forced
+        # into "return exactly one JSON object, nothing else" from the first
+        # token. Call 1's conclusion becomes Call 2's {prior_reasoning}
+        # context (inserted via _build_prompt's own parameter, not string
+        # surgery, so it goes through the same formatting as every other
+        # section). Any failure here (timeout, empty response, exception)
+        # degrades silently to the ORIGINAL single-call prompt -- this is an
+        # experiment layered on top of the existing path, never a new way for
+        # decide_next() itself to fail.
+        if reason_then_format_enabled():
+            try:
+                reasoning_prompt = prompt.replace(_FINAL_DECISION_INSTRUCTION, _REASONING_ONLY_INSTRUCTION)
+                reasoning_text = self.chat_assistant.generate_raw(
+                    prompt=reasoning_prompt,
+                    max_new_tokens=2048,
+                    system_prompt=_REASONING_SYSTEM_PROMPT,
+                )
+                if reasoning_text and reasoning_text.strip():
+                    prior_reasoning_block = (
+                        "=== YOUR OWN REASONING (free-form first pass over this exact state) ===\n"
+                        f"{reasoning_text.strip()[:4000]}\n\n"
+                        "Base your JSON decision below on the reasoning above -- convert its "
+                        "conclusion into the matching structured fields; do not re-derive it from "
+                        "scratch or contradict it without a clearly stated reason."
+                    )
+                    prompt = self._build_prompt(
+                        session_state=session_state,
+                        evidence_store=evidence_store,
+                        completion_criteria=completion_criteria,
+                        execution_history=execution_history,
+                        retry_budget_status=retry_budget_status,
+                        prior_reasoning=prior_reasoning_block,
+                    )
+            except Exception as exc:
+                print(f"    [!] REASON-THEN-FORMAT Call 1 failed ({type(exc).__name__}: {exc}); "
+                      f"falling back to the single-call prompt for this step.")
+
         # _build_prompt() sets these as a side effect (first currently-available
         # action, if any) so the OUTPUT FORMAT example below is rebuilt from real,
         # non-exhausted state every call instead of a frozen literal -- see
@@ -563,8 +699,18 @@ class AIPlanner:
         completion_criteria,
         execution_history: List[Dict[str, Any]],
         retry_budget_status: Dict[str, int],
+        prior_reasoning: str = "",
     ) -> str:
-        """Build the full planner prompt from current state."""
+        """
+        Build the full planner prompt from current state.
+
+        prior_reasoning: REASON-THEN-FORMAT's Call 2 passes Call 1's own
+        free-prose reasoning text here so it's inserted as extra context
+        right before the final decision instruction. Empty by default --
+        every existing caller (and Call 1's own prompt, before its final
+        instruction is swapped for the reasoning-only variant) gets a
+        byte-identical prompt to before this parameter existed.
+        """
         # BUG FIX (found via live GPU smoke test, 2026-11-11): compute exhausted
         # actions up front so the catalog below can exclude them entirely, instead of
         # relying on the model to cross-reference two separate lists (the full
@@ -900,6 +1046,8 @@ class AIPlanner:
             locked_tools=locked_tools,
             suspicion_candidates=suspicion_candidates,
             campaign_judgment=render_campaign_judgment(),
+            prior_reasoning=prior_reasoning,
+            final_instruction=_FINAL_DECISION_INSTRUCTION,
         )
 
     def _retrieve_technique_knowledge(
