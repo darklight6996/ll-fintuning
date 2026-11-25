@@ -1854,3 +1854,108 @@ rounds) -- a consistent, repeatedly-applied exclusion principle, not a one-off j
   manual-payload-handoff workflow the task describes (pause on a formed hypothesis, print a payload
   brief, accept a human-pasted payload, run it through the gated executor + confirmation oracle, emit
   a solving curl). If not, build the minimal `--manual-payload` feature on `run_portswigger_lab.py`.
+
+### [2026-11-25 19:15 +05:00] claude-sonnet -- STEP 3+4 of the task: checked for an existing manual-payload feature (none), built the minimal --manual-payload mode, pytest green
+
+- **Step 3 (check for an existing feature first)**: checked whether `--mode manual` or any co-pilot
+  already supported the human-in-the-loop payload-handoff workflow the task describes. Found that
+  `BaseAgent.run()` (the OLD deterministic phase-script path, `agents/<agent>/phases/`) already has a
+  `mode == "manual"` "(P)aste external" option (`agents/base_agent.py` ~line 996) -- but confirmed
+  this is a DIFFERENT thing entirely: it lets a human paste the OUTPUT of a tool they ran themselves
+  outside the framework, which the AI then just summarizes (`chat_assistant.interpret_pasted_output`);
+  it never executes anything, never touches the gated executor, and never grades a finding. Also
+  confirmed `run_portswigger_lab.py` doesn't even use this `run()` method at all -- it hardcodes
+  `mode="automated"` and calls `agent.run_autonomous(...)`, the separate AIPlanner-driven loop. So: no
+  existing feature matches the spec (pause on a formed hypothesis mid-autonomous-loop, print a payload
+  brief, accept a human-authored payload/script/curl, run IT through the SAME gated executor +
+  confirmation oracle, grade lead-until-proven, emit a solving curl) -- confirmed this had to be built.
+
+- **Step 4 (build the minimal feature)**: designed it to reuse existing infrastructure rather than
+  invent new grading/gate logic, per the task's own "minimal" instruction:
+  - **`PAYLOAD:<value>` path** -> dispatches to the ALREADY-REGISTERED `http_probe` action in targeted
+    mode. Extended `core/tools/http_probe.py::mode_targeted()` (previously SQL-error-oracle only) to
+    run the SAME LFI/open-redirect/reflection oracles the auto battery uses -- the open-redirect check
+    now matches against the PAYLOAD'S OWN host (not a fixed canary, since the human/model already
+    chose the external host via the payload itself) rather than the auto battery's canary. This means a
+    human-chosen payload of ANY covered vuln class gets graded by a real, deterministic, LLM-free
+    oracle -- the exact same one a model-authored proposal would hit. Since `http_probe` is already a
+    framework detection engine (not in `_MODEL_AUTHORED_ACTIONS`), a genuine oracle hit auto-promotes to
+    `proven` via the EXISTING verdict-aware path. No new grading code.
+  - **`CURL:<command>` path** -> parsed (new `agents/common/manual_payload.py::parse_curl()` --
+    method/url/headers/body from `-X`/`-H`/`-d`/`-b`/`-A`) and wrapped into a minimal generated
+    self_script that replays EXACTLY that request once and captures the evidence, ALWAYS tagged
+    `strength="lead"` in its own vuln_signal (there is no independent oracle to verify an arbitrary
+    replayed response against -- `_confirmation_strength()` demotes anything tagged `"lead"`
+    regardless of what the response looks like, so this is correctly never auto-confirmable).
+  - **`SCRIPT:<code>` path** -> the human's own code becomes `self_script`'s `code` param verbatim,
+    going through the IDENTICAL sandboxed `script_runner.py` + `_confirmation_strength()` scrutiny a
+    model-authored self_script already gets (concrete `evidence` required, weak/heuristic basis
+    rejected to `lead`) -- again, zero new grading logic, just routing a human-authored probe through
+    the existing model-authored-probe scrutiny bucket (which is exactly the right bucket for arbitrary
+    code either way).
+  - **Landing spot in the loop**: `agents/base_agent.py::run_autonomous(manual_payload=False)` -- a new
+    kwarg. When `True` and the planner proposes `self_script`, `_handle_manual_payload()` intercepts
+    BEFORE execution: prints the brief (target, hypothesis, an inferred parameter name from the target
+    URL's query string or the hypothesis text, the most recent Observation's raw output truncated to
+    400 chars), reads tagged stdin (reusing the exact same blank-line/EOF read loop the existing
+    "(P)aste external" feature uses), and returns a REPLACEMENT `AIActionProposal` (http_probe or
+    self_script) that then flows through the SAME, UNCHANGED `execute_action()` 10-gate pipeline below
+    -- same scope check, same HIGH-RISK interactive approval gate (self_script is `risk_level="high"`,
+    so this was ALREADY always asking for live y/N approval even in "automated" mode, confirmed from
+    this session's own earlier live lab run's terminal output), same Observation recording, same
+    `_promote_evidence_if_warranted`/verdict-aware promotion. A one-shot `_manual_payload_context`
+    (consumed/cleared unconditionally right before execution, regardless of outcome, so it can never
+    leak onto a LATER unrelated step's finding) carries just enough state to reconstruct the solving
+    curl: on a step where `proven_finding_count` increases AND this context was set,
+    `_emit_manual_payload_solving_curl()` prints the exact confirming request -- straightforward for
+    PAYLOAD: (rebuild the URL via `http_probe._set_param`) and CURL: (echo the human's own command
+    back, since it IS the confirming request); SCRIPT: has no single reconstructable request from
+    arbitrary code, so it honestly points at the finding's own evidence_summary instead of fabricating
+    one.
+  - New `run_portswigger_lab.py --manual-payload` flag, plumbed through `run_lab()` to
+    `agent.run_autonomous(manual_payload=...)`.
+  - Does NOT build the OpenRouter integration, per the task's explicit instruction -- this is its
+    manual twin, same contract, ready for that to plug into later.
+
+- **Side-discovery while building this (real pre-existing bug, fixed + committed separately)**:
+  `core/tools/script_runner.py::screen()`'s "dynamic compile" denylist pattern (`\bcompile\s*\(`)
+  matched `re.compile(...)` too -- a `.` immediately before "compile" still satisfies a bare `\b` word
+  boundary, so one of the MOST common things any probe (model- or human-authored) would legitimately
+  do was rejected as a false-positive "dynamic compile escape vector". This would have blocked the
+  curl-replay wrapper's own redaction regex, and likely silently degraded any prior model-authored
+  self_script that tried to build its own signature regex. Fixed with a negative lookbehind on a
+  preceding `.` (an attribute-access call is never the dangerous bare builtin `compile()` used to
+  construct code objects for eval/exec) -- verified `re.compile` now passes while bare `compile(...)`
+  is still rejected. New `tests/test_script_runner_screen.py` (7 tests).
+
+- Tests: `tests/test_http_probe.py` (+6 for the extended `mode_targeted`'s SQLi/LFI/open-redirect/
+  reflection/clean-target paths), `tests/test_script_runner_screen.py` (new, 7 tests),
+  `tests/test_manual_payload_mode.py` (new, 23 tests) -- `parse_curl`/`build_curl_replay_script`/
+  `build_solving_curl`/`infer_param_name` unit tests, `_handle_manual_payload`'s three input paths
+  (bare payload with inferred param, explicit `param=value`, malformed/empty/unrecognized input all
+  correctly rejected), `_emit_manual_payload_solving_curl`'s three context kinds, AND a full
+  end-to-end `run_autonomous(manual_payload=True)` integration test (real agent, real registry, a
+  monkeypatched planner that always proposes self_script and a monkeypatched executor that reports a
+  confirmed http_probe hit) that drives the REAL loop through one full step and asserts
+  `proven_findings == 1` -- passed on the first run, confirming the wiring end-to-end, not just the
+  helper functions in isolation.
+- Smoke tests along the way: the generated curl-replay script parses as valid Python (`ast.parse`),
+  passes the real static safety screen, and was actually EXECUTED through the real sandboxed
+  `script_runner.py` against `https://example.com/` -- returned a clean, correctly-tagged `lead`
+  vuln_signal with real captured evidence.
+- `python -m pytest`: 465 passed, 8 skipped, 0 failed (genuinely green, continuing from the prior
+  entry's first-ever fully-green run).
+- Committed as 3 separate commits (continuing the "one-file-at-a-time, commit-per-change" discipline,
+  grouped only where one fix/feature spans a few directly-coupled files):
+  1. `8af82824` -- `core/tools/script_runner.py`'s `re.compile` false-positive fix
+  2. `35e6f573` -- `http_probe.py`'s extended `mode_targeted` + the new `manual_payload.py` helpers
+     (pure, unwired)
+  3. `a37f7647` -- the actual `--manual-payload` wiring into `agents/base_agent.py` +
+     `run_portswigger_lab.py` + its end-to-end test
+  `git status` clean after each.
+
+- next: hand back the WSL command for an interactive `--manual-payload` lab run so the operator can
+  exercise the real human-in-the-loop flow live (pick a lab, let the planner form a hypothesis and
+  propose self_script, paste a PAYLOAD:/CURL:/SCRIPT: when prompted, confirm the solving curl prints
+  on a real hit). Never run gated labs myself, per the task's own instruction and every prior entry in
+  this log.
