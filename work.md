@@ -1768,3 +1768,89 @@ rounds) -- a consistent, repeatedly-applied exclusion principle, not a one-off j
   hypotheses from this run may or may not survive `_confirmation_strength()`'s own scrutiny once
   actually submitted via record_finding -- that is a SEPARATE, correctly-still-enforced check; this
   fix only ensures the attempt happens at all instead of silently never happening).
+
+### [2026-11-25 18:00 +05:00] claude-sonnet -- STEP 1+2 of new task: committed the uncommitted baseline, then fixed ALL 9 pre-existing test_audit_fixes.py failures to reach a genuinely green pytest
+
+- **Step 1 (baseline commit)**: `git status` confirmed the ENTIRE repo was uncommitted (164 top-level
+  entries, 31510 files once corpus/scenario/wordlist directories are counted) -- `single_host_mode.py`,
+  all of `agents/common/`, every module from this session's own 4-repo harvest, and `work.md` itself
+  were all untracked. Checked for secrets before staging (grep for api_key/password/secret/token
+  across the large `data/*.jsonl` trajectory files -- all hits were SQLi payloads/form-field names/
+  browser flags, no real credentials; no `.env`/credential/key files present). `git add -A` + commit
+  `bf6ca4bd` ("wip: harvest + engines baseline"), `git status` verified clean.
+- **Step 2 (native pytest + fix all red)**: ran `python -m pytest` -- real count was 420 passed, 8
+  skipped, **9 failed**, ALL in `tests/test_audit_fixes.py` (the file this session had previously only
+  diagnosed, never fixed, attributing it to "another session's unfinished work"). Investigated each of
+  the 9 failures against the REAL current codebase (not code_audit.md's claims of what was "Applied")
+  and found they split into two real categories:
+
+  **Genuinely stale tests (5) -- fixed the TEST, production code was already correct:**
+  - `test_gate0_counts_by_action_id`: `ActionDefinition` now requires `phase`/`params_model`/
+    `command_builder` (added); `CommandExecutor`'s real constructor takes no args and its real gated
+    method is `execute_action(proposal, registry, scope, approval_policy, execution_history)`, not a
+    `CommandExecutor(registry=..., scope=...)` + `.execute(...)` that never existed.
+  - `test_focus_saturation_guard_fires_at_third_hypothesis` / `..._different_endpoints_not_rejected`:
+    the real class is `BaseAgent` (not `BaseSecurityAgent`), and `_handle_form_hypothesis(self,
+    proposal, evidence_store)` takes a `proposal.parameters` dict, not individual kwargs. Also had to
+    give each of the 3 seed hypotheses a DIFFERENT `vuln_class` (matching the actual bug-C scenario:
+    "the model relabeled the vuln class each time while re-citing the same evidence") -- using the
+    same class on all of them tripped the EARLIER "matching OPEN hypothesis already exists" dup-check
+    before ever reaching the per-focus-saturation guard this test is meant to exercise.
+  - `test_endpoint_discovery_fact_extractor_uses_html_parser`: real signature is
+    `extract_facts(action_id, stdout, stderr)` -- no `exit_code` kwarg. **Confirmed the real
+    production routing (`agents/bug_bounty/fact_extractors.py`) already correctly dispatches
+    `endpoint_discovery` to `parse_html_endpoints()`** -- this was purely a test-call bug, not a
+    regression.
+  - `test_scope_rejects_subdomain_of_different_root` / `test_scope_allows_exact_match_and_subdomain`:
+    `Scope.validate_target()` never existed; the real method is `is_asset_in_scope()` -- which this
+    session's own 2026-11-25 11:38 entry already fixed for exactly this subdomain-substring bug.
+    Verified directly (`is_asset_in_scope('http://evil-target.com/path')` -> `(False, ...)`;
+    `'http://target.com/'` and `'http://sub.target.com/api'` -> both `(True, ...)`) -- just renamed
+    the test's method calls to the real one.
+
+  **Real, previously-unfixed production bugs (3) -- fixed the CODE:**
+  - **Bug E (completion lockout)**: `verify_completion()` in all 9 agents' `completion.py` checked
+    `entry.get("recovered", False)` to skip a failed action -- but `grep -rn "recovered"` across the
+    entire codebase showed that key is NEVER written anywhere, in any agent, ever. A single failed
+    action (e.g. `self_script` failing once due to a transient network blip, then succeeding on
+    retry) would PERMANENTLY block completion for the rest of that run. Fixed by computing recovery
+    from the history itself (a later same-`action_id` success) instead of depending on a flag nothing
+    sets, applied identically across `agents/{active_directory,bug_bounty,cloud,ctf,firewall_bypass,
+    mobile,pentest,red_team,security_research}/completion.py` (all 9 had the byte-identical bug).
+  - **Bug G (AppModel dedup)**: `AppModel.update()` deduplicated `roles`/`trust_boundaries`/
+    `state_and_resources` (checked "not in" before append) but NOT `components` -- every
+    `update_app_model` call re-recording the same component (e.g. re-noting "Cart" across several
+    steps as the model's understanding of the app refined) silently accumulated a duplicate entry
+    per call. Fixed: dedupe `components` by `.name`, same posture as the other fields.
+  - **Bug F (JSON-repair corrupting valid payloads) -- the most security-relevant of the three**:
+    `AIPlanner._extract_json_object()`'s three annotation-stripping regexes ran UNCONDITIONALLY,
+    before any decode attempt, on the raw model output. The `//`-comment-stripping regex
+    (`'"\s*//[^\r\n]*'` -> `'"'`, meant to strip a JS-style `// comment` the model sometimes appends
+    after a value) has no `\r\n` to anchor on in a single-line JSON payload, so when a string VALUE
+    itself legitimately starts with `//` -- e.g. `"target": "//evil.com/ssrf"`, a protocol-relative
+    URL, exactly the shape an SSRF or open-redirect proposal needs to carry -- `[^\r\n]*` greedily
+    ate everything from that opening quote to the end of the string, corrupting the whole payload down
+    to `'{"target": "'` and silently destroying the model's proposal. This is a REAL bug this
+    framework's own confirmation work could trip over any time the model proposes testing a `//`-style
+    payload (open-redirect, protocol-relative SSRF). Fixed: try the UNMODIFIED text first; only fall
+    back to the regex repairs (on a copy, re-scanned) when the first pass found no dict carrying
+    `"decision"` at all -- so already-valid JSON is never touched, and the repairs still catch the
+    actual model annotation-habit artifacts (parenthetical/`//`-comment/bracketed-tag) they were
+    written for.
+
+- Fixed each test (and the matching production bug, where one existed), verified ALL 12 tests in
+  `tests/test_audit_fixes.py` pass individually and together, then ran the FULL suite:
+  **`python -m pytest`: 429 passed, 8 skipped, 0 failed** -- genuinely green for the first time this
+  entire campaign (every prior entry in this log carried the caveat "same 9 pre-existing failures,
+  not caused by this session's work"; that caveat is now retired).
+- Committed as 4 separate, file-scoped commits (per the task's "one-file-at-a-time, commit-per-change"
+  instruction, grouped only where the SAME mechanical fix applied identically across 9 files):
+  1. `2e131f25` -- the completion.py `recovered`-flag fix (all 9 agents)
+  2. `9c00cbed` -- `core/investigation.py`'s AppModel components-dedup fix
+  3. `0bb0cf1d` -- `core/ai_planner.py`'s JSON-repair protocol-relative-URL fix
+  4. `9dfefa79` -- `tests/test_audit_fixes.py`'s 9 stale-test corrections
+  `git status` clean after each commit.
+- next: Step 3 -- check whether `--mode manual` / a co-pilot already supports the human-in-the-loop
+  manual-payload-handoff workflow the task describes (pause on a formed hypothesis, print a payload
+  brief, accept a human-pasted payload, run it through the gated executor + confirmation oracle, emit
+  a solving curl). If not, build the minimal `--manual-payload` feature on `run_portswigger_lab.py`.
