@@ -68,7 +68,19 @@ _DENY = [
     (r"\b__import__\b", "dynamic import (sandbox-escape vector)"),
     (r"\beval\s*\(", "dynamic eval (escape vector)"),
     (r"\bexec\s*\(", "dynamic exec (escape vector)"),
-    (r"\bcompile\s*\(", "dynamic compile (escape vector)"),
+    # BUG FIX (2026-11-25, found while building manual-payload mode): the bare
+    # negative lookbehind-free version of this pattern matched `re.compile(`
+    # too -- "compile(" preceded by "." still satisfies a plain \b word
+    # boundary, so every self_script using the extremely common `re.compile`
+    # was rejected as a false-positive "dynamic compile escape vector". The
+    # dangerous case is the bare BUILTIN compile() (used to construct code
+    # objects for eval/exec), which is never called as someone.compile(); a
+    # preceding "." means this is always a module/object method instead
+    # (re.compile, zlib.compile is not a thing, but the principle holds for
+    # any such attribute access), so excluding that with a negative
+    # lookbehind on "." removes the false positive without reopening the
+    # actual escape vector.
+    (r"(?<!\.)\bcompile\s*\(", "dynamic compile (escape vector)"),
     # open(...) in any write/append/update mode.
     (r"""open\s*\([^)]*,[^)]*['"][rwax+bt]*[wax+][rwax+bt]*['"]""", "writes files (open in write mode)"),
     (r"\bPath\([^)]*\)\.(write_text|write_bytes|unlink|rmdir|mkdir|rename|replace|chmod)\b", "filesystem mutation (pathlib)"),
