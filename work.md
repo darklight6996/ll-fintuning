@@ -1959,3 +1959,68 @@ rounds) -- a consistent, repeatedly-applied exclusion principle, not a one-off j
   propose self_script, paste a PAYLOAD:/CURL:/SCRIPT: when prompted, confirm the solving curl prints
   on a real hit). Never run gated labs myself, per the task's own instruction and every prior entry in
   this log.
+
+### [2026-11-25 20:05 +05:00] claude-sonnet -- REDESIGNED --manual-payload's brief after a real run exposed the wrong flow
+
+- run: lab https://0a7f007e032a9117808549a00013005e.web-security-academy.net/ with --manual-payload,
+  user ran it themselves in WSL (interactive, approved HIGH-RISK gates live). The feature worked
+  mechanically -- it paused on self_script, printed a brief, read PAYLOAD: input, dispatched to
+  http_probe, and looped correctly -- but the user's feedback was sharp and correct: "this is not at
+  all what i was talking about, i dont want it to send me test parameters even in manual mode, i want
+  it to first confirm the vulnerability, then confirm the technique how it will be exploited then
+  instruct me on how to create a payload or what payload will be created."
+- Asked a clarifying question on the exact flow wanted (AI proposes a concrete payload vs. AI explains
+  + human writes vs. both). Answer: "AI initially confirms the exploit, e.g. in this case its an ssrf
+  but by using xxe. once it has confirmed that, it asks me to generate a payload for this guiding on
+  how to do it, it also shows me the param that is exploitable and it shows me the request it needs to
+  send and the request that i need to tamper. then ill create the payload and give it to the AI."
+- DIAGNOSIS: the first version's brief (`target`/`hypothesis`/`inferred parameter`/`observed response`)
+  gave the operator nothing to reason from -- no stated vuln_class, no explanation of the mechanism, no
+  concrete request/tamper-point, no crafting guidance -- so the human had to invent test values
+  (`productId=http://169.254.169.254/...`, `=http://127.0.0.1/`, `=http://localhost/`) purely from
+  their own prior knowledge, exactly backwards from "the AI should do the reasoning, the human does the
+  crafting." Also noted: none of those SSRF guesses got confirmed by http_probe's oracle, because
+  http_probe genuinely has no SSRF-specific confirmation signature (only SQLi/LFI/open-redirect/
+  reflection) -- a real, separate gap worth a future asset, not fixed in this pass (flagged, not
+  silently papered over).
+- FIX: `agents/common/manual_payload.py` -- new `TECHNIQUE_DESCRIPTIONS` (plain-language exploitation-
+  mechanism explanations for ssrf/xxe/sqli/idor/ssti/rce/redirect/lfi/auth/oauth -- ssrf's explicitly
+  calls out the XXE variant the user used as their own example), `describe_technique()`,
+  `render_request_template()` (reconstructs the confirming GET request with the tamper point marked --
+  honest about being GET-only, explicitly tells the operator to use CURL:/SCRIPT: if the real request
+  is POST/a different body shape), and `build_payload_brief()` (assembles vuln_class + technique +
+  request/tamper-point + crafting guidance, REUSING `core/payload_pack.py`'s existing per-class attack
+  checklist + seed payloads from asset 8 rather than duplicating that methodology).
+  `agents/base_agent.py` -- new `_find_hypothesis_for_manual_payload()` (the strongest open/validating
+  non-milestone Hypothesis, same selection logic `core/ai_planner.py`'s own steering ladder already
+  uses, since the self_script proposal's own `hypothesis` param is often a thinner one-liner than the
+  Hypothesis object's actual `description`/`vuln_class`); `_handle_manual_payload()` now looks that up
+  and calls `build_payload_brief()` BEFORE reading any operator input, and prefers the matched
+  Hypothesis's own (usually richer) description over the proposal's thin hint. The operator still
+  supplies the actual crafted payload value (or `CURL:`/`SCRIPT:` as before) -- only the
+  reasoning-before-asking order changed; the gated-execution/grading path is untouched.
+- Tests: 12 new tests in `tests/test_manual_payload_mode.py` -- `describe_technique()` for a known
+  class (confirms the SSRF description explicitly mentions XXE) and the generic fallback for an
+  unknown/`None` class; `render_request_template()` marks the tamper point and the no-param case;
+  `build_payload_brief()` asserts the technique section appears structurally BEFORE the
+  payload-crafting-guidance section (confirm-then-guide, not guide-then-confirm), includes a real
+  SSRF seed payload, and the unknown-class path has no fabricated guidance;
+  `_find_hypothesis_for_manual_payload()` picks the strongest open hypothesis, ignores milestones and
+  already-confirmed ones (returns `None` when nothing open remains), and returns `None` on an empty
+  store; and an end-to-end check that `_handle_manual_payload()`'s printed brief actually surfaces the
+  matched hypothesis's `vuln_class` and its (richer) description, not the proposal's thin hint.
+- Smoke test: rendered a full brief for the EXACT scenario from the live run (productId/ssrf) in
+  isolation -- confirmed it reads: vuln_class, exploitable parameter, hypothesis, exploitation
+  technique (SSRF + XXE-via-parser callout), the confirming GET request with tamper point marked, and
+  payload-crafting guidance with real SSRF seed payloads (169.254.169.254 metadata, IPv6-mapped
+  loopback) -- all before any prompt for operator input.
+- `python -m pytest`: 477 passed, 8 skipped, 0 failed (still green; 12 new tests, up from 465).
+- Committed as `269ca396` (grouped: the two coupled source files + their test file, the "one-file-at-
+  a-time" discipline applied at the granularity of one coherent fix). `git status` clean except the
+  operator's own appended `data/portswigger_trajectories_{raw,chatml}.jsonl` from the live run, left
+  untouched/unstaged (not this session's artifact to commit).
+- next: hand back another interactive WSL `--manual-payload` command so the operator can confirm the
+  redesigned brief actually reads the way they wanted on a real run, and decide live whether to craft
+  a payload themselves or ask for more guidance. The http_probe SSRF-oracle gap noted above (no
+  dedicated SSRF confirmation signature, only the four already-covered classes) is flagged as
+  follow-on work, not addressed in this pass.
