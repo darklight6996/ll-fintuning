@@ -60,25 +60,32 @@ def test_gate0_counts_by_action_id():
     Gate 0 in command_executor counts prior_attempts_by_id across all params.
     After max_retries uses, the action must be rejected regardless of param variation.
     """
+    from pydantic import BaseModel
     from rag.core.command_executor import CommandExecutor
     from core.action_contract import ActionDefinition, ActionRegistry
     from core.investigation import EvidenceStore
 
+    class _TestProbeParams(BaseModel):
+        target: str
+
     defn = ActionDefinition(
         action_id="test_dyn_probe",
+        phase="vuln_validation",
         description="Test",
         risk_level="low",
         network_effect="read_only",
         state_change="none",
         requires_active_testing=False,
         allowed_target_kinds=["url"],
+        params_model=_TestProbeParams,
+        command_builder="build_test_dyn_probe",
         max_retries=2,
     )
     registry = ActionRegistry()
     registry.register(defn, lambda p: [["echo", "ok"]])
 
     scope = MagicMock()
-    scope.validate_target.return_value = (True, "ok")
+    scope.is_asset_in_scope.return_value = (True, "ok")
     scope.is_command_allowed.return_value = (True, "ok")
 
     # Build a history that already has 2 uses of the action
@@ -87,14 +94,17 @@ def test_gate0_counts_by_action_id():
         {"action_id": "test_dyn_probe", "status": "success"},
     ]
 
-    executor = CommandExecutor(registry=registry, scope=scope)
+    executor = CommandExecutor()
     proposal = SimpleNamespace(
         action_id="test_dyn_probe",
         target="http://example.com/",
         parameters={"target": "http://example.com/"},
         compute_identity=lambda: "identity_1",
     )
-    result = executor.execute(proposal, execution_history=history, mode="autonomous")
+    result = executor.execute_action(
+        proposal, registry=registry, scope=scope,
+        approval_policy="autonomous", execution_history=history,
+    )
     assert result["status"] == "rejected"
     assert "retry_budget_exhausted" in result.get("rejection_category", "")
 
@@ -113,28 +123,41 @@ def test_focus_saturation_guard_fires_at_third_hypothesis():
     store = EvidenceStore()
     obs_ids = ["obs_aabbccdd"]
 
+    # Different vuln_class (and description) per hypothesis -- the real-world
+    # scenario this guard exists for (code_audit.md Bug C): the model evaded the
+    # PER-CLASS guard by relabeling the vuln class each time while re-citing the
+    # SAME evidence. Using the same class/description on every one here would
+    # instead trip the earlier "matching OPEN hypothesis already exists" dup
+    # check before ever reaching the per-focus-saturation guard this test targets.
+    classes = ["race-condition", "logic", "idor"]
     for i in range(3):
         h = Hypothesis(
             observation_ids=obs_ids,
-            description=f"Hypothesis {i} about /cart endpoint targeting cookie",
+            description=f"Hypothesis {i} about /cart endpoint targeting cookie ({classes[i]})",
             validation_test=f"probe_{i}",
-            vuln_class="xss",
+            vuln_class=classes[i],
         )
         store.hypotheses[h.hyp_id] = h
 
-    # Import the guard logic via base_agent._handle_form_hypothesis
-    from agents.base_agent import BaseSecurityAgent
+    # Import the guard logic via base_agent._handle_form_hypothesis. obs_ids must
+    # exist in the evidence store -- _handle_form_hypothesis independently checks
+    # every cited observation_id before anything else.
+    from core.investigation import Observation
+    from agents.base_agent import BaseAgent
+
+    obs = Observation(obs_id=obs_ids[0], action_id="endpoint_discovery", argv=[], raw_stdout="ok")
+    store.observations[obs.obs_id] = obs
 
     # Minimal stub so we don't need a full agent
-    agent = object.__new__(BaseSecurityAgent)
-    result = agent._handle_form_hypothesis(
-        evidence_store=store,
-        observation_ids=obs_ids,
-        description="4th hypothesis on /cart",
-        validation_test="probe_4",
-        vuln_class="xss",
-        confidence="plausible",
-    )
+    agent = object.__new__(BaseAgent)
+    proposal = SimpleNamespace(parameters={
+        "observation_ids": obs_ids,
+        "description": "4th hypothesis on /cart, yet another relabeled class",
+        "validation_test": "probe_4",
+        "vuln_class": "business-logic",
+        "confidence": "plausible",
+    })
+    result = agent._handle_form_hypothesis(proposal, store)
     assert result["status"] == "rejected"
     assert "tunnel vision" in result["rejection_reason"].lower()
 
@@ -143,8 +166,8 @@ def test_focus_saturation_different_endpoints_not_rejected():
     """
     Hypotheses on DIFFERENT observation sets must NOT trigger the focus guard.
     """
-    from core.investigation import EvidenceStore, Hypothesis
-    from agents.base_agent import BaseSecurityAgent
+    from core.investigation import EvidenceStore, Hypothesis, Observation
+    from agents.base_agent import BaseAgent
 
     store = EvidenceStore()
 
@@ -157,16 +180,19 @@ def test_focus_saturation_different_endpoints_not_rejected():
         )
         store.hypotheses[h.hyp_id] = h
 
-    agent = object.__new__(BaseSecurityAgent)
+    fresh_obs = Observation(obs_id="obs_new_fresh", action_id="endpoint_discovery", argv=[], raw_stdout="ok")
+    store.observations[fresh_obs.obs_id] = fresh_obs
+
+    agent = object.__new__(BaseAgent)
     # 4th hypothesis on a fresh obs set — must NOT be rejected by focus guard
-    result = agent._handle_form_hypothesis(
-        evidence_store=store,
-        observation_ids=["obs_new_fresh"],
-        description="Brand new hypothesis on a completely different endpoint /api/reset",
-        validation_test="probe_new",
-        vuln_class=None,
-        confidence="plausible",
-    )
+    proposal = SimpleNamespace(parameters={
+        "observation_ids": ["obs_new_fresh"],
+        "description": "Brand new hypothesis on a completely different endpoint /api/reset",
+        "validation_test": "probe_new",
+        "vuln_class": None,
+        "confidence": "plausible",
+    })
+    result = agent._handle_form_hypothesis(proposal, store)
     # Should be accepted (not rejected by the focus guard)
     assert result.get("status") != "rejected" or "tunnel vision" not in result.get("rejection_reason", "")
 
@@ -204,7 +230,7 @@ def test_endpoint_discovery_fact_extractor_uses_html_parser():
     from agents.bug_bounty.fact_extractors import extract_facts
 
     html_body = '<a href="/admin">Admin</a><form action="/login"><input name="username"></form>'
-    facts = extract_facts("endpoint_discovery", html_body, exit_code=0)
+    facts = extract_facts("endpoint_discovery", html_body, "")
     # The old parse_http_headers() would return {} for HTML input; the new HTML parser returns endpoints
     assert facts.get("endpoints") or facts.get("forms") or facts.get("params"), (
         f"expected HTML facts but got: {facts}"
@@ -220,9 +246,8 @@ def test_completion_not_blocked_when_action_later_succeeded():
     If action_id 'self_script' failed once then succeeded, the failed entry must
     not block completion (bug: recovered was never set).
     """
-    from agents.bug_bounty.completion import check_completion_criteria
+    from agents.bug_bounty.completion import verify_completion, BugBountyCompletionCriteria
     from core.investigation import EvidenceStore, Finding, Observation, Hypothesis, Validation
-    from core.action_contract import CompletionCriteria
 
     store = EvidenceStore()
     obs = Observation(action_id="endpoint_discovery", argv=[], raw_stdout="ok")
@@ -230,12 +255,14 @@ def test_completion_not_blocked_when_action_later_succeeded():
     hyp = Hypothesis(observation_ids=[obs.obs_id], description="X", validation_test="Y")
     store.hypotheses[hyp.hyp_id] = hyp
     val = Validation(hypothesis_id=hyp.hyp_id, action_id="self_script",
-                     result="confirms", reasoning="Confirmed", argv=[])
+                      observation=obs, verdict="supports", reasoning="Confirmed")
     store.validations[val.val_id] = val
     finding = Finding(
         hypothesis_id=hyp.hyp_id,
         observation_ids=[obs.obs_id],
         validation_ids=[val.val_id],
+        title="Test finding",
+        description="Test finding for completion-lockout regression",
         affected_target="http://example.com/",
         evidence_summary="PROVEN",
         strength="proven",
@@ -248,9 +275,15 @@ def test_completion_not_blocked_when_action_later_succeeded():
         {"action_id": "self_script", "status": "success"},
     ]
 
-    criteria = CompletionCriteria(minimum_findings=1, allow_unresolved_errors=False)
+    # Minimal criteria -- this test targets ONLY the recovered-flag logic, not
+    # full phase-completion tracking (that's covered by other tests).
+    criteria = BugBountyCompletionCriteria(
+        required_phases=[], evidence_required_for_phases=[],
+        minimum_findings=1, allow_unresolved_errors=False,
+    )
+    session_state = {"autonomous_execution_history": history}
     # The fix: failed actions are skipped when same action_id succeeded later
-    ok, reason = check_completion_criteria(store, criteria, history)
+    ok, reason = verify_completion(criteria, session_state, store)
     assert ok, f"Expected completion to be allowed but got: {reason}"
 
 
@@ -306,7 +339,7 @@ def test_scope_rejects_subdomain_of_different_root():
     from rag.core.scope import Scope
 
     scope = Scope(in_scope=["target.com"])
-    ok, reason = scope.validate_target("http://evil-target.com/path")
+    ok, reason = scope.is_asset_in_scope("http://evil-target.com/path")
     assert not ok, f"Expected rejection but got: ok={ok}, reason={reason}"
 
 
@@ -314,8 +347,8 @@ def test_scope_allows_exact_match_and_subdomain():
     from rag.core.scope import Scope
 
     scope = Scope(in_scope=["target.com"])
-    ok1, _ = scope.validate_target("http://target.com/")
-    ok2, _ = scope.validate_target("http://sub.target.com/api")
+    ok1, _ = scope.is_asset_in_scope("http://target.com/")
+    ok2, _ = scope.is_asset_in_scope("http://sub.target.com/api")
     assert ok1, "Exact match should be allowed"
     assert ok2, "Legitimate subdomain should be allowed"
 
