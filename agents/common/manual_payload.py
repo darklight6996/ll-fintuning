@@ -29,7 +29,9 @@ import shlex
 from typing import Dict, Optional, Tuple
 
 _PARAM_IN_URL_RE = re.compile(r"[?&]([A-Za-z0-9_\-]+)=")
-_PARAM_IN_TEXT_RE = re.compile(r"parameter\s+['\"]?([A-Za-z0-9_\-]+)['\"]?", re.I)
+# Quotes required (not optional) -- without them "parameter named here" would
+# falsely capture "named" as the parameter name.
+_PARAM_IN_TEXT_RE = re.compile(r"parameter\s+['\"]([A-Za-z0-9_\-]+)['\"]", re.I)
 
 
 def infer_param_name(target: str, hypothesis_text: str) -> Optional[str]:

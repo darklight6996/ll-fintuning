@@ -211,7 +211,8 @@ def _confirmed_vuln_from_history(history: list) -> bool:
     return False
 
 
-def run_lab(lab_url: str, lab_name: str = "", max_steps: int = 25, verbose: bool = True) -> dict:
+def run_lab(lab_url: str, lab_name: str = "", max_steps: int = 25, verbose: bool = True,
+            manual_payload: bool = False) -> dict:
     """
     Run ONE lab autonomously, log raw + ChatML trajectory, return a compact
     summary. Importable so a batch runner can loop over many labs in ONE process
@@ -247,6 +248,7 @@ def run_lab(lab_url: str, lab_name: str = "", max_steps: int = 25, verbose: bool
         registry=registry,
         completion_criteria=agent.get_completion_criteria(),
         max_steps=max_steps,
+        manual_payload=manual_payload,
     )
 
     history = session_mgr.state.get("autonomous_execution_history", [])
@@ -289,10 +291,17 @@ def main():
                         help="Strip PortSwigger lab identifiers (title, banner, solution link) "
                              "from what the agent sees, so it must find the bug from the real app "
                              "surface -- a fair proxy for a live target.")
+    parser.add_argument("--manual-payload", action="store_true",
+                        help="Human-in-the-loop payload handoff: whenever the planner would run its "
+                             "own self_script probe, pause and print a payload brief (vuln_class, "
+                             "endpoint, exact parameter, observed response, what would confirm it) "
+                             "instead, then read a human-pasted PAYLOAD:/CURL:/SCRIPT: from stdin and "
+                             "run IT through the same gated executor + confirmation oracle. Requires "
+                             "an interactive terminal (the HIGH-RISK approval gate still applies too).")
     args = parser.parse_args()
     if args.blind:
         os.environ["PENTEST_BLIND_LAB"] = "1"
-    run_lab(args.lab_url, args.name, args.max_steps, verbose=True)
+    run_lab(args.lab_url, args.name, args.max_steps, verbose=True, manual_payload=args.manual_payload)
 
 
 if __name__ == "__main__":

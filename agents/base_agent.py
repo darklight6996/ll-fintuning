@@ -1112,12 +1112,151 @@ class BaseAgent:
             }
 
 
+    def _handle_manual_payload(self, proposal, evidence_store) -> Optional[Any]:
+        """
+        MANUAL PAYLOAD MODE (--manual-payload): pause right before the
+        planner's own self_script would run, print a payload-request brief,
+        and read a human-supplied PAYLOAD:/CURL:/SCRIPT: from stdin instead.
+
+        Returns a REPLACEMENT AIActionProposal (http_probe for PAYLOAD:,
+        self_script for CURL:/SCRIPT:) that run_autonomous()'s caller then
+        runs through the UNCHANGED execute_action() gated path -- same scope
+        check, same approval gate, same confirmation-rigor grading a
+        model-authored proposal would get. Returns None if the operator
+        enters nothing (this step is then recorded as skipped).
+        """
+        from core.action_contract import AIActionProposal
+        from agents.common.manual_payload import (
+            infer_param_name, parse_curl, build_curl_replay_script, build_solving_curl,
+        )
+
+        params = proposal.parameters or {}
+        target = str(params.get("target") or proposal.target or self.scope.target)
+        hypothesis_text = str(params.get("hypothesis", ""))
+
+        recent_obs = list(evidence_store.observations.values())[-1] if evidence_store.observations else None
+        recent_excerpt = (recent_obs.raw_stdout or "")[:400] if recent_obs else "(no prior observation)"
+        inferred_param = infer_param_name(target, hypothesis_text)
+
+        print("\n" + "-" * 70)
+        print("  [MANUAL PAYLOAD] The planner wants to test this itself. Supply the probe yourself:")
+        print(f"    Target:              {target}")
+        print(f"    Hypothesis:          {hypothesis_text or '(none given)'}")
+        print(f"    Inferred parameter:  {inferred_param or '(could not infer -- name it explicitly below)'}")
+        print(f"    Observed response (most recent observation, truncated):")
+        print(f"      {recent_excerpt}")
+        print("  Paste exactly ONE of the following, then finish with a blank line or EOF:")
+        print("    PAYLOAD:<value>            -- test this value against the parameter above")
+        print("    PAYLOAD:<param>=<value>    -- or name the parameter explicitly")
+        print("    CURL:<curl command>        -- replay this exact request (single line)")
+        print("    SCRIPT:                    -- a Python self_script probe follows (same contract the AI uses)")
+        print("  Leave blank to skip this step.")
+        print("-" * 70)
+
+        lines: List[str] = []
+        while True:
+            try:
+                line = input()
+            except (KeyboardInterrupt, EOFError):
+                break
+            if not line.strip():
+                break
+            lines.append(line)
+        raw = "\n".join(lines).strip()
+        if not raw:
+            print("  [MANUAL PAYLOAD] Nothing entered -- skipping this step.")
+            return None
+
+        upper = raw.upper()
+
+        if upper.startswith("PAYLOAD:"):
+            value = raw[len("PAYLOAD:"):].strip()
+            param = inferred_param
+            if "=" in value and (param is None or value.split("=", 1)[0].strip() in (param, "")):
+                maybe_param, _, maybe_value = value.partition("=")
+                if maybe_param.strip():
+                    param, value = maybe_param.strip(), maybe_value
+            if not param:
+                print("  [MANUAL PAYLOAD] Could not infer a parameter name. "
+                      "Re-paste as PAYLOAD:<param>=<value>.")
+                return None
+            self._manual_payload_context = {"kind": "payload", "target": target, "param": param, "payload": value}
+            return AIActionProposal(
+                decision="propose_action", action_id="http_probe", target=target,
+                parameters={"target": target, "focus_param": param, "payload": value},
+                rationale=f"[manual-payload] human-supplied payload for parameter '{param}'.",
+                confidence=0.5,
+            )
+
+        if upper.startswith("CURL:"):
+            curl_line = raw[len("CURL:"):].strip()
+            try:
+                method, url, headers, body = parse_curl(curl_line)
+            except Exception as exc:
+                print(f"  [MANUAL PAYLOAD] Could not parse curl command: {exc}")
+                return None
+            self._manual_payload_context = {"kind": "curl", "method": method, "url": url,
+                                             "headers": headers, "body": body}
+            code = build_curl_replay_script(method, url, headers, body)
+            return AIActionProposal(
+                decision="propose_action", action_id="self_script", target=target,
+                parameters={"target": target,
+                            "hypothesis": f"[manual-payload curl replay] {hypothesis_text}"[:1000],
+                            "code": code},
+                rationale="[manual-payload] human-supplied curl command replayed through the gated sandbox.",
+                confidence=0.5,
+            )
+
+        if upper.startswith("SCRIPT:"):
+            code = raw[len("SCRIPT:"):].lstrip("\n")
+            if not code.strip():
+                print("  [MANUAL PAYLOAD] No script body found after SCRIPT:.")
+                return None
+            self._manual_payload_context = {"kind": "script"}
+            return AIActionProposal(
+                decision="propose_action", action_id="self_script", target=target,
+                parameters={"target": target,
+                            "hypothesis": f"[manual-payload script] {hypothesis_text}"[:1000],
+                            "code": code},
+                rationale="[manual-payload] human-authored probe.",
+                confidence=0.5,
+            )
+
+        print("  [MANUAL PAYLOAD] Input must start with PAYLOAD:, CURL:, or SCRIPT: -- skipping this step.")
+        return None
+
+    def _emit_manual_payload_solving_curl(self, ctx: Dict[str, Any]) -> None:
+        """
+        Called right after a step that ran a manual-payload proposal and
+        produced a PROVEN finding (checked by the caller via proven_finding_count
+        before/after this step). Prints the exact confirming request as a
+        copy-pasteable curl command -- straightforward for PAYLOAD: (we know
+        the exact url/param/value) and CURL: (the human's own command, echoed
+        back since it IS the confirming request); SCRIPT: has no single
+        reconstructable request (arbitrary code), so no curl is fabricated for it.
+        """
+        from agents.common.manual_payload import build_solving_curl
+
+        if ctx["kind"] == "payload":
+            from core.tools.http_probe import _set_param
+            confirming_url = _set_param(ctx["target"], ctx["param"], ctx["payload"])
+            print(f"\n  [MANUAL PAYLOAD] CONFIRMED. Solving request:\n"
+                  f"    {build_solving_curl('GET', confirming_url)}\n")
+        elif ctx["kind"] == "curl":
+            print(f"\n  [MANUAL PAYLOAD] CONFIRMED. Solving request (your own curl, replayed):\n"
+                  f"    {build_solving_curl(ctx['method'], ctx['url'], ctx['headers'], ctx['body'])}\n")
+        else:
+            print("\n  [MANUAL PAYLOAD] CONFIRMED via a human-authored script -- "
+                  "see the finding's evidence_summary for the exact proof captured "
+                  "(no single request to reconstruct from arbitrary code).\n")
+
     def run_autonomous(
         self,
         registry,
         completion_criteria=None,
         evidence_store=None,
         max_steps: int = 50,
+        manual_payload: bool = False,
     ) -> Dict[str, Any]:
         """
         Execute an autonomous, hypothesis-driven security assessment.
@@ -1128,10 +1267,20 @@ class BaseAgent:
         - Observations, hypotheses, validations, and findings recorded in EvidenceStore.
         - Framework-verified completion (AI cannot declare completion prematurely).
         - Atomic state persistence on each step and on Ctrl+C.
+
+        manual_payload: when True (--manual-payload on run_portswigger_lab.py),
+        every time the planner would propose self_script (the model writing its
+        own probe), the loop instead pauses and asks a HUMAN to supply the test
+        -- see _handle_manual_payload(). Everything downstream (scope/approval
+        gates, Observation recording, confirmation-rigor grading) is UNCHANGED;
+        only the authorship of the probe's payload/script/curl differs.
         """
         from core.action_contract import ActionRegistry, AIActionProposal
         from core.investigation import EvidenceStore, Observation, Hypothesis, Validation, Finding
         from core.ai_planner import AIPlanner
+
+        self._manual_payload_mode = manual_payload
+        self._manual_payload_context = None
 
         print("\n" + "=" * 70)
         print(f"  LAUNCHING AUTONOMOUS MODE: {self.agent_name.upper()}")
@@ -1139,6 +1288,7 @@ class BaseAgent:
         print(f"  Max Steps: {max_steps}")
         print(f"  Active Net Allowed: {getattr(self.scope, 'active_network_allowed', False)}")
         print(f"  State Changes Allowed: {getattr(self.scope, 'state_changes_allowed', False)}")
+        print(f"  Manual Payload Mode: {'ON (human supplies self_script probes)' if manual_payload else 'OFF'}")
         print("=" * 70 + "\n")
 
         # Ensure session exists
@@ -1276,6 +1426,31 @@ class BaseAgent:
                 if proposal.decision != "propose_completion":
                     consecutive_completion_rejections = 0
 
+                # 2b. MANUAL PAYLOAD MODE: the planner still decides WHAT to test
+                # (it already formed the hypothesis and proposed self_script to
+                # test it) -- in this mode a human supplies the actual probe
+                # instead of the model. The replacement proposal returned here
+                # flows through the EXACT SAME completion/evidence-verb/10-gate
+                # path below as any planner-authored proposal; only its origin
+                # differs. If the human enters nothing, this step is recorded as
+                # skipped and the loop re-asks the planner on the next step.
+                if (
+                    getattr(self, "_manual_payload_mode", False)
+                    and proposal.decision == "propose_action"
+                    and proposal.action_id == "self_script"
+                ):
+                    manual_proposal = self._handle_manual_payload(proposal, evidence_store)
+                    if manual_proposal is None:
+                        self.session_mgr.append_autonomous_history({
+                            "step": step_count,
+                            "action_id": "self_script",
+                            "status": "skipped",
+                            "rejection_reason": "manual-payload: operator entered nothing",
+                            "timestamp": datetime_iso(),
+                        })
+                        continue
+                    proposal = manual_proposal
+
                 # 3. Handle Completion Proposal
                 if proposal.decision == "propose_completion":
                     if completion_criteria is None:
@@ -1380,6 +1555,13 @@ class BaseAgent:
                 # It MUST be passed as execution_history=, not session_state= — the executor
                 # has no 'session_state' parameter, so that kwarg silently fell into **kwargs
                 # and Gate 6 always saw an empty list (retry budget never tripped).
+                prev_proven_count = evidence_store.proven_finding_count
+                # Consume the manual-payload context now (one-shot, whatever this
+                # step's outcome): otherwise a context left set after a step that
+                # did NOT confirm anything would wrongly attach to a LATER, unrelated
+                # step's proven finding.
+                manual_ctx_for_this_step = getattr(self, "_manual_payload_context", None)
+                self._manual_payload_context = None
                 exec_result = self.executor.execute_action(
                     proposal=proposal,
                     registry=registry,
@@ -1471,6 +1653,15 @@ class BaseAgent:
                         observations=new_observations,
                         evidence_store=evidence_store,
                     )
+
+                    # MANUAL PAYLOAD MODE: a human-supplied probe just ran and this
+                    # step's promotion pass yielded a NEW proven finding -- emit the
+                    # exact confirming request as a copy-pasteable curl command.
+                    if (
+                        manual_ctx_for_this_step is not None
+                        and evidence_store.proven_finding_count > prev_proven_count
+                    ):
+                        self._emit_manual_payload_solving_curl(manual_ctx_for_this_step)
 
                 # 6. Save investigation store to disk atomically
                 self.session_mgr.save_investigation_store(evidence_store)
