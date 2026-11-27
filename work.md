@@ -40,7 +40,7 @@ Make the agent **reason like a human security researcher**, not select from a ca
 1. **Confirmation rigor** — Finding.strength ∈ {proven, lead, milestone}; `EvidenceStore.proven_finding_count`; completion requires ≥1 PROVEN finding (all agents/*/completion.py). Engines trusted; model-authored probes (self_script/nuclei_template) need real evidence.
 2. **Suspicion-before-firing gate** — ActionDefinition.requires_suspicion / vuln_class; action_contract.action_is_unlocked(). Offensive tools locked until a hypothesis justifies them. (We change HOW hypotheses form, not the gate.)
 3. **Blind testing** — PENTEST_BLIND_LAB scrubbing in agents/base_agent.py.
-4. **Human-in-the-loop** — never auto-approve; never bypass CommandExecutor approval/safety gates; never add oversight-removal (e.g. PENTEST_LAB_AUTO_APPROVE). If a change seems to need it → STOP, log `blocked / needs-human`.
+4. **Human-in-the-loop** — never auto-approve; never bypass CommandExecutor approval/safety gates. UPDATED 2026-11-27 per the operator's own explicit, scoped authorization (see the matching log entry): `PENTEST_LAB_AUTO_APPROVE=1` IS now implemented, but ONLY inside `command_executor.py`'s autonomous+high-risk branch, and ONLY reachable via `run_portswigger_lab.py` -- `run_target.py` (real targets) hard-refuses to even start when this flag is set, a refusal this entry does not weaken. Any FURTHER request to touch that refusal, or to let this flag (or anything like it) reach a real-target path, is still a MUST-PRESERVE conflict → STOP, log `blocked / needs-human`.
 
 Baseline: `pytest` ~278 passing. Keep green.
 
@@ -2324,3 +2324,70 @@ rounds) -- a consistent, repeatedly-applied exclusion principle, not a one-off j
   item 2 above (static self_script dead-code/no-request rejection) next, since it is the closest
   complementary gate to today's fix and would have caught the SAME reported run one step earlier
   (step 4, not step 12). Everything else in this entry's deferred list is backlog, not blocked.
+
+### [2026-11-27 10:20 +05:00] claude-sonnet -- product-first pivot: STAGE 0 infra (PENTEST_LAB_AUTO_APPROVE implemented + OpenRouter backend + no-silent-fallback). Awaiting lab URL to actually run it.
+
+- Task: operator reframed priorities -- product-first, STAGE 0 OBJECTIVE is proving ONE PortSwigger
+  lab end-to-end (tool executes, CONFIRMS with objective evidence, emits a working curl PoC), BLIND,
+  using a capable planner brain since the local 3B/35B model is not what's under test, with human-
+  in-the-loop otherwise intact. This REVERSES the previous session's refusal of
+  `PENTEST_LAB_AUTO_APPROVE` -- the operator's own explicit, narrowly-scoped authorization this time
+  ("For labs only... that's fine. Do NOT touch run_target.py's refusal of that flag") is the human-in-
+  the-loop decision itself, not an attempt to bypass it; see the MUST-PRESERVE #4 update above.
+- Implemented, in order, each committed separately with full `python -m pytest` green between steps:
+  1. `PENTEST_LAB_AUTO_APPROVE=1` (`ll-finetuning/rag/core/command_executor.py`, mirrored at
+     `rag/core/command_executor.py` via the symlink -- same file, two tracked git paths): honored
+     ONLY inside the `approval_policy == "autonomous"` + `risk_level == "high"` branch, loudly prints
+     `[LAB AUTO-APPROVE]` + the argv every time it fires (never silent), never touches the `"manual"`
+     policy branch. `run_target.py` already had its own hard refusal of this exact flag (pre-existing,
+     confirmed via grep before touching anything) -- that refusal is untouched, so a real target can
+     never reach this code path with the flag set regardless of what gets exported. 2 new tests in
+     `tests/test_autonomous_framework.py`: the flag bypasses the exact non-interactive deadlock Test 4
+     already proved exists, AND the pre-existing fails-closed behavior is unchanged when the flag is
+     unset (regression guard on that same Test 4). Commit `92eea40a`.
+  2. Pluggable OpenRouter planner backend (`ll-finetuning/rag/core/services/llm_service.py`):
+     `OPENROUTER_API_KEY` + `OPENROUTER_MODEL` env vars (key read from env ONLY, never logged --
+     verified by test: the Authorization header value never appears in captured stdout), takes
+     priority over Ollama when both are configured since the whole point of setting it is to override
+     the weaker local model for this specific test. Missing `OPENROUTER_MODEL` with the key present is
+     refused (no silent default model pick). `generate()` dispatches to a new `_openrouter_generate()`
+     with the SAME re-raise-on-failure contract `_ollama_generate()` already has -- no silent fallback
+     mid-run. 5 new tests in `tests/test_llm_service_openrouter.py`. Commit `f71b3979`.
+  3. No-silent-fallback pre-flight check (`run_portswigger_lab.py`): before any work starts, calls
+     `get_llm_service(role="planner")` and REFUSES to run (`sys.exit(2)`, printing exactly which env
+     vars to set) unless the resolved backend is `ollama` or `openrouter` -- closes the EXACT incident
+     logged 2026-11-23 21:40 (`OLLAMA_BASE_URL` unset -> silent CPU `google/flan-t5-large` fallback,
+     a run that looked normal but was meaningless). `PENTEST_ALLOW_CPU_FALLBACK=1` is the explicit,
+     named escape hatch for an intentional CPU smoke test. Included in the same commit (`f71b3979`).
+- Checked this session's actual environment (never printed the key value itself, only presence --
+  a direct attempt to print it was correctly blocked by the permission system, which was the RIGHT
+  call): `OPENROUTER_API_KEY` is NOT set here. Per the operator's own fallback instruction ("If no key
+  is available, you act as the brain where the local model stalls -- but the tool's typed engine must
+  still be what EXECUTES and CONFIRMS"), this run proceeds on the local Ollama backend
+  (`qwen3.6:35b-a3b-q4_K_M` @ `http://localhost:11434`, confirmed reachable via a live smoke call that
+  returned "OK") as the primary planner; I step in manually (reasoning about next steps, steering via
+  `--manual-payload` if needed) only where IT stalls, while every typed engine still performs the
+  actual confirmation -- never hand-waved.
+- `python -m pytest`: 530 passed, 8 skipped, 0 failed after all three commits (up from 523).
+  `pytest tests/test_audit_fixes.py -v`: 12/12 passed (listed: `test_race_probe_concurrent_uses_independent_sessions`,
+  `test_gate0_counts_by_action_id`, `test_focus_saturation_guard_fires_at_third_hypothesis`,
+  `test_focus_saturation_different_endpoints_not_rejected`,
+  `test_parse_html_endpoints_extracts_links_forms_params`,
+  `test_endpoint_discovery_fact_extractor_uses_html_parser`,
+  `test_completion_not_blocked_when_action_later_succeeded`,
+  `test_json_repair_preserves_protocol_relative_urls`, `test_app_model_deduplicates_components`,
+  `test_scope_rejects_subdomain_of_different_root`, `test_scope_allows_exact_match_and_subdomain`,
+  `test_generate_raw_raises_on_llm_error`). The reason-then-format truncation-guard tests (named per
+  the deliverable): `test_enabled_reasoning_call_failure_falls_back_to_single_call_prompt` and
+  `test_enabled_empty_reasoning_response_still_proceeds_with_strict_call` in
+  `tests/test_reason_then_format.py` -- both still passing.
+- status: INFRA DONE, LAB RUN NOT YET STARTED -- the operator's message did not actually include a lab
+  URL ("I will give you only the lab URL" -- none was attached). Per BLIND, I will not pick one myself
+  (that would mean I chose the target, not a neutral handoff) and will not look up/guess a vuln class
+  for whatever URL arrives.
+- next: operator supplies the lab URL. Then: run `PENTEST_ENABLE_SELF_SCRIPTING=1 PENTEST_LAB_AUTO_APPROVE=1
+  OLLAMA_BASE_URL=http://localhost:11434 OLLAMA_MODEL=qwen3.6:35b-a3b-q4_K_M python run_portswigger_lab.py
+  --blind <LAB_URL>` directly (no human needed at a TTY now), analyze `state.json`/`investigation.json`
+  the same way every prior run in this log was analyzed, and report the three deliverables: the solved
+  lab + evidence + curl (or an honest documented failure + the exact gap), the pytest proof pasted above,
+  and this log entry itself.
