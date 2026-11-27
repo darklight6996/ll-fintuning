@@ -159,6 +159,57 @@ def test_high_risk_requires_confirmation(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
+# Test 4b: PENTEST_LAB_AUTO_APPROVE (2026-11-27) -- LAB-ONLY switch for the
+# exact high-risk/non-interactive deadlock Test 4 just proved exists. Must
+# only ever be reachable through command_executor.py's autonomous+high-risk
+# branch; run_target.py (real targets) refuses to even start when this is
+# set -- see run_target.py's own hard exit, not re-tested here (separate file).
+# ---------------------------------------------------------------------------
+def test_lab_auto_approve_bypasses_the_non_interactive_deadlock(monkeypatch):
+    monkeypatch.setenv("PENTEST_LAB_AUTO_APPROVE", "1")
+    scope = Scope(target="local", active_testing_allowed=True, state_changes_allowed=True)
+    executor = CommandExecutor(read_only=False)
+    registry = ActionRegistry(agent_name="test")
+
+    class HighRiskParams(BaseModel):
+        model_config = {"extra": "forbid"}
+
+    high_risk_action = ActionDefinition(
+        action_id="self_script", phase="vuln_validation", description="model-authored probe",
+        risk_level="high", params_model=HighRiskParams, command_builder="build_dummy",
+    )
+    registry.register(high_risk_action, lambda p: [["echo", "probe"]])
+    proposal = AIActionProposal(decision="propose_action", action_id="self_script", target="local",
+                                parameters={}, rationale="probe")
+
+    result = executor.execute_action(proposal, registry, scope, {}, mode="automated")
+    assert result["status"] == "success"
+    assert result["approval_record"]["approved_by"] == "lab_auto_approve"
+
+
+def test_lab_auto_approve_off_by_default_still_fails_closed(monkeypatch):
+    monkeypatch.delenv("PENTEST_LAB_AUTO_APPROVE", raising=False)
+    scope = Scope(target="local", active_testing_allowed=True, state_changes_allowed=True)
+    executor = CommandExecutor(read_only=False)
+    registry = ActionRegistry(agent_name="test")
+
+    class HighRiskParams(BaseModel):
+        model_config = {"extra": "forbid"}
+
+    high_risk_action = ActionDefinition(
+        action_id="self_script", phase="vuln_validation", description="model-authored probe",
+        risk_level="high", params_model=HighRiskParams, command_builder="build_dummy",
+    )
+    registry.register(high_risk_action, lambda p: [["echo", "probe"]])
+    proposal = AIActionProposal(decision="propose_action", action_id="self_script", target="local",
+                                parameters={}, rationale="probe")
+
+    result = executor.execute_action(proposal, registry, scope, {}, mode="automated")
+    assert result["status"] == "declined"
+    assert result["rejection_category"] == "high_risk_unattended"
+
+
+# ---------------------------------------------------------------------------
 # Test 5: Completion Verification Rejects Early (framework-enforced gate)
 # ---------------------------------------------------------------------------
 def test_completion_verification_rejects_early():

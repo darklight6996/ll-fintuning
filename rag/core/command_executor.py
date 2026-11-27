@@ -670,7 +670,29 @@ class CommandExecutor:
 
         elif approval_policy == "autonomous":
             if defn.risk_level == "high":
-                if not sys.stdin.isatty():
+                # LAB-ONLY auto-approve switch (2026-11-27). Documented at
+                # run_target.py's own refusal of this exact flag (it hard-exits
+                # if this is set, BEFORE even constructing an agent, so a real
+                # target can never reach this branch with it set) -- this is
+                # the other half of that contract. It exists because the
+                # correct fails-closed isatty() check below makes a non-
+                # interactive PortSwigger-lab run structurally unable to ever
+                # produce a proven finding (every HIGH-RISK action auto-
+                # declines with no human to ask), which is a real operational
+                # gap for lab-only automation, not a weakening of the
+                # real-target posture. PENTEST_LAB_AUTO_APPROVE never touches
+                # the "manual" policy branch above, never touches
+                # run_target.py, and is loudly printed every time it fires --
+                # never a silent bypass.
+                lab_auto_approve = os.environ.get("PENTEST_LAB_AUTO_APPROVE") == "1"
+                if lab_auto_approve:
+                    print(f"\n[LAB AUTO-APPROVE] Action: {defn.action_id} ({defn.risk_level} risk) -- "
+                          f"PENTEST_LAB_AUTO_APPROVE=1, no human asked. LAB-ONLY switch; "
+                          f"run_target.py refuses to start at all when this is set.")
+                    for c in argv_list:
+                        print(f"  > {' '.join(c)}")
+                    approval_record["approved_by"] = "lab_auto_approve"
+                elif not sys.stdin.isatty():
                     return {
                         "status": "declined",
                         "action_id": action_id,
@@ -680,32 +702,33 @@ class CommandExecutor:
                         "rejection_reason": "High-risk action requires interactive operator approval in autonomous mode (fails closed).",
                         "rejection_category": "high_risk_unattended",
                     }
-                print(f"\n[HIGH-RISK GATE] Action: {defn.action_id} ({defn.risk_level} risk)")
-                for c in argv_list:
-                    print(f"  > {' '.join(c)}")
-                try:
-                    resp = input("Authorize HIGH-RISK action? [y/N]: ").strip().lower()
-                    if resp not in ("y", "yes"):
+                if not lab_auto_approve:
+                    print(f"\n[HIGH-RISK GATE] Action: {defn.action_id} ({defn.risk_level} risk)")
+                    for c in argv_list:
+                        print(f"  > {' '.join(c)}")
+                    try:
+                        resp = input("Authorize HIGH-RISK action? [y/N]: ").strip().lower()
+                        if resp not in ("y", "yes"):
+                            return {
+                                "status": "declined",
+                                "action_id": action_id,
+                                "action_identity": action_identity,
+                                "results": [],
+                                "approval_record": approval_record,
+                                "rejection_reason": "High-risk action declined by operator.",
+                                "rejection_category": "approval_denied",
+                            }
+                        approval_record["approved_by"] = "operator_high_risk_gate"
+                    except (KeyboardInterrupt, EOFError):
                         return {
                             "status": "declined",
                             "action_id": action_id,
                             "action_identity": action_identity,
                             "results": [],
                             "approval_record": approval_record,
-                            "rejection_reason": "High-risk action declined by operator.",
+                            "rejection_reason": "High-risk action cancelled by operator interrupt.",
                             "rejection_category": "approval_denied",
                         }
-                    approval_record["approved_by"] = "operator_high_risk_gate"
-                except (KeyboardInterrupt, EOFError):
-                    return {
-                        "status": "declined",
-                        "action_id": action_id,
-                        "action_identity": action_identity,
-                        "results": [],
-                        "approval_record": approval_record,
-                        "rejection_reason": "High-risk action cancelled by operator interrupt.",
-                        "rejection_category": "approval_denied",
-                    }
             else:
                 approval_record["approved_by"] = "autonomous_policy"
 
