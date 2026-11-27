@@ -80,6 +80,45 @@ class LLMService:
             #   OLLAMA_NUM_CTX    context window to request (default 16384)
             #   OLLAMA_TIMEOUT    per-request seconds (default 300; first call
             #                     also pays Ollama's model-load)
+            # ------------------------------------------------------------------
+            # OPENROUTER BACKEND (2026-11-27). Pluggable alternative to Ollama for
+            # swapping in a frontier-capable planner brain without touching the
+            # TOOL (every typed engine/gate/confirmation-rigor check downstream is
+            # unchanged -- this only changes who PROPOSES the next action). Takes
+            # priority over Ollama when both are configured, since the whole point
+            # of setting it is to override a weaker local model for this run.
+            #   OPENROUTER_API_KEY   REQUIRED to enable this backend. Read from the
+            #                        environment ONLY -- never hardcoded, logged, or
+            #                        written to any file by this service.
+            #   OPENROUTER_MODEL     e.g. "anthropic/claude-3.5-sonnet" (required
+            #                        alongside the key; no silent default model --
+            #                        see the loud failure below).
+            #   OPENROUTER_BASE_URL  default https://openrouter.ai/api/v1
+            #   OPENROUTER_TIMEOUT   per-request seconds (default 120)
+            _openrouter_key = os.environ.get("OPENROUTER_API_KEY")
+            if _openrouter_key:
+                _openrouter_model = model_name_override or os.environ.get("OPENROUTER_MODEL")
+                if not _openrouter_model:
+                    raise RuntimeError(
+                        "OPENROUTER_API_KEY is set but OPENROUTER_MODEL is not -- refusing to "
+                        "silently pick a default model for a frontier-backend swap. Export "
+                        "OPENROUTER_MODEL (e.g. 'anthropic/claude-3.5-sonnet') and re-run."
+                    )
+                self._backend = "openrouter"
+                self.mode = "openrouter"
+                self.model_name = _openrouter_model
+                self._openrouter_base_url = os.environ.get(
+                    "OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1").rstrip("/")
+                self._openrouter_timeout = int(os.environ.get("OPENROUTER_TIMEOUT", "120"))
+                self._openrouter_key = _openrouter_key
+                self._router = None
+                self.tokenizer = None
+                if verbose:
+                    # Never print the key itself -- only that one is present.
+                    print(f"[+] LLMService ready (openrouter @ {self._openrouter_base_url}): "
+                          f"{self.model_name} (key present, not logged)")
+                return
+
             _ollama_url = os.environ.get("OLLAMA_BASE_URL")
             if _ollama_url:
                 self._backend = "ollama"
@@ -148,8 +187,8 @@ class LLMService:
 
     @property
     def is_available(self) -> bool:
-        """True if the model loaded successfully (in-process router) or an Ollama backend is configured."""
-        return self._router is not None or getattr(self, "_backend", None) == "ollama"
+        """True if the model loaded successfully (in-process router) or a remote backend is configured."""
+        return self._router is not None or getattr(self, "_backend", None) in ("ollama", "openrouter")
 
     def generate(self, prompt: str, **kwargs) -> Optional[str]:
         """
@@ -167,11 +206,57 @@ class LLMService:
         str or None
             Generated text, or None if the LLM is unavailable.
         """
-        if getattr(self, "_backend", None) == "ollama":
+        backend = getattr(self, "_backend", None)
+        if backend == "openrouter":
+            return self._openrouter_generate(prompt, **kwargs)
+        if backend == "ollama":
             return self._ollama_generate(prompt, **kwargs)
         if not self.is_available:
             return None
         return self._router.generate(prompt, **kwargs)
+
+    def _openrouter_generate(self, prompt: str, max_new_tokens: int = 512,
+                             system_prompt: Optional[str] = None, do_sample: bool = False,
+                             **kwargs) -> Optional[str]:
+        """
+        POST one chat completion to OpenRouter and return the assistant text.
+        Greedy by default, same contract as _ollama_generate(). NO silent
+        fallback on failure -- any transport/HTTP error is RE-RAISED (never
+        swallowed into a quiet None/empty string that could be mistaken for a
+        real, empty model response) so a caller that explicitly asked for this
+        backend finds out immediately if it isn't actually serving the run.
+        """
+        import json as _json
+        import urllib.request
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+        body = {
+            "model": self.model_name,
+            "messages": messages,
+            "temperature": 0.7 if do_sample else 0.0,
+            "max_tokens": max(int(max_new_tokens), 512),
+        }
+        data = _json.dumps(body).encode("utf-8")
+        req = urllib.request.Request(
+            self._openrouter_base_url + "/chat/completions", data=data,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self._openrouter_key}",
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=self._openrouter_timeout) as resp:
+                obj = _json.loads(resp.read().decode("utf-8"))
+            choices = obj.get("choices") or []
+            content = (choices[0].get("message", {}).get("content") or "") if choices else ""
+            return content.strip()
+        except Exception as exc:
+            # Never echo the request body/headers (carries the Authorization
+            # header) -- only the exception type/message.
+            print(f"[!] OpenRouter request failed: {type(exc).__name__}: {exc}")
+            raise
 
     def _ollama_generate(self, prompt: str, max_new_tokens: int = 512,
                          system_prompt: Optional[str] = None, do_sample: bool = False,

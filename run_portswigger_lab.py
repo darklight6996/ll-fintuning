@@ -222,12 +222,37 @@ def run_lab(lab_url: str, lab_name: str = "", max_steps: int = 25, verbose: bool
     lab_name = lab_name or lab_url
     hostname = _lab_hostname(lab_url)
 
+    # NO SILENT FALLBACK (2026-11-27): verify which brain is ACTUALLY going to
+    # serve this run before doing anything else. llm_service.py's CPU path is a
+    # real, working code path (useful for quick dev smoke tests), which is
+    # exactly why it can silently produce a run that LOOKS like it executed but
+    # is reasoning with google/flan-t5-large -- too small to be a meaningful
+    # test of anything. Fail loudly and refuse to start rather than let that
+    # happen quietly; PENTEST_ALLOW_CPU_FALLBACK=1 is the explicit, named
+    # escape hatch for someone who really does want a CPU smoke test.
+    from core.services.llm_service import get_llm_service
+    _svc = get_llm_service(verbose=True, role="planner")
+    _backend_mode = getattr(_svc, "mode", None) if _svc else None
+    # Require an explicit real backend (ollama/openrouter) -- NOT just "mode is
+    # not cpu", because a misconfigured OpenRouter (e.g. key set, model unset)
+    # fails to LOAD at all (_svc is None / mode defaults to "cpu"'s init value),
+    # which must refuse exactly the same way a bare unset-everything case does.
+    if _backend_mode not in ("ollama", "openrouter") and os.environ.get("PENTEST_ALLOW_CPU_FALLBACK") != "1":
+        print("\n[REFUSING] No real backend is configured (or it failed to load) -- this would "
+              "silently run on the CPU fallback model (google/flan-t5-large), which is "
+              "meaningless for a lab assessment. Set one real brain before running:")
+        print("  OPENROUTER_API_KEY + OPENROUTER_MODEL   (a frontier model via OpenRouter), or")
+        print("  OLLAMA_BASE_URL + OLLAMA_MODEL           (the local Ollama server)")
+        print("If you genuinely want a CPU smoke test, set PENTEST_ALLOW_CPU_FALLBACK=1.")
+        sys.exit(2)
     if verbose:
         print("=" * 70)
         print(f"PORTSWIGGER LAB RUN: {lab_name}")
         print(f"Target URL: {lab_url}")
         print(f"Locked scope hostname: {hostname}")
         print(f"Max steps: {max_steps}")
+        print(f"Brain backend: {_backend_mode or '(unavailable)'}"
+              f"{' -- ' + _svc.model_name if _svc and getattr(_svc, 'model_name', None) else ''}")
         print("=" * 70)
 
     scope = Scope(
