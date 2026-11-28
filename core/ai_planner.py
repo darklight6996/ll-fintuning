@@ -962,8 +962,15 @@ class AIPlanner:
             retry_lines.append(f"  - {action_id}: {attempts}/{max_r} attempts used{tag}")
         retry_status = "\n".join(retry_lines) if retry_lines else "  (no retries recorded)"
 
-        # Recent execution history (last N steps)
+        # Recent execution history (last N steps).
+        # BUILD SPEC v1 (2026-11-28): the old flat stdout[:120] window frequently
+        # cut off the meaningful part of tool output before the model could use
+        # it. The window is now budget-aware (an equal share of the history render
+        # budget per shown step, derived from the real context window), and when
+        # output is abbreviated that is stated explicitly with a reference to the
+        # full stored step results.
         recent_history = execution_history[-self.MAX_HISTORY_STEPS:]
+        per_step = max(200, self._render_budgets()["history"] // max(1, len(recent_history)))
         hist_lines = []
         for i, entry in enumerate(recent_history):
             status = entry.get("status", "?")
@@ -976,9 +983,16 @@ class AIPlanner:
                 results = entry["results"]
                 if isinstance(results, list) and results:
                     first = results[0]
-                    stdout = str(first.get("stdout", ""))[:120]
+                    raw = str(first.get("stdout", ""))
+                    if len(raw) > per_step:
+                        stdout = raw[:per_step]
+                        trunc = (f" ...[abbreviated; {len(raw) - per_step} more chars in "
+                                 f"step {entry.get('step', i + 1)} results]")
+                    else:
+                        stdout = raw
+                        trunc = ""
                     if stdout:
-                        line += f" | output: {stdout!r}"
+                        line += f" | output: {stdout!r}{trunc}"
             hist_lines.append(line)
         execution_hist_text = "\n".join(hist_lines) if hist_lines else "  (no history)"
 
@@ -1185,23 +1199,138 @@ class AIPlanner:
                 parts.append(header)
         return "\n          ".join(parts)
 
+    # ------------------------------------------------------------------
+    # Shared prompt render-budget policy
+    # (2026-11-28, BUILD SPEC v1 / workstream A pt1 -- audit defects #1/#2/#3-#21)
+    # ------------------------------------------------------------------
+    # ONE place that decides "how much evidence may each prompt section render",
+    # derived from the ACTUAL configured model context (OLLAMA_NUM_CTX -- the same
+    # env the live Ollama backend reads, NOT the 262144 figure some configs cite),
+    # reserving room for the system prompt, objective, hypotheses, findings,
+    # retrieval knowledge, and the model's own output. This replaces the ad-hoc
+    # [:15]/[:150]/[:120] constants that each silently discarded evidence with no
+    # disclosure (the [:15] slice directly caused the false-IDOR incident: the
+    # model's "IDs 1-15" hypothesis was the literal boundary of value[:15], with
+    # IDs 16-20 present in the SAME list one layer below the cut -- audit S1).
+
+    def _context_tokens(self) -> int:
+        """Actual configured model context window, in tokens. Reads the SAME env
+        the live Ollama backend uses (OLLAMA_NUM_CTX, default 16384); never
+        assumes a documented-but-unconfigured larger window."""
+        try:
+            return max(2048, int(os.environ.get("OLLAMA_NUM_CTX", "16384")))
+        except (TypeError, ValueError):
+            return 16384
+
+    def _render_budgets(self) -> Dict[str, int]:
+        """Per-section CHARACTER budgets for the evidence-bearing prompt sections,
+        derived from the real context window. ~4 chars/token; ~50% of the window
+        is reserved (un-budgeted here) for the system prompt, objective,
+        hypotheses, findings, retrieval knowledge, and the model's own decision
+        output. The remaining half is split across the three evidence sections so
+        one large (possibly irrelevant) response can never consume the whole
+        prompt at the expense of the others."""
+        evidence_chars = int(self._context_tokens() * 0.50) * 4
+        return {
+            "discovered_facts": int(evidence_chars * 0.50),
+            "observations": int(evidence_chars * 0.30),
+            "history": int(evidence_chars * 0.20),
+        }
+
+    @staticmethod
+    def _integer_series(values):
+        """If EVERY item is '<common-prefix><integer>' with an IDENTICAL prefix,
+        return (prefix, [ints in original order]); else None. Lets a list of
+        sequential-ID endpoints be rendered as a truthful range instead of a
+        silently-truncated partial list. The identical-prefix requirement makes
+        this safe: unrelated items never get collapsed into a fake range."""
+        values = list(values)
+        if not values:
+            return None
+        m0 = re.match(r"^(.*?)(\d+)$", str(values[0]))
+        if not m0:
+            return None
+        prefix = m0.group(1)
+        ints = []
+        for v in values:
+            m = re.match(r"^(.*?)(\d+)$", str(v))
+            if not m or m.group(1) != prefix:
+                return None
+            ints.append(int(m.group(2)))
+        return prefix, ints
+
+    def _render_list_faithfully(self, values, budget_chars: int) -> str:
+        """Render a list within budget_chars WITHOUT ever silently implying a
+        partial list is complete. When the full list fits, it is rendered
+        verbatim. When it does not, the representation ALWAYS discloses the true
+        total, what is shown vs omitted, and that the full set is retained in the
+        EvidenceStore (so omitted detail is retrievable via existing facts). A
+        bare `(+N more)` -- which conceals which items were cut -- is never
+        produced."""
+        values = list(values)
+        full = repr(values)
+        if len(full) <= budget_chars:
+            return full
+        total = len(values)
+        # 1) Sequential-ID compaction: a truthful range beats a truncated list.
+        series = self._integer_series(values)
+        if series is not None:
+            prefix, ints = series
+            lo, hi = min(ints), max(ints)
+            if sorted(ints) == list(range(lo, hi + 1)):
+                return (f"{total} values of form {prefix!r}+N, CONTIGUOUS range "
+                        f"{lo}-{hi} (complete set retained in EvidenceStore)")
+            missing = sorted(set(range(lo, hi + 1)) - set(ints))
+            return (f"{total} values of form {prefix!r}+N spanning {lo}-{hi} with "
+                    f"gaps; values ABSENT in this range: {missing} "
+                    f"(complete set retained in EvidenceStore)")
+        # 2) Generic: show as many WHOLE items as fit, then state the rest plainly.
+        shown = []
+        used = 0
+        for v in values:
+            s = repr(v)
+            if used + len(s) + 2 > budget_chars and shown:
+                break
+            shown.append(v)
+            used += len(s) + 2
+        remaining = total - len(shown)
+        if remaining <= 0:
+            return repr(shown)
+        return (f"{shown} -- PARTIAL LIST: {len(shown)} of {total} shown here, "
+                f"{remaining} more NOT rendered (complete set of {total} retained "
+                f"in EvidenceStore; do NOT treat this as the full set)")
+
     def _format_observations(self, evidence_store, limit: int = 10) -> str:
         """
         List the most recent observations with their real obs_id, so the planner has
         something concrete to cite in form_hypothesis / record_validation. Capped to
         the most recent `limit` to keep prompt size bounded on long runs -- older
         observations are still fully available via discovered_facts (C5) and findings.
+
+        Per-observation stdout render length is now BUDGET-AWARE (BUILD SPEC v1):
+        each recent observation gets an equal share of the observations render
+        budget (derived from the real context window) instead of a flat 150-char
+        cut that routinely sliced off meaningful evidence before the model saw it.
+        When an excerpt is abbreviated, that is stated explicitly and the obs_id
+        (already shown on the line) is the reference to the full stored stdout.
         """
         obs_list = list(evidence_store.observations.values())
         if not obs_list:
             return "  (no observations recorded yet)"
         recent = obs_list[-limit:]
+        per_obs = max(200, self._render_budgets()["observations"] // max(1, len(recent)))
         lines = []
         for obs in recent:
-            excerpt = (obs.raw_stdout or "").strip().replace("\n", " ")[:150]
+            raw = (obs.raw_stdout or "").strip().replace("\n", " ")
+            if len(raw) > per_obs:
+                excerpt = raw[:per_obs]
+                tail = f" ...[abbreviated; full stdout in observation {obs.obs_id}]"
+            else:
+                excerpt = raw
+                tail = ""
             lines.append(
                 f"  [{obs.obs_id}] action={obs.action_id} exit_code={obs.exit_code} "
-                f"stdout: {excerpt!r}"
+                f"stdout: {excerpt!r}{tail}"
             )
         return "\n".join(lines)
 
@@ -1525,22 +1654,35 @@ class AIPlanner:
 
     def _format_discovered_facts(self, evidence_store) -> str:
         """
-        Aggregate Observation.parsed_facts (C5) across the whole run into a compact,
-        model-readable summary: list-valued facts are unioned and deduplicated
-        (capped so one noisy observation can't blow out the prompt), dict-valued
-        facts are merged, everything else keeps the most recent value.
+        Aggregate Observation.parsed_facts (C5) across the whole run into a
+        model-readable summary: list-valued facts are unioned and deduplicated,
+        dict-valued facts are merged, everything else keeps the most recent value.
+
+        BUILD SPEC v1 (2026-11-28): the old hard `value[:15]` + bare `(+N more)`
+        slice silently hid facts and -- because it landed exactly at the "IDs
+        1-15" boundary on a sequential-ID list -- directly produced the false
+        IDOR hypothesis (audit S1). List rendering is now budget-aware and
+        FAITHFUL: the complete set is rendered when it fits the (context-derived)
+        budget; when it doesn't, a truthful representation is emitted that
+        discloses the true total, the value range / which items are omitted, and
+        that the complete set remains retrievable from the EvidenceStore. A
+        partial list is never presented as if it were complete.
         """
         aggregated = self._aggregate_facts(evidence_store)
 
         if not aggregated:
             return "  (no structured facts extracted yet)"
 
+        budget = self._render_budgets()["discovered_facts"]
+        list_keys = [k for k, v in aggregated.items() if isinstance(v, list)]
+        # Give each list-valued fact an equal share of the section budget so one
+        # huge list can't starve the others (floor keeps every key readable).
+        per_key = max(400, budget // max(1, len(list_keys))) if list_keys else budget
+
         lines = []
         for key, value in aggregated.items():
             if isinstance(value, list):
-                shown = value[:15]
-                suffix = f" (+{len(value) - 15} more)" if len(value) > 15 else ""
-                lines.append(f"  - {key}: {shown}{suffix}")
+                lines.append(f"  - {key}: {self._render_list_faithfully(value, per_key)}")
             else:
                 lines.append(f"  - {key}: {value}")
         return "\n".join(lines)

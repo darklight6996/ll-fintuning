@@ -919,6 +919,33 @@ class BaseAgent:
             return tuple(self._scrub_lab_value(x) for x in value)
         return value
 
+    def _history_results_for_store(self, results):
+        """BLIND-MODE PERSISTENCE BOUNDARY (2026-11-28, BUILD SPEC v1 / Part B;
+        audit Defect #7/#23, the single highest-severity defect).
+
+        In a --blind run, scrub lab answer-key markers out of execution results
+        BEFORE they are stored in autonomous_execution_history. That stored
+        history is the SAME object read by (a) the planner's RECENT EXECUTION
+        HISTORY prompt section and (b) BOTH training-trajectory writers
+        (`_write_raw_trajectory` and `_build_chatml_record` in
+        run_portswigger_lab.py). The later `if self._blind:` block in
+        run_autonomous only scrubs the LOCAL stdout/stderr used to build the
+        Observation -- it never touched this stored copy, so the raw PortSwigger
+        lab title leaked into live history and, 100% of the time, into the
+        on-disk training data (reproduced in the audit: real title present in
+        data/portswigger_trajectories_{raw,chatml}.jsonl lines 32-33).
+
+        Reuses the SAME recursive scrubber Observations already use
+        (`_scrub_lab_value` -> `_scrub_lab_markers`), which covers the lab-head
+        markers and <title> answer-key patterns; it returns NEW structures and
+        never mutates the caller's results, so the live Observation-building path
+        (which reads the original results and scrubs its own copy) is unchanged.
+        Non-blind runs return the results untouched.
+        """
+        if not self._blind:
+            return results
+        return self._scrub_lab_value(results)
+
     def _infer_vuln_class(self, explicit, validation_test, description):
         """
         Resolve the vuln_class a hypothesis is about, so the suspicion gate can
@@ -1898,7 +1925,13 @@ class BaseAgent:
                     "status": exec_status,
                     "rejection_reason": exec_result.get("rejection_reason"),
                     "rejection_category": exec_result.get("rejection_category"),
-                    "results": exec_result.get("results", []),
+                    # Blind-mode persistence boundary: scrub answer-key markers out
+                    # of the stored results BEFORE they reach autonomous history,
+                    # the planner's recent-history prompt, and the trajectory
+                    # writers (BUILD SPEC v1 / Part B; audit Defect #7). No-op on
+                    # non-blind runs. Does not mutate exec_result's own results, so
+                    # the Observation-building path below is unaffected.
+                    "results": self._history_results_for_store(exec_result.get("results", [])),
                     "timestamp": datetime_iso(),
                 }
                 self.session_mgr.append_autonomous_history(history_entry)

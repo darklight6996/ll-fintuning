@@ -2564,3 +2564,143 @@ rounds) -- a consistent, repeatedly-applied exclusion principle, not a one-off j
   the surface_map from `--sweep`) and demote to `lead` with an explicit contradiction message if they
   disagree. (b) the duplicate-finding dedup is lower-priority (doesn't change pass/fail, just inflates
   the count) but worth a quick fix next time this file is touched.
+
+### [2026-11-28 10:40 +05:00] claude-sonnet -- FORENSIC AUDIT task (diagnosis only, no fixes/no commits per the task's own rules): report at docs/audit-2026-11-28.md
+
+- Task: a separate, superseding audit instruction -- treat every prior diagnosis in this file, including
+  this session's own, as unverified until re-proven from code and artifacts. Read-only: no source edits,
+  no fixes, no commits, no building the recommended architecture (sections 7-8 are paper design only).
+  **Per the task's own "no commits" rule, the report file and this log entry are written to disk but
+  deliberately NOT committed this pass** -- `git status` will show both as untracked/modified until the
+  operator decides to commit them.
+- Full report: **`docs/audit-2026-11-28.md`**.
+
+**5-line executive summary:**
+1. The Nemotron run's two failures (lab unsolved; false IDOR) are **not** reasoning failures -- the
+   KEYSTONE QUESTION was answered by actually re-running this repo's own unmodified prompt-rendering
+   functions against the exact recorded EvidenceStore state: `core/ai_planner.py:1541`'s `value[:15]`
+   cap on the endpoints list is the literal, sole reason the model's hypothesis said "productId 1-15",
+   because IDs 16-20 (already public, linked from the homepage) were never rendered into its prompt.
+2. A SECOND, independent cause of the false CONFIRMATION (not just the false hypothesis) was found and
+   logged nowhere before this audit: `_confirmation_strength`/`_compute_finding_strength` check evidence
+   WORDING, never evidence PREMISE against the EvidenceStore's own already-recorded facts -- so a
+   lexically-perfect, textually-unimpeachable self_script result can still promote a factually-false claim.
+3. The HIGHEST-SEVERITY confirmed defect is new, in the persistence layer, not the reasoning layer:
+   `autonomous_execution_history` is never scrubbed, and this is 100%-reproduced as already having
+   written the real lab title ("Exploiting XXE to perform SSRF attacks") into BOTH
+   `data/portswigger_trajectories_raw.jsonl` (line 33) AND the literal ChatML training text in
+   `data/portswigger_trajectories_chatml.jsonl` (line 33) -- i.e. `--blind`'s guarantee is already broken
+   for this session's own persisted training data, independent of anything the live agent saw or did.
+4. Of the 6 "reportedly fixed" defects the task asked to re-verify: #1, #2, #4 confirmed fixed; #3
+   (duplicate-finding via two promotion paths) confirmed STILL present, empirically reproduced (two
+   separate "proven" Findings for the same observation in the live run); #5 (SSRF gap in `http_probe.py`
+   itself) confirmed NOT fixed -- a new parallel engine (`ssrf_probe_runner.py`) exists instead, with its
+   own documented limitation (cannot confirm a blind/OOB SSRF with no in-band marker); #6
+   (reason-then-format) confirmed present and correctly implemented, but was never actually exercised in
+   either Nemotron run (neither run set `PLANNER_REASON_THEN_FORMAT=1`).
+5. `python -m pytest`: 540 passed, 8 skipped, 0 failed (unchanged, no edits made this pass).
+   `pytest tests/test_audit_fixes.py -v`: 12/12 passed.
+
+**Single highest-severity confirmed defect:** blind-mode scrubbing never reaches `autonomous_execution_history`
+(`agents/base_agent.py:1901`, `history_entry["results"] = exec_result.get("results", [])`, written BEFORE
+the scrub block that only touches the local `stdout`/`stderr` variables) -- which both `run_portswigger_lab.py`'s
+raw-trajectory writer (line 104, no truncation at all) and its ChatML builder (300-char truncation, wide
+enough to catch this run's title at offset ~218) read from directly. Confirmed, not inferred: the real
+lab title is present verbatim, right now, in `data/portswigger_trajectories_raw.jsonl` line 33 and
+`data/portswigger_trajectories_chatml.jsonl` line 33 -- both already written to disk before this audit began.
+- status: AUDIT COMPLETE. Report written. No code touched, no commit made (per the task's explicit rule).
+- next: operator review of `docs/audit-2026-11-28.md`, specifically sections 7-8 (design-only, not to be
+  built without separate approval) -- then a decision on priority between the newly-found persistence-layer
+  leak (Defect #7, highest severity, two confirmed live instances already on disk) and the previously-known
+  premise-cross-check gap (Defect #6) and duplicate-finding bug (Defect #3).
+
+---
+
+## BUILD SPEC v1 — de-castration + capable brain + verification
+
+This prompt implements **workstream A, part 1: data-rendering fidelity and blind-mode persistence
+integrity**. The full "BUILD SPEC v1" document text was NOT supplied in the project instructions or the
+task prompt (the task prompt itself only describes workstream A part 1, not the complete specification),
+so it is not reproduced here verbatim -- that omission is recorded rather than invented/reconstructed.
+Scope implemented: audit defects #1 (discovered-facts truncation), #2 (observation truncation), #3-as-#21
+(recent-execution-history truncation -- note: this is the render-truncation family, NOT audit Defect #3
+the duplicate-finding bug, which is explicitly out of scope), and #7/#23 (blind-mode leakage into live
+history and training trajectories). Implementation log entry appended below after the work was done.
+
+### [2026-11-28 19:05 +05:00] claude-opus — BUILD SPEC v1 workstream A pt1 IMPLEMENTED (render fidelity + blind persistence); 551 passed/8 skipped
+- did:
+  PART A — de-castrate evidence rendering (core/ai_planner.py):
+    1. discovered-facts (#1): removed the hard `value[:15]` + bare `(+N more)` slice (the exact line
+       that produced the false "IDs 1-15" IDOR hypothesis -- audit S1). `_format_discovered_facts` now
+       renders each list-valued fact via the new FAITHFUL renderer within a context-derived budget.
+    2. observations (#2): `_format_observations` per-observation stdout window is now a budget-aware
+       equal share (was a flat 150-char cut); abbreviation is stated explicitly and the obs_id on the
+       line is the reference to the full stored stdout.
+    3. recent execution history (#3/#21): the RECENT EXECUTION HISTORY loop in `_build_prompt` uses a
+       budget-aware per-step window (was a flat stdout[:120]); abbreviation states how many chars remain
+       and references the step's stored results.
+    4. shared helper (A4): ONE policy, not scattered constants --
+       `_context_tokens()` reads the ACTUAL configured window (OLLAMA_NUM_CTX, default 16384, the same
+       env the live Ollama backend uses -- NOT the 262144 figure); `_render_budgets()` reserves ~50% of
+       the window for the rest of the prompt + model output and splits the remaining half across the
+       three evidence sections (50/30/20) so one large/irrelevant response can't starve the others;
+       `_render_list_faithfully()` renders the full list when it fits, else emits a truthful
+       representation (sequential-ID lists -> "N values, CONTIGUOUS range lo-hi" or an explicit
+       gap/absent-values list; other lists -> an explicit "PARTIAL LIST: K of N shown, M more NOT
+       rendered"), always with an EvidenceStore reference and NEVER a bare `(+N more)`. `_integer_series`
+       only compacts when every item shares an identical prefix, so unrelated items never form a fake range.
+  PART B — fix blind-mode leakage (agents/base_agent.py):
+    New `_history_results_for_store(results)` scrubs execution results via the EXISTING recursive
+    scrubber (`_scrub_lab_value` -> `_scrub_lab_markers`, which already covers LAB_HEAD/LAB_HEADER
+    markers and the <title> answer-key) BEFORE they enter `autonomous_execution_history`; it is a no-op
+    on non-blind runs and returns NEW structures so the live Observation-building path (which reads the
+    original results and scrubs its own copy) is byte-for-byte unchanged. Wired in at the single store
+    site (the `history_entry["results"] = ...` line in `run_autonomous`).
+  PART B2 — write paths audited: the ONLY history entry carrying raw action stdout/stderr/parsed-facts
+    is the one at the run_autonomous store site; the other `append_autonomous_history` calls carry only
+    framework-generated status/reason/summary strings, no raw results. Both trajectory writers
+    (`run_portswigger_lab.py::_write_raw_trajectory` line 104 and `::_build_chatml_record`) and the
+    planner's RECENT EXECUTION HISTORY section all read from `autonomous_execution_history`, so scrubbing
+    at that single boundary covers every model-visible/persisted consumer -- no writer was edited.
+  PART B3 — quarantine: `git mv`'d data/portswigger_trajectories_{raw,chatml}.jsonl into
+    data/quarantine/ (contents UNMODIFIED -- verified the real title "Exploiting XXE to perform SSRF
+    attacks" is still present verbatim on line 33 for forensic reference) + wrote data/quarantine/README.md
+    (dated 2026-11-28; why quarantined, confirmed leak on lines 32-33, must-NOT-fine-tune, retained for
+    forensics, must-not-silently-reintroduce). Files NOT deleted, NOT overwritten.
+  PART C — tests (beside tests/test_blind_scrub_nested.py):
+    tests/test_render_fidelity.py (7 tests): all-20-ids communicated via the REAL
+    `_format_discovered_facts`; no bare `(+N more)` even at 500 items; truthful contiguous-range at small
+    budget; gap disclosure for non-contiguous; generic PARTIAL-LIST marking; verbatim render when it
+    fits; budget tracks OLLAMA_NUM_CTX. tests/test_blind_persistence_boundary.py (4 tests): raw
+    answer-key stdout driven through the REAL store-boundary helper + the REAL `_write_raw_trajectory`
+    and `_build_chatml_record` -> asserts "REAL NAME"/LAB_HEAD markers absent AND useful evidence
+    (productId=1/status=200/len=5012) survives; non-blind path unchanged. Both fail against the previous
+    implementation (15-item slice; unscrubbed history).
+  PART D — regression: `python -m pytest` = **551 passed, 8 skipped, 14 warnings** (baseline 540/8 +11
+    new). Diff touches ONLY core/ai_planner.py (+166, rendering) and agents/base_agent.py (+35, the
+    helper + one store-site line) for code; grep-guard confirms NO change to action_is_unlocked /
+    requires_suspicion / approval / isatty / proven_finding_count / single_host_only / in_scope /
+    verify_completion / registry.register / execute_action. JSON output contracts, planner architecture,
+    specialist engines, script-exec permissions, scope-lock, and finding-verification logic untouched.
+- why:    widen the evidence windows the model actually sees (so correct facts stop being silently
+          hidden) AND close the blind-mode leak in the SAME change, so the leak isn't widened along with
+          the windows (the two were deliberately bundled per the spec).
+- files:  core/ai_planner.py, agents/base_agent.py, run_portswigger_lab.py (NOT edited -- reads scrubbed
+          history), data/quarantine/{README.md, portswigger_trajectories_raw.jsonl,
+          portswigger_trajectories_chatml.jsonl (moved)}, tests/test_render_fidelity.py,
+          tests/test_blind_persistence_boundary.py, work.md
+- status: done, NOT committed (per the task's explicit "do not commit unless instructed").
+- remaining limitations / known gaps (NOT addressed here, by design -- out of this prompt's scope):
+    * Audit Defect #3 (duplicate-finding via two promotion paths), Defect #6 (lexical-not-semantic
+      confirmation rigor / premise cross-check) -- untouched; they are other workstreams.
+    * The char/token ratio in the budget helper is a flat ~4 chars/token heuristic, not a real tokenizer
+      count -- deliberately conservative and dependency-free; it bounds, it does not measure exactly.
+    * `_render_budgets` reads OLLAMA_NUM_CTX; an OpenRouter-only run (no OLLAMA_NUM_CTX set) falls back to
+      the 16384 default. That is a safe floor (budgets stay generous vs the old 15/150/120 caps) but is
+      not the OpenRouter model's true context -- a follow-on could thread the active backend's real
+      window through if a larger budget is wanted there.
+    * Other `append_autonomous_history` entries' free-text summary/reason fields are not scrubbed; they
+      are framework-generated (not raw tool output) and were not implicated in the audit, but a future
+      hardening pass could route them through the same boundary for defence-in-depth.
+- next:   operator review; then workstream A remaining parts / workstreams B-C-D (explicitly NOT started
+          here). Do NOT begin those without the matching prompt.
