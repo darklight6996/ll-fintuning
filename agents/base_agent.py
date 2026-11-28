@@ -880,19 +880,44 @@ class BaseAgent:
         return t
 
     def _scrub_lab_facts(self, facts):
-        """Drop solution-leaking portswigger.net links out of parsed_facts URL lists
-        (blind-lab mode). Keeps the lab's own host -- that's the target."""
-        if not isinstance(facts, dict):
-            return facts
-        out = {}
-        for k, v in facts.items():
-            if isinstance(v, list):
-                out[k] = [x for x in v if not (isinstance(x, str) and "portswigger.net" in x.lower())]
-            elif isinstance(v, str):
-                out[k] = self._scrub_lab_markers(v)
-            else:
-                out[k] = v
-        return out
+        """Drop solution-leaking portswigger.net links and lab markers out of
+        parsed_facts (blind-lab mode). Keeps the lab's own host -- that's the
+        target.
+
+        BUG FIX (2026-11-28, found via a live --sweep + OpenRouter run): this
+        was SHALLOW -- it only scrubbed top-level string/list-of-string
+        values, so a self_script's own vuln_signal JSON (which commonly
+        embeds a raw HTML snippet as *evidence*, nested as
+        vuln_signal -> evidence -> hidden_products[i] -> snippet) passed
+        straight through the `else: out[k] = v` branch untouched, leaking the
+        literal `<!--LAB_HEAD_START-->` marker into what the planner's prompt
+        shows the model -- a real blind-constraint violation (MUST-PRESERVE
+        #3), not just a cosmetic issue. Now recurses into dicts and lists at
+        any depth so no nested string value can carry a marker through
+        unscrubbed.
+        """
+        return self._scrub_lab_value(facts)
+
+    def _scrub_lab_value(self, value):
+        """Recursive helper for _scrub_lab_facts -- scrubs strings at any
+        depth inside dicts/lists/tuples; non-container, non-string values
+        (int/float/bool/None) pass through unchanged. Matches the original
+        shallow function's exact semantics, just applied recursively: a list
+        entry that IS a solution-leaking portswigger.net link is DROPPED
+        (unchanged behavior); every other string anywhere just gets
+        _scrub_lab_markers's text substitution (never dropped)."""
+        if isinstance(value, str):
+            return self._scrub_lab_markers(value)
+        if isinstance(value, dict):
+            return {k: self._scrub_lab_value(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [
+                self._scrub_lab_value(x) for x in value
+                if not (isinstance(x, str) and "portswigger.net" in x.lower())
+            ]
+        if isinstance(value, tuple):
+            return tuple(self._scrub_lab_value(x) for x in value)
+        return value
 
     def _infer_vuln_class(self, explicit, validation_test, description):
         """
