@@ -2469,3 +2469,98 @@ rounds) -- a consistent, repeatedly-applied exclusion principle, not a one-off j
   (expected, given the evidence seen so far is all weak diff-based) and whether the sweep's coverage
   ledger steers the model toward trying a DIFFERENT class/endpoint instead of re-testing the same weak
   signal. Still chasing STAGE 0's actual milestone: one genuinely PROVEN finding with a working curl.
+
+### [2026-11-28 09:10 +05:00] claude-sonnet -- STAGE 0 deliverables: lab NOT solved (honest); the "proven" finding is a REASONING false positive, not a weak-evidence one; one more live bug found + fixed (blind-scrub was shallow); duplicate-finding bug flagged, not fixed.
+
+- Re-ran the SAME lab (fresh session, `bug_bounty_autohunt_1795852908`) with `_compute_finding_strength`
+  live. Reasoning trace repeated almost identically through step 8 (recon_scan -> endpoint_discovery ->
+  AppModel -> IDOR hypothesis on `productId` -> self_script) -- then genuinely DIFFERED from run 1 in a
+  good way: step 9 correctly recorded `verdict=refutes` on the SSRF hypothesis (the self_script found no
+  internal_indicators at all -- an honest negative, not fabricated). So the fix changed real behavior,
+  not just this run's luck.
+- Step 10 recorded `verdict=supports` on the IDOR hypothesis, and step 11's `record_finding` reported
+  `strength=proven (concrete evidence captured)` -- `_compute_finding_strength` correctly found NO weak
+  keyword anywhere in this self_script's evidence (unlike run 1's "different content" wording), so this
+  is NOT a repeat of yesterday's bug. I inspected the actual evidence before accepting that verdict
+  (never took "proven" at face value) -- and found a DIFFERENT, deeper problem:
+  **the self_script's own PREMISE is false, and the agent's OWN earlier Observation already proved it.**
+  Step 2's `endpoint_discovery` observation (read directly from `investigation.json`, not the lab's
+  answer key) lists `/product?productId=16` through `?productId=20` as DISCOVERED ENDPOINTS, LINKED
+  from the homepage's own product grid, right alongside 1-15. Step 4's hypothesis claimed "endpoint
+  discovery revealed /product?productId=1-15" -- that premise was wrong THE MOMENT it was stated (never
+  cross-checked against the same session's own recorded facts), and the self_script in step 6 inherited
+  it uncritically, testing IDs 16-20 as "beyond the public range" and finding... the same public,
+  already-linked product pages. `confirmed=True` was textually and lexically well-formed (concrete
+  snippets, no hedging language) but SEMANTICALLY wrong: this is not IDOR, it's re-discovering already-
+  public inventory. `_confirmation_strength`'s lexical rigor (weak-keyword/XML-parser-error scrutiny)
+  has NO way to catch this class of error -- it checks whether the EVIDENCE TEXT sounds weak, not
+  whether the CLAIMED PREMISE is consistent with the rest of the EvidenceStore's own recorded facts.
+  This is a genuine, structural gap, separate from and deeper than every lexical rigor fix so far.
+- **A SECOND, separate bug surfaced in the same inspection**: TWO Findings got recorded for this exact
+  same false claim -- `fnd_6e43c148` (created automatically by `_promote_evidence_if_warranted`'s
+  engine-vuln_signal path, since `self_script`'s `ActionDefinition.satisfies_phase=True`) AND
+  `fnd_002376d0` (created by the AI's own manual `record_finding` verb, citing the SAME observation
+  `obs_a4e2f86a`). Both independently computed `strength=proven` (consistent, not contradictory --
+  both paths correctly apply the same lexical rigor to the same evidence and agree) but this means
+  `evidence_store.proven_finding_count` DOUBLE-COUNTED one real signal as two findings (`"proven_
+  findings": 2` in the interrupted result, for what is really one claim). Not fixed this pass --
+  flagged as backlog: `_handle_record_finding`/`_promote_evidence_if_warranted` should check whether a
+  Finding already exists for an overlapping `observation_ids` set before creating a second one.
+- **THIRD bug found and FIXED this pass** (real, independent of the two above): while reading the raw
+  observation that produced the false IDOR claim, its `evidence.hidden_products[i].snippet` field
+  contained the literal, UNSCRUBBED `<!--LAB_HEAD_START-->` marker -- `agents/base_agent.py::
+  _scrub_lab_facts()` was shallow (only top-level string/list-of-string values), so a self_script's own
+  JSON evidence embedding raw HTML several levels deep (a realistic, common shape -- quoting page
+  content IS the right instinct for a probe to do) bypassed `--blind` entirely. This is a genuine
+  MUST-PRESERVE #3 violation, independent of whether the specific finding it was attached to was itself
+  correct. Fixed with a new recursive `_scrub_lab_value()` helper (dicts/lists/tuples at any depth);
+  4 new tests in `tests/test_blind_scrub_nested.py`, including the exact live nested shape. `python -m
+  pytest`: 540 passed, 8 skipped, 0 failed (up from 536). Committed `93556d37`.
+- **CONTAMINATED TRAINING DATA (second occurrence)**: this run's trajectory was also appended before I
+  could intervene -- **line 33 (the new last line) of both `data/portswigger_trajectories_raw.jsonl`
+  and `data/portswigger_trajectories_chatml.jsonl`** is session `bug_bounty_autohunt_1795852908`
+  (2 duplicate "proven" IDOR findings, both false per the analysis above). Combined with the 2026-11-28
+  08:05 entry's line 32, **lines 32 AND 33 of both files are now known-bad** and should be the first
+  candidates excluded (or `verified_solution: false`-flagged) once that quarantine mechanism exists.
+  Neither file edited/pruned -- append-only logs are not mine to silently rewrite.
+
+**DELIVERABLES (per the task's own numbering):**
+
+1. **The solved lab**: **NOT SOLVED.** No vuln_class was proven with objective, semantically-sound
+   evidence. The one "proven" finding the tool produced (IDOR via `productId` enumeration beyond
+   1-15) is a FALSE POSITIVE -- the IDs it flagged as "hidden" are, per the agent's own
+   `endpoint_discovery` observation, already linked from the homepage's public product grid. No
+   curl is offered, because there is nothing real to solve for. The tool's control flow, gates, and
+   lexical rigor all worked AS DESIGNED on this run (no human-approval bypass, no silent CPU fallback,
+   correct scope lock, correct `refutes` on the SSRF line of inquiry) -- the failure is a reasoning gap
+   (premise never cross-checked against already-known facts) plus the two bugs above, not an
+   orchestration failure. Per the task's own instruction ("a failure logged honestly is worth more than
+   a padded pass"), this is reported as a miss, not relabeled.
+2. **Verification debt, real output pasted (not a claim)**:
+   - `python -m pytest` final summary line: `540 passed, 8 skipped, 14 warnings in 55.30s`.
+   - `pytest tests/test_audit_fixes.py -v`: 12/12 passed --
+     `test_race_probe_concurrent_uses_independent_sessions`, `test_gate0_counts_by_action_id`,
+     `test_focus_saturation_guard_fires_at_third_hypothesis`,
+     `test_focus_saturation_different_endpoints_not_rejected`,
+     `test_parse_html_endpoints_extracts_links_forms_params`,
+     `test_endpoint_discovery_fact_extractor_uses_html_parser`,
+     `test_completion_not_blocked_when_action_later_succeeded`,
+     `test_json_repair_preserves_protocol_relative_urls`, `test_app_model_deduplicates_components`,
+     `test_scope_rejects_subdomain_of_different_root`, `test_scope_allows_exact_match_and_subdomain`,
+     `test_generate_raw_raises_on_llm_error`.
+   - Reason-then-format truncation-guard tests, named: `test_enabled_reasoning_call_failure_falls_
+     back_to_single_call_prompt` and `test_enabled_empty_reasoning_response_still_proceeds_with_strict_
+     call`, both in `tests/test_reason_then_format.py`, both still passing in the full run above.
+3. **This log entry** -- lab URL, brain actually used (OpenRouter, `nvidia/nemotron-3-ultra-550b-a55b:
+   free`), proven/failed (FAILED -- false positive caught before completion), curl (none -- nothing
+   real to solve for), and the engine/framework gaps that blocked a real proven finding: (a) no
+   premise-vs-known-facts cross-check (new, structural, not yet designed), (b) duplicate-finding
+   creation across the two promotion paths (flagged, not fixed), (c) shallow blind-scrubbing (FOUND AND
+   FIXED this pass).
+- next: of the two remaining gaps, (a) the premise cross-check is the one that actually blocks STAGE 0's
+  milestone and is the right next thing to design -- likely shape: before accepting a self_script's
+  `confirmed=True` as evidence for ANY vuln_class, check its claimed scope/premise (e.g. "these IDs are
+  outside the known range") against `EvidenceStore`'s own already-recorded facts (the endpoint list,
+  the surface_map from `--sweep`) and demote to `lead` with an explicit contradiction message if they
+  disagree. (b) the duplicate-finding dedup is lower-priority (doesn't change pass/fail, just inflates
+  the count) but worth a quick fix next time this file is touched.
