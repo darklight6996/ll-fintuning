@@ -1018,6 +1018,63 @@ class BaseAgent:
             ),
         }
 
+    def _compute_finding_strength(self, hypothesis_id: str, evidence_store) -> Tuple[str, str]:
+        """
+        CRITICAL FIX (2026-11-28, found via a live OpenRouter-brain run,
+        bug_bounty_autohunt_1795852409): _handle_record_finding() below NEVER
+        passed a `strength` to EvidenceStore.record_finding(), so every single
+        AI-driven record_finding call defaulted to strength="proven" -- with
+        ZERO rigor check -- regardless of how weak the evidence actually was.
+        Confirmed live: a self_script's own naive "response length differs"
+        logic set vuln_signal.confirmed=True; record_validation's verdict=
+        'supports' was accepted (correctly, per _validate_supports_claim's
+        contract: it trusts a vuln_signal's own confirmed flag rather than
+        re-deriving it); but nothing downstream ever re-applied
+        _confirmation_strength's WEAK-keyword/XML-parser-error scrutiny to
+        that SAME self_script-authored signal before calling it "proven" --
+        so a medium-severity "proven" IDOR finding was recorded, completion
+        would have accepted it, and the trajectory was already written to the
+        training JSONL files before this run was interrupted for diagnosis.
+
+        This is the SAME discipline _promote_evidence_if_warranted already
+        applies to the FRAMEWORK-automatic path, applied here to the AI's own
+        manual form_hypothesis->record_validation->record_finding chain: walk
+        every supporting Validation's cited Observation; a framework ENGINE's
+        confirmed vuln_signal (action_id not in _MODEL_AUTHORED_ACTIONS) is
+        trusted fully; a MODEL-AUTHORED action's vuln_signal (self_script/
+        nuclei_template) is re-scored through the REAL _confirmation_strength
+        gate, not just its own self-reported `confirmed` flag; and lacking any
+        structured vuln_signal at all (pure narrative reasoning, no engine/
+        probe oracle) is treated as unproven -- a human-verifiable lead, never
+        a framework-certified proven finding. The AI's own `severity`/
+        `confidence` params can never override this; the computed strength here
+        is authoritative, same as the framework-automatic path.
+
+        Returns (strength, reason).
+        """
+        supporting = [
+            v for v in evidence_store.validations.values()
+            if v.hypothesis_id == hypothesis_id and v.verdict == "supports"
+        ]
+        if not supporting:
+            return "lead", "no supporting validation on record"
+
+        best_strength = "lead"
+        best_reason = "no structured vuln_signal in any supporting observation -- unverified narrative only"
+        for val in supporting:
+            obs = getattr(val, "observation", None)
+            facts = getattr(obs, "parsed_facts", None) if obs else None
+            vuln_signal = facts.get("vuln_signal") if isinstance(facts, dict) else None
+            if not isinstance(vuln_signal, dict) or not vuln_signal.get("confirmed"):
+                continue
+            action_id = getattr(obs, "action_id", None) or getattr(val, "action_id", "unknown")
+            strength, reason = self._confirmation_strength(action_id, vuln_signal)
+            if strength == "proven":
+                return "proven", reason  # a single genuinely proven citation is enough
+            if best_strength != "proven":
+                best_strength, best_reason = "lead", reason
+        return best_strength, best_reason
+
     def _handle_record_finding(self, proposal, evidence_store) -> Dict[str, Any]:
         """
         AI decision verb (full C1 extension): attempt to promote a hypothesis into a
@@ -1027,6 +1084,10 @@ class BaseAgent:
         satisfied, regardless of what the AI claims. This method only shapes the AI's
         parameters into that call and relays the framework's verdict; it adds no
         additional trust of its own.
+
+        `strength` is NEVER taken from the AI -- see _compute_finding_strength()'s
+        docstring for the live incident that made this a hard requirement, not a
+        style preference.
         """
         params = proposal.parameters or {}
         hypothesis_id = params.get("hypothesis_id")
@@ -1056,6 +1117,8 @@ class BaseAgent:
                 ),
             }
 
+        strength, strength_reason = self._compute_finding_strength(hypothesis_id, evidence_store)
+
         finding, msg = evidence_store.record_finding(
             hypothesis_id=hypothesis_id,
             title=title,
@@ -1066,6 +1129,7 @@ class BaseAgent:
             reproducible_steps=reproducible_steps,
             impact=impact,
             confidence=confidence,
+            strength=strength,
         )
         if finding is None:
             # can_create_finding() refused -- e.g. hypothesis not yet confirmed, or no
@@ -1076,7 +1140,10 @@ class BaseAgent:
         return {
             "status": "success",
             "finding_id": finding.finding_id,
-            "result_summary": f"Finding {finding.finding_id} ({severity}) recorded: {title}",
+            "result_summary": (
+                f"Finding {finding.finding_id} ({severity}) recorded as strength={strength} "
+                f"({strength_reason}): {title}"
+            ),
         }
 
     def _handle_update_app_model(self, proposal, evidence_store) -> Dict[str, Any]:
