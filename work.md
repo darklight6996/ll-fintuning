@@ -2783,3 +2783,70 @@ history and training trajectories). Implementation log entry appended below afte
   headless Tier 2 step simply halts that step.
 - status: done, NOT committed.
 - next: operator review (esp. the MUST-PRESERVE #2 note above); workstreams C/D on their own prompts.
+
+### [2026-11-28 21:45 +05:00] claude-opus — BUILD SPEC v1 workstream C IMPLEMENTED (free-form-reason-then-convert #13 + widened/relevance-ordered candidates #4/#5); 581 passed/8 skipped
+- scope: workstream C ONLY (core/ai_planner.py + tests). Did NOT touch A (truncation/leak render budgets),
+  B (gate/command_executor/action_contract), or D (OOB/confirmation). Committed: nothing (task said log).
+
+- PART 1 — FREE-FORM-THEN-CONVERT OUTPUT CONVENTION (#13):
+  * NEW convention (prompt): the model REASONS in free prose, then ends with EXACTLY ONE fenced
+    ```action block containing the decision as compact JSON OR simple `key: value` lines. Everything
+    OUTSIDE the block is reasoning and is IGNORED by the parser; if multiple blocks appear, the LAST
+    wins. Updated RULES #1/#7, the OUTPUT FORMAT example (now wrapped in a ```action fence), and
+    _FINAL_DECISION_INSTRUCTION to teach it. Reasoning stays ON and the 3072-token budget is unchanged
+    (not re-narrowed).
+  * EXTRACTION PIPELINE in decide_next(), fail-safe, in order:
+      1. DETERMINISTIC parse of the ```action block (_extract_action_block -> _parse_action_block_text):
+         tries full-JSON, then an embedded JSON object, then `key: value` lines. Reuses the existing
+         forgiving validation (_build_proposal_from_data: lifts stray top-level keys into parameters,
+         validates decision/verb-params/confidence). NO model call. Falls back to the whole-response
+         JSON scan (_extract_json_object) so strict-JSON callers keep working byte-identically.
+      2. If deterministic parse fails/ambiguous: ONE normalization call to a CHEAP model
+         (_normalize_with_cheap_model -> _get_normalizer), configured via PLANNER_NORMALIZER_MODEL
+         (a small local/OpenRouter model, built lazily via LLMService(model_name_override=...)); NEVER
+         the primary reasoning model (self.chat_assistant). Unset/unavailable -> skipped. prompt =
+         "convert this action block to the action schema JSON".
+      3. If that fails: corrective retry (regenerate with an error hint) within MAX_JSON_RETRIES; the
+         existing PLANNER_REASON_THEN_FORMAT pre-pass still runs ahead of the loop as the other fallback.
+      4. If ALL fail: raise ValueError with a clear message -- NEVER fabricates an action, never silently
+         drops the decision.
+  * FAIL-SAFE action_id check (_reject_if_unregistered): a propose_action naming an action_id not in the
+    registry is REJECTED in the planner (feeds the retry loop, then the clear final error) -- the
+    free-form path is not a way around classification or B's gate (the executor's Gate 1 still
+    re-validates too). Non-action decisions (completion / evidence verbs) are never rejected on this.
+
+- PART 2 — WIDEN + REORDER CANDIDATE PRESENTATION (#4/#5):
+  * ORDERING (#5): _suspicion_candidates now returns candidate classes as a RELEVANCE-ORDERED LIST
+    (strongest evidence first), not an unordered set. Ranking = evidence weight desc, then a
+    discovery-order tiebreak ("order" index) -- explicitly NEVER alphabetical. Fixed the two consumers in
+    _retrieve_technique_knowledge that imposed alphabetical order: the "suspected:" retrieval hint now
+    joins in relevance order (was sorted()), and the deterministic payload-pack now keys on
+    list(candidate_classes)[0] = the STRONGEST lead (was sorted(...)[0], which showed the pack for the
+    alphabetically-first class, e.g. idor before ssrf -- the actual #5 bug). list(...) keeps it set-safe
+    for external callers.
+  * ADVISORY (#4): the candidate block is prefixed with an explicit line stating it is ADVISORY, ranked
+    by evidence, NOT a menu/filter -- the model MAY pursue a class not listed or form a hypothesis with
+    vuln_class=None (consistent with B Part 3's engine-access loosening). Candidates never filter; the
+    gate governs what runs.
+
+- TESTS: NEW tests/test_freeform_output.py (13): prose+```action JSON parses deterministically with NO
+  model call; key:value block parses; LAST block wins; prose outside the block is ignored; ambiguous
+  block triggers the mocked cheap normalizer -> valid proposal (no corrective retry); UNKNOWN action_id
+  rejected (both via decide_next and the _reject_if_unregistered helper); all-parse-failure raises and
+  fabricates nothing; strict-JSON backward compat; reason-then-format still works with a block; candidates
+  ordered by relevance not alphabetically; candidates advisory (names vuln_class=None); candidate_classes
+  is an ordered list. UPDATED tests/test_dynamic_output_example.py (its _example_json_from helper now
+  raw_decodes, since the example lives inside a ```action fence -> trailing text after the object).
+
+- FULL SUITE: `python -m pytest` = 581 passed, 8 skipped, 14 warnings (workstream-B baseline 568 + 13 new).
+  Zero regressions. Diff: core/ai_planner.py + tests/test_freeform_output.py (new) +
+  tests/test_dynamic_output_example.py (helper). base_agent.py / command_executor.py / action_contract.py
+  (A/B) untouched; no OOB/confirmation (D) changes; the AIActionProposal JSON contract is unchanged (the
+  block just carries the same schema).
+- known limitations: the cheap normalizer is built from PLANNER_NORMALIZER_MODEL via a direct LLMService
+  load (not wired through get_llm_service's role cache) -- fine for a rare fallback, but a dedicated
+  "normalizer" role in llm_service/config would be cleaner. key:value blocks can't express nested
+  parameters or real lists (a single value becomes a string; base_agent/EvidenceStore re-verify ids
+  anyway) -- JSON remains the richer form for complex params.
+- status: done, NOT committed.
+- next: operator review; workstream D (OOB/confirmation) on its own prompt.

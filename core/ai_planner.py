@@ -148,7 +148,10 @@ DECISIONS (choose exactly one per turn):
    reject premature completion and tell you exactly what is still missing.
 
 RULES (NON-NEGOTIABLE):
-1. You MUST return exactly one JSON object — no markdown, no explanation outside JSON.
+1. REASON FREELY in prose first (think out loud -- this is encouraged, not penalized),
+   then end with EXACTLY ONE fenced ```action block containing your chosen decision as
+   compact JSON OR simple `key: value` lines. Everything OUTSIDE the block is reasoning
+   and is ignored by the parser. If you emit more than one block, only the LAST is used.
 2. You MUST only use action_id values from the "REGISTERED ACTIONS" list for propose_action.
 3. You MUST NOT emit shell commands, shell strings, or argv vectors.
 4. REGISTERED ACTIONS below already excludes any action whose retry budget is exhausted -- it is simply not listed as an option any more (see RETRY STATUS for which ones). If REGISTERED ACTIONS is empty, you MUST choose "propose_completion" or an evidence-chain decision instead of re-proposing something already exhausted.
@@ -157,10 +160,9 @@ RULES (NON-NEGOTIABLE):
    framework checks every id against what actually exists in the evidence store.
 6. A hypothesis cannot become a Finding until it has been explicitly validated with
    "record_validation" and verdict="supports". Running an action is not enough by itself.
-7. Do NOT add commentary, annotations, or comments of ANY kind anywhere inside or
-   around the JSON object -- not a parenthetical note, not a // line comment, not a
-   /* */ block comment, nothing. Output ONLY the raw JSON object: no text before it, no text after it,
-   and no extra text of any kind inside it.
+7. INSIDE the ```action block put ONLY the action itself (JSON or key: value) -- no
+   comments, parentheticals, // line comments, or /* */ blocks inside the block. All your
+   commentary and reasoning belong OUTSIDE the block, where they are read but not parsed.
 8. The OUTPUT FORMAT example below is rebuilt fresh every turn from the CURRENT
    REGISTERED ACTIONS and RETRY STATUS below -- its action_id and rationale are a
    SHAPE to copy, not a recommendation. Always re-derive
@@ -178,9 +180,12 @@ A vulnerability is PROVEN only by a DISTINCTIVE POSITIVE or an OBSERVABLE INVARI
 - RCE: command execution output quoted.
 Always send a CONTROL that SHOULD fail, and treat it as proof only if the control fails AND the attack succeeds. NEVER call something confirmed because "responses differ", a status code changed, or generic text like "login"/"admin" appears -- those are LEADS, not proof. In a self_script, put the proof in an `evidence` field inside the vuln_signal; a confirmed signal with no evidence is recorded only as a LEAD for human review, never as a solved finding.
 
-OUTPUT FORMAT (__EXAMPLE_DECISION__ example -- copy this JSON SHAPE, but replace every
-value with one that fits the CURRENT state above, not these example values):
+OUTPUT FORMAT -- reason in prose first if useful, then END with ONE fenced action block
+(__EXAMPLE_DECISION__ example -- copy this SHAPE, but replace every value with one that fits
+the CURRENT state above, not these example values). Minimal JSON or `key: value` lines both work:
+```action
 __EXAMPLE_JSON__
+```
 """
 
 def _render_system_prompt(example_action_id, example_rationale: str, example_proposal=None) -> str:
@@ -372,10 +377,11 @@ move to the next one instead of re-testing it.
 # REASON-THEN-FORMAT path (below) can swap it out for a free-prose variant on
 # Call 1 while reusing the identical rendered prompt otherwise.
 _FINAL_DECISION_INSTRUCTION = (
-    'Propose the next action, evidence-chain step, or completion. Return ONLY one compact JSON object '
-    '-- no text around it. Keep "description" and "rationale" to ONE short sentence each (<=200 chars); '
-    'put NO multi-paragraph reasoning, essays, or comment-blocks inside any JSON field -- an over-long '
-    'field overruns the token budget, truncates the JSON, and is rejected.'
+    'Decide the next action, evidence-chain step, or completion. Reason in prose first if it helps, '
+    'then END with EXACTLY ONE fenced ```action block containing the decision as compact JSON OR simple '
+    '`key: value` lines (decision, action_id, target, parameters, rationale, confidence as needed). '
+    'Everything outside the block is ignored; if multiple blocks appear, the LAST is used. Keep the block '
+    'itself minimal -- one short sentence for "rationale", no essays or comments INSIDE the block.'
 )
 
 # Call 1's instruction (REASON-THEN-FORMAT, free-prose pass): deliberately the
@@ -393,6 +399,12 @@ _REASONING_ONLY_INSTRUCTION = (
     "will convert this into the required strict JSON format, so be specific enough for that conversion "
     "to be mechanical, not another judgment call."
 )
+
+
+# Free-form-then-convert (#13): the fenced block the model ends with. Tagged
+# ```action specifically, so the parser can tell the decision block apart from
+# any other code fences the model's prose might contain.
+_ACTION_BLOCK_RE = re.compile(r"```[ \t]*action[ \t]*\r?\n(.*?)```", re.DOTALL | re.IGNORECASE)
 
 
 class AIPlanner:
@@ -416,6 +428,11 @@ class AIPlanner:
         self.registry = registry
         self.chat_assistant = chat_assistant
         self.scope = scope
+        # Cheap-model NORMALIZER for the free-form-then-convert fallback (#13).
+        # None = not yet resolved; False = tried and unavailable; otherwise a
+        # client with a generate_raw() interface. NEVER the primary reasoning
+        # model. Tests inject a fake here directly.
+        self._normalizer = None
 
     def decide_next(
         self,
@@ -492,45 +509,194 @@ class AIPlanner:
         last_error: Optional[str] = None
 
         for attempt in range(self.MAX_JSON_RETRIES):
+            raw_output = self.chat_assistant.generate_raw(
+                prompt=prompt,
+                max_new_tokens=3072,  # generous; reasoning prose + the action block both fit
+                system_prompt=system_prompt,
+                # M1: nudge decoding toward a real, registered action_id (advisory
+                # only -- see core/constrained_decoding.py). Gate 1 registry
+                # validation in command_executor.py remains authoritative.
+                action_id_choices=[a.action_id for a in self.registry.list_actions()],
+            )
+
+            # EXTRACTION PIPELINE (#13), fail-safe, in order:
+            # 1. Deterministic parse of the ```action block (prose ignored).
             try:
-                raw_output = self.chat_assistant.generate_raw(
-                    prompt=prompt,
-                    max_new_tokens=3072,  # was 512 -- too small; verbose decisions truncated the JSON (run-abort root cause)
-                    system_prompt=system_prompt,
-                    # M1: nudge decoding toward a real, registered action_id in the
-                    # "action_id" JSON field (advisory only -- see
-                    # core/constrained_decoding.py). Gate 1 registry validation in
-                    # command_executor.py is unchanged and remains authoritative.
-                    action_id_choices=[a.action_id for a in self.registry.list_actions()],
-                )
                 proposal = self._parse_proposal(raw_output)
+                self._reject_if_unregistered(proposal)
                 return proposal
             except (json.JSONDecodeError, ValueError, KeyError) as exc:
-                last_error = str(exc)
-                if attempt < self.MAX_JSON_RETRIES - 1:
-                    # Add error context to prompt for retry
-                    prompt += (
-                        f"\n\n[RETRY {attempt + 1}] Your previous response was truncated or could "
-                        f"not be parsed as valid JSON: {last_error}. Reply with ONLY one compact JSON "
-                        f"object and nothing else. Keep 'description' and 'rationale' to ONE short "
-                        f"sentence each -- do NOT narrate your reasoning inside the JSON."
-                    )
+                last_error = f"deterministic: {exc}"
 
+            # 2. ONE normalization call to a CHEAP model (never the primary brain)
+            #    to convert the free-form action into schema JSON.
+            try:
+                normalized = self._normalize_with_cheap_model(raw_output)
+                if normalized:
+                    proposal = self._build_proposal_from_data(self._extract_json_object(normalized))
+                    self._reject_if_unregistered(proposal)
+                    return proposal
+            except (json.JSONDecodeError, ValueError, KeyError) as exc:
+                last_error = f"{last_error} | normalizer: {exc}"
+
+            # 3. Corrective retry: regenerate with an error hint (and, if enabled,
+            #    the reason-then-format pre-pass already ran above). Fall through.
+            if attempt < self.MAX_JSON_RETRIES - 1:
+                prompt += (
+                    f"\n\n[RETRY {attempt + 1}] Your previous response could not be parsed into a "
+                    f"valid action: {last_error}. End your reply with EXACTLY ONE fenced ```action "
+                    f"block containing a compact JSON object (or key: value lines) with a valid "
+                    f"'decision' and, for propose_action, a registered 'action_id'. Reasoning prose "
+                    f"outside the block is fine and ignored."
+                )
+
+        # 4. ALL paths failed -- reject with a clear error. NEVER fabricate an
+        #    action or silently drop the model's decision.
         raise ValueError(
-            f"AIPlanner.decide_next() failed after {self.MAX_JSON_RETRIES} attempts. "
-            f"Last error: {last_error}. Last raw output: {str(raw_output)[:300]}"
+            f"AIPlanner.decide_next() failed to extract a valid action after "
+            f"{self.MAX_JSON_RETRIES} attempts (deterministic parse + cheap-model normalizer + "
+            f"corrective retries all failed). Last error: {last_error}. "
+            f"Last raw output: {str(raw_output)[:300]}"
         )
+
+    def _reject_if_unregistered(self, proposal: AIActionProposal) -> None:
+        """Fail-safe (consistent with the risk-tier gate): a propose_action whose
+        action_id is not a registered action is REJECTED here, so the free-form
+        path can never smuggle an unknown/unclassified action past the gate. The
+        executor's Gate 1 re-validates too; this just rejects earlier and feeds
+        the retry loop a clear reason."""
+        if proposal.decision != "propose_action":
+            return
+        registered = {a.action_id for a in self.registry.list_actions()}
+        if proposal.action_id not in registered:
+            raise ValueError(
+                f"unknown/unregistered action_id {proposal.action_id!r} -- rejected "
+                f"(not in REGISTERED ACTIONS; the free-form path is not a way around "
+                f"classification or the gate)."
+            )
+
+    def _get_normalizer(self):
+        """Lazily resolve a CHEAP model client (generate_raw interface) for action
+        normalization, or None. NEVER the primary reasoning model. Configured via
+        PLANNER_NORMALIZER_MODEL (+ optional backend env read by LLMService);
+        unset or unavailable -> None (pipeline simply skips to the next fallback).
+        Tests inject a fake into self._normalizer directly."""
+        if self._normalizer is False:
+            return None
+        if self._normalizer is not None:
+            return self._normalizer
+        model = os.environ.get("PLANNER_NORMALIZER_MODEL")
+        if not model:
+            self._normalizer = False
+            return None
+        try:
+            from core.services.llm_service import LLMService
+            svc = LLMService(verbose=False, model_name_override=model)
+            if getattr(svc, "is_available", False):
+                self._normalizer = svc
+                return svc
+        except Exception:
+            pass
+        self._normalizer = False
+        return None
+
+    def _normalize_with_cheap_model(self, raw: str) -> Optional[str]:
+        """ONE cheap-model call to convert a free-form action decision into schema
+        JSON. Returns the model's raw text, or None if no normalizer is available
+        or the call fails (fail-safe: the pipeline then moves on)."""
+        client = self._get_normalizer()
+        if client is None:
+            return None
+        convert_prompt = (
+            "Convert the action the assistant chose in the text below into ONE compact JSON object "
+            "with keys: decision, action_id, target, parameters, rationale, confidence. Output ONLY "
+            "the JSON object -- no prose, no code fence.\n\n--- assistant response ---\n"
+            + str(raw)[:4000]
+        )
+        try:
+            return client.generate_raw(
+                prompt=convert_prompt,
+                max_new_tokens=512,
+                system_prompt="You convert a free-form action decision into one strict JSON object.",
+            )
+        except Exception:
+            return None
 
     def _parse_proposal(self, raw: str) -> AIActionProposal:
         """
-        Extract and validate the JSON proposal from the AI's raw output.
-        Handles markdown code fences and leading/trailing text.
+        Free-form-then-convert (#13): the model reasons in free prose and ends with
+        ONE fenced ```action block (compact JSON OR simple key: value lines).
+        Everything outside the block is reasoning and is ignored. If multiple
+        blocks appear, the LAST is used. Falls back to scanning the whole response
+        for a decision-bearing JSON object, so strict-JSON callers still work.
         """
         if not raw or not raw.strip():
             raise ValueError("AI returned empty response.")
+        data = self._extract_action_data(raw)
+        return self._build_proposal_from_data(data)
 
-        data = self._extract_json_object(raw)
+    def _extract_action_data(self, raw: str) -> Dict[str, Any]:
+        """Prefer the LAST fenced ```action block (JSON or key: value); else fall
+        back to the whole-response JSON scan."""
+        block = self._extract_action_block(raw)
+        if block is not None:
+            data = self._parse_action_block_text(block)
+            if data is not None:
+                return data
+        # Fallback: scan the whole response (handles ```json fences + bare JSON).
+        return self._extract_json_object(raw)
 
+    @staticmethod
+    def _extract_action_block(raw: str) -> Optional[str]:
+        """Return the inner text of the LAST ```action ... ``` fenced block, or
+        None if there is no action-tagged block."""
+        blocks = _ACTION_BLOCK_RE.findall(raw or "")
+        if not blocks:
+            return None
+        return blocks[-1].strip()
+
+    def _parse_action_block_text(self, text: str) -> Optional[Dict[str, Any]]:
+        """Parse an ```action block's inner text, tolerating both minimal-JSON and
+        simple `key: value` forms. Returns a dict, or None if nothing parseable."""
+        text = (text or "").strip()
+        if not text:
+            return None
+        # 1. The block IS a JSON object.
+        try:
+            obj = json.loads(text)
+            if isinstance(obj, dict):
+                return obj
+        except (json.JSONDecodeError, ValueError):
+            pass
+        # 2. A JSON object embedded inside the block.
+        try:
+            return self._extract_json_object(text)
+        except ValueError:
+            pass
+        # 3. Simple `key: value` lines (one per line).
+        data: Dict[str, Any] = {}
+        for line in text.splitlines():
+            line = line.strip()
+            if not line or line.startswith(("#", "//")):
+                continue
+            if ":" not in line:
+                continue
+            k, v = line.split(":", 1)
+            k = k.strip().strip("\"'")
+            v = v.strip().rstrip(",").strip().strip("\"'")
+            if k:
+                data[k] = v
+        if not data:
+            return None
+        # A key:value block naming an action but no explicit decision -> propose_action.
+        if "decision" not in data and data.get("action_id"):
+            data["decision"] = "propose_action"
+        return data
+
+    def _build_proposal_from_data(self, data: Dict[str, Any]) -> AIActionProposal:
+        """Validate a parsed action dict (from any source) and build the typed
+        AIActionProposal. NEVER fabricates: a dict missing a decision, or with an
+        invalid one, raises -- it is not silently coerced into some default."""
         # Validate required fields
         if "decision" not in data:
             raise ValueError("Missing 'decision' field in AI proposal.")
@@ -1083,7 +1249,7 @@ class AIPlanner:
         self,
         evidence_store,
         available_action_ids: List[str],
-        candidate_classes: Optional[set] = None,
+        candidate_classes: Optional[list] = None,  # relevance-ordered (not a set); see #5
     ) -> str:
         """
         Build a retrieval query from the current assessment state and ask the
@@ -1121,7 +1287,9 @@ class AIPlanner:
             # strongest retrieval signal -- pull the playbook for what we actually
             # see (e.g. "ssrf", "idor"), not just the generic action list.
             if candidate_classes:
-                parts.append("suspected: " + ", ".join(sorted(candidate_classes)))
+                # Preserve the relevance ORDER from _suspicion_candidates (strongest
+                # first) -- do NOT re-sort alphabetically (#5).
+                parts.append("suspected: " + ", ".join(candidate_classes))
 
             # Most salient state: recent confirmed findings + discovered-fact keys.
             recent_findings = list(evidence_store.findings.values())[-3:]
@@ -1151,7 +1319,12 @@ class AIPlanner:
             if candidate_classes:
                 try:
                     from core.payload_pack import build_payload_pack
-                    pack = build_payload_pack(sorted(candidate_classes)[0], max_chars=900)
+                    # list(...)[0] is the STRONGEST lead by evidence (the internal
+                    # caller passes a relevance-ordered list; list() also tolerates a
+                    # set from external callers). NOT sorted(...)[0] -- that showed the
+                    # payload pack for whichever class sorted first by NAME (#5 fix:
+                    # e.g. idor before ssrf).
+                    pack = build_payload_pack(list(candidate_classes)[0], max_chars=900)
                 except Exception:
                     pack = ""
 
@@ -1465,7 +1638,7 @@ class AIPlanner:
 
         if not pairs and not reflected:
             return ("  (none yet -- run coverage first: endpoint_discovery, param_fuzz, "
-                    "browser_probe to surface parameters, forms, and endpoints.)", set())
+                    "browser_probe to surface parameters, forms, and endpoints.)", [])
 
         # --- signature table (general, class-keyed) ---
         SSRF = {"url","uri","link","src","source","dest","destination","redirect","redir",
@@ -1591,8 +1764,13 @@ class AIPlanner:
             out.sort(key=lambda t: t[1], reverse=True)
             for cls, w in out[:2]:
                 k = (cls, name)
-                if k not in best or w > best[k]["weight"]:
-                    best[k] = {"weight": w, "ep": ep, "cls": cls, "name": name}
+                if k not in best:
+                    # "order" = discovery index -> a deterministic, NON-alphabetical
+                    # tiebreak for equal-evidence candidates (#5).
+                    best[k] = {"weight": w, "ep": ep, "cls": cls, "name": name, "order": len(best)}
+                elif w > best[k]["weight"]:
+                    best[k]["weight"] = w
+                    best[k]["ep"] = ep
 
         for name, val, ep in pairs:
             consider(name, val, ep)
@@ -1602,14 +1780,18 @@ class AIPlanner:
         if not best:
             return ("  (parameters/forms were seen but none match a known vuln signature; "
                     "use param_fuzz / browser_probe for deeper coverage, or self_script for a "
-                    "bespoke test if you suspect something specific.)", set())
+                    "bespoke test if you suspect something specific.)", [])
 
-        ranked = sorted(best.values(), key=lambda d: d["weight"], reverse=True)[:6]
+        # Rank by EVIDENCE weight (desc), then discovery order -- NEVER alphabetical
+        # (#5): alphabetical order must not decide what the model sees first.
+        ranked = sorted(best.values(), key=lambda d: (-d["weight"], d.get("order", 0)))[:6]
         lines = []
-        classes = set()
+        classes = []  # relevance-ORDERED list (strongest first), not an unordered set
         exhausted = exhausted_action_ids or set()
         for d in ranked:
-            cls = d["cls"]; classes.add(cls)
+            cls = d["cls"]
+            if cls not in classes:
+                classes.append(cls)
             on = f' on {d["ep"]}' if d.get("ep") else ""
             method = param_method.get(d["name"])
             method_hint = (f" Submit it with the {method} method (the form's method), "
@@ -1635,7 +1817,13 @@ class AIPlanner:
                     f'assumption in your OWN words (name a class only if you recognize one); '
                     f'then test it (use self_script{_spec}).'
                 )
-        return ("\n".join(lines), classes)
+        advisory = (
+            "  (ADVISORY, ranked by evidence -- NOT a menu or a filter: these are leads, "
+            "strongest first. You MAY pursue a class not listed here, or form a hypothesis "
+            "with no class at all (vuln_class=None). The approval gate, not this list, "
+            "governs what actually runs.)"
+        )
+        return (advisory + "\n" + "\n".join(lines), classes)
 
 
     def _format_sweep_coverage(self, evidence_store) -> str:

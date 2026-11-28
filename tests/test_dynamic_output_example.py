@@ -53,7 +53,11 @@ def _example_json_from(system_prompt: str):
     idx = system_prompt.find("OUTPUT FORMAT")
     assert idx != -1
     brace = system_prompt.find("{", idx)
-    return json.loads(system_prompt[brace:])
+    # The example JSON now lives inside a ```action fenced block (workstream C
+    # output convention), so there is trailing text (the closing fence) after the
+    # object -- use raw_decode to parse just the object and ignore the rest.
+    obj, _end = json.JSONDecoder().raw_decode(system_prompt[brace:])
+    return obj
 
 
 def test_example_action_id_shifts_once_first_action_is_exhausted():
