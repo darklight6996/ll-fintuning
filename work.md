@@ -2391,3 +2391,81 @@ rounds) -- a consistent, repeatedly-applied exclusion principle, not a one-off j
   the same way every prior run in this log was analyzed, and report the three deliverables: the solved
   lab + evidence + curl (or an honest documented failure + the exact gap), the pytest proof pasted above,
   and this log entry itself.
+
+### [2026-11-28 08:05 +05:00] claude-sonnet -- lab URL + OpenRouter key received; live run surfaced ANOTHER critical rigor gap (record_finding defaulted to proven with zero check); fixed; original run interrupted and flagged as contaminated
+
+- operator supplied the lab URL (`https://0ad400bd04b8f31680c076fa00b90072.web-security-academy.net/`)
+  and an OpenRouter API key (NVIDIA's free-tier `nvidia/nemotron-3-ultra-550b-a55b:free`, 550B
+  reasoning model) pasted directly in chat. Flagged to the operator that this means the key is now in
+  the conversation transcript and should be considered exposed / worth rotating -- did NOT print the
+  key anywhere (a direct attempt to print it was correctly blocked by the permission system), used it
+  only via env vars set inline in the one shell command that needed it, per turn (never written to any
+  file, never `setx`'d into the persistent registry).
+- Ran `python run_portswigger_lab.py <url> --blind --sweep --max-steps 40` myself, in the user's
+  Terminal panel (per their request to watch it), with `PENTEST_LAB_AUTO_APPROVE=1` -- confirmed the
+  no-silent-fallback check correctly printed `Brain backend: openrouter -- nvidia/nemotron-3-ultra-
+  550b-a55b:free` and every `[LAB AUTO-APPROVE]` gate fired loudly with no human asked, exactly as
+  designed.
+- Reasoning trace up to the interrupt (good -- recon_scan -> endpoint_discovery -> a genuine,
+  surface-grounded UPDATE_APP_MODEL citing the real `/product?productId=` endpoint -> a specific IDOR
+  hypothesis on `productId`): this frontier model reasons noticeably better than the local 35B at the
+  hypothesis-formation stage, consistent with the task's own premise that the TOOL, not the brain, is
+  what needed proving.
+- **CRITICAL GAP FOUND, LIVE, AT STEP 8**: a `self_script` (step 6) used its own naive heuristic --
+  "any productId in 16-24 that returns HTTP 200 with content differing from the control" -- and set
+  `vuln_signal.confirmed=True` purely on that basis (no admin/hidden/secret keyword match required at
+  all in its own code, despite the script's comments claiming otherwise). Step 7's `record_validation`
+  verdict='supports' was CORRECTLY accepted by yesterday's `_validate_supports_claim` fix (that
+  function's contract is to trust a cited vuln_signal's own `confirmed` flag -- working as designed).
+  But step 8's `record_finding` then recorded this as a **"proven" medium-severity IDOR finding** --
+  because `_handle_record_finding()` NEVER passed a `strength` argument to
+  `EvidenceStore.record_finding()` AT ALL, so it silently defaulted to `strength="proven"` on every
+  single AI-driven record_finding call, with ZERO re-application of `_confirmation_strength`'s WEAK-
+  keyword scrutiny to that same self_script's weak evidence. This is the SAME class of bug the
+  operator's own earlier report (2026-11-26) diagnosed and I partially fixed -- that fix closed the
+  `record_validation` half of the gap; this run proved the `record_finding` half was still wide open.
+  Interrupted the run at step 10 (`Ctrl-C` via the terminal tool) the moment this was confirmed, rather
+  than let it reach `propose_completion` on a false positive.
+  Result at interrupt: `{"status":"interrupted","steps_run":10,"findings_count":4,"proven_findings":1,
+  "leads":1}` -- that 1 "proven" finding is the false positive just described.
+- **CONTAMINATED TRAINING DATA, flagged not silently fixed**: the interrupted run's trajectory was
+  ALREADY appended before I could intervene (the orchestrator's `KeyboardInterrupt` handler still
+  writes training data on the way out) -- **line 32 (the last line) of BOTH
+  `data/portswigger_trajectories_raw.jsonl` and `data/portswigger_trajectories_chatml.jsonl`** is this
+  exact false-positive IDOR record (session `bug_bounty_autohunt_1795852409`). The chatml record's own
+  closing line also reads "4 confirmed finding(s) were recorded for this lab" -- worth noting
+  separately, `_build_chatml_record`'s phrasing calls every recorded Finding "confirmed" regardless of
+  `strength`, which is misleading wording even where the rigor itself is fine; not fixed in this pass.
+  NEITHER file was edited/pruned by me -- append-only logs are not mine to silently rewrite -- but this
+  is now the explicit candidate for exclusion (or `verified_solution: false`) the moment the
+  quarantine-field follow-on from the 2026-11-26 report gets built.
+- **FIX**: new `agents/base_agent.py::_compute_finding_strength(hypothesis_id, evidence_store)` --
+  walks every supporting `Validation`'s cited `Observation` for the hypothesis; a framework ENGINE's
+  confirmed `vuln_signal` is trusted fully (unchanged); a MODEL-AUTHORED action's `vuln_signal`
+  (self_script/nuclei_template) is re-scored through the REAL `_confirmation_strength()` gate, not just
+  its own self-reported `confirmed` flag; a supporting validation with NO structured `vuln_signal` at
+  all (pure narrative reasoning, no probe/engine oracle) is treated as an unproven lead. A single
+  genuinely proven citation is enough to accept "proven" (short-circuits), but nothing can manufacture
+  "proven" from weak/absent evidence. `_handle_record_finding()` now ALWAYS uses this computed
+  strength; the AI's own `severity`/`confidence` params can never override it (tested explicitly).
+  Verified directly against the live evidence string
+  (`"Found 2 productIds with 200 OK and different content: 16 (len=1234), 17 (len=1240)"` -- note
+  "differ" is a substring of "different", so this ALSO already demotes via the existing WEAK-phrase
+  check, confirming the fix engages the right code path) before writing tests.
+- 6 new tests in `tests/test_record_finding_strength.py`: the exact live incident reproduced verbatim
+  (`test_live_incident_self_script_weak_len_diff_yields_lead_not_proven`), a framework-engine-confirmed
+  signal still yields proven, a model-authored probe with REAL concrete evidence (LFI file disclosure)
+  still yields proven, no-vuln_signal-at-all yields lead, the AI's severity/confidence params cannot
+  override the computed strength, and no-supporting-validation yields a clear reason.
+  `python -m pytest`: 536 passed, 8 skipped, 0 failed (up from 530). Committed as `c2e64300`.
+- status: INFRA now has TWO rigor layers verified against a REAL live run (not just synthetic tests) in
+  two sessions running -- `record_validation`'s evidence-binding (2026-11-26) and now
+  `record_finding`'s strength computation (today). Both gaps were found by actually RUNNING the tool
+  end-to-end against a real lab with a real frontier brain, exactly what STAGE 0 asked for, even though
+  neither run has yet produced a genuinely proven finding.
+- next: re-run the SAME lab (same URL, fresh session -- the interrupted session's partial state is not
+  resumed) now that `_compute_finding_strength` is live, with the fix actually in the loop this time.
+  Watch specifically whether the `productId` IDOR line of investigation now correctly stays a `lead`
+  (expected, given the evidence seen so far is all weak diff-based) and whether the sweep's coverage
+  ledger steers the model toward trying a DIFFERENT class/endpoint instead of re-testing the same weak
+  signal. Still chasing STAGE 0's actual milestone: one genuinely PROVEN finding with a working curl.
