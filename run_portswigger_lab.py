@@ -222,6 +222,14 @@ def run_lab(lab_url: str, lab_name: str = "", max_steps: int = 25, verbose: bool
     lab_name = lab_name or lab_url
     hostname = _lab_hostname(lab_url)
 
+    # Declare this as a LAB engagement for the risk-tiered approval gate
+    # (BUILD SPEC v1 workstream B). This marks the target "lab" so Tier 0/1
+    # actions auto-proceed on fake-data lab instances; Tier 2 (dangerous) still
+    # requires approval unless PENTEST_LAB_AUTO_APPROVE[_DANGEROUS]=1 is set.
+    # run_target.py sets this to "real" and refuses the lab flags, so real
+    # targets are never mis-tiered.
+    os.environ["PENTEST_TARGET_KIND"] = "lab"
+
     # NO SILENT FALLBACK (2026-11-27): verify which brain is ACTUALLY going to
     # serve this run before doing anything else. llm_service.py's CPU path is a
     # real, working code path (useful for quick dev smoke tests), which is

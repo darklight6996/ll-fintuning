@@ -108,26 +108,32 @@ class AIActionProposal(BaseModel):
 
 def action_is_unlocked(defn, open_vuln_classes, any_suspicion_exists: bool) -> bool:
     """
-    Suspicion gate (2026-11-16). Decide whether an action may be offered to the
-    planner GIVEN the current evidence chain.
+    Suspicion gate. Decide whether an action may be OFFERED to the planner given
+    the current evidence chain.
 
-    - An action with requires_suspicion=False is ALWAYS unlocked (recon/coverage).
-    - A gated action with a concrete vuln_class is unlocked only when an open or
-      confirmed Hypothesis of that SAME class exists (e.g. sqlmap unlocks once an
-      'sqli' suspicion is on record -- not before).
-    - A gated action with vuln_class=None (a generic weapon such as self_script,
-      vuln_validation, or a broad scanner like nuclei) is unlocked once ANY
-      suspicion exists at all -- i.e. the model has formed a hypothesis to test.
+    SUSPICION-BEFORE-FIRING is preserved: an offensive/gated action is still
+    withheld until the model has formed at least one open hypothesis. What
+    changed (BUILD SPEC v1 workstream B, Part 3) is that the vuln_class STRING
+    match is no longer a HARD LOCK -- it is a soft prioritization hint handled by
+    the planner's ranking, not an access control. The SVG-lab failure showed a
+    mis-inferred class locking the model out of the correct specialist engine and
+    forcing a buggy self_script; this removes that failure mode. Which engine
+    actually RUNS is governed by the risk-tiered approval + blast-radius gate in
+    command_executor.py (Parts 1-2), not by the class label, so loosening the
+    OFFER is safe.
 
-    `open_vuln_classes` is the set of vuln_class strings carried by open/confirmed
-    hypotheses; `any_suspicion_exists` is True if at least one such hypothesis exists.
-    This is a pure function so the planner and the tests share one definition.
+    - requires_suspicion=False  -> ALWAYS unlocked (recon/coverage).
+    - requires_suspicion=True   -> unlocked once ANY open/confirmed hypothesis
+      exists (named class OR vuln_class=None). The class no longer has to match.
+
+    `open_vuln_classes` is retained in the signature (still passed by callers and
+    used elsewhere for ranking) but no longer gates the unlock. This is a pure
+    function so the planner and the tests share one definition.
     """
     if not getattr(defn, "requires_suspicion", False):
         return True
-    vc = getattr(defn, "vuln_class", None)
-    if vc:
-        return vc in (open_vuln_classes or set())
+    # Soft prioritization, not a hard lock: a formed suspicion of ANY class is
+    # sufficient basis to OFFER the engine; the approval gate decides execution.
     return bool(any_suspicion_exists)
 
 

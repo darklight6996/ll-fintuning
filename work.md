@@ -2704,3 +2704,82 @@ history and training trajectories). Implementation log entry appended below afte
       hardening pass could route them through the same boundary for defence-in-depth.
 - next:   operator review; then workstream A remaining parts / workstreams B-C-D (explicitly NOT started
           here). Do NOT begin those without the matching prompt.
+
+### [2026-11-28 20:30 +05:00] claude-opus — BUILD SPEC v1 workstream B IMPLEMENTED (risk-tier gate + blast-radius cap + looser engine access); 568 passed/8 skipped
+- scope: workstream B ONLY. Did NOT touch workstream A (core/ai_planner.py, agents/base_agent.py verified
+  untouched this task) or C/D (JSON/OOB). Committed: nothing (task said log, not commit).
+
+- PART 1 — RISK-TIERED APPROVAL GATE (ll-finetuning/rag/core/command_executor.py, GATE 9):
+  Replaced the binary high-risk->prompt / no-TTY->blunt-decline logic with a tier policy driven by the
+  ActionDefinition metadata already present. New helpers on CommandExecutor:
+    * `_classify_risk_tier(defn)` -> 0|1|2, FAIL-SAFE: every attr read with a dangerous default
+      (risk->high, network_effect->active, state_change->target_modify), so a missing/unknown/unclassifiable
+      action is Tier 2. Tier 0 = read-only/none + state none + low/med risk (recon/header reads/XSS marker
+      detection). Tier 1 = read-only + state credential_access (sensitive read: OOB-SSRF cloud-metadata,
+      DB-row dump). Tier 2 = any target_modify, or high-risk non-sensitive-read (RCE/offensive/destructive),
+      or anything not positively benign.
+    * `_target_kind(scope)` -> "lab"|"real", FAIL-SAFE default "real". Lab only if positively declared:
+      PENTEST_TARGET_KIND=lab (set by run_portswigger_lab.py) or the legacy/ dangerous lab flags.
+  Gate behavior (same policy for manual + autonomous callers; the only old difference was prompt wording):
+    * Tier 0 -> AUTO-PROCEED, no human, lab AND real in-scope. approved_by="tier0_observational_auto".
+    * Tier 1 -> lab AUTO ("tier1_lab_auto"); real -> needs approval.
+    * Tier 2 -> real ALWAYS needs approval; lab needs approval BY DEFAULT, auto only with explicit
+      PENTEST_LAB_AUTO_APPROVE_DANGEROUS=1 ("lab_dangerous_auto") or legacy PENTEST_LAB_AUTO_APPROVE=1
+      ("lab_auto_approve", preserved for existing lab automation) AND a scope-locked lab.
+    * NEEDS APPROVAL + no interactive approver -> HALT into status="pending_approval",
+      category="awaiting_human_approval", results=[] -- NEVER auto-proceeds, NEVER silently declines
+      (the old no-TTY path returned "declined"; the new one surfaces it for later approval). Interactive
+      approver present -> prompt [y/N]; decline/interrupt -> "declined". result now also carries
+      risk_tier + target_kind.
+  Target harnesses: run_portswigger_lab.py sets PENTEST_TARGET_KIND=lab (lab marker, Tier0/1 auto on fake
+  data). run_target.py now refuses PENTEST_LAB_AUTO_APPROVE, PENTEST_LAB_AUTO_APPROVE_DANGEROUS, and
+  PENTEST_TARGET_KIND=lab before it starts, and positively sets PENTEST_TARGET_KIND=real -- real targets
+  can NEVER get blanket Tier 1/2 auto-approval (PRESERVED + strengthened).
+
+- PART 2 — BLAST-RADIUS CAP (config-driven, all tiers):
+  `_blast_radius_limits(target_kind)` reads env with safe defaults; real caps TIGHTER than lab:
+    LAB:  PENTEST_LAB_MAX_REQUESTS_PER_ACTION=2000, PENTEST_LAB_GLOBAL_REQUEST_CAP=10000,
+          PENTEST_LAB_MAX_REQUEST_TIMEOUT=120
+    REAL: PENTEST_REAL_MAX_REQUESTS_PER_ACTION=100, PENTEST_REAL_GLOBAL_REQUEST_CAP=500,
+          PENTEST_REAL_MAX_REQUEST_TIMEOUT=30
+  `_blast_radius_check(argv_list, target_kind)` runs BEFORE the exec loop: aborts (status="rejected",
+  category="blast_radius_exceeded") if the action's command count exceeds the per-action cap or would push
+  the run past the cumulative global cap; returns the per-request timeout cap. The exec loop now runs each
+  subprocess with timeout=min(defn.timeout_seconds, cap) -- an in-script runaway loop (the ~10k-request
+  scan the naked probe hit) is killed at the bound instead of hammering the target. Cumulative count on
+  `self._global_request_count`.
+
+- PART 3 — LOOSEN SPECIALIST-ENGINE ACCESS (core/action_contract.py::action_is_unlocked):
+  The vuln_class STRING match is no longer a hard LOCK -- a requires_suspicion action now unlocks once ANY
+  open/confirmed hypothesis exists (named class OR vuln_class=None/novel). Suspicion-before-firing is
+  PRESERVED (nothing offensive unlocks with zero hypotheses). The class becomes a soft ranking hint
+  (unchanged in _suspicion_candidates). This removes the SVG-lab failure mode (a mis-inferred class locked
+  the model out of the right engine and forced a buggy self_script). SAFE because WHICH engine actually
+  RUNS is now governed by the Part 1-2 gate, not the class label.
+  >>> MUST-PRESERVE #2 NOTE (flagged, not silently worked around): this is a deliberate, operator-authorized
+      (workstream B spec) REFINEMENT of the suspicion gate -- the class-match DIMENSION is downgraded to a
+      hint, but the safety core ("offensive tools locked until a hypothesis justifies them" + human-in-the-
+      loop) is preserved, and execution control is strengthened. If the operator considers this a weakening
+      rather than a refinement, revert action_is_unlocked to the class-match form.
+
+- TESTS (the safety regression guard): NEW tests/test_risk_tier_gate.py (17 tests): fail-safe tier
+  classification incl. unknown->Tier2; Tier0 auto no-approver on lab+real; Tier2 real no-approver HALTS
+  pending + never executes; Tier2 lab approval-by-default vs auto with the dangerous opt-in (+ legacy flag);
+  Tier1 auto-lab / pause-real; interactive decline never executes; run_target.py refuses all three lab
+  markers; blast-radius per-action + global cap abort; real caps tighter than lab; specialist reachable with
+  None/novel class (suspicion still required). UPDATED (behavior legitimately changed, not weakened --
+  invariant "never executes without approval" still asserted): test_autonomous_framework.py Test 4 +
+  test_lab_auto_approve_off_by_default_still_fails_closed (now assert pending_approval + results==[]);
+  test_suspicion_gate.py test_class_gated_* + test_offensive_tools_* (now assert any-suspicion unlock).
+
+- FULL SUITE: `python -m pytest` = 568 passed, 8 skipped, 14 warnings (workstream-A baseline 551 + 17 new).
+  Zero regressions. Diff: core/action_contract.py, ll-finetuning/rag/core/command_executor.py (+ its
+  `rag/...` symlink view), run_portswigger_lab.py, run_target.py, 3 test files. ai_planner.py/base_agent.py
+  (workstream A) untouched; no JSON-contract/OOB (C/D) changes.
+- known limitations: blast-radius "requests" are counted as executor-level subprocess COMMANDS (the
+  enforceable unit here) + bounded per-subprocess runtime; HTTP-request counts INSIDE an engine aren't
+  seen by the executor (the timeout cap is the stop-gap there) -- engines could additionally read the env
+  caps in a follow-on. pending_approval is surfaced in the result but there is no resume-queue yet; a
+  headless Tier 2 step simply halts that step.
+- status: done, NOT committed.
+- next: operator review (esp. the MUST-PRESERVE #2 note above); workstreams C/D on their own prompts.

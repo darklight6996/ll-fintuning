@@ -152,10 +152,15 @@ def test_high_risk_requires_confirmation(monkeypatch):
         rationale="High risk action",
     )
 
-    # In a non-interactive test environment without tty, autonomous mode must fail closed
+    # Non-interactive + Tier 2 (high-risk, no lab marker -> real target): the
+    # tiered gate HALTS into an explicit awaiting-approval pending state (BUILD
+    # SPEC v1 workstream B) -- it must NOT auto-proceed and must NOT execute.
+    # "Fails closed" now means "halts pending", not "silently declined".
     result = executor.execute_action(proposal, registry, scope, {}, mode="automated")
-    assert result["status"] in ("declined", "rejected", "manual_review_required")
-    assert result["rejection_category"] in ("high_risk_unattended", "approval_denied")
+    assert result["status"] == "pending_approval"
+    assert result["rejection_category"] == "awaiting_human_approval"
+    assert result["results"] == []           # critically: nothing executed
+    assert result["approval_record"]["approved_by"] is None
 
 
 # ---------------------------------------------------------------------------
@@ -188,7 +193,12 @@ def test_lab_auto_approve_bypasses_the_non_interactive_deadlock(monkeypatch):
 
 
 def test_lab_auto_approve_off_by_default_still_fails_closed(monkeypatch):
+    # No lab markers -> treated as a REAL target (fail-safe). Tier 2 + no
+    # approver -> HALT pending (never executes). Still fails closed; the new
+    # behavior surfaces it for later approval instead of a blunt decline.
     monkeypatch.delenv("PENTEST_LAB_AUTO_APPROVE", raising=False)
+    monkeypatch.delenv("PENTEST_LAB_AUTO_APPROVE_DANGEROUS", raising=False)
+    monkeypatch.delenv("PENTEST_TARGET_KIND", raising=False)
     scope = Scope(target="local", active_testing_allowed=True, state_changes_allowed=True)
     executor = CommandExecutor(read_only=False)
     registry = ActionRegistry(agent_name="test")
@@ -205,8 +215,10 @@ def test_lab_auto_approve_off_by_default_still_fails_closed(monkeypatch):
                                 parameters={}, rationale="probe")
 
     result = executor.execute_action(proposal, registry, scope, {}, mode="automated")
-    assert result["status"] == "declined"
-    assert result["rejection_category"] == "high_risk_unattended"
+    assert result["status"] == "pending_approval"
+    assert result["rejection_category"] == "awaiting_human_approval"
+    assert result["results"] == []           # never executed without approval
+    assert result["target_kind"] == "real"
 
 
 # ---------------------------------------------------------------------------

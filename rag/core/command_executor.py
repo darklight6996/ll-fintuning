@@ -119,6 +119,122 @@ class CommandExecutor:
         """
         self.read_only = read_only
         self._stealth_ctl = None  # lazily built from scope on first execute_action()
+        # Blast-radius accounting (BUILD SPEC v1 workstream B, Part 2): cumulative
+        # count of subprocess commands this executor instance has run, enforced
+        # against a global cap so a run can't issue unbounded request volume.
+        self._global_request_count = 0
+
+    # ------------------------------------------------------------------
+    # Risk-tier + target-kind + blast-radius policy
+    # (BUILD SPEC v1 workstream B, 2026-11-28)
+    # ------------------------------------------------------------------
+    # SAFETY INVARIANT: we loosen the gate for KNOWN-BENIGN actions ONLY.
+    # Dangerous/offensive/irreversible actions ALWAYS require human approval on a
+    # real target. FAIL-SAFE, NOT FAIL-OPEN: any action whose tier cannot be
+    # positively classified as benign is treated as the DANGEROUS tier (Tier 2).
+
+    @staticmethod
+    def _target_kind(scope=None) -> str:
+        """Classify the engagement as 'lab' or 'real'. FAIL-SAFE: defaults to
+        'real' (the STRICTER tier policy) unless a lab is POSITIVELY declared.
+
+        A lab is declared only by the lab path: run_portswigger_lab.py sets
+        PENTEST_TARGET_KIND=lab, and the legacy lab-only auto-approve flags also
+        imply a lab. run_target.py sets none of these AND refuses them before it
+        starts, so a real target can never be mis-seen as a lab here."""
+        if os.environ.get("PENTEST_TARGET_KIND", "").strip().lower() == "lab":
+            return "lab"
+        if os.environ.get("PENTEST_LAB_AUTO_APPROVE") == "1":
+            return "lab"
+        if os.environ.get("PENTEST_LAB_AUTO_APPROVE_DANGEROUS") == "1":
+            return "lab"
+        return "real"
+
+    @staticmethod
+    def _classify_risk_tier(defn) -> int:
+        """Map an action to a risk tier from its OWN declared ActionDefinition
+        metadata. FAIL-SAFE: anything not POSITIVELY classifiable as benign is
+        Tier 2 (dangerous -> human approval). Never fail open.
+
+        Tier 0 OBSERVATIONAL: read-only/none, no target state change, no secret
+          exposure, low/medium risk (recon, endpoint discovery, header/config
+          reads, reflected/stored-XSS marker detection).
+        Tier 1 SENSITIVE-READ: read-only but exposes live secrets/credentials/PII
+          (OOB SSRF returning cloud-metadata creds, dumping a real DB row).
+        Tier 2 DANGEROUS: RCE/code-exec, any write/modify of target state,
+          destructive payloads, brute-force, lateral movement, DoS-capable --
+          and ANYTHING unclassifiable."""
+        # Fail-safe reads: a missing/None attribute takes the DANGEROUS value.
+        risk = getattr(defn, "risk_level", None) or "high"
+        net = getattr(defn, "network_effect", None) or "active"
+        state = getattr(defn, "state_change", None) or "target_modify"
+
+        # Any change to target state is dangerous/irreversible -> Tier 2.
+        if state == "target_modify":
+            return 2
+        if risk == "high":
+            # A high-risk action that is read-only AND only a sensitive READ
+            # (credential_access) is Tier 1; anything else high-risk is Tier 2.
+            if net == "read_only" and state == "credential_access":
+                return 1
+            return 2
+        # Read-only but exposes live secrets/credentials/PII -> Tier 1.
+        if state == "credential_access":
+            return 1
+        # Positively benign: read-only/none, no state change, low/medium risk.
+        if net in ("none", "read_only") and state == "none" and risk in ("low", "medium"):
+            return 0
+        # Not positively classifiable as benign -> fail-safe Tier 2.
+        return 2
+
+    @staticmethod
+    def _blast_radius_limits(target_kind: str) -> Dict[str, int]:
+        """Per-action resource bounds, CONFIG-driven (env) with safe defaults.
+        Real-target caps are TIGHTER than lab caps (stealth / don't get the
+        researcher banned). Not hardcoded: every bound has an env override."""
+        def _int(name: str, default: int) -> int:
+            try:
+                return max(1, int(os.environ.get(name, str(default))))
+            except (TypeError, ValueError):
+                return default
+        if target_kind == "lab":
+            return {
+                "max_requests_per_action": _int("PENTEST_LAB_MAX_REQUESTS_PER_ACTION", 2000),
+                "global_request_cap": _int("PENTEST_LAB_GLOBAL_REQUEST_CAP", 10000),
+                "max_request_timeout": _int("PENTEST_LAB_MAX_REQUEST_TIMEOUT", 120),
+            }
+        return {
+            "max_requests_per_action": _int("PENTEST_REAL_MAX_REQUESTS_PER_ACTION", 100),
+            "global_request_cap": _int("PENTEST_REAL_GLOBAL_REQUEST_CAP", 500),
+            "max_request_timeout": _int("PENTEST_REAL_MAX_REQUEST_TIMEOUT", 30),
+        }
+
+    def _blast_radius_check(self, argv_list, target_kind: str):
+        """Enforce per-action + global blast-radius bounds BEFORE executing.
+        Returns (ok, reason, max_request_timeout). ok=False aborts the action.
+
+        - max_requests_per_action bounds how many commands one action may issue
+          (a builder that emits a huge sweep).
+        - global_request_cap bounds the whole run's cumulative command volume.
+        - max_request_timeout is returned so the per-subprocess timeout can be
+          capped (the DDoS stop-gap: an in-script runaway loop is killed at the
+          cap instead of hammering the target for an hour)."""
+        limits = self._blast_radius_limits(target_kind)
+        n = len(argv_list)
+        if n > limits["max_requests_per_action"]:
+            return (False,
+                    f"Blast-radius cap exceeded: action issues {n} command(s) > "
+                    f"max_requests_per_action={limits['max_requests_per_action']} "
+                    f"(target={target_kind}).",
+                    limits["max_request_timeout"])
+        if self._global_request_count + n > limits["global_request_cap"]:
+            return (False,
+                    f"Blast-radius cap exceeded: global_request_cap="
+                    f"{limits['global_request_cap']} (target={target_kind}) would be "
+                    f"exceeded by this action's {n} command(s) "
+                    f"(already {self._global_request_count} this run).",
+                    limits["max_request_timeout"])
+        return (True, None, limits["max_request_timeout"])
 
     def _stealth(self, scope):
         """Return the per-run StealthController, built once from scope (persists
@@ -622,115 +738,107 @@ class CommandExecutor:
                     "rejection_category": "prohibited_action",
                 }
 
-        # GATE 9: Approval Gate (Manual vs Autonomous Policy)
+        # GATE 9: RISK-TIERED APPROVAL GATE (BUILD SPEC v1 workstream B).
+        #
+        # Replaces the old binary "high-risk -> prompt / no-TTY -> blunt decline"
+        # logic with a tier policy driven by the ActionDefinition metadata +
+        # target kind. The SAME policy governs both manual and autonomous callers
+        # (the only historical difference was prompt wording). FAIL-SAFE: an
+        # unclassifiable action is Tier 2 and is never auto-run.
+        #
+        #   Tier 0 (observational, read-only, reversible): AUTO-PROCEED, no human,
+        #     on labs AND real in-scope targets.
+        #   Tier 1 (sensitive-read, exposes live secrets/PII): AUTO on a LAB
+        #     (data is fake); human approval on a REAL target.
+        #   Tier 2 (dangerous/offensive/irreversible): ALWAYS human approval on a
+        #     REAL target; on a LAB also approval BY DEFAULT, auto only with the
+        #     explicit opt-in PENTEST_LAB_AUTO_APPROVE_DANGEROUS=1 (or the legacy
+        #     PENTEST_LAB_AUTO_APPROVE=1) AND a scope-locked lab. This is the
+        #     MUST-PRESERVE human-in-the-loop core.
+        #
+        # No interactive approver (scheduled/headless): Tier 0 (and Tier 1 on
+        # labs) proceed; anything that needs approval HALTS into an explicit
+        # "pending_approval" state -- NEVER auto-proceeds, NEVER silently declines.
         approval_record = {
             "policy": approval_policy,
             "timestamp": time.time(),
             "approved_by": None,
         }
+        tier = self._classify_risk_tier(defn)
+        target_kind = self._target_kind(scope)
+        approver_present = sys.stdin.isatty()
 
-        if approval_policy == "manual":
-            if not sys.stdin.isatty():
-                return {
-                    "status": "declined",
-                    "action_id": action_id,
-                    "action_identity": action_identity,
-                    "results": [],
-                    "approval_record": approval_record,
-                    "rejection_reason": "Non-interactive terminal cannot provide manual approval (fails closed).",
-                    "rejection_category": "approval_denied",
-                }
-            print(f"\n[OPERATOR APPROVAL NEEDED] Action: {defn.action_id} ({defn.risk_level} risk)")
+        def _gate_result(status, reason, category):
+            return {
+                "status": status,
+                "action_id": action_id,
+                "action_identity": action_identity,
+                "results": [],
+                "approval_record": approval_record,
+                "rejection_reason": reason,
+                "rejection_category": category,
+                "risk_tier": tier,
+                "target_kind": target_kind,
+            }
+
+        needs_approval = False
+        if tier == 0:
+            approval_record["approved_by"] = "tier0_observational_auto"
+        elif tier == 1:
+            if target_kind == "lab":
+                approval_record["approved_by"] = "tier1_lab_auto"
+            else:
+                needs_approval = True
+        else:  # tier == 2
+            legacy_flag = os.environ.get("PENTEST_LAB_AUTO_APPROVE") == "1"
+            dangerous_flag = os.environ.get("PENTEST_LAB_AUTO_APPROVE_DANGEROUS") == "1"
+            if target_kind == "lab" and (legacy_flag or dangerous_flag):
+                # LAB-ONLY dangerous auto-approve. run_target.py refuses both
+                # flags before it starts, so a real target can never reach here
+                # with them set. Loudly printed -- never a silent bypass.
+                approved_by = "lab_auto_approve" if legacy_flag else "lab_dangerous_auto"
+                print(f"\n[LAB AUTO-APPROVE] Action: {defn.action_id} (tier 2, {defn.risk_level} risk) -- "
+                      f"lab-only dangerous opt-in set, no human asked. "
+                      f"run_target.py refuses to start when these flags are set.")
+                for c in argv_list:
+                    print(f"  > {' '.join(c)}")
+                approval_record["approved_by"] = approved_by
+            else:
+                needs_approval = True
+
+        if needs_approval:
+            if not approver_present:
+                # HALT pending -- do not auto-proceed, do not silently decline.
+                return _gate_result(
+                    "pending_approval",
+                    (f"Tier {tier} action requires human approval and no interactive "
+                     f"approver is present (target={target_kind}); halted into "
+                     f"awaiting-approval state. Re-run attended, or set the explicit "
+                     f"lab dangerous opt-in for a scope-locked lab."),
+                    "awaiting_human_approval",
+                )
+            label = "OPERATOR APPROVAL NEEDED" if approval_policy == "manual" else "APPROVAL GATE"
+            print(f"\n[{label}] Action: {defn.action_id} (tier {tier}, {defn.risk_level} risk, "
+                  f"target={target_kind})")
             print(f"  Description: {defn.description}")
             for c in argv_list:
                 print(f"  > {' '.join(c)}")
             try:
                 resp = input("Approve execution? [y/N]: ").strip().lower()
-                if resp not in ("y", "yes"):
-                    return {
-                        "status": "declined",
-                        "action_id": action_id,
-                        "action_identity": action_identity,
-                        "results": [],
-                        "approval_record": approval_record,
-                        "rejection_reason": "Execution declined by operator.",
-                        "rejection_category": "approval_denied",
-                    }
-                approval_record["approved_by"] = "operator"
             except (KeyboardInterrupt, EOFError):
-                return {
-                    "status": "declined",
-                    "action_id": action_id,
-                    "action_identity": action_identity,
-                    "results": [],
-                    "approval_record": approval_record,
-                    "rejection_reason": "Execution cancelled by operator interrupt.",
-                    "rejection_category": "approval_denied",
-                }
+                return _gate_result("declined", "Execution cancelled by operator interrupt.",
+                                    "approval_denied")
+            if resp not in ("y", "yes"):
+                return _gate_result("declined", "Execution declined by operator.",
+                                    "approval_denied")
+            approval_record["approved_by"] = "operator"
 
-        elif approval_policy == "autonomous":
-            if defn.risk_level == "high":
-                # LAB-ONLY auto-approve switch (2026-11-27). Documented at
-                # run_target.py's own refusal of this exact flag (it hard-exits
-                # if this is set, BEFORE even constructing an agent, so a real
-                # target can never reach this branch with it set) -- this is
-                # the other half of that contract. It exists because the
-                # correct fails-closed isatty() check below makes a non-
-                # interactive PortSwigger-lab run structurally unable to ever
-                # produce a proven finding (every HIGH-RISK action auto-
-                # declines with no human to ask), which is a real operational
-                # gap for lab-only automation, not a weakening of the
-                # real-target posture. PENTEST_LAB_AUTO_APPROVE never touches
-                # the "manual" policy branch above, never touches
-                # run_target.py, and is loudly printed every time it fires --
-                # never a silent bypass.
-                lab_auto_approve = os.environ.get("PENTEST_LAB_AUTO_APPROVE") == "1"
-                if lab_auto_approve:
-                    print(f"\n[LAB AUTO-APPROVE] Action: {defn.action_id} ({defn.risk_level} risk) -- "
-                          f"PENTEST_LAB_AUTO_APPROVE=1, no human asked. LAB-ONLY switch; "
-                          f"run_target.py refuses to start at all when this is set.")
-                    for c in argv_list:
-                        print(f"  > {' '.join(c)}")
-                    approval_record["approved_by"] = "lab_auto_approve"
-                elif not sys.stdin.isatty():
-                    return {
-                        "status": "declined",
-                        "action_id": action_id,
-                        "action_identity": action_identity,
-                        "results": [],
-                        "approval_record": approval_record,
-                        "rejection_reason": "High-risk action requires interactive operator approval in autonomous mode (fails closed).",
-                        "rejection_category": "high_risk_unattended",
-                    }
-                if not lab_auto_approve:
-                    print(f"\n[HIGH-RISK GATE] Action: {defn.action_id} ({defn.risk_level} risk)")
-                    for c in argv_list:
-                        print(f"  > {' '.join(c)}")
-                    try:
-                        resp = input("Authorize HIGH-RISK action? [y/N]: ").strip().lower()
-                        if resp not in ("y", "yes"):
-                            return {
-                                "status": "declined",
-                                "action_id": action_id,
-                                "action_identity": action_identity,
-                                "results": [],
-                                "approval_record": approval_record,
-                                "rejection_reason": "High-risk action declined by operator.",
-                                "rejection_category": "approval_denied",
-                            }
-                        approval_record["approved_by"] = "operator_high_risk_gate"
-                    except (KeyboardInterrupt, EOFError):
-                        return {
-                            "status": "declined",
-                            "action_id": action_id,
-                            "action_identity": action_identity,
-                            "results": [],
-                            "approval_record": approval_record,
-                            "rejection_reason": "High-risk action cancelled by operator interrupt.",
-                            "rejection_category": "approval_denied",
-                        }
-            else:
-                approval_record["approved_by"] = "autonomous_policy"
+        # BLAST-RADIUS CAP (Part 2): bound per-action command volume + the run's
+        # global volume BEFORE executing; cap the per-subprocess timeout.
+        br_ok, br_reason, br_timeout_cap = self._blast_radius_check(argv_list, target_kind)
+        if not br_ok:
+            return _gate_result("rejected", br_reason, "blast_radius_exceeded")
+        self._global_request_count += len(argv_list)
 
         # STEALTH PACING: before active requests, sleep a jittered delay (scaled
         # by adaptive backoff). No-op under the default lab profile.
@@ -751,7 +859,10 @@ class CommandExecutor:
                     capture_output=True,
                     text=True,
                     errors="replace",
-                    timeout=defn.timeout_seconds,
+                    # Blast-radius: cap the per-subprocess timeout so an in-script
+                    # runaway loop is killed at the bound instead of hammering the
+                    # target (tighter on real targets than on labs).
+                    timeout=min(defn.timeout_seconds, br_timeout_cap),
                 )
                 duration = time.time() - t0
                 cmd_results.append({

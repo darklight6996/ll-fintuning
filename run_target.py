@@ -82,12 +82,26 @@ def main():
     ap.add_argument("--max-steps", type=int, default=40)
     args = ap.parse_args()
 
-    # Hard safety interlock: never auto-approve model-written code against a real target.
-    if os.environ.get("PENTEST_LAB_AUTO_APPROVE") == "1":
-        print("[REFUSING] PENTEST_LAB_AUTO_APPROVE=1 is set. That lab-only switch auto-runs "
-              "model-written code with no human review -- never against a real target. "
-              "Unset it and re-run:  unset PENTEST_LAB_AUTO_APPROVE")
+    # Hard safety interlock: never auto-approve model-written code against a real
+    # target. Refuse EVERY lab-only auto-approve / lab-marker flag (BUILD SPEC v1
+    # workstream B added PENTEST_LAB_AUTO_APPROVE_DANGEROUS and PENTEST_TARGET_KIND;
+    # a real run must never be mis-tiered as a lab). PRESERVES the real-target
+    # posture: real targets NEVER get blanket Tier 1/2 auto-approval.
+    for _flag, _detail in (
+        ("PENTEST_LAB_AUTO_APPROVE", "auto-runs model-written code with no human review"),
+        ("PENTEST_LAB_AUTO_APPROVE_DANGEROUS", "auto-approves Tier 2 dangerous actions"),
+    ):
+        if os.environ.get(_flag) == "1":
+            print(f"[REFUSING] {_flag}=1 is set. That lab-only switch {_detail} -- "
+                  f"never against a real target. Unset it and re-run:  unset {_flag}")
+            sys.exit(2)
+    if os.environ.get("PENTEST_TARGET_KIND", "").strip().lower() == "lab":
+        print("[REFUSING] PENTEST_TARGET_KIND=lab is set. This harness runs REAL targets; "
+              "the lab tier policy must never apply here. Unset it and re-run:  "
+              "unset PENTEST_TARGET_KIND")
         sys.exit(2)
+    # Positively assert the real-target tier policy for this process.
+    os.environ["PENTEST_TARGET_KIND"] = "real"
 
     host = _lab_hostname(args.target)
     in_scope = args.in_scope or [host]

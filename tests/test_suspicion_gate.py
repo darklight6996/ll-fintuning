@@ -49,11 +49,16 @@ def test_ungated_action_always_unlocked():
     assert action_is_unlocked(d, set(), False) is True
 
 
-def test_class_gated_needs_matching_class():
+def test_class_gated_unlocks_on_any_suspicion_not_class_match():
+    """Part 3 (BUILD SPEC v1 workstream B): the vuln_class string is a ranking
+    HINT, not a hard lock. A class-gated specialist stays locked with NO
+    suspicion, but unlocks once ANY open hypothesis exists -- even one whose
+    class does not match (the SVG-lab mis-inferred-class lockout is gone).
+    Execution is still governed by the approval gate, not the class label."""
     d = _defn("sqli_deep_scan", vuln_class="sqli", requires_suspicion=True)
-    assert action_is_unlocked(d, set(), False) is False
-    assert action_is_unlocked(d, {"xss"}, True) is False      # wrong class
-    assert action_is_unlocked(d, {"sqli"}, True) is True       # matching class
+    assert action_is_unlocked(d, set(), False) is False        # no suspicion -> locked
+    assert action_is_unlocked(d, {"xss"}, True) is True         # different class STILL unlocks
+    assert action_is_unlocked(d, {"sqli"}, True) is True        # matching class unlocks
 
 
 def test_generic_gated_needs_any_suspicion():
@@ -119,8 +124,12 @@ def test_offensive_tools_locked_until_suspicion_then_released():
     assert planner._example_proposal is not None
     assert planner._example_proposal["decision"] == "form_hypothesis"
 
-    # Form an SSRF suspicion -> the generic weapon self_script unlocks; a class-gated
-    # SQLi tool stays locked (no sqli suspicion).
+    # Form a suspicion (any class) -> ALL requires_suspicion engines unlock,
+    # not just a class-matching one. Part 3 (workstream B): the class string is a
+    # ranking hint, not an access lock, so the SSRF hypothesis releases both the
+    # generic self_script AND the class-gated sqli_deep_scan. Suspicion-before-
+    # firing is preserved (nothing unlocked before this hypothesis existed); the
+    # approval gate, not the class label, governs which engine actually runs.
     obs_id = next(iter(store.observations))
     store.add_hypothesis(Hypothesis(
         observation_ids=[obs_id],
@@ -129,16 +138,7 @@ def test_offensive_tools_locked_until_suspicion_then_released():
     ))
     reg2, locked2 = _sections(planner._build_prompt({}, store, None, [], {}))
     assert "self_script" in reg2, reg2          # released by the suspicion
-    assert "sqli_deep_scan" in locked2          # still gated (no sqli hypothesis)
-
-    # Add an SQLi suspicion -> sqlmap unlocks too.
-    store.add_hypothesis(Hypothesis(
-        observation_ids=[obs_id],
-        description="category parameter errors on a quote -> possible SQLi",
-        validation_test="sqli_deep_scan", vuln_class="sqli",
-    ))
-    reg3, _ = _sections(planner._build_prompt({}, store, None, [], {}))
-    assert "sqli_deep_scan" in reg3, reg3
+    assert "sqli_deep_scan" in reg2, reg2       # ALSO released -- no class-match lock anymore
 
 
 # --- 4. ranking + progress (regressions from the live SSRF run, 2026-11-16) ------
