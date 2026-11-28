@@ -170,7 +170,8 @@ class BaseAgent:
         "entities are not allowed", "doctype is disallowed",
     )
 
-    def _validate_supports_claim(self, observation, reasoning: str) -> Tuple[bool, str]:
+    def _validate_supports_claim(self, observation, reasoning: str,
+                                 evidence_store=None, hypothesis=None) -> Tuple[bool, str]:
         """
         Structural rigor gate for record_validation's verdict='supports'.
 
@@ -210,6 +211,22 @@ class BaseAgent:
                     "Use 'refutes' or 'inconclusive', or cite an observation that actually "
                     "confirms this."
                 )
+            # Workstream D-1: a MODEL-authored signal (self_script / nuclei_template)
+            # may self-report confirmed=True on a premise the store already
+            # contradicts (the false-IDOR pattern). Do NOT auto-trust confirmed=True
+            # alone for those -- require the premise cross-check. Deterministic ENGINE
+            # signals are trusted exactly as before (not premise-doubted).
+            action_id = getattr(observation, "action_id", None)
+            if action_id in self._MODEL_AUTHORED_ACTIONS:
+                ok, contra_msg, _obs = self._premise_survives(
+                    action_id, hypothesis, vuln_signal, evidence_store)
+                if not ok:
+                    return False, (
+                        f"verdict='supports' REJECTED on a premise contradiction: {contra_msg}. "
+                        f"Use 'refutes'/'inconclusive', or cite evidence whose premise the store "
+                        f"does not already contradict."
+                    )
+                return True, "model-authored vuln_signal, premise not contradicted"
             return True, "engine-confirmed vuln_signal backs this claim"
 
         raw = (getattr(observation, "raw_stdout", "") or "").strip()
@@ -337,6 +354,117 @@ class BaseAgent:
                 return "lead", "confirmation rests on a weak signal (%r)" % w.strip()
         return "proven", "concrete evidence captured"
 
+    # ------------------------------------------------------------------
+    # PREMISE CROSS-CHECK (workstream D-1, #18 -- the false-IDOR keystone fix)
+    # ------------------------------------------------------------------
+    # CORE GUARD: demote a model-authored claim ONLY when the store's recorded
+    # facts ACTUALLY CONTRADICT the claim's premise. Absence of corroboration is
+    # NOT contradiction -- a genuine finding whose premise is not contradicted
+    # must still reach "proven". Fewer false positives, WITHOUT new false negatives.
+    #
+    # Focused detector for the demonstrated failure mode: a premise that frames
+    # specific values/ids as HIDDEN / beyond-range / private / admin-only, when
+    # those exact values are present in the store as PUBLICLY discovered endpoint
+    # values (e.g. the false IDOR: "productIds 16-20 are hidden" while
+    # endpoint_discovery already listed productId=16..20 as linked from the home
+    # page). Deterministic engine signals are NEVER subjected to premise-doubt.
+
+    _PREMISE_HIDDEN_MARKERS = (
+        "hidden", "beyond", "out of range", "outside the", "not public", "non-public",
+        "nonpublic", "private", "admin-only", "admin only", "privileged", "inaccessible",
+        "not accessible", "no access", "unauthorized", "higher id", "higher-id",
+        "not linked", "unlinked", "restricted",
+    )
+
+    def _known_public_values(self, evidence_store) -> Dict[str, str]:
+        """Map each value the store has recorded as PUBLICLY observed (a query-param
+        value in a discovered endpoint/url) -> the obs_id that first showed it. This
+        is the 'known facts' side of the premise cross-check."""
+        from urllib.parse import urlsplit, parse_qsl
+        known: Dict[str, str] = {}
+        for obs in getattr(evidence_store, "observations", {}).values():
+            facts = getattr(obs, "parsed_facts", None) or {}
+            if not isinstance(facts, dict):
+                continue
+            urls: List[str] = []
+            for key in ("discovered_endpoints", "network_endpoints", "js_endpoints",
+                        "urls", "endpoints", "links"):
+                v = facts.get(key)
+                if isinstance(v, list):
+                    urls.extend(u for u in v if isinstance(u, str))
+            for u in urls:
+                try:
+                    query = urlsplit(u).query
+                except Exception:
+                    continue
+                for _nm, val in parse_qsl(query, keep_blank_values=True):
+                    val = (val or "").strip()
+                    if val:
+                        known.setdefault(val, obs.obs_id)
+        return known
+
+    @staticmethod
+    def _premise_text(hypothesis, vuln_signal) -> str:
+        """Best-effort assembly of a claim's stated premise from the hypothesis
+        (explicit `premise`, else description) and the model-authored signal."""
+        parts = []
+        if hypothesis is not None:
+            parts.append(getattr(hypothesis, "premise", "") or "")
+            parts.append(getattr(hypothesis, "description", "") or "")
+        sig = vuln_signal or {}
+        if isinstance(sig, dict):
+            parts.append(str(sig.get("premise") or ""))
+            parts.append(str(sig.get("summary") or ""))
+            parts.append(str(sig.get("evidence") or ""))
+        return " ".join(p for p in parts if p)
+
+    def _premise_contradiction(self, premise_text, evidence_store):
+        """Return (contradicted, message, contradicting_obs_id). Contradiction fires
+        ONLY when the premise frames specific value(s) as hidden/beyond-range/private
+        AND those exact values are present in the store as publicly discovered
+        endpoint values. No hidden-ness claim, or no overlap with known-public
+        values, => NOT a contradiction (absence of corroboration is not
+        contradiction)."""
+        import re as _re
+        text = (premise_text or "").lower()
+        if not text:
+            return (False, "", None)
+        if not any(m in text for m in self._PREMISE_HIDDEN_MARKERS):
+            return (False, "", None)  # no "hidden/beyond/private" claim -> nothing to contradict
+        claimed = set(_re.findall(r"\d+", text))
+        # Expand simple numeric ranges: "16-20", "16 to 20", "16..20", "16 through 20".
+        for a, b in _re.findall(r"(\d+)\s*(?:-|to|\.\.|through|–)\s*(\d+)", text):
+            try:
+                lo, hi = int(a), int(b)
+                if 0 <= hi - lo <= 1000:
+                    claimed.update(str(i) for i in range(lo, hi + 1))
+            except ValueError:
+                pass
+        if not claimed:
+            return (False, "", None)
+        known = self._known_public_values(evidence_store)
+        hits = [(v, known[v]) for v in claimed if v in known]
+        if not hits:
+            return (False, "", None)  # premise not contradicted by anything on record
+        shown = ", ".join(sorted({v for v, _ in hits}, key=lambda s: (len(s), s)))
+        obs_id = hits[0][1]
+        return (True,
+                (f"premise claims value(s) {{{shown}}} are hidden/beyond-range/private, but they "
+                 f"appear as PUBLICLY discovered endpoint values in observation {obs_id} -- the "
+                 f"store's recorded facts contradict the premise"),
+                obs_id)
+
+    def _premise_survives(self, action_id, hypothesis, vuln_signal, evidence_store):
+        """True unless this is a MODEL-authored claim whose premise the store
+        contradicts. Deterministic ENGINE signals are never premise-doubted."""
+        if action_id not in self._MODEL_AUTHORED_ACTIONS:
+            return (True, "", None)
+        if evidence_store is None:
+            return (True, "", None)
+        text = self._premise_text(hypothesis, vuln_signal)
+        contradicted, msg, obs_id = self._premise_contradiction(text, evidence_store)
+        return ((not contradicted), msg, obs_id)
+
     def _promote_evidence_if_warranted(
         self,
         defn: Optional[Any],
@@ -418,6 +546,7 @@ class BaseAgent:
                 validation_test=action_id,
                 confidence="plausible",
                 vuln_class=(vuln_signal.get("vuln_class") or None),
+                premise=str(vuln_signal.get("premise") or v_summary or "")[:1000] or None,
             )
             evidence_store.add_hypothesis(v_hyp)
             evidence_store.add_validation(Validation(
@@ -428,6 +557,13 @@ class BaseAgent:
                 reasoning=f"Detection engine returned a confirmed verdict: {v_summary}",
             ))
             _strength, _why = self._confirmation_strength(action_id, vuln_signal)
+            # Premise cross-check (workstream D-1): a MODEL-authored signal whose
+            # premise the store contradicts is demoted to a lead here too, so the
+            # automatic path can't promote a premise-false claim to "proven".
+            if _strength == "proven":
+                _ok, _contra, _ = self._premise_survives(action_id, v_hyp, vuln_signal, evidence_store)
+                if not _ok:
+                    _strength, _why = "lead", _contra
             if _strength == "lead":
                 # Unverified/weak confirmation -> a LEAD, not a proven finding. Cap the
                 # severity and mark it clearly so a human verifies before any report,
@@ -852,6 +988,9 @@ class BaseAgent:
             validation_test=validation_test or "(unspecified)",
             confidence=confidence,
             vuln_class=vuln_class,
+            # Capture the stated PREMISE (workstream D-1 #18) for the cross-check:
+            # an explicit `premise` param if given, else the description itself.
+            premise=str(params.get("premise") or description or "")[:1000] or None,
         )
         evidence_store.add_hypothesis(hyp)
         return {
@@ -1042,7 +1181,11 @@ class BaseAgent:
         # advance a hypothesis toward being confirmed, so there is nothing to
         # fabricate).
         if verdict == "supports":
-            ok, why = self._validate_supports_claim(observation, reasoning)
+            ok, why = self._validate_supports_claim(
+                observation, reasoning,
+                evidence_store=evidence_store,
+                hypothesis=evidence_store.hypotheses.get(hypothesis_id),
+            )
             if not ok:
                 return {
                     "status": "rejected",
@@ -1111,6 +1254,7 @@ class BaseAgent:
         if not supporting:
             return "lead", "no supporting validation on record"
 
+        hyp = evidence_store.hypotheses.get(hypothesis_id)
         best_strength = "lead"
         best_reason = "no structured vuln_signal in any supporting observation -- unverified narrative only"
         for val in supporting:
@@ -1122,7 +1266,15 @@ class BaseAgent:
             action_id = getattr(obs, "action_id", None) or getattr(val, "action_id", "unknown")
             strength, reason = self._confirmation_strength(action_id, vuln_signal)
             if strength == "proven":
-                return "proven", reason  # a single genuinely proven citation is enough
+                # SEMANTIC check (workstream D-1 #17/#18/#19): a MODEL-authored claim
+                # is "proven" only if its premise ALSO survives the cross-check against
+                # the store's recorded facts. Engine signals are not premise-doubted.
+                ok, contra_msg, _obs = self._premise_survives(action_id, hyp, vuln_signal, evidence_store)
+                if not ok:
+                    if best_strength != "proven":
+                        best_strength, best_reason = "lead", contra_msg
+                    continue  # this citation demoted; a truly-proven one elsewhere still wins
+                return "proven", reason  # concrete evidence AND premise not contradicted
             if best_strength != "proven":
                 best_strength, best_reason = "lead", reason
         return best_strength, best_reason

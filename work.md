@@ -2850,3 +2850,64 @@ history and training trajectories). Implementation log entry appended below afte
   anyway) -- JSON remains the richer form for complex params.
 - status: done, NOT committed.
 - next: operator review; workstream D (OOB/confirmation) on its own prompt.
+
+### [2026-11-28 22:50 +05:00] claude-opus — BUILD SPEC v1 workstream D-1 IMPLEMENTED (premise cross-check + semantic confirmation + EvidenceStore dedup); 590 passed/8 skipped
+- scope: workstream D-1 ONLY (agents/base_agent.py + core/investigation.py + tests). Did NOT touch A
+  (render), B (gate), C (output/candidates), or D-2 (OOB server). Committed: nothing (task said log).
+- This is the false-IDOR fix: audit Defect #6 (lexical-not-semantic confirmation) + Section 1's SECOND
+  root cause (the confirmation step didn't catch a premise the store already contradicted).
+
+- CORE GUARD honored: demotion fires ONLY on an ACTUAL store contradiction; absence of corroboration is
+  NOT contradiction. A genuine, uncontradicted finding still reaches "proven" (tests assert both
+  directions -- fewer false positives, no new false negatives).
+
+- PART 1 — PREMISE REGISTRY + CROSS-CHECK (#18):
+  * Hypothesis gained an optional `premise` field (core/investigation.py). Captured in
+    _handle_form_hypothesis (explicit `premise` param, else the description) and in the auto-path v_hyp
+    (vuln_signal.premise or its summary). Best-effort: the cross-check also reads description +
+    vuln_signal summary/evidence, so it works even when `premise` is unset.
+  * FOCUSED, conservative contradiction detector (agents/base_agent.py): _known_public_values() builds
+    the "known facts" side -- every query-param VALUE in the store's discovered endpoints/urls, mapped to
+    the obs_id that showed it. _premise_contradiction() fires ONLY when the premise frames specific
+    value(s) as hidden/beyond-range/private/admin-only (a marker word) AND those exact values appear in
+    known-public. No marker, or no overlap => NOT a contradiction. Names the contradicting obs_id in the
+    message. (Deliberately narrow -- the demonstrated false-IDOR shape -- extensible later; documented as
+    a limitation rather than a broad NLP premise-checker that could create false negatives.)
+
+- PART 2 — SEMANTIC, NOT LEXICAL, CONFIRMATION (#17/#19):
+  * _premise_survives(action_id, hyp, vuln_signal, store): True unless a MODEL-authored claim's premise
+    is contradicted; ENGINE signals (action_id not in _MODEL_AUTHORED_ACTIONS) are NEVER premise-doubted.
+  * Wired into all three gates: (a) _compute_finding_strength -- a model-authored "proven" citation is
+    downgraded to "lead" (with the contradiction message) if its premise is contradicted; a genuinely
+    proven citation elsewhere still wins. (b) _promote_evidence_if_warranted (auto path) -- same demotion
+    before it can record a "proven". (c) _validate_supports_claim -- for model-authored confirmed signals
+    it now REJECTS verdict='supports' on a premise contradiction instead of auto-trusting confirmed=True;
+    engine signals keep the existing auto-trust. The existing-split (engine trusted, model scrutinized)
+    is preserved; objective-engine confirmations are not weakened.
+
+- PART 3 — DEDUP AT THE EVIDENCESTORE (#25):
+  * EvidenceStore.record_finding now dedups INSIDE the store, so neither promotion path (automatic
+    _promote_evidence_if_warranted nor manual _handle_record_finding -- both funnel through record_finding)
+    can create a duplicate. Two findings are the SAME claim iff observation_ids OVERLAP AND
+    _claim_key matches: the claim key is the hypothesis's vuln_class, or -- when neither has a class --
+    the normalized title. Same claim + overlapping evidence => MERGE (union obs/validation ids, keep the
+    STRONGER strength) and return the existing finding, never a second. DISTINCT vulns (different class)
+    on a shared observation are NOT collapsed. proven_finding_count counts one piece of evidence once.
+
+- TESTS: NEW tests/test_premise_crosscheck.py (9): false-IDOR (endpoint_discovery 1-20 + self_script
+  claiming 16-20 hidden) demoted to LEAD naming the contradicting obs_id; record_validation rejected on
+  the same contradiction; uncontradicted premise STILL proven; premise naming UNKNOWN values is NOT a
+  contradiction (still proven); deterministic-engine signal STILL proven even with a would-be-contradicted
+  premise; _premise_contradiction direct unit; dedup same-claim/overlapping-obs -> one finding
+  (proven_finding_count==1); two DISTINCT vulns on one shared obs -> BOTH counted; dedup merge upgrades
+  lead->proven as one finding.
+- FULL SUITE: `python -m pytest` = 590 passed, 8 skipped, 14 warnings (workstream-C baseline 581 + 9 new).
+  Zero regressions. Diff: agents/base_agent.py, core/investigation.py, tests/test_premise_crosscheck.py.
+  ai_planner.py (A/C) / command_executor.py / action_contract.py (B) untouched; no OOB server (D-2).
+- known limitations: the contradiction detector covers the demonstrated "hidden/beyond-range value that
+  is actually public" shape (numeric + id-like values in discovered endpoint query params). Other premise
+  kinds ("this user has no access to X", role/state claims) are not yet cross-checked -- a genuine gap,
+  but widening it blindly risks false negatives (the core guard), so it is left as a documented extension
+  point. The --sweep surface_map is a natural future home for a richer known-facts side.
+- status: done, NOT committed.
+- next: operator review; workstream D-2 (OOB confirmation server) on its own prompt.

@@ -182,6 +182,13 @@ class Hypothesis(BaseModel):
     assumption_id: Optional[str] = None
     expected_control: Optional[str] = None
     expected_attack: Optional[str] = None
+    # Workstream D-1 (#18): the stated, falsifiable PREMISE of this hypothesis
+    # (e.g. "productIds 16-20 are hidden / beyond the public range"). Before a
+    # MODEL-authored finding built on this premise can be promoted to "proven",
+    # the premise is cross-checked against the store's recorded facts; a premise
+    # the store CONTRADICTS demotes the finding to "lead". Absence of
+    # corroboration is NOT contradiction. Defaults None (optional / best-effort).
+    premise: Optional[str] = None
 
 
 class Validation(BaseModel):
@@ -475,6 +482,21 @@ class EvidenceStore(BaseModel):
 
         return True, "OK"
 
+    @staticmethod
+    def _strength_rank(s: str) -> int:
+        return {"milestone": 0, "lead": 1, "proven": 2}.get(s, 1)
+
+    @staticmethod
+    def _claim_key(hyp, title: str):
+        """Identity of the CLAIM a finding makes, for dedup. A non-empty vuln_class
+        is the claim key; otherwise fall back to the normalized title so two
+        DISTINCT untyped findings are not collapsed, while a re-record of the same
+        one is."""
+        vc = (getattr(hyp, "vuln_class", None) or "").strip().lower() if hyp is not None else ""
+        if vc:
+            return ("class", vc)
+        return ("title", " ".join((title or "").lower().split()))
+
     def record_finding(
         self,
         hypothesis_id: str,
@@ -500,6 +522,34 @@ class EvidenceStore(BaseModel):
             v.val_id for v in self.validations.values()
             if v.hypothesis_id == hypothesis_id and v.verdict == "supports"
         ]
+
+        # DEDUP AT THE STORE (workstream D-1 #25): no promotion path -- automatic
+        # (_promote_evidence_if_warranted) or manual (_handle_record_finding) --
+        # may create a duplicate Finding. Two Findings are the SAME claim iff their
+        # observation_ids OVERLAP AND they represent the same claim (same
+        # vuln_class; or, when neither has a class, the same normalized title).
+        # Genuinely DISTINCT vulns evidenced by the same observation are NOT
+        # collapsed -- dedup is on (overlapping obs AND same claim), never obs
+        # alone -- so proven_finding_count counts one piece of evidence once.
+        new_obs = set(hyp.observation_ids)
+        new_key = self._claim_key(hyp, title)
+        for existing in self.findings.values():
+            if not (new_obs & set(existing.observation_ids)):
+                continue
+            existing_hyp = self.hypotheses.get(existing.hypothesis_id)
+            if self._claim_key(existing_hyp, existing.title) != new_key:
+                continue  # distinct claim on shared evidence -> both findings stand
+            # Same claim + overlapping evidence -> MERGE into the existing Finding
+            # instead of creating a second. Union the evidence/validation ids and
+            # keep the STRONGER strength (a later 'proven' upgrades a prior 'lead').
+            existing.observation_ids = list(dict.fromkeys(
+                list(existing.observation_ids) + list(hyp.observation_ids)))
+            existing.validation_ids = list(dict.fromkeys(
+                list(existing.validation_ids) + supporting_vals))
+            if self._strength_rank(strength) > self._strength_rank(existing.strength):
+                existing.strength = strength if strength in ("proven", "lead", "milestone") else existing.strength
+                existing.severity = severity
+            return existing, "Duplicate finding merged into existing (same claim + overlapping evidence)."
 
         finding = Finding(
             hypothesis_id=hypothesis_id,
